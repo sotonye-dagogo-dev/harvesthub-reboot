@@ -1,0 +1,20 @@
+import { ReactNode } from "react";
+import { Header, Sidebar } from "@/components/layout";
+
+interface AdminLayoutProps {
+  children: ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  return (
+    <div className="flex h-screen flex-col">
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar type="admin" />
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 pb-20 dark:bg-gray-950 md:pb-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

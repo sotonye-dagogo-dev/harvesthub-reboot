@@ -1,0 +1,361 @@
+/**
+ * Notification Settings Page
+ * Allows users to configure notification preferences
+ */
+
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, Switch, Button, message, Spin } from "antd";
+import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
+
+interface NotificationPreferences {
+  orderConfirmed: boolean;
+  orderReady: boolean;
+  orderDelivered: boolean;
+  orderCancelled: boolean;
+  paymentSuccess: boolean;
+  paymentFailed: boolean;
+  deliveryUpdates: boolean;
+  vendorMessages: boolean;
+  lowStock: boolean;
+  newProducts: boolean;
+  promotions: boolean;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+}
+
+export default function NotificationSettingsPage() {
+  const [preferences, setPreferences] = useState<NotificationPreferences>({
+    orderConfirmed: true,
+    orderReady: true,
+    orderDelivered: true,
+    orderCancelled: true,
+    paymentSuccess: true,
+    paymentFailed: true,
+    deliveryUpdates: true,
+    vendorMessages: true,
+    lowStock: true,
+    newProducts: false,
+    promotions: false,
+    emailNotifications: true,
+    smsNotifications: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Fetch preferences
+  useEffect(() => {
+    fetchPreferences();
+  }, []);
+
+  const fetchPreferences = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/notifications/preferences");
+      const data = await res.json();
+      
+      if (data.success) {
+        setPreferences(data.preferences);
+      }
+    } catch (error) {
+      console.error("Failed to fetch preferences:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePreferences = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(preferences),
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        message.success("Notification preferences saved");
+      } else {
+        message.error(data.error || "Failed to save preferences");
+      }
+    } catch (error) {
+      console.error("Failed to save preferences:", error);
+      message.error("Failed to save preferences");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePreference = (key: keyof NotificationPreferences, value: boolean) => {
+    setPreferences(prev => ({ ...prev, [key]: value }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Notification Settings
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage how you receive notifications about your orders, payments, and account activity
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* Order Notifications */}
+        <Card title="Order Notifications" className="shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-purple-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Order Confirmed</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when your order is confirmed
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.orderConfirmed}
+                onChange={(checked) => updatePreference("orderConfirmed", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-blue-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Order Ready</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when your order is ready for pickup
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.orderReady}
+                onChange={(checked) => updatePreference("orderReady", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Order Delivered</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when your order is delivered
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.orderDelivered}
+                onChange={(checked) => updatePreference("orderDelivered", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-red-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Order Cancelled</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when an order is cancelled
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.orderCancelled}
+                onChange={(checked) => updatePreference("orderCancelled", checked)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Payment Notifications */}
+        <Card title="Payment Notifications" className="shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Payment Success</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when a payment is successful
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.paymentSuccess}
+                onChange={(checked) => updatePreference("paymentSuccess", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DollarSign className="h-5 w-5 text-red-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Payment Failed</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when a payment fails
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.paymentFailed}
+                onChange={(checked) => updatePreference("paymentFailed", checked)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Delivery & Vendor Notifications */}
+        <Card title="Delivery & Vendor Notifications" className="shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="h-5 w-5 text-blue-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Delivery Updates</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get real-time updates on your delivery status
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.deliveryUpdates}
+                onChange={(checked) => updatePreference("deliveryUpdates", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-purple-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Vendor Messages</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when vendors send you messages
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.vendorMessages}
+                onChange={(checked) => updatePreference("vendorMessages", checked)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Stock & Promotional Notifications */}
+        <Card title="Stock & Promotional Notifications" className="shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Low Stock Alerts</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified when items on your wishlist are low in stock
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.lowStock}
+                onChange={(checked) => updatePreference("lowStock", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="h-5 w-5 text-purple-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">New Products</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified about new products from vendors you follow
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.newProducts}
+                onChange={(checked) => updatePreference("newProducts", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Promotions</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Get notified about special offers and promotions
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.promotions}
+                onChange={(checked) => updatePreference("promotions", checked)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Email & SMS Notifications */}
+        <Card title="Email & SMS Notifications" className="shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">Email Notifications</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Receive important notifications via email
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.emailNotifications}
+                onChange={(checked) => updatePreference("emailNotifications", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">SMS Notifications</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Receive critical notifications via SMS
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={preferences.smsNotifications}
+                onChange={(checked) => updatePreference("smsNotifications", checked)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Save Button */}
+        <div className="flex justify-end gap-4">
+          <Button onClick={fetchPreferences} disabled={saving}>
+            Reset
+          </Button>
+          <Button type="primary" onClick={savePreferences} loading={saving}>
+            Save Preferences
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
