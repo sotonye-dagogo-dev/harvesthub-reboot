@@ -20,7 +20,7 @@ export async function getCurrentUser(): Promise<JWTPayload | null> {
         const token = await getAccessToken();
         if (!token) return null;
 
-        const payload = verifyAccessToken(token);
+        const payload = await verifyAccessToken(token);
         return payload;
     } catch {
         return null;

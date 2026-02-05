@@ -23,7 +23,7 @@ export async function POST() {
         }
 
         // Verify refresh token
-        const payload = verifyRefreshToken(refreshToken);
+        const payload = await verifyRefreshToken(refreshToken);
         if (!payload) {
             return NextResponse.json(
                 { error: 'Invalid refresh token' },
@@ -41,7 +41,7 @@ export async function POST() {
         }
 
         // Generate new access token
-        const newAccessToken = generateAccessToken(user.id, user.email, user.role);
+        const newAccessToken = await generateAccessToken(user.id, user.email, user.role);
 
         // Set new access token cookie
         await setAccessTokenCookie(newAccessToken);

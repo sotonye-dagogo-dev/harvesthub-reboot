@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     let user = null;
     if (accessToken) {
         try {
-            user = verifyAccessToken(accessToken);
+            user = await verifyAccessToken(accessToken);
         } catch {
             // Token is invalid or expired
             // Continue without user (will redirect if needed)
