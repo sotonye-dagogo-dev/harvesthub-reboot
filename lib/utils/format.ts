@@ -22,14 +22,14 @@ export function formatCampus(campus: Campus): string {
 export function formatVendorCategory(category: VendorCategory): string {
     const categoryMap: Record<VendorCategory, string> = {
         FARM_PRODUCE: "Farm Produce",
-        FASHION_APPAREL: "Fashion & Apparel",
+        FASHION: "Fashion & Apparel",
         FOOD_BEVERAGES: "Food & Beverages",
-        BEAUTY_COSMETICS: "Beauty & Cosmetics",
-        ELECTRONICS_GADGETS: "Electronics & Gadgets",
+        BEAUTY: "Beauty & Cosmetics",
+        ELECTRONICS: "Electronics & Gadgets",
         HOME_KITCHEN: "Home & Kitchen",
-        BOOKS_STATIONERY: "Books & Stationery",
+        BOOKS: "Books & Stationery",
         SERVICES: "Services",
-        CRAFTS_HANDMADE: "Crafts & Handmade",
+        CRAFTS: "Crafts & Handmade",
         OTHERS: "Others",
     };
     return categoryMap[category] || category;

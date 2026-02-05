@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { mockProducts } from "@/lib/data/mockData";
 
@@ -117,9 +118,11 @@ export function SearchBar({
                 onClick={() => handleSuggestionClick(product.id)}
                 className="flex w-full items-center gap-3 border-b border-gray-100 p-3 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50"
               >
-                <img
+                <Image
                   src={product.images[0] || "/placeholder-product.jpg"}
                   alt={product.name}
+                  width={48}
+                  height={48}
                   className="h-12 w-12 rounded object-cover"
                 />
                 <div className="flex-1 overflow-hidden">
@@ -138,7 +141,7 @@ export function SearchBar({
             onClick={() => setShowDropdown(false)}
             className="block border-t border-gray-200 p-3 text-center text-sm text-purple-600 hover:bg-gray-50 dark:border-gray-700 dark:text-purple-400 dark:hover:bg-gray-700/50"
           >
-            View all results for "{query}"
+            View all results for &quot;{query}&quot;
           </Link>
         </div>
       )}

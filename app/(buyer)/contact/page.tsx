@@ -12,7 +12,7 @@ export default function ContactPage() {
       <div className="mb-12 text-center">
         <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Contact Us</h1>
         <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-          Have questions? We're here to help! Reach out to us through any of the channels below.
+          Have questions? We&apos;re here to help! Reach out to us through any of the channels below.
         </p>
       </div>
 

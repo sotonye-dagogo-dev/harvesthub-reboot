@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
               1. Introduction
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              HarvestHub ("we," "our," or "us") is committed to protecting your privacy. This
+              HarvestHub (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This
               Privacy Policy explains how we collect, use, disclose, and safeguard your information
               when you use our e-commerce marketplace platform.
             </p>
@@ -151,7 +151,7 @@ export default function PrivacyPolicyPage() {
 
           <section className="mb-8">
             <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-              9. Children's Privacy
+              9. Children&apos;s Privacy
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               Our platform is not intended for children under 13. We do not knowingly collect data

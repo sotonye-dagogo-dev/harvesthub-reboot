@@ -13,7 +13,7 @@ const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'harvesthub-access-
 const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'harvesthub-refresh-secret-key-2026';
 
 // Token expiry times
-const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
+const ACCESS_TOKEN_EXPIRY = '8h'; // 8 hours
 const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
 
 // JWT Payload interface

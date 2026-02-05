@@ -53,6 +53,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Header />
       {/* Banner Carousel */}
       {activeBanners.length > 0 && (
         <section className="mb-8">
@@ -233,6 +234,7 @@ export default function HomePage() {
           </Link>
         </section>
       </div>
+      <Footer />
     </div>
   );
 }

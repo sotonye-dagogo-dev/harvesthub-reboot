@@ -179,7 +179,7 @@ export default function FAQsPage() {
 
       <div className="mt-16 rounded-lg bg-purple-50 p-8 text-center dark:bg-purple-900/20">
         <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-          Didn't find your answer?
+          Didn&apos;t find your answer?
         </h2>
         <p className="mb-6 text-gray-600 dark:text-gray-400">
           Our support team is ready to help you with any questions

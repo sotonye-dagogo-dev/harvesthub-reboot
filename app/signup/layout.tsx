@@ -7,20 +7,9 @@ import StageTracker from "./components/StageTracker";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 
-export type Stage =
-  | "selection"
-  | "user-info"
-  | "store-info"
-  | "account-info"
-  | "security-info";
+export type Stage = "selection" | "user-info" | "store-info" | "account-info" | "security-info";
 
-const stages: Stage[] = [
-  "selection",
-  "user-info",
-  "store-info",
-  "account-info",
-  "security-info",
-];
+const stages: Stage[] = ["selection", "user-info", "store-info", "account-info", "security-info"];
 
 interface SignupLayoutProps {
   children: ReactNode;
@@ -42,19 +31,19 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
   // Update currentStage based on the pathname
   useEffect(() => {
     // Find the current stage based on URL path
-    const currentPath = pathname.split('/').pop();
-    const stageIndex = stages.findIndex(stage => 
-      currentPath === stage || currentPath === stage.replace('-', '')
+    const currentPath = pathname.split("/").pop();
+    const stageIndex = stages.findIndex(
+      (stage) => currentPath === stage || currentPath === stage.replace("-", "")
     );
-    
+
     if (stageIndex !== -1) {
       setCurrentStage(stageIndex);
-    } else if (pathname === '/signup') {
+    } else if (pathname === "/signup") {
       // Default to selection stage if on base signup route
       setCurrentStage(0);
     }
   }, [pathname]);
-  
+
   const handleNext = (): void => {
     if (currentStage < stages.length - 1) {
       // Check if user type is "individual" and next stage would be "store-info"
@@ -73,17 +62,23 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
 
   const handleBack = (): void => {
     if (currentStage > 0) {
-      // Check if user type is "individual" and current stage is "account-info" 
+      // Check if user type is "individual" and current stage is "account-info"
       // and previous stage would be "store-info"
-      if (formData.userType === "individual" && 
-          stages[currentStage] === "account-info" && 
-          stages[currentStage - 1] === "store-info") {
+      if (
+        formData.userType === "individual" &&
+        stages[currentStage] === "account-info" &&
+        stages[currentStage - 1] === "store-info"
+      ) {
         // Skip back past the store-info stage for individual users
         setCurrentStage((prev) => prev - 2);
-        router.push(`/signup/${stages[currentStage - 2] === 'selection' ? '' : stages[currentStage - 2]}`);
+        router.push(
+          `/signup/${stages[currentStage - 2] === "selection" ? "" : stages[currentStage - 2]}`
+        );
       } else {
         setCurrentStage((prev) => prev - 1);
-        router.push(`/signup/${stages[currentStage - 1] === 'selection' ? '' : stages[currentStage - 1]}`);
+        router.push(
+          `/signup/${stages[currentStage - 1] === "selection" ? "" : stages[currentStage - 1]}`
+        );
       }
     }
   };
@@ -106,77 +101,77 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
   });
 
   return (
-    <>    
-    <div className="flex h-screen overflow-clip">
-      {/* Left section with orange background */}
-      <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-primary-100 p-10 text-white">
-        <div className="splines-bg"></div>
-        <div className="w-full flex flex-col justify-stretch items-center z-[2] pb-16">
-          <div className="flex w-full items-start justify-between">
+    <>
+      <div className="flex h-screen overflow-clip">
+        {/* Left section with orange background */}
+        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-primary-100 p-10 text-white">
+          <div className="splines-bg"></div>
+          <div className="w-full flex flex-col justify-stretch items-center z-[2] pb-16">
+            <div className="flex w-full items-start justify-between">
+              <Image
+                src="/dark-bg-harvesters-Logo.jpg"
+                alt="HarvestHub Logo"
+                preview={false}
+                className="w-20 h-20 self-start"
+              />
+              <Image
+                src="/Rectangle16.svg"
+                alt="Abstract Rectangle"
+                preview={false}
+                className="w-16 h-16 self-end"
+              />
+            </div>
+            <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
+              <h3 className="text-[40px] leading-[44px]">New account</h3>
+              <p className="text-sm font-thin">Lorem, ipsum dolor sit amet.</p>
+              <Image
+                src="/Points.svg"
+                alt="Points"
+                preview={false}
+                className="w-20 h-20 self-start"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right section with sign up form */}
+        <div className="overflow-y-auto w-full md:w-2/3 lg:w-1/2 flex flex-col items-center gap-6 p-6 md:p-10">
+          <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
+            <h6 className="text-[20px] leading-[22px]">Sign up to</h6>
             <Image
-              src="/martgram_brandmark.svg"
-              alt="Martgram Logo"
+              src="/dark-bg-harvesters-Logo.jpg"
+              alt="Logo"
               preview={false}
               className="w-20 h-20 self-start"
             />
-            <Image
-              src="/Rectangle16.svg"
-              alt="Abstract Rectangle"
-              preview={false}
-              className="w-16 h-16 self-end"
-            />
+            <p className="text-xs font-thin text-gray-400">
+              Join HarvestHub, Shop Smarter, Sell Smarter, Deliver Smarter!
+            </p>
           </div>
-          <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
-            <h3 className="text-[40px] leading-[44px]">New account</h3>
-            <p className="text-sm font-thin">Lorem, ipsum dolor sit amet.</p>
-            <Image
-              src="/Points.svg"
-              alt="Points"
-              preview={false}
-              className="w-20 h-20 self-start"
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* Right section with sign up form */}
-      <div className="overflow-y-auto w-full md:w-2/3 lg:w-1/2 flex flex-col items-center gap-6 p-6 md:p-10">
-        <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
-          <h6 className="text-[20px] leading-[22px]">Sign up to</h6>
-          <Image
-            src="/primaryLogo.svg"
-            alt="Martgram Logo"
-            preview={false}
-            className="w-20 h-20 self-start"
-          />
-          <p className="text-xs font-thin text-gray-400">
-            Join Martgram, Shop Smarter, Sell Smarter, Deliver Smarter!
-          </p>
-        </div>
-
-        <div className="w-full max-w-md flex flex-col justify-between items-center gap-4">
-          <StageTracker
+          <div className="w-full max-w-md flex flex-col justify-between items-center gap-4">
+            <StageTracker
               currentStage={currentStage}
-              stages={stages.filter(stage => !(formData.userType === "individual" && stage === "store-info"))}
+              stages={stages.filter(
+                (stage) => !(formData.userType === "individual" && stage === "store-info")
+              )}
               onBack={handleBack}
               canGoBack={currentStage > 0}
             />
 
-          <div className="w-full max-w-md flex flex-col justify-between items-center gap-6">
-            {childrenWithProps}
-          </div>
+            <div className="w-full max-w-md flex flex-col justify-between items-center gap-6">
+              {childrenWithProps}
+            </div>
 
-          <p className="text-xs text-start w-full">
-            Already have an account?{" "}
-            <Link
-              href={"/"}
-              className="text-primary-100 underline hover:no-underline">
-              Login.
-            </Link>
-          </p>
+            <p className="text-xs text-start w-full">
+              Already have an account?{" "}
+              <Link href={"/"} className="text-primary-100 underline hover:no-underline">
+                Login.
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }

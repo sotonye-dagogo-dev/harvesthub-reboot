@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { mockVendors, mockProducts } from "@/lib/data/mockData";
 import { VendorCard } from "@/components/features";
 import { Input, Select, Empty } from "antd";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Vendors | HarvestHub",
