@@ -1,9 +1,9 @@
 "use client";
 
-import { Form, Input, Button } from "antd";
-import { GoogleOutlined } from "@ant-design/icons";
+import { Form, Input } from "antd";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
+import { PhoneInput } from "@/components/ui";
 
 interface UserInfoFields {
   firstName: string;
@@ -12,11 +12,7 @@ interface UserInfoFields {
   phoneNumber: string;
 }
 
-export default function UserInfo({
-  onNext,
-  updateFormData,
-  formData,
-}: FormComponentProps) {
+export default function UserInfo({ onNext, updateFormData, formData }: FormComponentProps) {
   const [form] = Form.useForm<UserInfoFields>();
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -30,11 +26,6 @@ export default function UserInfo({
       });
     }
   }, [form, formData]);
-
-  const handleGoogleSignup = (): void => {
-    // In a real implementation, this would initiate OAuth flow
-    console.log("Google signup initiated");
-  };
 
   const onFinish = async (values: UserInfoFields): Promise<void> => {
     setSubmitting(true);
@@ -55,9 +46,12 @@ export default function UserInfo({
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <h3 className="text-[24px] leading-[26.4px] text-center">
-        Personal Information
-      </h3>
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Personal Information
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Tell us about yourself</p>
+      </div>
 
       <Form
         form={form}
@@ -66,89 +60,68 @@ export default function UserInfo({
         autoComplete="off"
         requiredMark={false}
         onFinish={onFinish}
-        className="w-full">
-        <Form.Item className="mb-6">
-          <Button
-            type="default"
-            icon={<GoogleOutlined />}
-            onClick={handleGoogleSignup}
-            size="large"
-            className="flex w-full h-12 justify-center items-center text-sm">
-            Sign Up With Google
-          </Button>
-        </Form.Item>
+        className="w-full"
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            name="firstName"
+            label={<span className="text-gray-900 dark:text-white font-medium">First Name</span>}
+            rules={[
+              { required: true, message: "Required" },
+              { min: 2, message: "Min 2 characters" },
+            ]}
+          >
+            <Input size="large" placeholder="John" className="rounded-lg" />
+          </Form.Item>
 
-        {/* Divider with OR text */}
-        <div className="relative flex items-center justify-center my-6">
-          <div className="flex-grow border-t border-gray-300 border-dashed"></div>
-          <span className="flex-shrink mx-4 text-gray-500 text-sm">OR</span>
-          <div className="flex-grow border-t border-gray-300 border-dashed"></div>
+          <Form.Item
+            name="lastName"
+            label={<span className="text-gray-900 dark:text-white font-medium">Last Name</span>}
+            rules={[
+              { required: true, message: "Required" },
+              { min: 2, message: "Min 2 characters" },
+            ]}
+          >
+            <Input size="large" placeholder="Doe" className="rounded-lg" />
+          </Form.Item>
         </div>
 
         <Form.Item
-          name="firstName"
-          label="First Name"
-          rules={[
-            { required: true, message: "Please enter your first name" },
-            { min: 2, message: "Name must be at least 2 characters" },
-          ]}>
-          <Input
-            size="large"
-            placeholder="Enter your first name"
-            className="rounded-lg h-12"
-          />
-        </Form.Item>
-
-        <Form.Item
-          name="lastName"
-          label="Last Name"
-          rules={[
-            { required: true, message: "Please enter your last name" },
-            { min: 2, message: "Last name must be at least 2 characters" },
-          ]}>
-          <Input
-            size="large"
-            placeholder="Enter your last name"
-            className="rounded-lg h-12"
-          />
-        </Form.Item>
-
-        <Form.Item
           name="email"
-          label="Email Address"
+          label={<span className="text-gray-900 dark:text-white font-medium">Email Address</span>}
           rules={[
             { required: true, message: "Please enter your email" },
             { type: "email", message: "Please enter a valid email" },
-          ]}>
+          ]}
+        >
           <Input
             size="large"
-            placeholder="Enter your email"
-            className="rounded-lg h-12"
+            type="email"
+            placeholder="john.doe@example.com"
+            className="rounded-lg"
           />
         </Form.Item>
 
         <Form.Item
           name="phoneNumber"
-          label="Phone Number"
+          label={<span className="text-gray-900 dark:text-white font-medium">Phone Number</span>}
           rules={[
             { required: true, message: "Please enter your phone number" },
             {
-              pattern: /^\+?[0-9]{10,15}$/,
-              message: "Please enter a valid phone number",
+              pattern: /^(\+234|0)[789]\d{9}$/,
+              message: "Please enter a valid Nigerian phone number",
             },
-          ]}>
-          <Input
-            size="large"
-            placeholder="Enter your phone number"
-            className="rounded-lg h-12"
-          />
+          ]}
+        >
+          <PhoneInput placeholder="803 456 7890" className="rounded-lg" />
         </Form.Item>
 
-        <Form.Item className="mt-8">
+        <Form.Item className="mb-0">
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-12 rounded-xl text-white bg-primary-100 hover:bg-opacity-90 transition-all duration-150 flex items-center justify-center disabled:opacity-70">
+            className="w-full rounded-lg bg-purple-600 py-3 text-white font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+          >
             {submitting ? "Processing..." : "Continue"}
           </button>
         </Form.Item>

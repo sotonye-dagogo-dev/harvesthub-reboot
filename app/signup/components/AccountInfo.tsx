@@ -92,7 +92,12 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <h3 className="text-[24px] leading-[26.4px] text-center">Account Information</h3>
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Account Information
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Customize your profile</p>
+      </div>
 
       <Form
         form={form}
@@ -105,7 +110,7 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
       >
         <Form.Item
           name="username"
-          label="Username"
+          label={<span className="text-gray-900 dark:text-white font-medium">Username</span>}
           rules={[
             { required: true, message: "Please enter a username" },
             { min: 3, message: "Username must be at least 3 characters" },
@@ -115,24 +120,32 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
             },
           ]}
         >
-          <Input size="large" placeholder="Choose a username" className="rounded-lg h-12" />
+          <Input size="large" placeholder="Choose a username" className="rounded-lg" />
         </Form.Item>
 
         <Form.Item
           name="bio"
-          label="Bio"
+          label={<span className="text-gray-900 dark:text-white font-medium">Bio (Optional)</span>}
           rules={[{ required: false }, { max: 160, message: "Bio cannot exceed 160 characters" }]}
         >
           <Input.TextArea
             rows={3}
-            placeholder="Tell us about yourself (optional)"
+            placeholder="Tell us about yourself"
             className="rounded-lg"
             showCount
             maxLength={160}
           />
         </Form.Item>
 
-        <Form.Item name="profilePicture" label="Profile Picture" rules={[{ required: false }]}>
+        <Form.Item
+          name="profilePicture"
+          label={
+            <span className="text-gray-900 dark:text-white font-medium">
+              Profile Picture (Optional)
+            </span>
+          }
+          rules={[{ required: false }]}
+        >
           <Upload
             listType="picture-card"
             fileList={fileList}
@@ -150,11 +163,11 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
           <div className="text-xs text-gray-400 mt-1">JPG or PNG. Max size 2MB.</div>
         </Form.Item>
 
-        <Form.Item className="mt-8">
+        <Form.Item className="mb-0">
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="w-full h-12 rounded-xl text-white bg-primary-100 hover:bg-opacity-90 transition-all duration-150 flex items-center justify-center disabled:opacity-70"
+            className="w-full rounded-lg bg-purple-600 py-3 text-white font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
           >
             {submitting ? "Processing..." : "Continue"}
           </button>

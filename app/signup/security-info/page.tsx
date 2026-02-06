@@ -28,9 +28,9 @@ export default function SecurityInfoPage() {
         firstName: formData.firstName!,
         lastName: formData.lastName!,
         phoneNumber: formData.phoneNumber!,
-        role: formData.userType === "store" ? UserRole.VENDOR : UserRole.BUYER,
+        role: formData.userType === "vendor" ? UserRole.VENDOR : UserRole.BUYER,
         // Vendor-specific fields (using available form data)
-        ...(formData.userType === "store" && {
+        ...(formData.userType === "vendor" && {
           storeName: formData.storeName,
           storeDescription: formData.bio, // Using bio as storeDescription
           category: "OTHERS" as VendorCategory, // Default category for now
@@ -39,7 +39,7 @@ export default function SecurityInfoPage() {
           isChurchAffiliated: false, // Default value
         }),
         // Buyer-specific fields (minimal for now)
-        ...(formData.userType === "individual" && {
+        ...(formData.userType === "buyer" && {
           dateOfBirth: undefined,
           gender: undefined,
         }),

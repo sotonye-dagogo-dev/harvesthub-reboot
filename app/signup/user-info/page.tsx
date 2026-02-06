@@ -17,7 +17,7 @@ export default function UserInfoPage(): React.ReactElement {
   }, [formData, router]);
 
   const handleNext = (): void => {
-    if (formData.userType === "store") {
+    if (formData.userType === "vendor") {
       router.push("/signup/store-info");
     } else {
       router.push("/signup/account-info");

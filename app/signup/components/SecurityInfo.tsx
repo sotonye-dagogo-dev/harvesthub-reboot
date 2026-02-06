@@ -110,8 +110,15 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
   };
 
   return (
-    <div className="w-full flex flex-col justify-between items-center gap-6">
-      <h4 className="text-[24px] leading-[26.4px] text-center mb-4">Security Information</h4>
+    <div className="w-full flex flex-col gap-6">
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Security Information
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Create a strong password for your account
+        </p>
+      </div>
 
       {/* Error Alert */}
       {error && (
@@ -136,7 +143,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
       >
         <Form.Item
           name="password"
-          label="Password"
+          label={<span className="text-gray-900 dark:text-white font-medium">Password</span>}
           rules={[
             { required: true, message: "Please enter your password" },
             { min: 8, message: "Password must be at least 8 characters" },
@@ -150,7 +157,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             size="large"
             placeholder="Create a password"
             onChange={handlePasswordChange}
-            className="rounded-lg h-12"
+            className="rounded-lg"
           />
         </Form.Item>
 
@@ -171,7 +178,9 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
 
         <Form.Item
           name="confirmPassword"
-          label="Confirm Password"
+          label={
+            <span className="text-gray-900 dark:text-white font-medium">Confirm Password</span>
+          }
           dependencies={["password"]}
           rules={[
             { required: true, message: "Please confirm your password" },
@@ -185,11 +194,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             }),
           ]}
         >
-          <Input.Password
-            size="large"
-            placeholder="Confirm your password"
-            className="rounded-lg h-12"
-          />
+          <Input.Password size="large" placeholder="Confirm your password" className="rounded-lg" />
         </Form.Item>
 
         <Form.Item
@@ -206,17 +211,17 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
         >
           <Checkbox>
             I agree to the{" "}
-            <Link href="/terms" className="text-primary-100">
+            <Link href="/terms" className="text-purple-600 hover:text-purple-700 font-medium">
               Terms & Conditions
             </Link>
           </Checkbox>
         </Form.Item>
 
-        <Form.Item className="mt-6">
+        <Form.Item className="mb-0">
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-xl text-white bg-primary-100 hover:bg-opacity-85 transition-all duration-150 flex items-center justify-center disabled:opacity-70"
+            className="w-full rounded-lg bg-purple-600 py-3 text-white font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>

@@ -461,9 +461,12 @@ export interface UserFormData {
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
 
     // Signup flow specific fields (matching app/types/index.ts)
-    userType?: 'individual' | 'store';
+    userType?: 'buyer' | 'vendor';
     storeName?: string;
     storeType?: 'retail' | 'wholesale' | 'manufacturing' | 'service';
+    storeCategory?: string;
+    campus?: string;
+    storeDescription?: string;
     businessAddress?: string;
     username?: string;
     bio?: string;

@@ -66,6 +66,36 @@ export const mockUsers: User[] = [
         updatedAt: new Date('2025-01-01'),
     },
 
+    // Demo Vendor Account
+    {
+        id: 'user-vendor-demo',
+        email: 'vendor@harvesthub.com',
+        firstName: 'Demo',
+        lastName: 'Vendor',
+        phoneNumber: '+2348011111111',
+        role: UserRole.VENDOR,
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=vendor',
+        emailVerified: true,
+        isActive: true,
+        createdAt: new Date('2025-01-02'),
+        updatedAt: new Date('2025-01-24'),
+    },
+
+    // Demo Buyer Account
+    {
+        id: 'user-buyer-demo',
+        email: 'buyer@harvesthub.com',
+        firstName: 'Demo',
+        lastName: 'Buyer',
+        phoneNumber: '+2348022222222',
+        role: UserRole.BUYER,
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=buyer',
+        emailVerified: true,
+        isActive: true,
+        createdAt: new Date('2025-01-03'),
+        updatedAt: new Date('2025-01-24'),
+    },
+
     // Vendors
     {
         id: 'user-vendor-001',
@@ -245,6 +275,24 @@ export const mockUsers: User[] = [
 // ===================================
 
 export const mockBuyers: Buyer[] = [
+    // Demo Buyer
+    {
+        id: 'buyer-demo',
+        userId: 'user-buyer-demo',
+        dateOfBirth: new Date('1995-01-01'),
+        gender: 'MALE',
+        preferences: {
+            notifications: {
+                email: true,
+                sms: true,
+                push: true,
+            },
+            defaultCampus: Campus.OREGUN_HQ,
+            defaultDeliveryMethod: DeliveryMethod.PICKUP,
+        },
+        createdAt: new Date('2025-01-03'),
+        updatedAt: new Date('2025-01-24'),
+    },
     {
         id: 'buyer-001',
         userId: 'user-buyer-001',
@@ -372,6 +420,44 @@ export const mockBuyers: Buyer[] = [
 // ===================================
 
 export const mockVendors: Vendor[] = [
+    // Demo Vendor
+    {
+        id: 'vendor-demo',
+        userId: 'user-vendor-demo',
+        storeName: "Demo Store",
+        storeDescription:
+            'This is a demo vendor account for testing purposes. Feel free to explore all vendor features!',
+        category: VendorCategory.OTHERS,
+        whatsappNumber: '+2348011111111',
+        campus: Campus.OREGUN_HQ,
+        status: VendorStatus.APPROVED,
+        isChurchAffiliated: true,
+        commissionRate: 0.05,
+        storeLogo: 'https://api.dicebear.com/7.x/shapes/svg?seed=demostore',
+        storeBanner: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop',
+        storeSettings: {
+            allowsPickup: true,
+            allowsDelivery: true,
+            pickupServices: [PickupService.SUNDAY_FIRST, PickupService.SUNDAY_SECOND, PickupService.MIDWEEK],
+            deliveryZones: [1, 2, 3, 4],
+            businessHours: 'Mon-Sat: 9AM-6PM',
+            policies: {
+                returnPolicy: 'Demo return policy: Returns accepted within 7 days.',
+                shippingPolicy: 'Demo shipping policy: Free delivery for orders above ₦5,000',
+            },
+        },
+        analytics: {
+            totalSales: 0,
+            totalOrders: 0,
+            totalProducts: 0,
+            averageRating: 0,
+            totalReviews: 0,
+            conversionRate: 0,
+            lastUpdated: new Date('2025-01-24'),
+        },
+        createdAt: new Date('2025-01-02'),
+        updatedAt: new Date('2025-01-24'),
+    },
     {
         id: 'vendor-001',
         userId: 'user-vendor-001',
@@ -917,6 +1003,25 @@ export const mockAddresses: Address[] = [
 // ===================================
 
 export const mockWallets: Wallet[] = [
+    // Demo Accounts
+    {
+        id: 'wallet-buyer-demo',
+        userId: 'user-buyer-demo',
+        balance: 50000,
+        currency: 'NGN',
+        isActive: true,
+        createdAt: new Date('2025-01-03'),
+        updatedAt: new Date('2025-01-24'),
+    },
+    {
+        id: 'wallet-vendor-demo',
+        userId: 'user-vendor-demo',
+        balance: 0,
+        currency: 'NGN',
+        isActive: true,
+        createdAt: new Date('2025-01-02'),
+        updatedAt: new Date('2025-01-24'),
+    },
     // Buyers
     {
         id: 'wallet-buyer-001',

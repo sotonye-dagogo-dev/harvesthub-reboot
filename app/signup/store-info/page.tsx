@@ -11,11 +11,7 @@ export default function StoreInfoPage() {
 
   useEffect(() => {
     // If user hasn't completed previous stages or is not a store owner, redirect
-    if (
-      !formData.userType ||
-      !formData.firstName ||
-      formData.userType !== "store"
-    ) {
+    if (!formData.userType || !formData.firstName || formData.userType !== "vendor") {
       router.push("/signup");
     }
   }, [formData, router]);
@@ -24,11 +20,5 @@ export default function StoreInfoPage() {
     router.push("/signup/account-info");
   };
 
-  return (
-    <StoreInfo
-      onNext={handleNext}
-      updateFormData={updateFormData}
-      formData={formData}
-    />
-  );
+  return <StoreInfo onNext={handleNext} updateFormData={updateFormData} formData={formData} />;
 }

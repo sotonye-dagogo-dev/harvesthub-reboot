@@ -103,7 +103,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/faq"
+                  href="/faqs"
                   className="text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
                 >
                   FAQs

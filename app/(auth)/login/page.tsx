@@ -55,7 +55,7 @@ function LoginForm() {
           showIcon
           closable
           onClose={() => setError(null)}
-          className="mb-6"
+          className="mb-6 dark:bg-gray-800"
         />
       )}
 

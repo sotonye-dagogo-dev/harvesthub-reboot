@@ -1,6 +1,6 @@
 // Common types for signup process
 
-export type UserType = 'individual' | 'store';
+export type UserType = 'buyer' | 'vendor';
 export type Stage = 'selection' | 'user-info' | 'store-info' | 'account-info' | 'security-info';
 export type StoreType = 'retail' | 'wholesale' | 'manufacturing' | 'service';
 
@@ -12,6 +12,9 @@ export interface UserFormData {
     phoneNumber?: string;
     storeName?: string;
     storeType?: StoreType;
+    storeCategory?: string;
+    campus?: string;
+    storeDescription?: string;
     businessAddress?: string;
     username?: string;
     bio?: string;
