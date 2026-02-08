@@ -59,7 +59,7 @@ export function BannerCarousel({
   return (
     <div className={cn("relative overflow-hidden rounded-lg", className)}>
       {/* Banner Content */}
-      <div className="relative aspect-[21/9] md:aspect-[3/1]">
+      <div className="relative aspect-[5/1] md:aspect-[8/1]">
         {currentBanner.link ? (
           <Link href={currentBanner.link}>
             <Image

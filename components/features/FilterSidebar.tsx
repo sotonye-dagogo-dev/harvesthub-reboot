@@ -11,6 +11,7 @@ export interface FilterOptions {
   rating?: number;
   vendors?: string[];
   locations?: string[];
+  status?: string[];
 }
 
 export interface FilterSidebarProps {
@@ -19,6 +20,7 @@ export interface FilterSidebarProps {
   categories?: { id: string; name: string }[];
   vendors?: { id: string; name: string }[];
   locations?: string[];
+  statuses?: { label: string; value: string }[];
   className?: string;
 }
 
@@ -28,6 +30,7 @@ export function FilterSidebar({
   categories = [],
   vendors = [],
   locations = [],
+  statuses = [],
   className,
 }: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,6 +57,14 @@ export function FilterSidebar({
       ? currentLocations.filter((l) => l !== location)
       : [...currentLocations, location];
     onFilterChange({ ...filters, locations: newLocations });
+  };
+
+  const handleStatusToggle = (statusValue: string) => {
+    const currentStatuses = filters.status || [];
+    const newStatuses = currentStatuses.includes(statusValue)
+      ? currentStatuses.filter((s) => s !== statusValue)
+      : [...currentStatuses, statusValue];
+    onFilterChange({ ...filters, status: newStatuses });
   };
 
   const handlePriceChange = (type: "min" | "max", value: string) => {
@@ -161,6 +172,26 @@ export function FilterSidebar({
                   className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">{location}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Order Status */}
+      {statuses.length > 0 && (
+        <div>
+          <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Order Status</h4>
+          <div className="space-y-2">
+            {statuses.map((status) => (
+              <label key={status.value} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.status?.includes(status.value) || false}
+                  onChange={() => handleStatusToggle(status.value)}
+                  className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{status.label}</span>
               </label>
             ))}
           </div>

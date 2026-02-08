@@ -84,7 +84,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {featuredProducts.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -93,19 +93,20 @@ export default function HomePage() {
                     : 0;
 
                 return (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    image={product.images[0] || "/placeholder-product.jpg"}
-                    vendorName={vendor?.storeName || "Unknown Vendor"}
-                    vendorId={product.vendorId}
-                    rating={avgRating}
-                    reviewCount={product.reviews?.length || 0}
-                    stock={product.stock}
-                    isFeatured={product.isFeatured}
-                  />
+                  <div key={product.id} className="min-w-[280px] max-w-[280px] snap-start">
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      price={product.price}
+                      image={product.images[0] || "/placeholder-product.jpg"}
+                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorId={product.vendorId}
+                      rating={avgRating}
+                      reviewCount={product.reviews?.length || 0}
+                      stock={product.stock}
+                      isFeatured={product.isFeatured}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -124,7 +125,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {trendingProducts.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -133,18 +134,19 @@ export default function HomePage() {
                     : 0;
 
                 return (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    image={product.images[0] || "/placeholder-product.jpg"}
-                    vendorName={vendor?.storeName || "Unknown Vendor"}
-                    vendorId={product.vendorId}
-                    rating={avgRating}
-                    reviewCount={product.reviews?.length || 0}
-                    stock={product.stock}
-                  />
+                  <div key={product.id} className="min-w-[280px] max-w-[280px] snap-start">
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      price={product.price}
+                      image={product.images[0] || "/placeholder-product.jpg"}
+                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorId={product.vendorId}
+                      rating={avgRating}
+                      reviewCount={product.reviews?.length || 0}
+                      stock={product.stock}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -163,7 +165,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {newArrivals.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -172,18 +174,19 @@ export default function HomePage() {
                     : 0;
 
                 return (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    image={product.images[0] || "/placeholder-product.jpg"}
-                    vendorName={vendor?.storeName || "Unknown Vendor"}
-                    vendorId={product.vendorId}
-                    rating={avgRating}
-                    reviewCount={product.reviews?.length || 0}
-                    stock={product.stock}
-                  />
+                  <div key={product.id} className="min-w-[280px] max-w-[280px] snap-start">
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      price={product.price}
+                      image={product.images[0] || "/placeholder-product.jpg"}
+                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorId={product.vendorId}
+                      rating={avgRating}
+                      reviewCount={product.reviews?.length || 0}
+                      stock={product.stock}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -202,19 +205,20 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {popularVendors.map((vendor) => (
-                <VendorCard
-                  key={vendor.id}
-                  id={vendor.id}
-                  name={vendor.storeName}
-                  category={vendor.category}
-                  campus={vendor.campus}
-                  rating={vendor.analytics.averageRating}
-                  productCount={vendor.productCount}
-                  logo={vendor.storeLogo || undefined}
-                  isVerified={vendor.status === "APPROVED"}
-                />
+                <div key={vendor.id} className="min-w-[320px] max-w-[320px] snap-start">
+                  <VendorCard
+                    id={vendor.id}
+                    name={vendor.storeName}
+                    category={vendor.category}
+                    campus={vendor.campus}
+                    rating={vendor.analytics.averageRating}
+                    productCount={vendor.productCount}
+                    logo={vendor.storeLogo || undefined}
+                    isVerified={vendor.status === "APPROVED"}
+                  />
+                </div>
               ))}
             </div>
           </section>

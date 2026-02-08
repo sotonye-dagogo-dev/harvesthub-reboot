@@ -16,6 +16,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  whatsappNumber?: string;
   role: UserRole;
   profilePicture?: string | null;
   emailVerified: boolean;

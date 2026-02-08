@@ -100,20 +100,11 @@ export default function OrdersPage() {
                     key={order.id}
                     id={order.id}
                     orderNumber={order.orderNumber}
-                    status={
-                      order.status.toLowerCase() as
-                        | "pending"
-                        | "confirmed"
-                        | "processing"
-                        | "ready"
-                        | "completed"
-                        | "cancelled"
-                        | "refunded"
-                    }
+                    status={order.status}
                     total={totalAmount}
                     itemCount={order.items.length}
-                    deliveryMethod={order.deliveryMethod.toLowerCase() as "pickup" | "delivery"}
-                    createdAt={new Date(order.createdAt)}
+                    deliveryMethod={order.deliveryMethod}
+                    createdAt={order.createdAt}
                   />
                 );
               })}

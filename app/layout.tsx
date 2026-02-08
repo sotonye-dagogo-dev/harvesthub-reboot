@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Providers } from "./providers";
+import { TopAdBanner } from "@/components/features";
 import "@/app/_styles/globals.css";
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <html lang="en" suppressHydrationWarning>
       <body className={GeistSans.className}>
         <Providers>
+          <TopAdBanner />
           <main>{children}</main>
         </Providers>
       </body>

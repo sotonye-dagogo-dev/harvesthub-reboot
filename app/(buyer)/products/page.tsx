@@ -135,7 +135,7 @@ export default function ProductsPage() {
             />
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {paginatedProducts.map((product) => {
                   const vendor = mockVendors.find((v) => v.id === product.vendorId);
                   const avgRating =

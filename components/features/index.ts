@@ -33,3 +33,5 @@ export { FilterSidebar } from "./FilterSidebar";
 export type { FilterSidebarProps, FilterOptions } from "./FilterSidebar";
 
 export { CartItemComponent } from "./CartItemComponent";
+
+export { TopAdBanner } from "./TopAdBanner";
