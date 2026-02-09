@@ -3,54 +3,66 @@
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card } from "@/components/ui";
 import { Users, Package, ShoppingBag, Store, TrendingUp, AlertCircle } from "lucide-react";
+import { mockUsers, mockVendors, mockProducts, mockOrders, mockReviews } from "@/lib/data/mockData";
+import { useMemo } from "react";
+import { OrderStatus } from "@/lib/constants";
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
 
-  const stats = [
-    {
-      title: "Total Users",
-      value: "0",
-      icon: Users,
-      color: "text-purple-600 dark:text-purple-400",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-    },
-    {
-      title: "Total Vendors",
-      value: "0",
-      icon: Store,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    },
-    {
-      title: "Total Products",
-      value: "0",
-      icon: Package,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-    },
-    {
-      title: "Total Orders",
-      value: "0",
-      icon: ShoppingBag,
-      color: "text-amber-600 dark:text-amber-400",
-      bgColor: "bg-amber-50 dark:bg-amber-900/20",
-    },
-    {
-      title: "Revenue",
-      value: "₦0",
-      icon: TrendingUp,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
-    },
-    {
-      title: "Pending Reviews",
-      value: "0",
-      icon: AlertCircle,
-      color: "text-red-600 dark:text-red-400",
-      bgColor: "bg-red-50 dark:bg-red-900/20",
-    },
-  ];
+  // Calculate platform stats from mock data
+  const stats = useMemo(() => {
+    const totalRevenue = mockOrders
+      .filter((o) => o.status === OrderStatus.COMPLETED)
+      .reduce((sum, order) => sum + order.total, 0);
+
+    const pendingReviews = mockReviews.filter((r) => r.status === "PENDING").length;
+
+    return [
+      {
+        title: "Total Users",
+        value: mockUsers.length.toString(),
+        icon: Users,
+        color: "text-purple-600 dark:text-purple-400",
+        bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      },
+      {
+        title: "Total Vendors",
+        value: mockVendors.length.toString(),
+        icon: Store,
+        color: "text-blue-600 dark:text-blue-400",
+        bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      },
+      {
+        title: "Total Products",
+        value: mockProducts.length.toString(),
+        icon: Package,
+        color: "text-green-600 dark:text-green-400",
+        bgColor: "bg-green-50 dark:bg-green-900/20",
+      },
+      {
+        title: "Total Orders",
+        value: mockOrders.length.toString(),
+        icon: ShoppingBag,
+        color: "text-amber-600 dark:text-amber-400",
+        bgColor: "bg-amber-50 dark:bg-amber-900/20",
+      },
+      {
+        title: "Revenue",
+        value: `₦${totalRevenue.toLocaleString()}`,
+        icon: TrendingUp,
+        color: "text-emerald-600 dark:text-emerald-400",
+        bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+      },
+      {
+        title: "Pending Reviews",
+        value: pendingReviews.toString(),
+        icon: AlertCircle,
+        color: "text-red-600 dark:text-red-400",
+        bgColor: "bg-red-50 dark:bg-red-900/20",
+      },
+    ];
+  }, []);
 
   return (
     <div className="space-y-6">

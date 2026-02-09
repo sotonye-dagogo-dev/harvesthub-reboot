@@ -158,6 +158,7 @@ export interface Product {
     category: ProductCategory;
     price: number;
     compareAtPrice?: number | null;
+    discount?: number; // Discount percentage (0-100)
     stock: number;
     images: URL[];
     mainImage: URL;
@@ -381,6 +382,7 @@ export interface Banner {
     description?: string | null;
     imageUrl: URL;
     linkUrl?: URL | null;
+    position: 'TOP' | 'HERO' | 'SIDEBAR';
     isActive: boolean;
     startDate: Timestamp;
     endDate?: Timestamp | null;

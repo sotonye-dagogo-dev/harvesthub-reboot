@@ -3,40 +3,74 @@
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card } from "@/components/ui";
 import { Package, ShoppingBag, TrendingUp, DollarSign } from "lucide-react";
+import { mockProducts, mockOrders } from "@/lib/data/mockData";
+import { useMemo } from "react";
+import { OrderStatus } from "@/lib/constants";
 
 export default function VendorDashboardPage() {
   const { user } = useAuth();
 
-  const stats = [
-    {
-      title: "Total Sales",
-      value: "₦0",
-      icon: DollarSign,
-      color: "text-purple-600 dark:text-purple-400",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-    },
-    {
-      title: "Orders",
-      value: "0",
-      icon: ShoppingBag,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-    },
-    {
-      title: "Products",
-      value: "0",
-      icon: Package,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    },
-    {
-      title: "Revenue",
-      value: "₦0",
-      icon: TrendingUp,
-      color: "text-amber-600 dark:text-amber-400",
-      bgColor: "bg-amber-50 dark:bg-amber-900/20",
-    },
-  ];
+  // Calculate vendor stats from mock data
+  const stats = useMemo(() => {
+    if (!user) return [];
+
+    // Get vendor's products
+    const vendorProducts = mockProducts.filter((p) => p.vendorId === user.id);
+    const productCount = vendorProducts.length;
+
+    // Get orders containing vendor's products
+    const vendorOrders = mockOrders.filter((order) =>
+      order.items.some((item) => vendorProducts.some((p) => p.id === item.productId))
+    );
+
+    // Calculate total revenue from vendor's products in orders
+    const totalRevenue = vendorOrders.reduce((sum, order) => {
+      const vendorItemsTotal = order.items
+        .filter((item) => vendorProducts.some((p) => p.id === item.productId))
+        .reduce((itemSum, item) => itemSum + item.subtotal, 0);
+      return sum + vendorItemsTotal;
+    }, 0);
+
+    // Calculate total sales (completed orders)
+    const completedOrders = vendorOrders.filter((o) => o.status === OrderStatus.COMPLETED);
+    const totalSales = completedOrders.reduce((sum, order) => {
+      const vendorItemsTotal = order.items
+        .filter((item) => vendorProducts.some((p) => p.id === item.productId))
+        .reduce((itemSum, item) => itemSum + item.subtotal, 0);
+      return sum + vendorItemsTotal;
+    }, 0);
+
+    return [
+      {
+        title: "Total Sales",
+        value: `\u20a6${totalSales.toLocaleString()}`,
+        icon: DollarSign,
+        color: "text-purple-600 dark:text-purple-400",
+        bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      },
+      {
+        title: "Orders",
+        value: vendorOrders.length.toString(),
+        icon: ShoppingBag,
+        color: "text-green-600 dark:text-green-400",
+        bgColor: "bg-green-50 dark:bg-green-900/20",
+      },
+      {
+        title: "Products",
+        value: productCount.toString(),
+        icon: Package,
+        color: "text-blue-600 dark:text-blue-400",
+        bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      },
+      {
+        title: "Revenue",
+        value: `\u20a6${totalRevenue.toLocaleString()}`,
+        icon: TrendingUp,
+        color: "text-amber-600 dark:text-amber-400",
+        bgColor: "bg-amber-50 dark:bg-amber-900/20",
+      },
+    ];
+  }, [user]);
 
   return (
     <div className="space-y-6">
