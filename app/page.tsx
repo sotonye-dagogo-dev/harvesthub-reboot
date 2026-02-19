@@ -4,15 +4,32 @@ import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/componen
 import { mockBanners, mockProducts, mockVendors } from "@/lib/data/mockData";
 
 export default function HomePage() {
-  // Get active banners
+  // Get active HERO banners – map from the rich Banner type to BannerItem shape
   const activeBanners = mockBanners
-    .filter((banner) => banner.isActive)
-    .map((banner) => ({
-      id: banner.id,
-      title: banner.title,
-      image: banner.imageUrl,
-      link: banner.linkUrl || undefined,
-      description: banner.description || undefined,
+    .filter(
+      (b) =>
+        b.isActive &&
+        b.position === "HERO" &&
+        (!b.endDate || new Date(b.endDate) >= new Date())
+    )
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((b) => ({
+      id: b.id,
+      title: b.title,
+      subtitle: b.subtitle ?? undefined,
+      image: b.imageUrl,
+      link: b.linkUrl ?? undefined,
+      description: b.description ?? undefined,
+      actions: b.actions?.map((a) => ({
+        label: a.label,
+        href: a.href,
+        variant: a.variant,
+        openInNewTab: a.openInNewTab,
+      })) ?? undefined,
+      theme: b.theme ?? undefined,
+      accentColor: b.accentColor ?? undefined,
+      details: b.details ?? undefined,
+      knowMoreLabel: b.knowMoreLabel ?? undefined,
     }));
 
   // Get featured products
@@ -54,10 +71,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
-      {/* Banner Carousel */}
+      {/* Hero Banner Carousel */}
       {activeBanners.length > 0 && (
         <section className="mb-8">
-          <BannerCarousel banners={activeBanners} autoPlay interval={5000} />
+          <BannerCarousel banners={activeBanners} autoPlay />
         </section>
       )}
 

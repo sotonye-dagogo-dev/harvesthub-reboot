@@ -1,55 +1,546 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/**
+ * BannerCarousel → re-exported as HeroBanner
+ * ─────────────────────────────────────────────────────────────────
+ * Dual-section hero carousel designed for the landing page.
+ *
+ * Layout (≥ md screens):
+ *   ┌─────────────────────────────┬────────────────┐
+ *   │   Display panel             │  Action panel  │
+ *   │   (image + overlay text)    │  (CTA buttons) │
+ *   └─────────────────────────────┴────────────────┘
+ *
+ * Layout (< md / small screens):
+ *   ┌──────────────────────────────────────────────┐
+ *   │   Full-width image with overlay title        │
+ *   │   "Know More" chip → opens action modal      │
+ *   └──────────────────────────────────────────────┘
+ *
+ * Fallback (banner has no actions):
+ *   - Large screen: image fills full width with gradient overlay text
+ *   - Small screen:  same full image; "Know More" chip is hidden (no modal)
+ *
+ * All timing, labels, and theme tokens come from BANNER_CONFIG so
+ * the component is theme-agnostic and easy to extend.
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BANNER_CONFIG } from "@/lib/constants";
 
+// ─── Public types ─────────────────────────────────────────────────
+
+/** Single call-to-action button config */
+export interface BannerActionItem {
+  label: string;
+  href: string;
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  openInNewTab?: boolean;
+}
+
+/** One banner item fed into HeroBanner */
 export interface BannerItem {
   id: string;
   title: string;
+  /** Short tagline shown in the action panel */
+  subtitle?: string;
   image: string;
+  /** @deprecated use `actions` for full control */
   link?: string;
   description?: string;
+  /** Structured CTA list (up to 2 rendered prominently) */
+  actions?: BannerActionItem[];
+  /** Thematic colour key – drives action-panel styling */
+  theme?: "BUSINESS" | "CHURCH" | "EVENT" | "PROMOTION";
+  /** Inline CSS colour override for the action panel accent (optional) */
+  accentColor?: string;
+  /** Extra information (date, address, speaker) shown in action panel */
+  details?: string;
+  /** Label for the small-screen "know more" chip */
+  knowMoreLabel?: string;
 }
 
 export interface BannerCarouselProps {
   banners: BannerItem[];
   autoPlay?: boolean;
+  /** Auto-advance interval in ms (default: BANNER_CONFIG.HERO_DISPLAY_INTERVAL) */
   interval?: number;
   className?: string;
 }
 
+// ─── Theme helpers ────────────────────────────────────────────────
+
+type ThemeKey = "BUSINESS" | "CHURCH" | "EVENT" | "PROMOTION";
+
+interface ThemeTokens {
+  actionBg: string;
+  actionText: string;
+  primaryBtn: string;
+  secondaryBtn: string;
+  badge: string;
+  knowMoreChip: string;
+  overlayFrom: string;
+}
+
+const THEME_MAP: Record<ThemeKey, ThemeTokens> = {
+  BUSINESS: {
+    actionBg: "bg-purple-700 dark:bg-purple-900",
+    actionText: "text-white",
+    primaryBtn:
+      "bg-white text-purple-700 hover:bg-purple-50 focus-visible:ring-purple-300",
+    secondaryBtn:
+      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+    badge: "bg-purple-500/20 text-purple-100",
+    knowMoreChip:
+      "bg-purple-600/90 text-white hover:bg-purple-700 focus-visible:ring-purple-300",
+    overlayFrom: "from-purple-900/80",
+  },
+  CHURCH: {
+    actionBg: "bg-amber-700 dark:bg-amber-900",
+    actionText: "text-white",
+    primaryBtn:
+      "bg-white text-amber-700 hover:bg-amber-50 focus-visible:ring-amber-300",
+    secondaryBtn:
+      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+    badge: "bg-amber-500/20 text-amber-100",
+    knowMoreChip:
+      "bg-amber-600/90 text-white hover:bg-amber-700 focus-visible:ring-amber-300",
+    overlayFrom: "from-amber-900/80",
+  },
+  EVENT: {
+    actionBg: "bg-rose-700 dark:bg-rose-900",
+    actionText: "text-white",
+    primaryBtn:
+      "bg-white text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
+    secondaryBtn:
+      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+    badge: "bg-rose-500/20 text-rose-100",
+    knowMoreChip:
+      "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
+    overlayFrom: "from-rose-900/80",
+  },
+  PROMOTION: {
+    actionBg: "bg-emerald-700 dark:bg-emerald-900",
+    actionText: "text-white",
+    primaryBtn:
+      "bg-white text-emerald-700 hover:bg-emerald-50 focus-visible:ring-emerald-300",
+    secondaryBtn:
+      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+    badge: "bg-emerald-500/20 text-emerald-100",
+    knowMoreChip:
+      "bg-emerald-600/90 text-white hover:bg-emerald-700 focus-visible:ring-emerald-300",
+    overlayFrom: "from-emerald-900/80",
+  },
+};
+
+function getTheme(key?: string | null): ThemeTokens {
+  return THEME_MAP[(key as ThemeKey) ?? "BUSINESS"] ?? THEME_MAP.BUSINESS;
+}
+
+// ─── Action button helper ─────────────────────────────────────────
+
+interface ActionBtnProps {
+  action: BannerActionItem;
+  tokens: ThemeTokens;
+  size?: "sm" | "md";
+}
+
+function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
+  const isSecondary = action.variant === "secondary" || action.variant === "outline";
+  const base =
+    "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
+  const sizeClass = size === "sm" ? "px-3 py-1.5 text-sm" : "px-5 py-2.5 text-sm md:text-base";
+  const colorClass = isSecondary ? tokens.secondaryBtn : tokens.primaryBtn;
+
+  const inner = (
+    <>
+      {action.label}
+      {action.openInNewTab && <ExternalLink className="h-3.5 w-3.5 opacity-70" />}
+    </>
+  );
+
+  if (action.openInNewTab) {
+    return (
+      <a
+        href={action.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(base, sizeClass, colorClass)}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={action.href} className={cn(base, sizeClass, colorClass)}>
+      {inner}
+    </Link>
+  );
+}
+
+// ─── Action Modal (small-screen) ─────────────────────────────────
+
+interface ActionModalProps {
+  banner: BannerItem;
+  onClose: () => void;
+}
+
+function ActionModal({ banner, onClose }: ActionModalProps) {
+  const tokens = getTheme(banner.theme);
+  const hasActions = banner.actions && banner.actions.length > 0;
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  // Prevent body scroll while open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  return (
+    /* Backdrop */
+    <div
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${banner.title} – details`}
+    >
+      {/* Sheet */}
+      <div
+        className={cn(
+          "relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl",
+          tokens.actionBg,
+          tokens.actionText,
+          "p-6 pb-8 shadow-2xl"
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Thumbnail */}
+        {banner.image && (
+          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
+            <Image
+              src={banner.image}
+              alt={banner.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 512px"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="space-y-2">
+          {banner.subtitle && (
+            <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-xs font-medium", tokens.badge)}>
+              {banner.subtitle}
+            </span>
+          )}
+          <h2 className="text-xl font-bold leading-snug">{banner.title}</h2>
+          {banner.description && (
+            <p className="text-sm opacity-90">{banner.description}</p>
+          )}
+          {banner.details && (
+            <p className="mt-1 flex items-start gap-1.5 text-sm opacity-80">
+              <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              {banner.details}
+            </p>
+          )}
+        </div>
+
+        {/* CTA buttons */}
+        {hasActions && (
+          <div className="mt-5 flex flex-col gap-2">
+            {banner.actions!.slice(0, 2).map((action, i) => (
+              <ActionBtn key={i} action={action} tokens={tokens} size="md" />
+            ))}
+          </div>
+        )}
+
+        {/* Fallback when no actions: show a simple close */}
+        {!hasActions && (
+          <button
+            onClick={onClose}
+            className={cn(
+              "mt-5 w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+              tokens.primaryBtn
+            )}
+          >
+            Close
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Action Panel (large-screen sidebar) ─────────────────────────
+
+interface ActionPanelProps {
+  banner: BannerItem;
+}
+
+function ActionPanel({ banner }: ActionPanelProps) {
+  const tokens = getTheme(banner.theme);
+  const hasActions = banner.actions && banner.actions.length > 0;
+
+  return (
+    <div
+      className={cn(
+        "flex h-full flex-col justify-center gap-4 p-6 xl:p-8",
+        tokens.actionBg,
+        tokens.actionText
+      )}
+      style={
+        banner.accentColor
+          ? ({ "--accent": banner.accentColor } as React.CSSProperties)
+          : undefined
+      }
+    >
+      {/* Badge / theme label */}
+      {banner.subtitle && (
+        <span className={cn("self-start rounded-full px-3 py-1 text-xs font-semibold", tokens.badge)}>
+          {banner.subtitle}
+        </span>
+      )}
+
+      {/* Title */}
+      <h2 className="text-2xl font-bold leading-tight xl:text-3xl">{banner.title}</h2>
+
+      {/* Description */}
+      {banner.description && (
+        <p className="text-sm leading-relaxed opacity-90 xl:text-base">{banner.description}</p>
+      )}
+
+      {/* Details line (date / address / info) */}
+      {banner.details && (
+        <p className="flex items-start gap-1.5 text-xs opacity-75 xl:text-sm">
+          <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+          {banner.details}
+        </p>
+      )}
+
+      {/* CTA buttons */}
+      {hasActions && (
+        <div className="flex flex-col gap-2 pt-1">
+          {banner.actions!.slice(0, 2).map((action, i) => (
+            <ActionBtn key={i} action={action} tokens={tokens} size="md" />
+          ))}
+        </div>
+      )}
+
+      {/* Fallback (no actions): simple link */}
+      {!hasActions && (banner.link ?? null) && (
+        <Link
+          href={banner.link!}
+          className={cn(
+            "mt-1 inline-flex items-center gap-1.5 text-sm font-semibold underline-offset-2 hover:underline",
+            tokens.actionText
+          )}
+        >
+          {BANNER_CONFIG.KNOW_MORE_LABEL} →
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// ─── Slide ────────────────────────────────────────────────────────
+
+interface SlideProps {
+  banner: BannerItem;
+  isActive: boolean;
+  onKnowMore: () => void;
+}
+
+function Slide({ banner, isActive, onKnowMore }: SlideProps) {
+  const tokens = getTheme(banner.theme);
+  const hasActions = banner.actions && banner.actions.length > 0;
+  const knowMoreLabel = banner.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
+
+  return (
+    <div
+      className={cn(
+        "absolute inset-0 transition-opacity",
+        BANNER_CONFIG.TRANSITION_MS === 400 ? "duration-400" : "duration-500",
+        isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+      )}
+      aria-hidden={!isActive}
+    >
+      {/* ── LARGE SCREEN: dual panel layout ── */}
+      <div className="hidden md:flex h-full">
+        {/* Display panel */}
+        <div
+          className="relative overflow-hidden"
+          style={{ width: `${BANNER_CONFIG.DISPLAY_PANEL_PERCENT}%` }}
+        >
+          <Image
+            src={banner.image}
+            alt={banner.title}
+            fill
+            className="object-cover"
+            priority={isActive}
+            sizes="(min-width: 768px) 65vw, 100vw"
+          />
+          {/* Gradient overlay with title — fallback for no-action banners */}
+          <div
+            className={cn(
+              "absolute inset-0 flex items-end bg-gradient-to-t to-transparent p-6",
+              tokens.overlayFrom,
+              // When there's an action panel, we still show title for context but lighter
+              hasActions ? "from-black/30" : "from-black/70"
+            )}
+          >
+            <div className="text-white">
+              <h2 className="text-2xl font-bold drop-shadow-md xl:text-4xl">{banner.title}</h2>
+              {!hasActions && banner.description && (
+                <p className="mt-1 max-w-lg text-sm text-white/90 xl:text-base">
+                  {banner.description}
+                </p>
+              )}
+              {/* Fallback link on large screen when no actions */}
+              {!hasActions && (banner.link ?? null) && (
+                <Link
+                  href={banner.link!}
+                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/30"
+                >
+                  {knowMoreLabel} →
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action panel */}
+        <div
+          className="flex-shrink-0"
+          style={{ width: `${BANNER_CONFIG.ACTION_PANEL_PERCENT}%` }}
+        >
+          <ActionPanel banner={banner} />
+        </div>
+      </div>
+
+      {/* ── SMALL SCREEN: full image + optional "Know More" chip ── */}
+      <div className="relative flex h-full md:hidden">
+        <Image
+          src={banner.image}
+          alt={banner.title}
+          fill
+          className="object-cover"
+          priority={isActive}
+          sizes="100vw"
+        />
+        {/* Bottom overlay */}
+        <div
+          className={cn(
+            "absolute inset-0 flex flex-col justify-end bg-gradient-to-t to-transparent p-4",
+            tokens.overlayFrom
+          )}
+        >
+          <h2 className="text-lg font-bold text-white drop-shadow-sm sm:text-xl">
+            {banner.title}
+          </h2>
+          {banner.subtitle && (
+            <p className="mt-0.5 text-xs text-white/80">{banner.subtitle}</p>
+          )}
+
+          {/* Know More chip — only render when there's content to show */}
+          {(hasActions || banner.description || banner.details) && (
+            <button
+              onClick={onKnowMore}
+              className={cn(
+                "mt-3 self-start rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2",
+                tokens.knowMoreChip
+              )}
+              aria-label={`${knowMoreLabel} about ${banner.title}`}
+            >
+              {knowMoreLabel}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────
+
 export function BannerCarousel({
   banners,
   autoPlay = true,
-  interval = 5000,
+  interval = BANNER_CONFIG.HERO_DISPLAY_INTERVAL,
   className,
 }: BannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
+  const startAutoPlay = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
     if (!autoPlay || banners.length <= 1) return;
-
-    const timer = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, interval);
-
-    return () => clearInterval(timer);
   }, [autoPlay, banners.length, interval]);
 
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-  };
+  useEffect(() => {
+    startAutoPlay();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [startAutoPlay]);
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-  };
+  // Pause rotation when modal is open
+  useEffect(() => {
+    if (modalOpen) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    } else {
+      startAutoPlay();
+    }
+  }, [modalOpen, startAutoPlay]);
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
+  const goTo = useCallback(
+    (idx: number) => {
+      setCurrentIndex(idx);
+      startAutoPlay();
+    },
+    [startAutoPlay]
+  );
+
+  const goToPrev = useCallback(
+    () => goTo((currentIndex - 1 + banners.length) % banners.length),
+    [currentIndex, banners.length, goTo]
+  );
+
+  const goToNext = useCallback(
+    () => goTo((currentIndex + 1) % banners.length),
+    [currentIndex, banners.length, goTo]
+  );
 
   if (banners.length === 0) return null;
 
@@ -57,86 +548,68 @@ export function BannerCarousel({
   if (!currentBanner) return null;
 
   return (
-    <div className={cn("relative overflow-hidden rounded-lg", className)}>
-      {/* Banner Content */}
-      <div className="relative aspect-[5/1] md:aspect-[8/1]">
-        {currentBanner.link ? (
-          <Link href={currentBanner.link}>
-            <Image
-              src={currentBanner.image}
-              alt={currentBanner.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="100vw"
-            />
-            {currentBanner.description && (
-              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 to-transparent p-6">
-                <div className="text-white">
-                  <h2 className="mb-2 text-2xl font-bold md:text-4xl">{currentBanner.title}</h2>
-                  <p className="text-sm md:text-base">{currentBanner.description}</p>
-                </div>
-              </div>
-            )}
-          </Link>
-        ) : (
-          <>
-            <Image
-              src={currentBanner.image}
-              alt={currentBanner.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="100vw"
-            />
-            {currentBanner.description && (
-              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 to-transparent p-6">
-                <div className="text-white">
-                  <h2 className="mb-2 text-2xl font-bold md:text-4xl">{currentBanner.title}</h2>
-                  <p className="text-sm md:text-base">{currentBanner.description}</p>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Navigation Arrows */}
-      {banners.length > 1 && (
-        <>
-          <button
-            onClick={goToPrevious}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-900 shadow-lg transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900"
-            aria-label="Previous banner"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-900 shadow-lg transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900"
-            aria-label="Next banner"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-        </>
-      )}
-
-      {/* Dots Indicator */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={cn(
-                "h-2 rounded-full transition-all",
-                index === currentIndex ? "w-8 bg-white" : "w-2 bg-white/60 hover:bg-white/80"
-              )}
-              aria-label={`Go to banner ${index + 1}`}
+    <>
+      <div className={cn("relative overflow-hidden rounded-xl", className)}>
+        {/* Height: taller on large screens to give action panel room */}
+        <div className="relative h-56 sm:h-72 md:h-[360px] lg:h-[400px] xl:h-[440px]">
+          {banners.map((banner, index) => (
+            <Slide
+              key={banner.id}
+              banner={banner}
+              isActive={index === currentIndex}
+              onKnowMore={() => setModalOpen(true)}
             />
           ))}
         </div>
+
+        {/* Navigation Arrows */}
+        {banners.length > 1 && (
+          <>
+            <button
+              onClick={goToPrev}
+              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Previous banner"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Next banner"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Dot Indicators */}
+        {banners.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goTo(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                  index === currentIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                )}
+                aria-label={`Go to banner ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Action Modal (small screens only, triggered by Know More) */}
+      {modalOpen && (
+        <ActionModal
+          banner={currentBanner}
+          onClose={() => setModalOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }
+
+// Named re-export alias for clarity at call sites
+export { BannerCarousel as HeroBanner };

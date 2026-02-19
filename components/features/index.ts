@@ -2,8 +2,8 @@
 export { ProductCard } from "./ProductCard";
 export type { ProductCardProps } from "./ProductCard";
 
-export { BannerCarousel } from "./BannerCarousel";
-export type { BannerCarouselProps, BannerItem } from "./BannerCarousel";
+export { BannerCarousel, HeroBanner } from "./BannerCarousel";
+export type { BannerCarouselProps, BannerItem, BannerActionItem } from "./BannerCarousel";
 
 export { CategoryNav } from "./CategoryNav";
 export type { CategoryNavProps, Category } from "./CategoryNav";
