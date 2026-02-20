@@ -56,8 +56,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <html lang="en" suppressHydrationWarning>
       <body className={GeistSans.className}>
         <Providers>
+          {/* Fixed top ad strip — pushes page content down by its height (10) */}
           <TopAdBanner />
-          <main>{children}</main>
+          <main className="pt-10">{children}</main>
         </Providers>
       </body>
     </html>

@@ -376,13 +376,69 @@ export interface Review {
 // BANNER TYPES
 // ============================================================================
 
+/**
+ * A single call-to-action that can be attached to a banner.
+ * Multiple actions allow for primary/secondary button configurations.
+ */
+export interface BannerAction {
+    /** Label shown on the button */
+    label: string;
+    /** URL to navigate to when clicked */
+    href: string;
+    /** Visual variant – drives button styling */
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+    /** Open in new tab */
+    openInNewTab?: boolean;
+    /** Optional icon name (lucide-react) */
+    icon?: string;
+}
+
+/**
+ * The thematic category of a banner, used to apply tailored styling.
+ * - BUSINESS   → general commercial / product ads
+ * - CHURCH     → church-programme announcements (warm, faith-oriented palette)
+ * - EVENT      → one-off occasions with a date/time emphasis
+ * - PROMOTION  → discount & sale themes
+ */
+export type BannerTheme = 'BUSINESS' | 'CHURCH' | 'EVENT' | 'PROMOTION';
+
 export interface Banner {
     id: ID;
     title: string;
+    /** Short tagline shown in the action panel / modal */
+    subtitle?: string | null;
     description?: string | null;
     imageUrl: URL;
+    /**
+     * @deprecated Use `actions` array instead.
+     * Kept for backward-compatibility with consumers that only need a single link.
+     */
     linkUrl?: URL | null;
+    /** Structured call-to-action buttons (up to 2 recommended) */
+    actions?: BannerAction[] | null;
+    /** Determines slot placement */
     position: 'TOP' | 'HERO' | 'SIDEBAR';
+    /**
+     * Visual theme applied to the banner.
+     * Defaults to 'BUSINESS' when omitted.
+     */
+    theme?: BannerTheme | null;
+    /**
+     * Accent / overlay colour used in the action panel.
+     * Accepts any valid CSS colour string (hex, hsl, rgb…).
+     * Falls back to the theme's default when omitted.
+     */
+    accentColor?: string | null;
+    /**
+     * Extra detail displayed in the action panel / modal.
+     * Useful for address, date/time, or speaker info on church banners.
+     */
+    details?: string | null;
+    /**
+     * Label for the "know more" affordance on small screens.
+     * Defaults to "Know More" when omitted.
+     */
+    knowMoreLabel?: string | null;
     isActive: boolean;
     startDate: Timestamp;
     endDate?: Timestamp | null;

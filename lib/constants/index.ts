@@ -386,3 +386,82 @@ export const APP_CONFIG = {
     SUPPORT_EMAIL: 'support@harvesthub.ng',
     SUPPORT_PHONE: '+234 800 000 0000',
 } as const;
+
+// ============================================================================
+// BANNER CONFIG
+// ============================================================================
+
+/**
+ * Central configuration for the banner system.
+ *
+ * ROTATION          – how many milliseconds between auto-advances
+ * TRANSITION_MS     – CSS transition duration used in animation classes
+ * DISMISS_STORAGE_KEY – localStorage key tracking dismissed TOP banner IDs
+ * HERO_DISPLAY_INTERVAL – interval for hero carousel auto-play (matches designer spec)
+ * TOP_DISPLAY_INTERVAL  – interval for rotating the small fixed top strip
+ *
+ * THEME_STYLES maps each BannerTheme to a set of Tailwind classes so that
+ * every new theme variant only needs one entry here, keeping components
+ * theme-agnostic and easy to extend.
+ */
+export const BANNER_CONFIG = {
+    /** AUTO-ROTATION */
+    HERO_DISPLAY_INTERVAL: 5000,   // 5 s – hero carousel
+    TOP_DISPLAY_INTERVAL: 5000,    // 5 s – top ad strip rotation
+
+    /** ANIMATION */
+    TRANSITION_MS: 400,
+
+    /** PERSISTENCE */
+    DISMISS_STORAGE_KEY: 'hh_dismissed_top_banners',
+
+    /** DEFAULT LABELS */
+    KNOW_MORE_LABEL: 'Know More',
+    DEFAULT_CTA_LABEL: 'Learn More',
+
+    /** HERO LAYOUT */
+    // Fraction of the hero width given to the display panel on large screens
+    // e.g. "70" → 70% display, 30% action
+    DISPLAY_PANEL_PERCENT: 65,
+    ACTION_PANEL_PERCENT: 35,
+
+    /** Per-theme design tokens (Tailwind class strings) */
+    THEME_STYLES: {
+        BUSINESS: {
+            actionBg: 'bg-purple-700',
+            actionBgDark: 'dark:bg-purple-900',
+            actionText: 'text-white',
+            accentBg: 'bg-purple-500',
+            badge: 'bg-purple-500/20 text-purple-100',
+            primaryBtn: 'bg-white text-purple-700 hover:bg-purple-50',
+            secondaryBtn: 'border border-white/60 text-white hover:bg-white/10',
+        },
+        CHURCH: {
+            actionBg: 'bg-amber-700',
+            actionBgDark: 'dark:bg-amber-900',
+            actionText: 'text-white',
+            accentBg: 'bg-amber-500',
+            badge: 'bg-amber-500/20 text-amber-100',
+            primaryBtn: 'bg-white text-amber-700 hover:bg-amber-50',
+            secondaryBtn: 'border border-white/60 text-white hover:bg-white/10',
+        },
+        EVENT: {
+            actionBg: 'bg-rose-700',
+            actionBgDark: 'dark:bg-rose-900',
+            actionText: 'text-white',
+            accentBg: 'bg-rose-500',
+            badge: 'bg-rose-500/20 text-rose-100',
+            primaryBtn: 'bg-white text-rose-700 hover:bg-rose-50',
+            secondaryBtn: 'border border-white/60 text-white hover:bg-white/10',
+        },
+        PROMOTION: {
+            actionBg: 'bg-emerald-700',
+            actionBgDark: 'dark:bg-emerald-900',
+            actionText: 'text-white',
+            accentBg: 'bg-emerald-500',
+            badge: 'bg-emerald-500/20 text-emerald-100',
+            primaryBtn: 'bg-white text-emerald-700 hover:bg-emerald-50',
+            secondaryBtn: 'border border-white/60 text-white hover:bg-white/10',
+        },
+    },
+} as const;
