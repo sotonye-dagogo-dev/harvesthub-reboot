@@ -19,12 +19,6 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  // Redirect if not admin
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
-
   const filteredProducts = useMemo(() => {
     let filtered = [...mockProducts];
 
@@ -50,6 +44,12 @@ export default function AdminProductsPage() {
     );
   }, [searchQuery, categoryFilter, statusFilter]);
 
+  // Redirect if not admin
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
+
   const getVendorName = (vendorId: string) =>
     mockVendors.find((v) => v.id === vendorId)?.storeName || "Unknown";
 
@@ -57,7 +57,7 @@ export default function AdminProductsPage() {
     message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
-  const handleDelete = (productId: string) => {
+  const handleDelete = (_productId: string) => {
     Modal.confirm({
       title: "Delete Product",
       content: "Are you sure you want to remove this product from the platform?",

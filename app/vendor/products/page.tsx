@@ -8,11 +8,9 @@ import type { Product } from "@/lib/types";
 import {
   Package,
   Plus,
-  Edit,
   Trash2,
   Eye,
   Search,
-  Filter,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
@@ -27,12 +25,6 @@ export default function VendorProductsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
-
-  // Redirect if not vendor
-  if (user?.role !== "VENDOR") {
-    router.push("/unauthorized");
-    return null;
-  }
 
   // Get vendor's products
   const vendorProducts = useMemo(() => {
@@ -56,7 +48,13 @@ export default function VendorProductsPage() {
     );
   }, [user?.id, searchQuery, categoryFilter]);
 
-  const handleDelete = (productId: string) => {
+  // Redirect if not vendor
+  if (user?.role !== "VENDOR") {
+    router.push("/unauthorized");
+    return null;
+  }
+
+  const handleDelete = (_productId: string) => {
     Modal.confirm({
       title: "Delete Product",
       content: "Are you sure you want to delete this product? This action cannot be undone.",

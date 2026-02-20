@@ -21,7 +21,7 @@ export default function OrdersManagementPage() {
 
   // Vendors redirect to vendor-specific orders
   if (user.role === "VENDOR") {
-    redirect("/orders"); // Would show vendor view
+    redirect("/vendor/orders");
   }
 
   // Admins redirect to admin order management

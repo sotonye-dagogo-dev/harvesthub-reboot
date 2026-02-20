@@ -78,12 +78,13 @@ export async function POST(
         const review = db.reviews.create({
             productId: id,
             buyerId: buyer.id,
+            orderId: body.orderId || "",
             rating: body.rating,
-            title: body.title || "",
             comment: body.comment || "",
             images: body.images || [],
             isVerifiedPurchase: body.isVerifiedPurchase ?? false,
             helpfulCount: 0,
+            notHelpfulCount: 0,
         });
 
         return NextResponse.json({ success: true, review }, { status: 201 });

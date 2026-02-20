@@ -24,6 +24,6 @@ export default function ProductsManagementPage() {
     redirect("/products");
   }
 
-  // Redirect to vendor products page (would be created as separate feature)
-  redirect("/products");
+  // Redirect to vendor products page
+  redirect("/vendor/products");
 }

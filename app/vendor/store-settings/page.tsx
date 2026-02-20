@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Input } from "@/components/ui";
+import { Card, Button } from "@/components/ui";
 import { Upload, Camera, Store, MapPin, Clock, Truck, Phone, Mail } from "lucide-react";
 import { Switch, Select, TimePicker, message, Input as AntInput } from "antd";
 import { mockVendors } from "@/lib/data/mockData";
@@ -16,31 +16,31 @@ export default function VendorStoreSettingsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  // Redirect if not vendor
-  if (user?.role !== "VENDOR") {
-    router.push("/unauthorized");
-    return null;
-  }
-
   const vendor = mockVendors.find((v) => v.userId === user?.id);
 
   const [formData, setFormData] = useState({
     storeName: vendor?.storeName || "",
-    description: vendor?.description || "",
+    description: vendor?.storeDescription || "",
     category: vendor?.category || "",
     campus: vendor?.campus || "",
     email: user?.email || "",
     phone: user?.phoneNumber || "",
     whatsapp: vendor?.whatsappNumber || "",
     address: "",
-    allowsPickup: vendor?.allowsPickup ?? false,
-    allowsDelivery: vendor?.allowsDelivery ?? false,
+    allowsPickup: vendor?.storeSettings?.allowsPickup ?? false,
+    allowsDelivery: vendor?.storeSettings?.allowsDelivery ?? false,
     businessHoursStart: "09:00",
     businessHoursEnd: "18:00",
     processingTime: "1-2 days",
-    returnPolicy: vendor?.returnPolicy || "",
-    shippingPolicy: vendor?.shippingPolicy || "",
+    returnPolicy: vendor?.storeSettings?.policies?.returnPolicy || "",
+    shippingPolicy: vendor?.storeSettings?.policies?.shippingPolicy || "",
   });
+
+  // Redirect if not vendor
+  if (user?.role !== "VENDOR") {
+    router.push("/unauthorized");
+    return null;
+  }
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

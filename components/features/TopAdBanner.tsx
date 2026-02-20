@@ -29,29 +29,32 @@ interface ThemeClasses {
 }
 
 function getThemeClasses(theme: string | null | undefined): ThemeClasses {
-  const map: Record<string, ThemeClasses> = {
-    CHURCH: {
+  // Use explicit conditionals instead of Record lookup to keep TypeScript happy
+  // (strict noUncheckedIndexedAccess makes Record<string, T>[key] return T | undefined)
+  if (theme === "CHURCH")
+    return {
       bg: "bg-gradient-to-r from-amber-700 to-amber-600",
       text: "text-amber-50",
       indicator: "bg-amber-300",
-    },
-    PROMOTION: {
+    };
+  if (theme === "PROMOTION")
+    return {
       bg: "bg-gradient-to-r from-emerald-700 to-emerald-600",
       text: "text-emerald-50",
       indicator: "bg-emerald-300",
-    },
-    EVENT: {
+    };
+  if (theme === "EVENT")
+    return {
       bg: "bg-gradient-to-r from-rose-700 to-rose-600",
       text: "text-rose-50",
       indicator: "bg-rose-300",
-    },
-    BUSINESS: {
-      bg: "bg-gradient-to-r from-purple-700 to-purple-600",
-      text: "text-purple-50",
-      indicator: "bg-purple-300",
-    },
+    };
+  // BUSINESS (default)
+  return {
+    bg: "bg-gradient-to-r from-purple-700 to-purple-600",
+    text: "text-purple-50",
+    indicator: "bg-purple-300",
   };
-  return map[theme ?? "BUSINESS"] ?? map["BUSINESS"]!;
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -59,7 +62,7 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
 export function TopAdBanner() {
   const [banners, setBanners] = useState<(typeof mockBanners)[number][]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [, setDismissed] = useState<Set<string>>(new Set());
   const [visible, setVisible] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -202,7 +205,7 @@ export function TopAdBanner() {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            banners.length === 1 ? dismissAll() : dismissCurrent();
+            if (banners.length === 1) { dismissAll(); } else { dismissCurrent(); }
           }}
           className="ml-1 rounded p-0.5 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label="Close banner"

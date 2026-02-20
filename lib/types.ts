@@ -44,6 +44,7 @@ export interface User {
     profilePicture?: URL | null;
     emailVerified: boolean;
     isActive: boolean;
+    status?: 'ACTIVE' | 'INACTIVE' | 'BANNED' | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 

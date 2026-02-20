@@ -17,11 +17,6 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
-
   const filteredUsers = useMemo(() => {
     let filtered = [...mockUsers];
 
@@ -51,11 +46,26 @@ export default function AdminUsersPage() {
     );
   }, [searchQuery, roleFilter, statusFilter]);
 
+  const roleCounts = useMemo(
+    () => ({
+      total: mockUsers.length,
+      admins: mockUsers.filter((u) => u.role === UserRole.ADMIN).length,
+      vendors: mockUsers.filter((u) => u.role === UserRole.VENDOR).length,
+      buyers: mockUsers.filter((u) => u.role === UserRole.BUYER).length,
+    }),
+    []
+  );
+
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
+
   const handleToggleStatus = (targetUser: User) => {
     message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = (_userId: string) => {
     Modal.confirm({
       title: "Delete User",
       content:
@@ -175,16 +185,6 @@ export default function AdminUsersPage() {
       ),
     },
   ];
-
-  const roleCounts = useMemo(
-    () => ({
-      total: mockUsers.length,
-      admins: mockUsers.filter((u) => u.role === UserRole.ADMIN).length,
-      vendors: mockUsers.filter((u) => u.role === UserRole.VENDOR).length,
-      buyers: mockUsers.filter((u) => u.role === UserRole.BUYER).length,
-    }),
-    []
-  );
 
   return (
     <div className="space-y-6">

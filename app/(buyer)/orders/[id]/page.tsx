@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockOrders, mockVendors, mockProducts } from "@/lib/data/mockData";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { mockOrders, mockVendors } from "@/lib/data/mockData";
+import { Card, Button, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -28,46 +28,9 @@ export default function OrderDetailPage() {
 
   const order = useMemo(() => mockOrders.find((o) => o.id === orderId), [orderId]);
 
-  if (!order) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <EmptyState
-          icon={<Package className="h-12 w-12" />}
-          title="Order not found"
-          description="The order you&rsquo;re looking for doesn&rsquo;t exist or has been removed."
-          action={<Button onClick={() => router.push("/orders")}>Back to Orders</Button>}
-        />
-      </div>
-    );
-  }
-
-  const vendor = mockVendors.find((v) => v.id === order.vendorId);
-
-  const statusColor = (status: OrderStatus | string) => {
-    const colors: Record<string, string> = {
-      PENDING: "orange",
-      CONFIRMED: "blue",
-      PROCESSING: "cyan",
-      READY: "geekblue",
-      COMPLETED: "green",
-      CANCELLED: "red",
-      REFUNDED: "volcano",
-    };
-    return colors[status] || "default";
-  };
-
-  const paymentStatusColor = (status: PaymentStatus | string) => {
-    const colors: Record<string, string> = {
-      PENDING: "orange",
-      PAID: "green",
-      FAILED: "red",
-      REFUNDED: "purple",
-    };
-    return colors[status] || "default";
-  };
-
-  // Map order status history to Steps
+  // Must be before early return to satisfy Rules of Hooks
   const statusSteps = useMemo(() => {
+    if (!order) return [];
     const allStatuses = [
       OrderStatus.PENDING,
       OrderStatus.CONFIRMED,
@@ -108,6 +71,44 @@ export default function OrderDetailPage() {
       };
     });
   }, [order]);
+
+  if (!order) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <EmptyState
+          icon={<Package className="h-12 w-12" />}
+          title="Order not found"
+          description="The order you&rsquo;re looking for doesn&rsquo;t exist or has been removed."
+          action={<Button onClick={() => router.push("/orders")}>Back to Orders</Button>}
+        />
+      </div>
+    );
+  }
+
+  const vendor = mockVendors.find((v) => v.id === order.vendorId);
+
+  const statusColor = (status: OrderStatus | string) => {
+    const colors: Record<string, string> = {
+      PENDING: "orange",
+      CONFIRMED: "blue",
+      PROCESSING: "cyan",
+      READY: "geekblue",
+      COMPLETED: "green",
+      CANCELLED: "red",
+      REFUNDED: "volcano",
+    };
+    return colors[status] || "default";
+  };
+
+  const paymentStatusColor = (status: PaymentStatus | string) => {
+    const colors: Record<string, string> = {
+      PENDING: "orange",
+      PAID: "green",
+      FAILED: "red",
+      REFUNDED: "purple",
+    };
+    return colors[status] || "default";
+  };
 
   const canCancel = order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED;
 
@@ -283,7 +284,7 @@ export default function OrderDetailPage() {
                 <>
                   <p className="font-medium">{order.deliveryAddress.fullName}</p>
                   <p className="text-gray-600 dark:text-gray-400">
-                    {order.deliveryAddress.streetAddress}
+                    {order.deliveryAddress.addressLine1}
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
                     {order.deliveryAddress.city}, {order.deliveryAddress.state}

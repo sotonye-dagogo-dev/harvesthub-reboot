@@ -316,6 +316,7 @@ function ActionPanel({ banner }: ActionPanelProps) {
         tokens.actionBg,
         tokens.actionText
       )}
+      // CSS custom property must be set via inline style (cannot be a Tailwind class)
       style={
         banner.accentColor
           ? ({ "--accent": banner.accentColor } as React.CSSProperties)
@@ -390,14 +391,13 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
         BANNER_CONFIG.TRANSITION_MS === 400 ? "duration-400" : "duration-500",
         isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
       )}
-      aria-hidden={!isActive}
+      aria-hidden={!isActive ? "true" : "false"}
     >
       {/* ── LARGE SCREEN: dual panel layout ── */}
       <div className="hidden md:flex h-full">
         {/* Display panel */}
         <div
-          className="relative overflow-hidden"
-          style={{ width: `${BANNER_CONFIG.DISPLAY_PANEL_PERCENT}%` }}
+          className="relative w-[65%] overflow-hidden"
         >
           <Image
             src={banner.image}
@@ -438,44 +438,53 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
 
         {/* Action panel */}
         <div
-          className="flex-shrink-0"
-          style={{ width: `${BANNER_CONFIG.ACTION_PANEL_PERCENT}%` }}
+          className="flex-shrink-0 w-[35%]"
         >
           <ActionPanel banner={banner} />
         </div>
       </div>
 
-      {/* ── SMALL SCREEN: full image + optional "Know More" chip ── */}
-      <div className="relative flex h-full md:hidden">
-        <Image
-          src={banner.image}
-          alt={banner.title}
-          fill
-          className="object-cover"
-          priority={isActive}
-          sizes="100vw"
-        />
-        {/* Bottom overlay */}
+      {/* ── SMALL SCREEN: stacked dual-section — image panel + action strip ── */}
+      <div className="flex h-full flex-col md:hidden">
+        {/* ▌ Display section – image fills remaining height */}
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <Image
+            src={banner.image}
+            alt={banner.title}
+            fill
+            className="object-cover"
+            priority={isActive}
+            sizes="100vw"
+          />
+          {/* Subtle vignette for visual depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        </div>
+
+        {/* ▌ Action strip – themed colour, fixed height, always visible */}
         <div
           className={cn(
-            "absolute inset-0 flex flex-col justify-end bg-gradient-to-t to-transparent p-4",
-            tokens.overlayFrom
+            "flex min-h-[64px] flex-shrink-0 items-center gap-3 px-4 py-2",
+            tokens.actionBg,
+            tokens.actionText
           )}
         >
-          <h2 className="text-lg font-bold text-white drop-shadow-sm sm:text-xl">
-            {banner.title}
-          </h2>
-          {banner.subtitle && (
-            <p className="mt-0.5 text-xs text-white/80">{banner.subtitle}</p>
-          )}
+          {/* Info block */}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold leading-snug">{banner.title}</p>
+            {banner.subtitle && (
+              <p className="truncate text-xs opacity-75">{banner.subtitle}</p>
+            )}
+          </div>
 
-          {/* Know More chip — only render when there's content to show */}
+          {/* "Know More" CTA — only shown when there is content / actions to reveal;
+               suppressed when banner has no actions AND no description/details (fallback). */}
           {(hasActions || banner.description || banner.details) && (
             <button
               onClick={onKnowMore}
               className={cn(
-                "mt-3 self-start rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2",
-                tokens.knowMoreChip
+                "flex-shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold",
+                "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+                tokens.primaryBtn
               )}
               aria-label={`${knowMoreLabel} about ${banner.title}`}
             >
@@ -550,8 +559,14 @@ export function BannerCarousel({
   return (
     <>
       <div className={cn("relative overflow-hidden rounded-xl", className)}>
-        {/* Height: taller on large screens to give action panel room */}
-        <div className="relative h-56 sm:h-72 md:h-[360px] lg:h-[400px] xl:h-[440px]">
+        {/*
+         * Height breakdown:
+         *   < md  → image flex-1 + action-strip min-h-[64px] inside the Slide
+         *          280px = ~216px image + 64px strip (mobile)
+         *   sm    → 336px = ~272px image + 64px strip (large phone / tablet-portrait)
+         *   md+   → dual-panel (no strip) so plain height for the whole card
+         */}
+        <div className="relative h-[280px] sm:h-[336px] md:h-[360px] lg:h-[400px] xl:h-[440px]">
           {banners.map((banner, index) => (
             <Slide
               key={banner.id}
@@ -567,14 +582,14 @@ export function BannerCarousel({
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white md:top-1/2 dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Previous banner"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white md:top-1/2 dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Next banner"
             >
               <ChevronRight className="h-5 w-5" />
@@ -582,9 +597,11 @@ export function BannerCarousel({
           </>
         )}
 
-        {/* Dot Indicators */}
+        {/* Dot Indicators
+             On small screens the action strip is at the bottom (~64 px), so dots
+             are nudged up above it. On md+ the strip is gone → back to bottom-3. */}
         {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-[76px] left-1/2 z-20 flex -translate-x-1/2 gap-1.5 md:bottom-3">
             {banners.map((_, index) => (
               <button
                 key={index}

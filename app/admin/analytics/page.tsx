@@ -29,15 +29,10 @@ export default function AdminAnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
-
   const stats = useMemo(() => {
     const totalRevenue = mockOrders
       .filter((o) => o.status === OrderStatus.COMPLETED)
-      .reduce((sum, o) => sum + o.totalAmount, 0);
+      .reduce((sum, o) => sum + o.total, 0);
 
     const totalOrders = mockOrders.length;
     const completedOrders = mockOrders.filter((o) => o.status === OrderStatus.COMPLETED).length;
@@ -111,6 +106,11 @@ export default function AdminAnalyticsPage() {
   const topProducts = useMemo(() => {
     return [...mockProducts].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
   }, []);
+
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
 
   const statusColor = (status: string) => {
     const colors: Record<string, string> = {

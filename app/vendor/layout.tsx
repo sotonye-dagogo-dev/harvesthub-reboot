@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { Header, Sidebar } from "@/components/layout";
 
+export const dynamic = "force-dynamic";
+
 interface VendorLayoutProps {
   children: ReactNode;
 }
