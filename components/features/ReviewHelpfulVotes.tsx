@@ -99,7 +99,7 @@ export function ReviewHelpfulVotes({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Was this helpful?</span>
+      <span className="text-sm text-ds-text-secondary mr-2">Was this helpful?</span>
 
       <Button
         size="small"

@@ -50,16 +50,16 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="mx-auto h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-4">
-              <MailOutlined className="text-2xl text-green-600 dark:text-green-400" />
+            <div className="mx-auto h-12 w-12 rounded-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
+              <MailOutlined className="text-2xl text-ds-status-success-text" />
             </div>
             <Title level={3} className="mb-2">
               Check Your Email
             </Title>
-            <Text className="text-gray-600 dark:text-gray-400">
+            <Text className="text-ds-text-secondary">
               We&apos;ve sent password reset instructions to your email address.
             </Text>
           </div>
@@ -71,13 +71,13 @@ export default function ForgotPasswordPage() {
               description={
                 <div>
                   <p className="mb-2">Your reset token (use this for testing):</p>
-                  <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                  <code className="bg-ds-surface-sunken px-2 py-1 rounded">
                     {resetToken}
                   </code>
                   <p className="mt-2">
                     <Link
                       href={`/reset-password?token=${resetToken}&email=${form.getFieldValue("email")}`}
-                      className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                      className="text-ds-text-brand hover:text-ds-palette-purple-700"
                     >
                       Click here to reset password
                     </Link>
@@ -89,11 +89,11 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="space-y-4">
-            <Text className="block text-sm text-gray-600 dark:text-gray-400">
+            <Text className="block text-sm text-ds-text-secondary">
               Didn&apos;t receive the email? Check your spam folder or{" "}
               <button
                 onClick={() => setSuccess(false)}
-                className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+                className="text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
               >
                 try again
               </button>
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
 
             <Link
               href="/login"
-              className="flex items-center justify-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+              className="flex items-center justify-center text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
             >
               <ArrowLeftOutlined className="mr-2" />
               Back to Login
@@ -113,13 +113,13 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
       <Card className="max-w-md w-full">
         <div className="text-center mb-6">
           <Title level={2} className="mb-2">
             Reset Your Password
           </Title>
-          <Text className="text-gray-600 dark:text-gray-400">
+          <Text className="text-ds-text-secondary">
             Enter your email address and we&apos;ll send you instructions to reset your password.
           </Text>
         </div>
@@ -159,7 +159,7 @@ export default function ForgotPasswordPage() {
               size="large"
               loading={loading}
               block
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover"
             >
               Send Reset Link
             </Button>
@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
           <div className="text-center">
             <Link
               href="/login"
-              className="flex items-center justify-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+              className="flex items-center justify-center text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
             >
               <ArrowLeftOutlined className="mr-2" />
               Back to Login

@@ -5,29 +5,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Order } from "@/lib/types";
 import Image from "next/image";
-import { message, Spin, Tag, Descriptions, Select } from "antd";
+import { StatusTag , PageLoader } from "@/components/ui";
+import { message, Descriptions, Select } from "antd";
 import { Button, Card } from "@/components/ui";
 import {
     ArrowLeft,
     ShoppingBag,
     Package,
     CheckCircle,
-    XCircle,
-} from "lucide-react";
+    XCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 const { Option } = Select;
-
-const ORDER_STATUS_COLORS: Record<string, string> = {
-    PENDING: "orange",
-    CONFIRMED: "blue",
-    PROCESSING: "purple",
-    READY: "cyan",
-    SHIPPED: "geekblue",
-    DELIVERED: "green",
-    CANCELLED: "red",
-    REFUNDED: "magenta",
-};
 
 const ALL_STATUSES = [
     "PENDING",
@@ -78,8 +67,7 @@ export default function AdminOrderDetailPage() {
             const res = await fetch(`/api/orders/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus }),
-            });
+                body: JSON.stringify({ status: newStatus }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Update failed");
             message.success(`Order status updated to ${newStatus}`);
@@ -110,9 +98,7 @@ export default function AdminOrderDetailPage() {
 
     if (authLoading || loading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <Spin size="large" />
-            </div>
+            <PageLoader minHeight="min-h-[400px]" />
         );
     }
 
@@ -125,72 +111,69 @@ export default function AdminOrderDetailPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => router.push("/admin/orders")}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="rounded-lg p-2 text-ds-text-tertiary hover:bg-ds-surface-sunken"
                         aria-label="Back to orders"
                         title="Back to orders"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <ShoppingBag className="h-5 w-5 text-purple-600" />
+                        <h1 className="text-xl font-bold text-ds-text-primary flex items-center gap-2">
+                            <ShoppingBag className="h-5 w-5 text-ds-text-brand" />
                             Order #{order.id.slice(-8).toUpperCase()}
                         </h1>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-ds-text-tertiary">
                             {new Date(order.createdAt).toLocaleDateString("en-NG", {
-                                day: "numeric", month: "long", year: "numeric",
-                            })}
+                                day: "numeric", month: "long", year: "numeric" })}
                         </p>
                     </div>
                 </div>
-                <Tag color={ORDER_STATUS_COLORS[order.status]} className="text-sm px-3 py-1">
-                    {order.status}
-                </Tag>
+                <StatusTag domain="order" status={order.status} className="text-sm px-3 py-1" />
             </div>
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6 lg:col-span-2">
                     {/* Items */}
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             Order Items
                         </h2>
                         <div className="divide-y divide-gray-100 dark:divide-gray-800">
                             {order.items.map((item) => (
                                 <div key={item.productId} className="flex items-center gap-4 py-3">
-                                    <div className="h-12 w-12 relative flex-shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center">
+                                    <div className="h-12 w-12 relative flex-shrink-0 rounded-lg bg-ds-surface-sunken overflow-hidden flex items-center justify-center">
                                         {item.productImage ? (
                                             <Image src={item.productImage} alt={item.productName} fill className="object-cover" sizes="48px" />
                                         ) : (
-                                            <Package className="h-5 w-5 text-gray-400" />
+                                            <Package className="h-5 w-5 text-ds-text-placeholder" />
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        <p className="text-sm font-medium text-ds-text-primary">
                                             {item.productName}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-ds-text-tertiary">
                                             {item.quantity} &times; {formatCurrency(item.price)}
                                         </p>
                                     </div>
-                                    <p className="font-semibold text-purple-600">
+                                    <p className="font-semibold text-ds-text-brand">
                                         {formatCurrency(item.subtotal)}
                                     </p>
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-4 space-y-1 border-t border-gray-100 dark:border-gray-800 pt-4 text-sm">
-                            <div className="flex justify-between text-gray-500">
+                        <div className="mt-4 space-y-1 border-t border-ds-border-subtle pt-4 text-sm">
+                            <div className="flex justify-between text-ds-text-tertiary">
                                 <span>Subtotal</span>
                                 <span>{formatCurrency(order.subtotal)}</span>
                             </div>
                             {order.deliveryFee > 0 && (
-                                <div className="flex justify-between text-gray-500">
+                                <div className="flex justify-between text-ds-text-tertiary">
                                     <span>Delivery Fee</span>
                                     <span>{formatCurrency(order.deliveryFee)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between font-bold text-gray-900 dark:text-white text-base pt-1">
+                            <div className="flex justify-between font-bold text-ds-text-primary text-base pt-1">
                                 <span>Total</span>
                                 <span>{formatCurrency(order.total)}</span>
                             </div>
@@ -199,16 +182,14 @@ export default function AdminOrderDetailPage() {
 
                     {/* Order Details */}
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             Order Details
                         </h2>
                         <Descriptions column={2} size="small">
                             <Descriptions.Item label="Order ID">{order.id}</Descriptions.Item>
                             <Descriptions.Item label="Payment Method">{order.paymentMethod}</Descriptions.Item>
                             <Descriptions.Item label="Payment Status">
-                                <Tag color={order.paymentStatus === "PAID" ? "green" : "orange"}>
-                                    {order.paymentStatus}
-                                </Tag>
+                                <StatusTag domain="payment" status={order.paymentStatus} />
                             </Descriptions.Item>
                             <Descriptions.Item label="Fulfillment">{order.deliveryMethod}</Descriptions.Item>
                             {order.deliveryAddress && (
@@ -228,7 +209,7 @@ export default function AdminOrderDetailPage() {
                 {/* Admin Controls */}
                 <div className="space-y-4">
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             Update Status
                         </h2>
                         <div className="space-y-3">
@@ -258,12 +239,12 @@ export default function AdminOrderDetailPage() {
 
                     {!["CANCELLED", "REFUNDED", "DELIVERED"].includes(order.status) && (
                         <Card>
-                            <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-white">
+                            <h2 className="mb-3 text-base font-semibold text-ds-text-primary">
                                 Force Actions
                             </h2>
                             <Button
                                 variant="outline"
-                                className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                                className="w-full border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg"
                                 onClick={handleForceCancel}
                                 disabled={updatingStatus}
                             >

@@ -93,8 +93,8 @@ export default function WalletPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Wallet</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <h1 className="text-3xl font-bold text-ds-text-primary">My Wallet</h1>
+        <p className="mt-2 text-ds-text-secondary">
           {user.role === "VENDOR"
             ? "Manage your earnings and withdrawals"
             : "Add funds and track your transactions"}
@@ -105,11 +105,11 @@ export default function WalletPage() {
         {/* Wallet Balance Card */}
         <Card className="lg:col-span-1">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
-              <WalletIcon className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-ds-brand-subtle">
+              <WalletIcon className="h-8 w-8 text-ds-text-brand" />
             </div>
-            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Available Balance</div>
-            <div className="mb-6 text-4xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="mb-2 text-sm text-ds-text-secondary">Available Balance</div>
+            <div className="mb-6 text-4xl font-bold text-ds-text-brand">
               {formatCurrency(userWallet.balance)}
             </div>
 
@@ -137,7 +137,7 @@ export default function WalletPage() {
         {/* Transaction History */}
         <div className="lg:col-span-2">
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Transaction History
             </h2>
 
@@ -152,33 +152,25 @@ export default function WalletPage() {
                   {paginatedTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="flex items-center justify-between border-b border-gray-200 pb-3 last:border-0 dark:border-gray-800"
+                      className="flex items-center justify-between border-b border-ds-border-base pb-3 last:border-0"
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                            transaction.type === "DEPOSIT"
-                              ? "bg-green-100 dark:bg-green-900"
-                              : transaction.type === "WITHDRAWAL"
-                                ? "bg-red-100 dark:bg-red-900"
-                                : "bg-blue-100 dark:bg-blue-900"
-                          }`}
+                      <div className="flex items-center gap-3"> <div className={`flex h-10 w-10 items-center justify-center rounded-full ${ transaction.type ==="DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg" }`}
                         >
                           {transaction.type === "DEPOSIT" ? (
-                            <ArrowDownCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            <ArrowDownCircle className="h-5 w-5 text-ds-status-success-text" />
                           ) : (
-                            <ArrowUpCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                            <ArrowUpCircle className="h-5 w-5 text-ds-status-error-text" />
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
+                          <div className="font-medium text-ds-text-primary">
                             {transaction.type.charAt(0) + transaction.type.slice(1).toLowerCase()}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-ds-text-secondary">
                             {new Date(transaction.createdAt).toLocaleString()}
                           </div>
                           {transaction.description && (
-                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                            <div className="text-xs text-ds-text-tertiary dark:text-ds-text-tertiary">
                               {transaction.description}
                             </div>
                           )}
@@ -186,21 +178,9 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div
-                          className={`font-semibold ${
-                            transaction.type === "DEPOSIT" ? "text-green-600" : "text-red-600"
-                          }`}
+                          className={`font-semibold ${ transaction.type === "DEPOSIT" ? "text-ds-status-success-text" : "text-ds-status-error-text" }`}
                         >
-                          {transaction.type === "DEPOSIT" ? "+" : "-"}
-                          {formatCurrency(transaction.amount)}
-                        </div>
-                        <div
-                          className={`text-xs ${
-                            transaction.status === "COMPLETED"
-                              ? "text-green-600"
-                              : transaction.status === "PENDING"
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                          }`}
+                          {transaction.type === "DEPOSIT" ? "+" : "-"} {formatCurrency(transaction.amount)} </div> <div className={`text-xs ${ transaction.status ==="COMPLETED" ? "text-ds-status-success-text" : transaction.status === "PENDING" ? "text-ds-status-warning-text" : "text-ds-status-error-text" }`}
                         >
                           {transaction.status}
                         </div>
@@ -233,7 +213,7 @@ export default function WalletPage() {
         okText="Deposit"
       >
         <div className="py-4">
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
             Amount (₦)
           </label>
           <Input
@@ -245,7 +225,7 @@ export default function WalletPage() {
             max={1000000}
             size="large"
           />
-          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-2 text-sm text-ds-text-secondary">
             Min: ₦100 • Max: ₦1,000,000
           </div>
         </div>
@@ -260,13 +240,13 @@ export default function WalletPage() {
         okText="Withdraw"
       >
         <div className="py-4">
-          <div className="mb-4 rounded-lg bg-gray-100 p-3 dark:bg-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Available Balance</div>
-            <div className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="mb-4 rounded-lg bg-ds-surface-sunken p-3">
+            <div className="text-sm text-ds-text-secondary">Available Balance</div>
+            <div className="text-xl font-bold text-ds-text-primary">
               {formatCurrency(userWallet.balance)}
             </div>
           </div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
             Withdrawal Amount (₦)
           </label>
           <Input
@@ -278,7 +258,7 @@ export default function WalletPage() {
             max={userWallet.balance}
             size="large"
           />
-          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-2 text-sm text-ds-text-secondary">
             Min: ₦100 • Max: {formatCurrency(userWallet.balance)}
           </div>
         </div>

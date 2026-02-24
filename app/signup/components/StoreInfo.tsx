@@ -46,10 +46,10 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">
           Vendor Information
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Tell us about your store</p>
+        <p className="text-sm text-ds-text-secondary">Tell us about your store</p>
       </div>
 
       <Form
@@ -63,7 +63,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
       >
         <Form.Item
           name="storeName"
-          label={<span className="text-gray-900 dark:text-white font-medium">Store Name</span>}
+          label={<span className="text-ds-text-primary font-medium">Store Name</span>}
           rules={[
             { required: true, message: "Please enter your store name" },
             { min: 3, message: "Store name must be at least 3 characters" },
@@ -74,7 +74,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
 
         <Form.Item
           name="storeCategory"
-          label={<span className="text-gray-900 dark:text-white font-medium">Store Category</span>}
+          label={<span className="text-ds-text-primary font-medium">Store Category</span>}
           rules={[{ required: true, message: "Please select a store category" }]}
         >
           <Select
@@ -95,7 +95,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="campus"
           label={
-            <span className="text-gray-900 dark:text-white font-medium">
+            <span className="text-ds-text-primary font-medium">
               Pick up Location (Campus)
             </span>
           }
@@ -118,7 +118,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
               <div>
                 <div className="font-medium">{option.label}</div>
                 {option.data.description && (
-                  <div className="text-xs text-gray-500">{option.data.description}</div>
+                  <div className="text-xs text-ds-text-tertiary">{option.data.description}</div>
                 )}
               </div>
             )}
@@ -128,7 +128,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="storeDescription"
           label={
-            <span className="text-gray-900 dark:text-white font-medium">
+            <span className="text-ds-text-primary font-medium">
               Store Description (Optional)
             </span>
           }
@@ -146,7 +146,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-purple-600 py-3 text-white font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+            className="w-full rounded-lg bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {submitting ? "Processing..." : "Continue"}
           </button>

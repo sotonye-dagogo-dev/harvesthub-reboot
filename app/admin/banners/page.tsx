@@ -103,7 +103,7 @@ export default function AdminBannersPage() {
       dataIndex: "position",
       key: "position",
       render: (position: string) => (
-        <span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-600 dark:bg-purple-900 dark:text-purple-400">
+        <span className="rounded-full bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
           {position}
         </span>
       ),
@@ -117,15 +117,7 @@ export default function AdminBannersPage() {
     {
       title: "Status",
       dataIndex: "isActive",
-      key: "isActive",
-      width: 100,
-      render: (isActive: boolean) => (
-        <span
-          className={`rounded-full px-2 py-1 text-xs ${
-            isActive
-              ? "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400"
-              : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-          }`}
+      key: "isActive", width: 100, render: (isActive: boolean) => ( <span className={`rounded-full px-2 py-1 text-xs ${ isActive ?"bg-ds-status-success-bg text-ds-status-success-text dark:bg-ds-status-success-bg dark:text-ds-status-success" : "bg-ds-surface-sunken text-ds-text-secondary dark:text-ds-text-placeholder" }`}
         >
           {isActive ? "Active" : "Inactive"}
         </span>
@@ -171,8 +163,8 @@ export default function AdminBannersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Banners Management</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold text-ds-text-primary">Banners Management</h1>
+          <p className="mt-2 text-ds-text-secondary">
             Create and manage promotional banners
           </p>
         </div>

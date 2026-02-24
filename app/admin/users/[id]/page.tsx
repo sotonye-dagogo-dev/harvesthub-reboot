@@ -4,21 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { User } from "@/lib/types";
-import { message, Spin, Tag, Descriptions, Modal } from "antd";
+import { StatusTag , PageLoader } from "@/components/ui";
+import { message, Descriptions, Modal } from "antd";
 import { Button, Card } from "@/components/ui";
 import { ArrowLeft, User as UserIcon, ShieldCheck, ShieldOff, Trash2, Mail, Phone } from "lucide-react";
-
-const ROLE_COLORS: Record<string, string> = {
-    BUYER: "blue",
-    VENDOR: "purple",
-    ADMIN: "red",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-    ACTIVE: "green",
-    INACTIVE: "default",
-    BANNED: "red",
-};
 
 export default function AdminUserDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -57,8 +46,7 @@ export default function AdminUserDetailPage() {
             const res = await fetch(`/api/users/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updates),
-            });
+                body: JSON.stringify(updates) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Update failed");
             message.success("User updated successfully");
@@ -87,9 +75,7 @@ export default function AdminUserDetailPage() {
 
     if (authLoading || loading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <Spin size="large" />
-            </div>
+            <PageLoader minHeight="min-h-[400px]" />
         );
     }
 
@@ -104,25 +90,23 @@ export default function AdminUserDetailPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => router.push("/admin/users")}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="rounded-lg p-2 text-ds-text-tertiary hover:bg-ds-surface-sunken"
                         aria-label="Back to users"
                         title="Back to users"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <UserIcon className="h-5 w-5 text-purple-600" />
+                        <h1 className="text-xl font-bold text-ds-text-primary flex items-center gap-2">
+                            <UserIcon className="h-5 w-5 text-ds-text-brand" />
                             {profileUser.firstName} {profileUser.lastName}
                         </h1>
-                        <p className="text-sm text-gray-500">{profileUser.email}</p>
+                        <p className="text-sm text-ds-text-tertiary">{profileUser.email}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Tag color={ROLE_COLORS[profileUser.role]}>{profileUser.role}</Tag>
-                    <Tag color={STATUS_COLORS[profileUser.status ?? "ACTIVE"]}>
-                        {profileUser.status ?? "ACTIVE"}
-                    </Tag>
+                    <StatusTag domain="role" status={profileUser.role} />
+                    <StatusTag domain="user" status={profileUser.status ?? "ACTIVE"} />
                 </div>
             </div>
 
@@ -130,7 +114,7 @@ export default function AdminUserDetailPage() {
                 {/* User Details */}
                 <div className="space-y-6 lg:col-span-2">
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             User Information
                         </h2>
                         <Descriptions column={2} size="small">
@@ -156,13 +140,10 @@ export default function AdminUserDetailPage() {
                                 {new Date(profileUser.createdAt).toLocaleDateString("en-NG", {
                                     day: "numeric",
                                     month: "long",
-                                    year: "numeric",
-                                })}
+                                    year: "numeric" })}
                             </Descriptions.Item>
                             <Descriptions.Item label="Status">
-                                <Tag color={STATUS_COLORS[profileUser.status ?? "ACTIVE"]}>
-                                    {profileUser.status ?? "ACTIVE"}
-                                </Tag>
+                                <StatusTag domain="user" status={profileUser.status ?? "ACTIVE"} />
                             </Descriptions.Item>
                         </Descriptions>
                     </Card>
@@ -172,14 +153,14 @@ export default function AdminUserDetailPage() {
                 {!isSelf && (
                     <div className="space-y-4">
                         <Card>
-                            <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                            <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                                 Admin Actions
                             </h2>
                             <div className="space-y-3">
                                 {(profileUser.status ?? "ACTIVE") === "ACTIVE" ? (
                                     <Button
                                         variant="outline"
-                                        className="w-full border-orange-300 text-orange-600 hover:bg-orange-50"
+                                        className="w-full border-orange-300 text-ds-status-warning-text hover:bg-orange-50"
                                         onClick={() => updateUser({ status: "INACTIVE" })}
                                         disabled={actionLoading}
                                     >
@@ -200,7 +181,7 @@ export default function AdminUserDetailPage() {
                                 {(profileUser.status ?? "ACTIVE") !== "BANNED" ? (
                                     <Button
                                         variant="outline"
-                                        className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                                        className="w-full border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg"
                                         onClick={() => updateUser({ status: "BANNED" })}
                                         disabled={actionLoading}
                                     >
@@ -220,7 +201,7 @@ export default function AdminUserDetailPage() {
 
                                 <Button
                                     variant="outline"
-                                    className="w-full border-red-600 text-red-600 hover:bg-red-50"
+                                    className="w-full border-ds-status-error text-ds-status-error-text hover:bg-ds-status-error-bg"
                                     onClick={() => setDeleteModal(true)}
                                     disabled={actionLoading}
                                 >

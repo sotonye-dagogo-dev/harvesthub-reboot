@@ -1,3 +1,5 @@
+"use client";
+
 import { Skeleton } from "antd";
 
 export default function VendorLoading() {
@@ -12,14 +14,14 @@ export default function VendorLoading() {
       {/* Stats cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow-sm">
+          <div key={i} className="bg-ds-surface-base rounded-xl p-5 shadow-ds-sm">
             <Skeleton active paragraph={{ rows: 2 }} />
           </div>
         ))}
       </div>
 
       {/* Content area skeleton */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow-sm">
+      <div className="bg-ds-surface-base rounded-xl p-5 shadow-ds-sm">
         <Skeleton active paragraph={{ rows: 8 }} />
       </div>
     </div>

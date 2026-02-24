@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { booleanColor } from "@/components/ui/StatusTag";
 import { Table, Button, Modal, message, Tag, Rate, Image, Space, Input } from "antd";
 import { Flag, Trash2, Eye, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -129,7 +130,7 @@ export function ReviewModerationPanel() {
       dataIndex: "isFlagged",
       key: "isFlagged",
       render: (isFlagged: boolean) => (
-        <Tag color={isFlagged ? "red" : "green"}>{isFlagged ? "Flagged" : "Active"}</Tag>
+        <Tag color={booleanColor(!isFlagged)}>{isFlagged ? "Flagged" : "Active"}</Tag>
       ),
     },
     {
@@ -171,10 +172,10 @@ export function ReviewModerationPanel() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Review Moderation</h2>
+        <h2 className="text-xl font-bold text-ds-text-primary">Review Moderation</h2>
         <Input
           placeholder="Search reviews..."
-          prefix={<Search className="h-4 w-4 text-gray-400" />}
+          prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-64"
@@ -232,30 +233,30 @@ export function ReviewModerationPanel() {
         {selectedReview && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Product</h4>
-              <p className="text-gray-600 dark:text-gray-400">{selectedReview.productName}</p>
+              <h4 className="font-semibold text-ds-text-primary mb-1">Product</h4>
+              <p className="text-ds-text-secondary">{selectedReview.productName}</p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">User</h4>
-              <p className="text-gray-600 dark:text-gray-400">{selectedReview.userName}</p>
+              <h4 className="font-semibold text-ds-text-primary mb-1">User</h4>
+              <p className="text-ds-text-secondary">{selectedReview.userName}</p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Rating</h4>
+              <h4 className="font-semibold text-ds-text-primary mb-1">Rating</h4>
               <Rate disabled value={selectedReview.rating} />
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Comment</h4>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h4 className="font-semibold text-ds-text-primary mb-1">Comment</h4>
+              <p className="text-ds-text-secondary">
                 {selectedReview.comment || "No comment"}
               </p>
             </div>
 
             {selectedReview.photos && selectedReview.photos.length > 0 && (
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Photos</h4>
+                <h4 className="font-semibold text-ds-text-primary mb-2">Photos</h4>
                 <div className="flex gap-2 flex-wrap">
                   {selectedReview.photos.map((photo, index) => (
                     <Image
@@ -272,23 +273,23 @@ export function ReviewModerationPanel() {
             )}
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Helpful Votes</h4>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h4 className="font-semibold text-ds-text-primary mb-1">Helpful Votes</h4>
+              <p className="text-ds-text-secondary">
                 {selectedReview.helpfulCount || 0} helpful, {selectedReview.notHelpfulCount || 0}{" "}
                 not helpful
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Status</h4>
-              <Tag color={selectedReview.isFlagged ? "red" : "green"}>
+              <h4 className="font-semibold text-ds-text-primary mb-1">Status</h4>
+              <Tag color={booleanColor(!selectedReview.isFlagged)}>
                 {selectedReview.isFlagged ? "Flagged" : "Active"}
               </Tag>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Created</h4>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h4 className="font-semibold text-ds-text-primary mb-1">Created</h4>
+              <p className="text-ds-text-secondary">
                 {formatDistanceToNow(new Date(selectedReview.createdAt), { addSuffix: true })}
               </p>
             </div>

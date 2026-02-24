@@ -78,16 +78,16 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
           <div className="text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-4">
-              <CheckCircleOutlined className="text-2xl text-green-600 dark:text-green-400" />
+            <div className="mx-auto h-12 w-12 rounded-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
+              <CheckCircleOutlined className="text-2xl text-ds-status-success-text" />
             </div>
             <Title level={3} className="mb-2">
               Password Reset Successful
             </Title>
-            <Text className="text-gray-600 dark:text-gray-400 mb-6 block">
+            <Text className="text-ds-text-secondary mb-6 block">
               Your password has been reset successfully. You can now log in with your new password.
             </Text>
 
@@ -95,7 +95,7 @@ function ResetPasswordForm() {
               type="primary"
               size="large"
               onClick={() => router.push("/login")}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover"
             >
               Go to Login
             </Button>
@@ -107,7 +107,7 @@ function ResetPasswordForm() {
 
   if (error && (!token || !email)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
           <Alert
             message="Invalid Reset Link"
@@ -118,7 +118,7 @@ function ResetPasswordForm() {
           />
           <Link
             href="/forgot-password"
-            className="block text-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+            className="block text-center text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
           >
             Request a new password reset
           </Link>
@@ -128,13 +128,13 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
       <Card className="max-w-md w-full">
         <div className="text-center mb-6">
           <Title level={2} className="mb-2">
             Set New Password
           </Title>
-          <Text className="text-gray-600 dark:text-gray-400">Enter your new password below.</Text>
+          <Text className="text-ds-text-secondary">Enter your new password below.</Text>
         </div>
 
         {error && (
@@ -201,7 +201,7 @@ function ResetPasswordForm() {
               size="large"
               loading={loading}
               block
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover"
             >
               Reset Password
             </Button>
@@ -210,7 +210,7 @@ function ResetPasswordForm() {
           <div className="text-center">
             <Link
               href="/login"
-              className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+              className="text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
             >
               Back to Login
             </Link>
@@ -225,7 +225,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken">
           <Card className="max-w-md w-full">
             <div className="text-center">Loading...</div>
           </Card>

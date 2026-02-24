@@ -90,10 +90,10 @@ export function FilterSidebar({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
+        <h3 className="text-lg font-semibold text-ds-text-primary">Filters</h3>
         <button
           onClick={handleClearAll}
-          className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
+          className="text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
         >
           Clear all
         </button>
@@ -102,7 +102,7 @@ export function FilterSidebar({
       {/* Categories */}
       {categories.length > 0 && (
         <div>
-          <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Categories</h4>
+          <h4 className="mb-3 font-medium text-ds-text-primary">Categories</h4>
           <div className="space-y-2">
             {categories.map((category) => (
               <label key={category.id} className="flex items-center gap-2 cursor-pointer">
@@ -110,9 +110,9 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.categories?.includes(category.id) || false}
                   onChange={() => handleCategoryToggle(category.id)}
-                  className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{category.name}</span>
+                <span className="text-sm text-ds-text-secondary">{category.name}</span>
               </label>
             ))}
           </div>
@@ -121,28 +121,28 @@ export function FilterSidebar({
 
       {/* Price Range */}
       <div>
-        <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Price Range</h4>
+        <h4 className="mb-3 font-medium text-ds-text-primary">Price Range</h4>
         <div className="flex gap-2">
           <input
             type="number"
             placeholder="Min"
             value={filters.priceRange?.min || ""}
             onChange={(e) => handlePriceChange("min", e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
           />
           <input
             type="number"
             placeholder="Max"
             value={filters.priceRange?.max || ""}
             onChange={(e) => handlePriceChange("max", e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
           />
         </div>
       </div>
 
       {/* Rating */}
       <div>
-        <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Minimum Rating</h4>
+        <h4 className="mb-3 font-medium text-ds-text-primary">Minimum Rating</h4>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((rating) => (
             <label key={rating} className="flex items-center gap-2 cursor-pointer">
@@ -150,9 +150,9 @@ export function FilterSidebar({
                 type="radio"
                 checked={filters.rating === rating}
                 onChange={() => handleRatingChange(rating)}
-                className="h-4 w-4 border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                className="h-4 w-4 border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{rating} stars & up</span>
+              <span className="text-sm text-ds-text-secondary">{rating} stars & up</span>
             </label>
           ))}
         </div>
@@ -161,7 +161,7 @@ export function FilterSidebar({
       {/* Locations */}
       {locations.length > 0 && (
         <div>
-          <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Location</h4>
+          <h4 className="mb-3 font-medium text-ds-text-primary">Location</h4>
           <div className="space-y-2">
             {locations.map((location) => (
               <label key={location} className="flex items-center gap-2 cursor-pointer">
@@ -169,9 +169,9 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.locations?.includes(location) || false}
                   onChange={() => handleLocationToggle(location)}
-                  className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{location}</span>
+                <span className="text-sm text-ds-text-secondary">{location}</span>
               </label>
             ))}
           </div>
@@ -181,7 +181,7 @@ export function FilterSidebar({
       {/* Order Status */}
       {statuses.length > 0 && (
         <div>
-          <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Order Status</h4>
+          <h4 className="mb-3 font-medium text-ds-text-primary">Order Status</h4>
           <div className="space-y-2">
             {statuses.map((status) => (
               <label key={status.value} className="flex items-center gap-2 cursor-pointer">
@@ -189,9 +189,9 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.status?.includes(status.value) || false}
                   onChange={() => handleStatusToggle(status.value)}
-                  className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{status.label}</span>
+                <span className="text-sm text-ds-text-secondary">{status.label}</span>
               </label>
             ))}
           </div>
@@ -201,7 +201,7 @@ export function FilterSidebar({
       {/* Vendors */}
       {vendors.length > 0 && (
         <div>
-          <h4 className="mb-3 font-medium text-gray-900 dark:text-white">Vendors</h4>
+          <h4 className="mb-3 font-medium text-ds-text-primary">Vendors</h4>
           <div className="space-y-2">
             {vendors.map((vendor) => (
               <label key={vendor.id} className="flex items-center gap-2 cursor-pointer">
@@ -209,9 +209,9 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.vendors?.includes(vendor.id) || false}
                   onChange={() => handleVendorToggle(vendor.id)}
-                  className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{vendor.name}</span>
+                <span className="text-sm text-ds-text-secondary">{vendor.name}</span>
               </label>
             ))}
           </div>
@@ -235,13 +235,13 @@ export function FilterSidebar({
 
       {/* Mobile Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-ds-overlay lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-80 bg-white p-6 shadow-xl dark:bg-gray-900">
+          <div className="absolute right-0 top-0 h-full w-80 bg-ds-surface-base p-6 shadow-ds-xl dark:bg-ds-surface-base overflow-y-auto">
             <button
               onClick={() => setIsOpen(false)}
               aria-label="Close filters"
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="absolute right-4 top-4 text-ds-text-tertiary hover:text-ds-text-secondary dark:text-ds-text-placeholder"
             >
               <X className="h-6 w-6" />
             </button>

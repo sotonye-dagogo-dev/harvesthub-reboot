@@ -1,9 +1,10 @@
 "use client";
 
+import { PageLoader } from "@/components/ui";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+
 
 /**
  * Deprecated route — redirects vendors to the proper store-settings page.
@@ -30,8 +31,6 @@ export default function StoreSettingsRedirectPage() {
     }, [user, isLoading, router]);
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-        </div>
+        <PageLoader />
     );
 }

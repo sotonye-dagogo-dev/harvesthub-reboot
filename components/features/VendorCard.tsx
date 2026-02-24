@@ -33,14 +33,14 @@ export function VendorCard({
 }: VendorCardProps) {
   return (
     <Link href={`/vendors/${id}`}>
-      <Card className={cn("transition-all hover:shadow-lg", className)} hoverable>
+      <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
         <div className="flex items-start gap-4">
           {/* Vendor Logo */}
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-ds-surface-sunken">
             {logo ? (
               <Image src={logo} alt={name} fill className="object-cover" sizes="64px" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-gray-400 dark:text-gray-600">
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-ds-text-placeholder">
                 {name.charAt(0)}
               </div>
             )}
@@ -49,7 +49,7 @@ export function VendorCard({
           {/* Vendor Info */}
           <div className="flex-1 min-w-0">
             <div className="mb-1 flex items-center gap-2">
-              <h3 className="truncate font-semibold text-gray-900 dark:text-white">{name}</h3>
+              <h3 className="truncate font-semibold text-ds-text-primary">{name}</h3>
               {isVerified && (
                 <Badge variant="success" size="sm">
                   Verified
@@ -57,22 +57,22 @@ export function VendorCard({
               )}
             </div>
 
-            <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{category}</p>
+            <p className="mb-2 text-sm text-ds-text-secondary">{category}</p>
 
             {description && (
-              <p className="mb-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mb-2 line-clamp-2 text-sm text-ds-text-secondary">
                 {description}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-ds-text-secondary">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span>{campus}</span>
               </div>
               {rating > 0 && (
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star className="h-4 w-4 fill-ds-rating-fill text-ds-status-warning" />
                   <span>{rating.toFixed(1)}</span>
                 </div>
               )}

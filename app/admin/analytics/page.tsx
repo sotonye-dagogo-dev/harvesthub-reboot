@@ -23,7 +23,8 @@ import {
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { UserRole, OrderStatus, VendorStatus } from "@/lib/constants";
-import { Tag } from "antd";
+import { StatusTag } from "@/components/ui";
+
 
 export default function AdminAnalyticsPage() {
   const { user } = useAuth();
@@ -112,69 +113,56 @@ export default function AdminAnalyticsPage() {
     return null;
   }
 
-  const statusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      COMPLETED: "green",
-      PENDING: "orange",
-      PROCESSING: "blue",
-      CONFIRMED: "cyan",
-      READY: "geekblue",
-      CANCELLED: "red",
-      REFUNDED: "volcano",
-    };
-    return colors[status] || "default";
-  };
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Platform Analytics</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">Platform Analytics</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Overview of platform performance and key metrics
         </p>
       </div>
 
       {/* Primary Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20">
+        <Card className="bg-gradient-to-br from-ds-brand-surface to-ds-brand-subtle dark:from-ds-palette-purple-900/30 dark:to-ds-palette-purple-800/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-sm text-ds-text-secondary">Total Revenue</p>
+              <p className="text-2xl font-bold text-ds-text-brand">
                 {formatCurrency(stats.totalRevenue)}
               </p>
             </div>
-            <DollarSign className="h-10 w-10 text-purple-400" />
+            <DollarSign className="h-10 w-10 text-ds-brand-accent" />
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20">
+        <Card className="bg-gradient-to-br from-ds-status-info-bg to-ds-status-info-bg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Orders</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalOrders}</p>
+              <p className="text-sm text-ds-text-secondary">Total Orders</p>
+              <p className="text-2xl font-bold text-ds-status-info-text">{stats.totalOrders}</p>
             </div>
-            <ShoppingCart className="h-10 w-10 text-blue-400" />
+            <ShoppingCart className="h-10 w-10 text-ds-status-info" />
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20">
+        <Card className="bg-gradient-to-br from-ds-status-success-bg to-ds-status-success-bg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active Vendors</p>
-              <p className="text-2xl font-bold text-green-600">{stats.activeVendors}</p>
+              <p className="text-sm text-ds-text-secondary">Active Vendors</p>
+              <p className="text-2xl font-bold text-ds-status-success-text">{stats.activeVendors}</p>
             </div>
-            <Store className="h-10 w-10 text-green-400" />
+            <Store className="h-10 w-10 text-ds-status-success" />
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20">
+        <Card className="bg-gradient-to-br from-ds-status-warning-bg to-ds-status-warning-bg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="text-2xl font-bold text-amber-600">{stats.totalUsers}</p>
+              <p className="text-sm text-ds-text-secondary">Total Users</p>
+              <p className="text-2xl font-bold text-ds-status-warning-text">{stats.totalUsers}</p>
             </div>
-            <Users className="h-10 w-10 text-amber-400" />
+            <Users className="h-10 w-10 text-ds-status-warning" />
           </div>
         </Card>
       </div>
@@ -183,18 +171,18 @@ export default function AdminAnalyticsPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card>
           <div className="flex items-center gap-3">
-            <TrendingUp className="h-8 w-8 text-green-500" />
+            <TrendingUp className="h-8 w-8 text-ds-status-success" />
             <div>
-              <p className="text-xs text-gray-500">Avg. Order Value</p>
+              <p className="text-xs text-ds-text-tertiary">Avg. Order Value</p>
               <p className="text-lg font-bold">{formatCurrency(stats.averageOrderValue)}</p>
             </div>
           </div>
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <Package className="h-8 w-8 text-blue-500" />
+            <Package className="h-8 w-8 text-ds-status-info" />
             <div>
-              <p className="text-xs text-gray-500">Active Products</p>
+              <p className="text-xs text-ds-text-tertiary">Active Products</p>
               <p className="text-lg font-bold">
                 {stats.activeProducts}/{stats.totalProducts}
               </p>
@@ -203,18 +191,18 @@ export default function AdminAnalyticsPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <ShoppingBag className="h-8 w-8 text-orange-500" />
+            <ShoppingBag className="h-8 w-8 text-ds-status-warning" />
             <div>
-              <p className="text-xs text-gray-500">Out of Stock</p>
+              <p className="text-xs text-ds-text-tertiary">Out of Stock</p>
               <p className="text-lg font-bold">{stats.outOfStock}</p>
             </div>
           </div>
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <BarChart3 className="h-8 w-8 text-purple-500" />
+            <BarChart3 className="h-8 w-8 text-ds-brand-primary-light" />
             <div>
-              <p className="text-xs text-gray-500">Transactions</p>
+              <p className="text-xs text-ds-text-tertiary">Transactions</p>
               <p className="text-lg font-bold">{stats.totalTransactions}</p>
             </div>
           </div>
@@ -224,20 +212,20 @@ export default function AdminAnalyticsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Order Status Distribution */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">
             Order Status Distribution
           </h2>
           <div className="space-y-3">
             {orderStatusData.map(({ status, count, percentage }) => (
               <div key={status} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Tag color={statusColor(status)}>{status}</Tag>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">{count} orders</span>
+                  <StatusTag domain="order" status={status} />
+                  <span className="text-sm text-ds-text-secondary">{count} orders</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div className="h-2 w-24 overflow-hidden rounded-full bg-ds-surface-disabled dark:bg-ds-surface-overlay">
                     <div
-                      className="h-full rounded-full bg-purple-500"
+                      className="h-full rounded-full bg-ds-brand-primary-light"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -250,62 +238,60 @@ export default function AdminAnalyticsPage() {
 
         {/* User Breakdown */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">User Breakdown</h2>
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">User Breakdown</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+            <div className="flex items-center justify-between rounded-lg bg-ds-status-success-bg p-4 dark:bg-ds-status-success-bg/20">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Buyers</p>
-                <p className="text-2xl font-bold text-green-600">{stats.buyerCount}</p>
+                <p className="text-sm text-ds-text-secondary">Buyers</p>
+                <p className="text-2xl font-bold text-ds-status-success-text">{stats.buyerCount}</p>
               </div>
-              <div className="text-right text-sm text-gray-500">
+              <div className="text-right text-sm text-ds-text-tertiary">
                 {((stats.buyerCount / stats.totalUsers) * 100).toFixed(0)}% of users
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+            <div className="flex items-center justify-between rounded-lg bg-ds-status-info-bg p-4 dark:bg-ds-status-info-bg/20">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Vendors</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.vendorCount}</p>
+                <p className="text-sm text-ds-text-secondary">Vendors</p>
+                <p className="text-2xl font-bold text-ds-status-info-text">{stats.vendorCount}</p>
               </div>
-              <div className="text-right text-sm text-gray-500">
+              <div className="text-right text-sm text-ds-text-tertiary">
                 {((stats.vendorCount / stats.totalUsers) * 100).toFixed(0)}% of users
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
+            <div className="flex items-center justify-between rounded-lg bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Pending Vendors</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.pendingVendors}</p>
+                <p className="text-sm text-ds-text-secondary">Pending Vendors</p>
+                <p className="text-2xl font-bold text-ds-text-brand">{stats.pendingVendors}</p>
               </div>
-              <div className="text-right text-sm text-gray-500">Awaiting approval</div>
+              <div className="text-right text-sm text-ds-text-tertiary">Awaiting approval</div>
             </div>
           </div>
         </Card>
 
         {/* Top Vendors */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Top Vendors</h2>
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">Top Vendors</h2>
           {topVendors.length === 0 ? (
-            <p className="text-gray-500">No vendor data available</p>
+            <p className="text-ds-text-tertiary">No vendor data available</p>
           ) : (
             <div className="space-y-3">
               {topVendors.map((vendor, index) => (
                 <div
                   key={vendor.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-100 p-3 dark:border-gray-700"
+                  className="flex items-center justify-between rounded-lg border border-ds-border-subtle p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-sm font-bold text-purple-600 dark:bg-purple-900/30">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
                       {index + 1}
                     </span>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-ds-text-primary">
                         {vendor.storeName}
                       </p>
-                      <p className="text-xs text-gray-500">{vendor.productCount} products</p>
+                      <p className="text-xs text-ds-text-tertiary">{vendor.productCount} products</p>
                     </div>
                   </div>
-                  <Tag color={vendor.status === VendorStatus.APPROVED ? "green" : "orange"}>
-                    {vendor.status}
-                  </Tag>
+                  <StatusTag domain="vendor" status={vendor.status} />
                 </div>
               ))}
             </div>
@@ -314,28 +300,28 @@ export default function AdminAnalyticsPage() {
 
         {/* Top Products */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">
             Top Products by Sales
           </h2>
           {topProducts.length === 0 ? (
-            <p className="text-gray-500">No product data available</p>
+            <p className="text-ds-text-tertiary">No product data available</p>
           ) : (
             <div className="space-y-3">
               {topProducts.map((product, index) => (
                 <div
                   key={product.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-100 p-3 dark:border-gray-700"
+                  className="flex items-center justify-between rounded-lg border border-ds-border-subtle p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600 dark:bg-blue-900/30">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-status-info-bg text-sm font-bold text-ds-status-info-text dark:bg-ds-status-info-bg/30">
                       {index + 1}
                     </span>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                      <p className="text-xs text-gray-500">{formatCurrency(product.price)}</p>
+                      <p className="font-medium text-ds-text-primary">{product.name}</p>
+                      <p className="text-xs text-ds-text-tertiary">{formatCurrency(product.price)}</p>
                     </div>
                   </div>
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-semibold text-ds-text-secondary">
                     {product.sales || 0} sold
                   </span>
                 </div>

@@ -6,7 +6,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Rate, Button, Image, Select, Empty, message } from "antd";
+import { Rate, Button, Image, Select, message } from "antd";
+import { EmptyState } from "@/components/ui";
 import { ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Review } from "@/lib/types";
@@ -111,18 +112,18 @@ export function ReviewDisplay({
   return (
     <div className="space-y-6">
       {/* Rating Summary */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-ds-surface-base p-6 rounded-lg shadow-ds-sm">
+        <h3 className="text-lg font-semibold text-ds-text-primary mb-4">
           Customer Reviews
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="text-center">
-            <div className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="text-5xl font-bold text-ds-text-primary mb-2">
               {avgRating.toFixed(1)}
             </div>
             <Rate disabled value={avgRating} allowHalf className="mb-2" />
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-ds-text-secondary">
               Based on {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
             </div>
           </div>
@@ -130,11 +131,11 @@ export function ReviewDisplay({
           <div className="space-y-2">
             {ratingDistribution.map(({ star, count, percentage }) => (
               <div key={star} className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 dark:text-gray-400 w-12">{star} star</span>
-                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-600" style={{ width: `${percentage}%` }} />
+                <span className="text-sm text-ds-text-secondary w-12">{star} star</span>
+                <div className="flex-1 h-2 bg-ds-surface-disabled dark:bg-ds-surface-overlay rounded-full overflow-hidden">
+                  <div className="h-full bg-ds-brand-primary" style={{ width: `${percentage}%` }} />
                 </div>
-                <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-right">
+                <span className="text-sm text-ds-text-secondary w-12 text-right">
                   {count}
                 </span>
               </div>
@@ -177,25 +178,25 @@ export function ReviewDisplay({
       {loading ? (
         <div className="text-center py-8">Loading reviews...</div>
       ) : reviews.length === 0 ? (
-        <Empty description="No reviews yet" />
+        <EmptyState title="No reviews yet" icon={<Flag className="h-10 w-10" />} />
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+            <div key={review.id} className="bg-ds-surface-base p-6 rounded-lg shadow-ds-sm">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <div className="font-semibold text-ds-text-primary mb-1">
                     {review.userName}
                   </div>
                   <Rate disabled value={review.rating} className="text-sm" />
                 </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm text-ds-text-tertiary">
                   {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
                 </span>
               </div>
 
               {review.comment && (
-                <p className="text-gray-700 dark:text-gray-300 mb-4">{review.comment}</p>
+                <p className="text-ds-text-secondary mb-4">{review.comment}</p>
               )}
 
               {review.photos && review.photos.length > 0 && (
@@ -215,7 +216,7 @@ export function ReviewDisplay({
                 </div>
               )}
 
-              <div className="flex items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-4 pt-4 border-t border-ds-border-base">
                 {allowVoting && (
                   <>
                     <Button
@@ -223,7 +224,7 @@ export function ReviewDisplay({
                       size="small"
                       icon={<ThumbsUp className="h-4 w-4" />}
                       onClick={() => voteHelpful(review.id, true)}
-                      className={userVotes[review.id] === "helpful" ? "text-purple-600" : ""}
+                      className={userVotes[review.id] === "helpful" ? "text-ds-text-brand" : ""}
                     >
                       Helpful ({review.helpfulCount || 0})
                     </Button>
@@ -232,7 +233,7 @@ export function ReviewDisplay({
                       size="small"
                       icon={<ThumbsDown className="h-4 w-4" />}
                       onClick={() => voteHelpful(review.id, false)}
-                      className={userVotes[review.id] === "not-helpful" ? "text-red-600" : ""}
+                      className={userVotes[review.id] === "not-helpful" ? "text-ds-status-error-text" : ""}
                     >
                       Not Helpful ({review.notHelpfulCount || 0})
                     </Button>

@@ -13,7 +13,7 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar type="vendor" />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 pb-20 dark:bg-gray-950 md:pb-6">
+        <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
           {children}
         </main>
       </div>

@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Product } from "@/lib/types";
 import Image from "next/image";
-import { message, Spin, Tag, Descriptions, Switch, Modal } from "antd";
-import { Button, Card } from "@/components/ui";
+import { booleanColor } from "@/components/ui/StatusTag";
+import { message, Tag, Descriptions, Switch, Modal } from "antd";
+import { Button, Card , PageLoader } from "@/components/ui";
 import {
     ArrowLeft,
     Package,
@@ -14,8 +15,7 @@ import {
     EyeOff,
     Star,
     Trash2,
-    ExternalLink,
-} from "lucide-react";
+    ExternalLink } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function AdminProductDetailPage() {
@@ -55,8 +55,7 @@ export default function AdminProductDetailPage() {
             const res = await fetch(`/api/products/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updates),
-            });
+                body: JSON.stringify(updates) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Update failed");
             message.success("Product updated successfully");
@@ -85,9 +84,7 @@ export default function AdminProductDetailPage() {
 
     if (authLoading || loading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <Spin size="large" />
-            </div>
+            <PageLoader minHeight="min-h-[400px]" />
         );
     }
 
@@ -100,24 +97,24 @@ export default function AdminProductDetailPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => router.push("/admin/products")}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="rounded-lg p-2 text-ds-text-tertiary hover:bg-ds-surface-sunken"
                         aria-label="Back to products"
                         title="Back to products"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Package className="h-5 w-5 text-purple-600" />
+                        <h1 className="text-xl font-bold text-ds-text-primary flex items-center gap-2">
+                            <Package className="h-5 w-5 text-ds-text-brand" />
                             {product.name}
                         </h1>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-ds-text-tertiary">
                             {product.category} &bull; {formatCurrency(product.price)}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Tag color={product.isActive ? "green" : "red"}>
+                    <Tag color={booleanColor(product.isActive)}>
                         {product.isActive ? "Active" : "Inactive"}
                     </Tag>
                     {product.isFeatured && <Tag color="gold">Featured</Tag>}
@@ -132,7 +129,7 @@ export default function AdminProductDetailPage() {
                         <Card>
                             <div className="flex flex-wrap gap-3">
                                 {product.images.map((img, i) => (
-                                    <div key={i} className="relative h-32 w-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                                    <div key={i} className="relative h-32 w-32 rounded-lg overflow-hidden border border-ds-border-base">
                                         <Image
                                             src={img}
                                             alt={`${product.name} ${i + 1}`}
@@ -148,7 +145,7 @@ export default function AdminProductDetailPage() {
 
                     {/* Details */}
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             Product Details
                         </h2>
                         <Descriptions column={2} size="small">
@@ -182,16 +179,16 @@ export default function AdminProductDetailPage() {
                 {/* Moderation Controls */}
                 <div className="space-y-4">
                     <Card>
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                             Moderation
                         </h2>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                            <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-3">
                                 <div className="flex items-center gap-2">
                                     {product.isActive ? (
-                                        <Eye className="h-4 w-4 text-green-600" />
+                                        <Eye className="h-4 w-4 text-ds-status-success-text" />
                                     ) : (
-                                        <EyeOff className="h-4 w-4 text-red-500" />
+                                        <EyeOff className="h-4 w-4 text-ds-status-error" />
                                     )}
                                     <span className="text-sm font-medium">Visible / Active</span>
                                 </div>
@@ -202,7 +199,7 @@ export default function AdminProductDetailPage() {
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                            <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-3">
                                 <div className="flex items-center gap-2">
                                     <Star className="h-4 w-4 text-amber-500" />
                                     <span className="text-sm font-medium">Featured</span>
@@ -218,7 +215,7 @@ export default function AdminProductDetailPage() {
                                 href={`/products/${product.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex w-full items-center justify-center gap-2 rounded-lg border border-purple-300 px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                                className="flex w-full items-center justify-center gap-2 rounded-lg border border-ds-brand-muted px-4 py-2 text-sm font-medium text-ds-text-brand hover:bg-ds-brand-surface dark:hover:bg-ds-brand-subtle transition-colors"
                             >
                                 <ExternalLink className="h-4 w-4" />
                                 View Public Listing
@@ -227,12 +224,12 @@ export default function AdminProductDetailPage() {
                     </Card>
 
                     <Card>
-                        <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-white">
+                        <h2 className="mb-3 text-base font-semibold text-ds-text-primary">
                             Danger Zone
                         </h2>
                         <Button
                             variant="outline"
-                            className="w-full border-red-600 text-red-600 hover:bg-red-50"
+                            className="w-full border-ds-status-error text-ds-status-error-text hover:bg-ds-status-error-bg"
                             onClick={() => setDeleteModal(true)}
                             disabled={actionLoading}
                         >

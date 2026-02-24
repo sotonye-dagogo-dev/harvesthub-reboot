@@ -79,7 +79,7 @@ export function SearchFilterChips({ filters, onRemoveFilter, onClearAll }: Searc
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
-      <span className="text-sm text-gray-600 dark:text-gray-400">Active Filters:</span>
+      <span className="text-sm text-ds-text-secondary">Active Filters:</span>
       {activeFilters.map((filter, index) => (
         <Tag
           key={`${filter.type}-${index}`}
@@ -92,7 +92,7 @@ export function SearchFilterChips({ filters, onRemoveFilter, onClearAll }: Searc
       ))}
       <button
         onClick={onClearAll}
-        className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+        className="text-sm text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
       >
         Clear All
       </button>

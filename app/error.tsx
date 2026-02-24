@@ -14,12 +14,12 @@ export default function GlobalError({ error, reset }: ErrorProps) {
     }, [error]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken dark:bg-ds-surface-sunken px-4">
             <Result
                 status="500"
-                title={<span className="text-gray-900 dark:text-white">Something went wrong</span>}
+                title={<span className="text-ds-text-primary">Something went wrong</span>}
                 subTitle={
-                    <span className="text-gray-500 dark:text-gray-400">
+                    <span className="text-ds-text-tertiary">
                         {error.message || 'An unexpected error occurred. Please try again.'}
                     </span>
                 }
@@ -28,7 +28,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
                         key="retry"
                         type="primary"
                         onClick={reset}
-                        className="bg-purple-600 hover:bg-purple-700 border-purple-600"
+                        className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover border-ds-border-brand"
                     >
                         Try Again
                     </Button>,
@@ -41,7 +41,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
                 ]}
             />
             {process.env.NODE_ENV === 'development' && error.digest && (
-                <p className="mt-4 text-xs text-gray-400 font-mono">
+                <p className="mt-4 text-xs text-ds-text-placeholder font-mono">
                     Error ID: {error.digest}
                 </p>
             )}

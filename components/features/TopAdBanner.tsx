@@ -33,15 +33,15 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
   // (strict noUncheckedIndexedAccess makes Record<string, T>[key] return T | undefined)
   if (theme === "CHURCH")
     return {
-      bg: "bg-gradient-to-r from-amber-700 to-amber-600",
-      text: "text-amber-50",
-      indicator: "bg-amber-300",
+      bg: "bg-gradient-to-r from-ds-status-warning-text to-ds-status-warning",
+      text: "text-ds-palette-amber-50",
+      indicator: "bg-ds-status-warning/50",
     };
   if (theme === "PROMOTION")
     return {
-      bg: "bg-gradient-to-r from-emerald-700 to-emerald-600",
-      text: "text-emerald-50",
-      indicator: "bg-emerald-300",
+      bg: "bg-gradient-to-r from-ds-status-success-text to-ds-status-success",
+      text: "text-ds-palette-green-50",
+      indicator: "bg-ds-status-success/50",
     };
   if (theme === "EVENT")
     return {
@@ -51,9 +51,9 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
     };
   // BUSINESS (default)
   return {
-    bg: "bg-gradient-to-r from-purple-700 to-purple-600",
-    text: "text-purple-50",
-    indicator: "bg-purple-300",
+    bg: "bg-gradient-to-r from-ds-palette-purple-700 to-ds-brand-primary",
+    text: "text-ds-palette-purple-50",
+    indicator: "bg-ds-brand-muted",
   };
 }
 
@@ -227,7 +227,7 @@ export function TopAdBanner() {
               }}
               className={cn(
                 "h-[2px] flex-1 rounded-full transition-all duration-300",
-                i === currentIndex ? theme.indicator : "bg-white/30 hover:bg-white/50"
+                i === currentIndex ? theme.indicator : "bg-ds-surface-base/30 hover:bg-ds-surface-base/50"
               )}
               aria-label={`Go to ad ${i + 1}`}
             />

@@ -136,9 +136,9 @@ export function AdvancedSearchBar({
 
       {/* Search History Dropdown */}
       {showHistory && history.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-80 overflow-y-auto">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-lg shadow-ds-lg border border-ds-border-base z-ds-overlay max-h-80 overflow-y-auto">
+          <div className="p-3 border-b border-ds-border-base flex justify-between items-center">
+            <span className="text-sm font-semibold text-ds-text-secondary flex items-center gap-2">
               <History className="h-4 w-4" />
               Recent Searches
             </span>
@@ -146,7 +146,7 @@ export function AdvancedSearchBar({
               type="text"
               size="small"
               onClick={clearHistory}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-xs text-ds-text-tertiary hover:text-ds-text-secondary dark:text-ds-text-placeholder"
             >
               Clear All
             </Button>
@@ -155,14 +155,14 @@ export function AdvancedSearchBar({
             {history.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer group"
+                className="flex items-center justify-between px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded cursor-pointer group"
                 onClick={() => {
                   setSearchValue(item.query);
                   handleSearch(item.query);
                 }}
               >
-                <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <Search className="h-3 w-3 text-gray-400" />
+                <span className="text-sm text-ds-text-secondary flex items-center gap-2">
+                  <Search className="h-3 w-3 text-ds-text-placeholder" />
                   {item.query}
                 </span>
                 <Button
@@ -183,18 +183,18 @@ export function AdvancedSearchBar({
 
       {/* Autocomplete Suggestions */}
       {suggestions.length > 0 && searchValue && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-lg shadow-ds-lg border border-ds-border-base z-ds-overlay">
           <div className="p-2">
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
-                className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded cursor-pointer"
                 onClick={() => {
                   setSearchValue(suggestion);
                   handleSearch(suggestion);
                 }}
               >
-                <span className="text-sm text-gray-700 dark:text-gray-300">{suggestion}</span>
+                <span className="text-sm text-ds-text-secondary">{suggestion}</span>
               </div>
             ))}
           </div>

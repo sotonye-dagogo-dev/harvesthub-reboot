@@ -89,52 +89,52 @@ interface ThemeTokens {
 
 const THEME_MAP: Record<ThemeKey, ThemeTokens> = {
   BUSINESS: {
-    actionBg: "bg-purple-700 dark:bg-purple-900",
+    actionBg: "bg-ds-brand-primary-hover ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-purple-700 hover:bg-purple-50 focus-visible:ring-purple-300",
+      "bg-ds-surface-base text-ds-palette-purple-700 hover:bg-ds-brand-surface focus-visible:ring-ds-focus-ring/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-purple-500/20 text-purple-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-brand-primary-light/20 text-ds-palette-purple-100",
     knowMoreChip:
-      "bg-purple-600/90 text-white hover:bg-purple-700 focus-visible:ring-purple-300",
-    overlayFrom: "from-purple-900/80",
+      "bg-ds-brand-primary/90 text-white hover:bg-ds-brand-primary-hover focus-visible:ring-ds-focus-ring/30",
+    overlayFrom: "from-ds-palette-purple-900/80",
   },
   CHURCH: {
-    actionBg: "bg-amber-700 dark:bg-amber-900",
+    actionBg: "bg-ds-status-warning-text ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-amber-700 hover:bg-amber-50 focus-visible:ring-amber-300",
+      "bg-ds-surface-base text-ds-status-warning-text hover:bg-ds-status-warning-bg focus-visible:ring-ds-status-warning/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-amber-500/20 text-amber-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-status-warning/20 text-ds-palette-amber-100",
     knowMoreChip:
-      "bg-amber-600/90 text-white hover:bg-amber-700 focus-visible:ring-amber-300",
-    overlayFrom: "from-amber-900/80",
+      "bg-ds-status-warning/90 text-white hover:bg-ds-status-warning-text focus-visible:ring-ds-status-warning/30",
+    overlayFrom: "from-ds-palette-amber-900/80",
   },
   EVENT: {
     actionBg: "bg-rose-700 dark:bg-rose-900",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
+      "bg-ds-surface-base text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
     badge: "bg-rose-500/20 text-rose-100",
     knowMoreChip:
       "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
     overlayFrom: "from-rose-900/80",
   },
   PROMOTION: {
-    actionBg: "bg-emerald-700 dark:bg-emerald-900",
+    actionBg: "bg-ds-status-success-text ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-emerald-700 hover:bg-emerald-50 focus-visible:ring-emerald-300",
+      "bg-ds-surface-base text-ds-status-success-text hover:bg-ds-status-success-bg focus-visible:ring-ds-status-success/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-emerald-500/20 text-emerald-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-status-success/20 text-ds-palette-green-100",
     knowMoreChip:
-      "bg-emerald-600/90 text-white hover:bg-emerald-700 focus-visible:ring-emerald-300",
-    overlayFrom: "from-emerald-900/80",
+      "bg-ds-status-success/90 text-white hover:bg-ds-status-success-text focus-visible:ring-ds-status-success/30",
+    overlayFrom: "from-ds-palette-green-900/80",
   },
 };
 
@@ -228,7 +228,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
           "relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl",
           tokens.actionBg,
           tokens.actionText,
-          "p-6 pb-8 shadow-2xl"
+          "p-6 pb-8 shadow-ds-xl"
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -417,7 +417,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
             )}
           >
             <div className="text-white">
-              <h2 className="text-2xl font-bold drop-shadow-md xl:text-4xl">{banner.title}</h2>
+              <h2 className="text-2xl font-bold drop-shadow-ds-md xl:text-4xl">{banner.title}</h2>
               {!hasActions && banner.description && (
                 <p className="mt-1 max-w-lg text-sm text-white/90 xl:text-base">
                   {banner.description}
@@ -427,7 +427,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
               {!hasActions && (banner.link ?? null) && (
                 <Link
                   href={banner.link!}
-                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/30"
+                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-ds-surface-base/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-ds-surface-base/30"
                 >
                   {knowMoreLabel} →
                 </Link>
@@ -582,14 +582,14 @@ export function BannerCarousel({
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white md:top-1/2 dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Previous banner"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white md:top-1/2 dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Next banner"
             >
               <ChevronRight className="h-5 w-5" />
@@ -608,7 +608,7 @@ export function BannerCarousel({
                 onClick={() => goTo(index)}
                 className={cn(
                   "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  index === currentIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                  index === currentIndex ? "w-6 bg-ds-surface-base" : "w-2 bg-ds-surface-base/50 hover:bg-ds-surface-base/80"
                 )}
                 aria-label={`Go to banner ${index + 1}`}
               />

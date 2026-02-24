@@ -49,13 +49,13 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
   const totalProducts = vendorProducts.length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-950">
+    <div className="min-h-screen bg-ds-surface-sunken py-8 dark:bg-ds-surface-sunken">
       <div className="container mx-auto px-4">
         {/* Vendor Header */}
-        <div className="mb-8 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-gray-900">
+        <div className="mb-8 overflow-hidden rounded-lg bg-ds-surface-base shadow-ds-sm">
           {/* Banner */}
           {vendor.storeBanner && (
-            <div className="relative h-48 overflow-hidden bg-gradient-to-r from-purple-600 to-purple-800">
+            <div className="relative h-48 overflow-hidden bg-gradient-to-r from-ds-brand-primary to-ds-palette-purple-800">
               <Image
                 src={vendor.storeBanner}
                 alt={`${vendor.storeName} banner`}
@@ -69,7 +69,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
             <div className="flex flex-col gap-6 md:flex-row md:items-start">
               {/* Vendor Logo */}
               <div className="flex-shrink-0">
-                <div className="relative h-32 w-32 overflow-hidden rounded-lg border-4 border-white bg-gray-100 shadow-lg dark:border-gray-800 dark:bg-gray-800">
+                <div className="relative h-32 w-32 overflow-hidden rounded-lg border-4 border-ds-surface-base bg-ds-surface-sunken shadow-ds-lg">
                   {vendor.storeLogo ? (
                     <Image
                       src={vendor.storeLogo}
@@ -78,8 +78,8 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-purple-100 dark:bg-purple-900">
-                      <ShoppingBag className="h-16 w-16 text-purple-600 dark:text-purple-400" />
+                    <div className="flex h-full w-full items-center justify-center bg-ds-brand-subtle">
+                      <ShoppingBag className="h-16 w-16 text-ds-text-brand" />
                     </div>
                   )}
                 </div>
@@ -90,11 +90,11 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                 <div className="mb-4 flex items-start justify-between">
                   <div>
                     <div className="mb-2 flex items-center gap-3">
-                      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                      <h1 className="text-3xl font-bold text-ds-text-primary">
                         {vendor.storeName}
                       </h1>
                       {vendor.status === "APPROVED" && (
-                        <CheckCircle className="h-6 w-6 text-green-500" />
+                        <CheckCircle className="h-6 w-6 text-ds-status-success" />
                       )}
                     </div>
                     <div className="mb-3 flex flex-wrap gap-2">
@@ -106,42 +106,42 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
 
                 {/* Stats */}
                 <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Star className="h-4 w-4 text-yellow-500" />
+                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                    <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
+                      <Star className="h-4 w-4 text-ds-status-warning" />
                       Rating
                     </div>
-                    <div className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="mt-1 text-xl font-bold text-ds-text-primary">
                       {vendor.analytics.averageRating.toFixed(1)}
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Package className="h-4 w-4 text-purple-600" />
+                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                    <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
+                      <Package className="h-4 w-4 text-ds-text-brand" />
                       Products
                     </div>
-                    <div className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="mt-1 text-xl font-bold text-ds-text-primary">
                       {totalProducts}
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <ShoppingBag className="h-4 w-4 text-blue-600" />
+                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                    <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
+                      <ShoppingBag className="h-4 w-4 text-ds-status-info-text" />
                       Orders
                     </div>
-                    <div className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="mt-1 text-xl font-bold text-ds-text-primary">
                       {vendor.analytics.totalOrders}
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Clock className="h-4 w-4 text-green-600" />
+                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                    <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
+                      <Clock className="h-4 w-4 text-ds-status-success-text" />
                       Joined
                     </div>
-                    <div className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="mt-1 text-xl font-bold text-ds-text-primary">
                       {new Date(vendor.createdAt).getFullYear()}
                     </div>
                   </div>
@@ -149,7 +149,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
 
                 {/* Description */}
                 {vendor.storeDescription && (
-                  <p className="mb-4 text-gray-600 dark:text-gray-400">{vendor.storeDescription}</p>
+                  <p className="mb-4 text-ds-text-secondary">{vendor.storeDescription}</p>
                 )}
 
                 {/* Contact */}
@@ -157,7 +157,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                   {vendorUser?.phoneNumber && (
                     <a
                       href={`tel:${vendorUser.phoneNumber}`}
-                      className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                      className="flex items-center gap-2 text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
                     >
                       <Phone className="h-4 w-4" />
                       {vendorUser.phoneNumber}
@@ -166,7 +166,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                   {vendorUser?.email && (
                     <a
                       href={`mailto:${vendorUser.email}`}
-                      className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                      className="flex items-center gap-2 text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
                     >
                       <Mail className="h-4 w-4" />
                       {vendorUser.email}
@@ -179,7 +179,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
         </div>
 
         {/* Products Section */}
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-900">
+        <div className="rounded-lg bg-ds-surface-base p-6 shadow-ds-sm">
           <Tabs
             defaultActiveKey="all"
             items={[

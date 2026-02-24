@@ -48,23 +48,23 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-lg border border-gray-200 bg-white transition-all hover:shadow-lg dark:border-gray-800 dark:bg-gray-900",
+        "group relative overflow-hidden rounded-lg border border-ds-border-base bg-ds-surface-base transition-all hover:shadow-ds-lg  dark:bg-ds-surface-base",
         className
       )}
     >
       {/* Image Container */}
       <Link href={`/products/${id}`} className="block">
-        <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-ds-surface-sunken">
           <Image
             src={image}
             alt={name}
             fill
             className="object-cover transition-transform group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
 
           {/* Badges */}
-          <div className="absolute left-2 top-2 flex flex-col gap-2">
+          <div className="absolute left-1.5 top-1.5 flex flex-col gap-1">
             {isFeatured && <Badge variant="primary">Featured</Badge>}
             {discount && discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
             {isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
@@ -77,13 +77,13 @@ export function ProductCard({
                 e.preventDefault();
                 onToggleFavorite();
               }}
-              className="absolute right-2 top-2 rounded-full bg-white p-2 shadow-md transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="absolute right-1.5 top-1.5 rounded-full bg-ds-surface-base p-1.5 shadow-ds-md transition-colors hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay"
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
               <Heart
                 className={cn(
-                  "h-5 w-5",
-                  isFavorite ? "fill-red-500 text-red-500" : "text-gray-600 dark:text-gray-400"
+                  "h-4 w-4",
+                  isFavorite ? "fill-ds-status-error text-ds-status-error" : "text-ds-text-secondary"
                 )}
               />
             </button>
@@ -92,35 +92,35 @@ export function ProductCard({
       </Link>
 
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-2.5 sm:p-3">
         <Link href={`/products/${id}`}>
-          <h3 className="mb-1 line-clamp-2 font-semibold text-gray-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400">
+          <h3 className="mb-0.5 line-clamp-1 text-sm font-semibold text-ds-text-primary transition-colors hover:text-ds-text-brand sm:line-clamp-2 sm:text-base dark:text-ds-text-primary dark:hover:text-ds-brand-accent">
             {name}
           </h3>
         </Link>
 
         <Link
           href={`/vendors/${vendorId}`}
-          className="mb-2 block text-sm text-gray-600 transition-colors hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
+          className="mb-1 block text-xs text-ds-text-secondary transition-colors hover:text-ds-text-brand sm:text-sm dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
         >
           {vendorName}
         </Link>
 
         {/* Rating */}
         {reviewCount > 0 && (
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-1.5 flex items-center gap-1">
             <Rating value={rating} readonly size="sm" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">({reviewCount})</span>
+            <span className="text-xs text-ds-text-secondary">({reviewCount})</span>
           </div>
         )}
 
         {/* Price */}
-        <div className="mb-3 flex items-center gap-2">
-          <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+        <div className="mb-2 flex items-center gap-1.5">
+          <span className="text-sm font-bold text-ds-text-brand sm:text-base">
             {formatCurrency(discountedPrice)}
           </span>
           {discount && discount > 0 && (
-            <span className="text-sm text-gray-500 line-through dark:text-gray-400">
+            <span className="text-xs text-ds-text-tertiary line-through dark:text-ds-text-placeholder">
               {formatCurrency(price)}
             </span>
           )}
@@ -133,9 +133,9 @@ export function ProductCard({
             disabled={isOutOfStock}
             fullWidth
             size="sm"
-            className="gap-2"
+            className="gap-1.5 text-xs sm:text-sm"
           >
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-3.5 w-3.5" />
             {isOutOfStock ? "Out of Stock" : "Add to Cart"}
           </Button>
         )}

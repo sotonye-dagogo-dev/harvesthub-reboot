@@ -12,7 +12,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         ref={ref}
         type="tel"
         prefix={
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <span className="text-sm font-medium text-ds-text-secondary">
             {defaultCountryCode}
           </span>
         }

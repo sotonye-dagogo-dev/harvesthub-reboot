@@ -12,7 +12,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Drawer, Tabs, Button, Empty, Spin, Dropdown, Tag, Space } from "antd";
+import { StatusTag, SectionLoader, EmptyState } from "@/components/ui";
+import { Drawer, Tabs, Button, Dropdown, Space } from "antd";
 import { Check, CheckCheck, Filter, MoreVertical, Trash2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
@@ -23,20 +24,6 @@ interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
 }
-
-const notificationTypeColors: Record<NotificationType, string> = {
-  ORDER_CONFIRMED: "blue",
-  ORDER_READY: "green",
-  ORDER_DELIVERED: "cyan",
-  ORDER_CANCELLED: "red",
-  PAYMENT_SUCCESS: "green",
-  PAYMENT_FAILED: "red",
-  DELIVERY_UPDATE: "orange",
-  VENDOR_MESSAGE: "purple",
-  LOW_STOCK: "orange",
-  NEW_PRODUCT: "blue",
-  PROMOTION: "magenta",
-};
 
 const notificationTypeLabels: Record<NotificationType, string> = {
   ORDER_CONFIRMED: "Order Confirmed",
@@ -49,8 +36,7 @@ const notificationTypeLabels: Record<NotificationType, string> = {
   VENDOR_MESSAGE: "Vendor Message",
   LOW_STOCK: "Low Stock",
   NEW_PRODUCT: "New Product",
-  PROMOTION: "Promotion",
-};
+  PROMOTION: "Promotion" };
 
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const { notifications, loading, markAsRead, markAllAsRead, deleteNotification, unreadCount } =
@@ -92,33 +78,31 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
       <div
         key={notification.id}
         className={`border-b last:border-b-0 transition-colors ${
-          !notification.isRead ? "bg-purple-50 dark:bg-purple-950/20" : ""
+          !notification.isRead ? "bg-ds-brand-surface " : ""
         }`}
       >
         {notification.link ? (
           <Link href={notification.link} className="block">
             <div
               onClick={() => handleNotificationClick(notification)}
-              className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="p-4 cursor-pointer hover:bg-ds-surface-sunken"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Tag color={notificationTypeColors[notification.type]} className="m-0">
-                      {notificationTypeLabels[notification.type]}
-                    </Tag>
-                    {!notification.isRead && <div className="w-2 h-2 bg-purple-500 rounded-full" />}
+                    <StatusTag domain="notification" status={notification.type} label={notificationTypeLabels[notification.type]} />
+                    {!notification.isRead && <div className="w-2 h-2 bg-ds-brand-primary-light rounded-full" />}
                   </div>
 
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  <h4 className="font-semibold text-ds-text-primary mb-1">
                     {notification.title}
                   </h4>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <p className="text-sm text-ds-text-secondary mb-2">
                     {notification.message}
                   </p>
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ds-text-tertiary">
                     {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                   </p>
                 </div>
@@ -130,17 +114,14 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         key: "mark",
                         icon: notification.isRead ? <Eye size={16} /> : <Check size={16} />,
                         label: notification.isRead ? "Mark as unread" : "Mark as read",
-                        onClick: () => markAsRead(notification.id),
-                      },
+                        onClick: () => markAsRead(notification.id) },
                       {
                         key: "delete",
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id),
-                      },
-                    ],
-                  }}
+                        onClick: () => deleteNotification(notification.id) },
+                    ] }}
                   trigger={["click"]}
                 >
                   <Button
@@ -157,26 +138,24 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
           <div className="block">
             <div
               onClick={() => handleNotificationClick(notification)}
-              className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="p-4 cursor-pointer hover:bg-ds-surface-sunken"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Tag color={notificationTypeColors[notification.type]} className="m-0">
-                      {notificationTypeLabels[notification.type]}
-                    </Tag>
-                    {!notification.isRead && <div className="w-2 h-2 bg-purple-500 rounded-full" />}
+                    <StatusTag domain="notification" status={notification.type} label={notificationTypeLabels[notification.type]} />
+                    {!notification.isRead && <div className="w-2 h-2 bg-ds-brand-primary-light rounded-full" />}
                   </div>
 
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  <h4 className="font-semibold text-ds-text-primary mb-1">
                     {notification.title}
                   </h4>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <p className="text-sm text-ds-text-secondary mb-2">
                     {notification.message}
                   </p>
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ds-text-tertiary">
                     {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                   </p>
                 </div>
@@ -188,17 +167,14 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         key: "mark",
                         icon: notification.isRead ? <Eye size={16} /> : <Check size={16} />,
                         label: notification.isRead ? "Mark as unread" : "Mark as read",
-                        onClick: () => markAsRead(notification.id),
-                      },
+                        onClick: () => markAsRead(notification.id) },
                       {
                         key: "delete",
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id),
-                      },
-                    ],
-                  }}
+                        onClick: () => deleteNotification(notification.id) },
+                    ] }}
                   trigger={["click"]}
                 >
                   <Button
@@ -227,9 +203,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 items: Object.entries(notificationTypeLabels).map(([type, label]) => ({
                   key: type,
                   label,
-                  onClick: () => setFilterType(type as NotificationType),
-                })),
-              }}
+                  onClick: () => setFilterType(type as NotificationType) })) }}
               trigger={["click"]}
             >
               <Button icon={<Filter size={16} />} size="small">
@@ -257,27 +231,24 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         items={[
           {
             key: "all",
-            label: `All (${notifications.length})`,
-          },
+            label: `All (${notifications.length})` },
           {
             key: "unread",
-            label: `Unread (${unreadCount})`,
-          },
+            label: `Unread (${unreadCount})` },
         ]}
       />
 
       <div className="mt-4">
         {loading && (
-          <div className="flex justify-center py-8">
-            <Spin />
-          </div>
+          <SectionLoader />
         )}
 
         {!loading && filteredNotifications.length === 0 && (
-          <Empty
-            description={
+          <EmptyState
+            title={
               activeTab === "unread" ? "No unread notifications" : "No notifications yet"
             }
+            icon={<Check className="h-10 w-10" />}
           />
         )}
 

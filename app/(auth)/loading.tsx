@@ -1,9 +1,5 @@
-import { Spin } from 'antd';
+import { PageLoader } from "@/components/ui";
 
 export default function AuthLoading() {
-    return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <Spin size="large" />
-        </div>
-    );
+  return <PageLoader minHeight="min-h-[60vh]" />;
 }

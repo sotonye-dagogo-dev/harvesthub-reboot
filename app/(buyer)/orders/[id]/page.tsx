@@ -16,10 +16,11 @@ import {
   MessageSquare,
   XCircle,
 } from "lucide-react";
+import { StatusTag } from "@/components/ui";
 import { Tag, Steps, message, Modal, Divider } from "antd";
 import Image from "next/image";
 import Link from "next/link";
-import { OrderStatus, PaymentStatus, DeliveryMethod } from "@/lib/constants";
+import { OrderStatus, DeliveryMethod } from "@/lib/constants";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -87,29 +88,6 @@ export default function OrderDetailPage() {
 
   const vendor = mockVendors.find((v) => v.id === order.vendorId);
 
-  const statusColor = (status: OrderStatus | string) => {
-    const colors: Record<string, string> = {
-      PENDING: "orange",
-      CONFIRMED: "blue",
-      PROCESSING: "cyan",
-      READY: "geekblue",
-      COMPLETED: "green",
-      CANCELLED: "red",
-      REFUNDED: "volcano",
-    };
-    return colors[status] || "default";
-  };
-
-  const paymentStatusColor = (status: PaymentStatus | string) => {
-    const colors: Record<string, string> = {
-      PENDING: "orange",
-      PAID: "green",
-      FAILED: "red",
-      REFUNDED: "purple",
-    };
-    return colors[status] || "default";
-  };
-
   const canCancel = order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED;
 
   const handleCancel = () => {
@@ -133,10 +111,10 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-ds-text-primary">
               Order {order.orderNumber}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-ds-text-tertiary">
               Placed on{" "}
               {new Date(order.createdAt).toLocaleDateString("en-NG", {
                 year: "numeric",
@@ -147,18 +125,14 @@ export default function OrderDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Tag color={statusColor(order.status)} className="text-sm">
-            {order.status}
-          </Tag>
-          <Tag color={paymentStatusColor(order.paymentStatus)} className="text-sm">
-            {order.paymentStatus}
-          </Tag>
+          <StatusTag domain="order" status={order.status} className="text-sm" />
+          <StatusTag domain="payment" status={order.paymentStatus} className="text-sm" />
         </div>
       </div>
 
       {/* Order Status Timeline */}
       <Card className="mb-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Order Progress</h2>
+        <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Order Progress</h2>
         <Steps
           current={statusSteps.findIndex((s) => s.status === "wait") - 1}
           items={statusSteps}
@@ -172,7 +146,7 @@ export default function OrderDetailPage() {
         <div className="space-y-6 lg:col-span-2">
           {/* Items */}
           <Card>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
               Order Items ({order.items.length})
             </h2>
             <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -189,7 +163,7 @@ export default function OrderDetailPage() {
                   <div className="flex-1">
                     <Link
                       href={`/products/${item.productId}`}
-                      className="font-medium text-gray-900 hover:text-purple-600 dark:text-white"
+                      className="font-medium text-ds-text-primary hover:text-ds-text-brand"
                     >
                       {item.productName}
                     </Link>
@@ -202,11 +176,11 @@ export default function OrderDetailPage() {
                         ))}
                       </div>
                     )}
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-ds-text-tertiary">
                       Qty: {item.quantity} × {formatCurrency(item.price)}
                     </p>
                   </div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className="font-semibold text-ds-text-primary">
                     {formatCurrency(item.subtotal)}
                   </p>
                 </div>
@@ -218,10 +192,10 @@ export default function OrderDetailPage() {
           {order.notes && (
             <Card>
               <div className="flex items-start gap-3">
-                <MessageSquare className="mt-0.5 h-5 w-5 text-gray-400" />
+                <MessageSquare className="mt-0.5 h-5 w-5 text-ds-text-placeholder" />
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Order Notes</h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.notes}</p>
+                  <h3 className="font-medium text-ds-text-primary">Order Notes</h3>
+                  <p className="mt-1 text-sm text-ds-text-secondary">{order.notes}</p>
                 </div>
               </div>
             </Card>
@@ -232,46 +206,46 @@ export default function OrderDetailPage() {
         <div className="space-y-6">
           {/* Order Summary */}
           <Card>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
               Order Summary
             </h2>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                <span className="text-ds-text-secondary">Subtotal</span>
                 <span>{formatCurrency(order.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Delivery Fee</span>
+                <span className="text-ds-text-secondary">Delivery Fee</span>
                 <span>{order.deliveryFee > 0 ? formatCurrency(order.deliveryFee) : "Free"}</span>
               </div>
               <Divider className="my-2" />
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
-                <span className="text-purple-600">{formatCurrency(order.total)}</span>
+                <span className="text-ds-text-brand">{formatCurrency(order.total)}</span>
               </div>
             </div>
           </Card>
 
           {/* Payment Info */}
           <Card>
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
               <CreditCard className="h-5 w-5" /> Payment
             </h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Method</span>
+                <span className="text-ds-text-secondary">Method</span>
                 <span>{order.paymentMethod.replace(/_/g, " ")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Status</span>
-                <Tag color={paymentStatusColor(order.paymentStatus)}>{order.paymentStatus}</Tag>
+                <span className="text-ds-text-secondary">Status</span>
+                <StatusTag domain="payment" status={order.paymentStatus} />
               </div>
             </div>
           </Card>
 
           {/* Delivery/Pickup Info */}
           <Card>
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
               {order.deliveryMethod === DeliveryMethod.DELIVERY ? (
                 <Truck className="h-5 w-5" />
               ) : (
@@ -283,14 +257,14 @@ export default function OrderDetailPage() {
               {order.deliveryMethod === DeliveryMethod.DELIVERY && order.deliveryAddress && (
                 <>
                   <p className="font-medium">{order.deliveryAddress.fullName}</p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-ds-text-secondary">
                     {order.deliveryAddress.addressLine1}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-ds-text-secondary">
                     {order.deliveryAddress.city}, {order.deliveryAddress.state}
                   </p>
                   {order.deliveryAddress.phoneNumber && (
-                    <p className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                    <p className="flex items-center gap-1 text-ds-text-secondary">
                       <Phone className="h-3.5 w-3.5" />
                       {order.deliveryAddress.phoneNumber}
                     </p>
@@ -300,19 +274,19 @@ export default function OrderDetailPage() {
               {order.deliveryMethod === DeliveryMethod.PICKUP && order.pickupDetails && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Campus</span>
+                    <span className="text-ds-text-secondary">Campus</span>
                     <span>{order.pickupDetails.campus}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Service</span>
+                    <span className="text-ds-text-secondary">Service</span>
                     <span>{order.pickupDetails.service.replace(/_/g, " ")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Contact</span>
+                    <span className="text-ds-text-secondary">Contact</span>
                     <span>{order.pickupDetails.contactPhone}</span>
                   </div>
                   {order.pickupDetails.specialInstructions && (
-                    <p className="mt-2 rounded bg-gray-50 p-2 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    <p className="mt-2 rounded bg-ds-surface-sunken p-2 text-xs text-ds-text-secondary dark:text-ds-text-placeholder">
                       {order.pickupDetails.specialInstructions}
                     </p>
                   )}
@@ -324,19 +298,19 @@ export default function OrderDetailPage() {
           {/* Vendor Info */}
           {vendor && (
             <Card>
-              <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Vendor</h2>
+              <h2 className="mb-3 text-lg font-semibold text-ds-text-primary">Vendor</h2>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-sm font-bold text-purple-600 dark:bg-purple-900/30">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
                   {vendor.storeName[0]}
                 </div>
                 <div>
                   <Link
                     href={`/vendors/${vendor.id}`}
-                    className="font-medium text-gray-900 hover:text-purple-600 dark:text-white"
+                    className="font-medium text-ds-text-primary hover:text-ds-text-brand"
                   >
                     {vendor.storeName}
                   </Link>
-                  <p className="text-xs text-gray-500">{vendor.campus}</p>
+                  <p className="text-xs text-ds-text-tertiary">{vendor.campus}</p>
                 </div>
               </div>
             </Card>
@@ -347,7 +321,7 @@ export default function OrderDetailPage() {
             <Card>
               <Button
                 variant="outline"
-                className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20"
+                className="w-full border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg dark:hover:bg-ds-status-error-bg/20"
                 onClick={handleCancel}
               >
                 <XCircle className="mr-2 h-4 w-4" />
@@ -358,7 +332,7 @@ export default function OrderDetailPage() {
 
           {/* Timeline */}
           <Card>
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
               <Clock className="h-5 w-5" /> Timeline
             </h2>
             <div className="space-y-3">
@@ -367,12 +341,12 @@ export default function OrderDetailPage() {
                 .reverse()
                 .map((entry, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500" />
+                    <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-ds-brand-primary-light" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-ds-text-primary">
                         {entry.status.replace(/_/g, " ")}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-ds-text-tertiary">
                         {new Date(entry.timestamp).toLocaleDateString("en-NG", {
                           year: "numeric",
                           month: "short",
@@ -381,7 +355,7 @@ export default function OrderDetailPage() {
                           minute: "2-digit",
                         })}
                       </p>
-                      {entry.notes && <p className="mt-0.5 text-xs text-gray-500">{entry.notes}</p>}
+                      {entry.notes && <p className="mt-0.5 text-xs text-ds-text-tertiary">{entry.notes}</p>}
                     </div>
                   </div>
                 ))}

@@ -25,14 +25,14 @@ export default function SignupSuccessPage(): React.ReactElement {
   }, [formData, resetFormData, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-ds-surface-base">
       <div className="max-w-md w-full p-8 flex flex-col items-center">
         <div className="text-7xl text-primary-100 mb-6">
           <CheckCircleFilled />
         </div>
 
         <h1 className="text-4xl font-bold mb-2 text-center">Account Created!</h1>
-        <p className="text-gray-400 text-center mb-8">
+        <p className="text-ds-text-placeholder text-center mb-8">
           Congratulations! Your {formData.userType} account has been created successfully.
         </p>
 

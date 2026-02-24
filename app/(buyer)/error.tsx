@@ -18,9 +18,9 @@ export default function BuyerError({ error, reset }: ErrorProps) {
         <div className="flex items-center justify-center min-h-[60vh] px-4">
             <Result
                 status="500"
-                title={<span className="text-gray-900 dark:text-white">Page Error</span>}
+                title={<span className="text-ds-text-primary">Page Error</span>}
                 subTitle={
-                    <span className="text-gray-500 dark:text-gray-400">
+                    <span className="text-ds-text-tertiary">
                         {error.message || 'Something went wrong loading this page.'}
                     </span>
                 }
@@ -29,7 +29,7 @@ export default function BuyerError({ error, reset }: ErrorProps) {
                         key="retry"
                         type="primary"
                         onClick={reset}
-                        className="bg-purple-600 hover:bg-purple-700 border-purple-600"
+                        className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover border-ds-border-brand"
                     >
                         Try Again
                     </Button>,

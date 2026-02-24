@@ -145,10 +145,10 @@ export default function FAQsPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">
+        <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">
           Frequently Asked Questions
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+        <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
           Quick answers to common questions about using HarvestHub
         </p>
       </div>
@@ -156,20 +156,20 @@ export default function FAQsPage() {
       <div className="mx-auto max-w-4xl space-y-12">
         {faqs.map((section) => (
           <div key={section.category}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">
               {section.category}
             </h2>
             <div className="space-y-4">
               {section.questions.map((faq, index) => (
                 <details
                   key={index}
-                  className="group rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                  className="group rounded-lg border border-ds-border-base p-4"
                 >
-                  <summary className="flex cursor-pointer items-center justify-between font-semibold text-gray-900 dark:text-white">
+                  <summary className="flex cursor-pointer items-center justify-between font-semibold text-ds-text-primary">
                     <span>{faq.q}</span>
                     <ChevronDown className="h-5 w-5 transition-transform group-open:rotate-180" />
                   </summary>
-                  <p className="mt-4 text-gray-600 dark:text-gray-400">{faq.a}</p>
+                  <p className="mt-4 text-ds-text-secondary">{faq.a}</p>
                 </details>
               ))}
             </div>
@@ -177,23 +177,23 @@ export default function FAQsPage() {
         ))}
       </div>
 
-      <div className="mt-16 rounded-lg bg-purple-50 p-8 text-center dark:bg-purple-900/20">
-        <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+      <div className="mt-16 rounded-lg bg-ds-brand-surface p-8 text-center dark:bg-ds-brand-subtle">
+        <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
           Didn&apos;t find your answer?
         </h2>
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-ds-text-secondary">
           Our support team is ready to help you with any questions
         </p>
         <div className="flex justify-center gap-4">
           <Link
             href="/contact"
-            className="rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+            className="rounded-lg bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
           >
             Contact Support
           </Link>
           <Link
             href="/help"
-            className="rounded-lg border-2 border-purple-600 px-6 py-3 font-semibold text-purple-600 hover:bg-purple-50 dark:border-purple-500 dark:text-purple-500 dark:hover:bg-purple-900/20"
+            className="rounded-lg border-2 border-ds-border-brand px-6 py-3 font-semibold text-ds-text-brand hover:bg-ds-brand-surface dark:border-ds-border-focus dark:text-ds-brand-primary-light dark:hover:bg-ds-brand-subtle"
           >
             Visit Help Center
           </Link>

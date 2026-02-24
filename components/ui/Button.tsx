@@ -26,15 +26,15 @@ export function Button({
 
   const variants = {
     primary:
-      "bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 dark:bg-purple-500 dark:hover:bg-purple-600",
+      "bg-ds-brand-primary text-ds-text-inverse hover:bg-ds-brand-primary-hover focus:ring-ds-focus-ring",
     secondary:
-      "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500 dark:bg-gray-500 dark:hover:bg-gray-600",
+      "bg-ds-palette-neutral-600 text-ds-text-inverse hover:bg-ds-palette-neutral-700 focus:ring-ds-palette-neutral-500",
     outline:
-      "border-2 border-purple-600 text-purple-600 hover:bg-purple-50 focus:ring-purple-500 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-900/20",
+      "border-2 border-ds-border-brand text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
     ghost:
-      "text-purple-600 hover:bg-purple-50 focus:ring-purple-500 dark:text-purple-400 dark:hover:bg-purple-900/20",
+      "text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
     danger:
-      "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-600",
+      "bg-ds-status-error text-ds-text-inverse hover:bg-ds-status-error-text focus:ring-ds-status-error",
   };
 
   const sizes = {

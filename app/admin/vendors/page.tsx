@@ -6,6 +6,7 @@ import { Card, Button, EmptyState } from "@/components/ui";
 import { mockVendors, mockUsers, mockProducts } from "@/lib/data/mockData";
 import type { Vendor } from "@/lib/types";
 import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
+import { StatusTag } from "@/components/ui";
 import { Input, Select, Table, Modal, message, Tag, Tooltip } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -124,13 +125,6 @@ export default function AdminVendorsPage() {
   const getVendorProductCount = (vendorId: string) =>
     mockProducts.filter((p) => p.vendorId === vendorId).length;
 
-  const statusColors: Record<string, string> = {
-    APPROVED: "green",
-    PENDING: "orange",
-    REJECTED: "red",
-    SUSPENDED: "volcano",
-  };
-
   const columns = [
     {
       title: "Store",
@@ -148,8 +142,8 @@ export default function AdminVendorsPage() {
               />
             </div>
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">{record.storeName}</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-medium text-ds-text-primary">{record.storeName}</p>
+              <p className="text-xs text-ds-text-tertiary">
                 {vendorUser?.firstName} {vendorUser?.lastName}
               </p>
             </div>
@@ -193,7 +187,7 @@ export default function AdminVendorsPage() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => <Tag color={statusColors[status] || "default"}>{status}</Tag>,
+      render: (status: string) => <StatusTag domain="vendor" status={status} />,
     },
     {
       title: "Actions",
@@ -217,7 +211,7 @@ export default function AdminVendorsPage() {
                   onClick={() => handleApprove(record.id)}
                   disabled={loadingId === record.id}
                 >
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-ds-status-success" />
                 </Button>
               </Tooltip>
               <Tooltip title="Reject">
@@ -227,7 +221,7 @@ export default function AdminVendorsPage() {
                   onClick={() => handleReject(record.id)}
                   disabled={loadingId === record.id}
                 >
-                  <XCircle className="h-4 w-4 text-red-500" />
+                  <XCircle className="h-4 w-4 text-ds-status-error" />
                 </Button>
               </Tooltip>
             </>
@@ -240,7 +234,7 @@ export default function AdminVendorsPage() {
                 onClick={() => handleSuspend(record.id)}
                 disabled={loadingId === record.id}
               >
-                <Ban className="h-4 w-4 text-orange-500" />
+                <Ban className="h-4 w-4 text-ds-status-warning" />
               </Button>
             </Tooltip>
           )}
@@ -252,7 +246,7 @@ export default function AdminVendorsPage() {
                 onClick={() => handleUnsuspend(record.id)}
                 disabled={loadingId === record.id}
               >
-                <RefreshCw className="h-4 w-4 text-green-500" />
+                <RefreshCw className="h-4 w-4 text-ds-status-success" />
               </Button>
             </Tooltip>
           )}
@@ -264,35 +258,35 @@ export default function AdminVendorsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vendor Management</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">Vendor Management</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Manage vendor accounts and applications ({filteredVendors.length} vendors)
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-green-50 dark:bg-green-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Approved</p>
-          <p className="text-2xl font-bold text-green-600">
+        <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
+          <p className="text-sm text-ds-text-secondary">Approved</p>
+          <p className="text-2xl font-bold text-ds-status-success-text">
             {vendors.filter((v) => v.status === VendorStatus.APPROVED).length}
           </p>
         </Card>
-        <Card className="bg-orange-50 dark:bg-orange-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-          <p className="text-2xl font-bold text-orange-600">
+        <Card className="bg-ds-status-warning-bg /20">
+          <p className="text-sm text-ds-text-secondary">Pending</p>
+          <p className="text-2xl font-bold text-ds-status-warning-text">
             {vendors.filter((v) => v.status === VendorStatus.PENDING).length}
           </p>
         </Card>
-        <Card className="bg-red-50 dark:bg-red-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Rejected</p>
-          <p className="text-2xl font-bold text-red-600">
+        <Card className="bg-ds-status-error-bg dark:bg-ds-status-error-bg/20">
+          <p className="text-sm text-ds-text-secondary">Rejected</p>
+          <p className="text-2xl font-bold text-ds-status-error-text">
             {vendors.filter((v) => v.status === VendorStatus.REJECTED).length}
           </p>
         </Card>
-        <Card className="bg-purple-50 dark:bg-purple-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Suspended</p>
-          <p className="text-2xl font-bold text-purple-600">
+        <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
+          <p className="text-sm text-ds-text-secondary">Suspended</p>
+          <p className="text-2xl font-bold text-ds-text-brand">
             {vendors.filter((v) => v.status === VendorStatus.SUSPENDED).length}
           </p>
         </Card>
@@ -304,7 +298,7 @@ export default function AdminVendorsPage() {
           <div className="flex-1">
             <Input
               placeholder="Search vendors..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear

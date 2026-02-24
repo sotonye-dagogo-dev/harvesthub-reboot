@@ -10,8 +10,9 @@
 
 "use client";
 
+import { SectionLoader } from "@/components/ui";
 import { useState, useEffect } from "react";
-import { Card, Switch, Button, message, TimePicker, Spin } from "antd";
+import { Card, Switch, Button, message, TimePicker } from "antd";
 import { Bell, Mail, Smartphone, Clock } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import type { NotificationType } from "@/lib/types";
@@ -41,49 +42,37 @@ const defaultPreferences: NotificationPreference[] = [
 const notificationLabels: Record<NotificationType, { title: string; description: string }> = {
   ORDER_CONFIRMED: {
     title: "Order Confirmed",
-    description: "When your order is confirmed by the vendor",
-  },
+    description: "When your order is confirmed by the vendor" },
   ORDER_READY: {
     title: "Order Ready",
-    description: "When your order is ready for pickup or delivery",
-  },
+    description: "When your order is ready for pickup or delivery" },
   ORDER_DELIVERED: {
     title: "Order Delivered",
-    description: "When your order has been delivered",
-  },
+    description: "When your order has been delivered" },
   ORDER_CANCELLED: {
     title: "Order Cancelled",
-    description: "When an order is cancelled",
-  },
+    description: "When an order is cancelled" },
   PAYMENT_SUCCESS: {
     title: "Payment Success",
-    description: "When a payment is successfully processed",
-  },
+    description: "When a payment is successfully processed" },
   PAYMENT_FAILED: {
     title: "Payment Failed",
-    description: "When a payment fails",
-  },
+    description: "When a payment fails" },
   DELIVERY_UPDATE: {
     title: "Delivery Updates",
-    description: "Updates about your delivery status",
-  },
+    description: "Updates about your delivery status" },
   VENDOR_MESSAGE: {
     title: "Vendor Messages",
-    description: "Messages from vendors about your orders",
-  },
+    description: "Messages from vendors about your orders" },
   LOW_STOCK: {
     title: "Low Stock Alerts",
-    description: "When products in your wishlist are running low",
-  },
+    description: "When products in your wishlist are running low" },
   NEW_PRODUCT: {
     title: "New Products",
-    description: "When vendors you follow add new products",
-  },
+    description: "When vendors you follow add new products" },
   PROMOTION: {
     title: "Promotions & Offers",
-    description: "Special offers and promotional deals",
-  },
-};
+    description: "Special offers and promotional deals" } };
 
 export function NotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreference[]>(defaultPreferences);
@@ -131,9 +120,7 @@ export function NotificationPreferences() {
           notificationTypes: preferences,
           quietHoursEnabled,
           quietHoursStart: quietHoursStart?.format("HH:mm"),
-          quietHoursEnd: quietHoursEnd?.format("HH:mm"),
-        }),
-      });
+          quietHoursEnd: quietHoursEnd?.format("HH:mm") }) });
 
       if (res.ok) {
         message.success("Preferences saved successfully");
@@ -160,16 +147,14 @@ export function NotificationPreferences() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Spin size="large" />
-      </div>
+      <SectionLoader size="lg" className="py-12" />
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Notification Types */}
-      <Card title="Notification Types" className="shadow-sm">
+      <Card title="Notification Types" className="shadow-ds-sm">
         <div className="space-y-4">
           {preferences.map((pref) => {
             const info = notificationLabels[pref.type];
@@ -177,8 +162,8 @@ export function NotificationPreferences() {
               <div key={pref.type} className="border-b last:border-b-0 pb-4 last:pb-0">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{info.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{info.description}</p>
+                    <h4 className="font-semibold text-ds-text-primary">{info.title}</h4>
+                    <p className="text-sm text-ds-text-secondary">{info.description}</p>
                   </div>
                   <Switch
                     checked={pref.enabled}
@@ -189,7 +174,7 @@ export function NotificationPreferences() {
                 {pref.enabled && (
                   <div className="flex gap-4 ml-4">
                     <label className="flex items-center gap-2 text-sm">
-                      <Bell size={16} className="text-purple-500" />
+                      <Bell size={16} className="text-ds-brand-primary-light" />
                       <span>In-App</span>
                       <Switch
                         size="small"
@@ -199,7 +184,7 @@ export function NotificationPreferences() {
                     </label>
 
                     <label className="flex items-center gap-2 text-sm">
-                      <Mail size={16} className="text-blue-500" />
+                      <Mail size={16} className="text-ds-status-info" />
                       <span>Email</span>
                       <Switch
                         size="small"
@@ -209,7 +194,7 @@ export function NotificationPreferences() {
                     </label>
 
                     <label className="flex items-center gap-2 text-sm">
-                      <Smartphone size={16} className="text-green-500" />
+                      <Smartphone size={16} className="text-ds-status-success" />
                       <span>Push</span>
                       <Switch
                         size="small"
@@ -226,12 +211,12 @@ export function NotificationPreferences() {
       </Card>
 
       {/* Quiet Hours */}
-      <Card title="Quiet Hours" className="shadow-sm">
+      <Card title="Quiet Hours" className="shadow-ds-sm">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100">Enable Quiet Hours</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h4 className="font-semibold text-ds-text-primary">Enable Quiet Hours</h4>
+              <p className="text-sm text-ds-text-secondary">
                 Mute notifications during specific hours
               </p>
             </div>

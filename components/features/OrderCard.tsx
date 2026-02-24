@@ -61,17 +61,17 @@ export function OrderCard({
 
   return (
     <Link href={`/orders/${id}`}>
-      <Card className={cn("transition-all hover:shadow-lg", className)} hoverable>
+      <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             {/* Order Number and Status */}
             <div className="mb-2 flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Order #{orderNumber}</h3>
+              <h3 className="font-semibold text-ds-text-primary">Order #{orderNumber}</h3>
               <Badge variant={statusDetails.variant}>{statusDetails.label}</Badge>
             </div>
 
             {/* Order Details */}
-            <div className="mb-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mb-3 space-y-1 text-sm text-ds-text-secondary">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 <span>
@@ -104,7 +104,7 @@ export function OrderCard({
             </div>
 
             {/* Total */}
-            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-lg font-bold text-ds-text-brand">
               {formatCurrency(total)}
             </div>
           </div>

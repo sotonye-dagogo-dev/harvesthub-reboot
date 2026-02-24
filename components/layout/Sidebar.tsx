@@ -26,7 +26,7 @@ const vendorLinks = [
   { href: "/vendor/products", label: "Products", icon: Package },
   { href: "/vendor/orders", label: "Orders", icon: ShoppingBag },
   { href: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/vendor/wallet", label: "Wallet", icon: Wallet },
+  { href: "/wallet", label: "Wallet", icon: Wallet },
   { href: "/vendor/store-settings", label: "Store Settings", icon: Settings },
 ];
 
@@ -53,7 +53,7 @@ export function Sidebar({ type }: SidebarProps) {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden h-[calc(100vh-4rem)] border-r border-gray-200 bg-white transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 md:block",
+          "hidden h-[calc(100vh-4rem)] border-r border-ds-border-base bg-ds-surface-base transition-all duration-300  dark:bg-ds-surface-base md:block",
           collapsed ? "w-16" : "w-64"
         )}
       >
@@ -61,7 +61,7 @@ export function Sidebar({ type }: SidebarProps) {
           {/* Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="m-2 flex items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="m-2 flex items-center justify-center rounded-lg p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -80,8 +80,8 @@ export function Sidebar({ type }: SidebarProps) {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     active
-                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800",
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised",
                     collapsed && "justify-center"
                   )}
                   title={collapsed ? link.label : undefined}
@@ -96,7 +96,7 @@ export function Sidebar({ type }: SidebarProps) {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-ds-header border-t border-ds-border-base bg-ds-surface-base dark:bg-ds-surface-base md:hidden">
         <div className="flex items-center justify-around">
           {links.slice(0, 5).map((link) => {
             const Icon = link.icon;
@@ -109,8 +109,8 @@ export function Sidebar({ type }: SidebarProps) {
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 text-xs font-medium",
                   active
-                    ? "text-purple-600 dark:text-purple-400"
-                    : "text-gray-600 dark:text-gray-400"
+                    ? "text-ds-text-brand"
+                    : "text-ds-text-secondary"
                 )}
               >
                 <Icon className="h-5 w-5" />

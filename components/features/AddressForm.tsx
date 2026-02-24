@@ -55,8 +55,8 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
 
       {/* Address */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Street Address <span className="text-red-500">*</span>
+        <label className="mb-1 block text-sm font-medium text-ds-text-secondary">
+          Street Address <span className="text-ds-status-error">*</span>
         </label>
         <textarea
           value={value.address || ""}
@@ -64,14 +64,14 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           placeholder="Enter your street address"
           rows={3}
           className={cn(
-            "w-full rounded-lg border px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 dark:text-white dark:placeholder-gray-400",
+            "w-full rounded-lg border px-3 py-2 text-ds-text-primary placeholder-ds-text-placeholder focus:outline-none focus:ring-2 dark:text-ds-text-primary dark:placeholder-ds-text-placeholder",
             errors.address
-              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-              : "border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 dark:border-gray-700 dark:focus:border-purple-400"
+              ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20"
+              : "border-ds-border-base focus:border-ds-border-focus focus:ring-ds-focus-ring/20  dark:focus:border-ds-brand-accent"
           )}
         />
         {errors.address && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.address}</p>
+          <p className="mt-1 text-sm text-ds-status-error-text">{errors.address}</p>
         )}
       </div>
 
@@ -87,18 +87,18 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
 
       {/* State */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          State <span className="text-red-500">*</span>
+        <label className="mb-1 block text-sm font-medium text-ds-text-secondary">
+          State <span className="text-ds-status-error">*</span>
         </label>
         <select
           value={value.state || ""}
           onChange={(e) => onChange({ ...value, state: e.target.value })}
           aria-label="Select state"
           className={cn(
-            "w-full rounded-lg border px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 dark:bg-gray-900 dark:text-white",
+            "w-full rounded-lg border px-3 py-2 text-ds-text-primary focus:outline-none focus:ring-2 dark:bg-ds-surface-base dark:text-ds-text-primary",
             errors.state
-              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-              : "border-gray-300 focus:border-purple-500 focus:ring-purple-500/20 dark:border-gray-700 dark:focus:border-purple-400"
+              ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20"
+              : "border-ds-border-base focus:border-ds-border-focus focus:ring-ds-focus-ring/20  dark:focus:border-ds-brand-accent"
           )}
         >
           <option value="">Select State</option>
@@ -115,7 +115,7 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           <option value="Other">Other</option>
         </select>
         {errors.state && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.state}</p>
+          <p className="mt-1 text-sm text-ds-status-error-text">{errors.state}</p>
         )}
       </div>
 
@@ -135,9 +135,9 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           id="isDefault"
           checked={value.isDefault || false}
           onChange={handleCheckboxChange("isDefault")}
-          className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700"
+          className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
         />
-        <label htmlFor="isDefault" className="text-sm text-gray-700 dark:text-gray-300">
+        <label htmlFor="isDefault" className="text-sm text-ds-text-secondary">
           Set as default address
         </label>
       </div>

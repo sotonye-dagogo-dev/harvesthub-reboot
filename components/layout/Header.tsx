@@ -29,27 +29,27 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-700">
               <span className="text-xl font-bold text-white">H</span>
             </div>
-            <span className="hidden sm:block text-xl font-bold text-gray-900 dark:text-white">
+            <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
               HarvestHub
             </span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden flex-1 max-w-xl md:block">
+          {/* Search Bar - Always visible */}
+          <div className="flex-1 min-w-0 max-w-xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ds-text-placeholder sm:left-3 sm:h-5 sm:w-5" />
               <input
                 type="text"
-                placeholder="Search products, stores..."
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Search..."
+                className="w-full rounded-lg border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
               />
             </div>
           </div>
@@ -67,8 +67,8 @@ export function Header() {
                     className={cn(
                       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                       isActive(getDashboardLink())
-                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     )}
                   >
                     <LayoutDashboard className="h-4 w-4" />
@@ -82,13 +82,13 @@ export function Header() {
                   className={cn(
                     "relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/cart")
-                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                   )}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {totalItems > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-xs font-medium text-white">
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ds-brand-primary text-xs font-medium text-white">
                       {totalItems}
                     </span>
                   )}
@@ -101,8 +101,8 @@ export function Header() {
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/wallet")
-                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                   )}
                 >
                   <Wallet className="h-4 w-4" />
@@ -115,8 +115,8 @@ export function Header() {
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/profile")
-                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                   )}
                 >
                   <User className="h-4 w-4" />
@@ -147,7 +147,7 @@ export function Header() {
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 md:hidden"
+            className="rounded-lg p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -155,19 +155,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="border-t border-gray-200 py-4 dark:border-gray-800 md:hidden">
-            {/* Mobile Search */}
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm dark:border-gray-700 dark:bg-gray-800"
-                />
-              </div>
-            </div>
-
+          <div className="border-t border-ds-border-base py-4 md:hidden">
             <div className="flex flex-col gap-2">
               {user ? (
                 <>
@@ -175,7 +163,7 @@ export function Header() {
                   {(user.role === "ADMIN" || user.role === "VENDOR") && (
                     <Link
                       href={getDashboardLink()}
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                       onClick={() => setShowMobileMenu(false)}
                     >
                       <LayoutDashboard className="h-5 w-5" />
@@ -186,7 +174,7 @@ export function Header() {
                   {/* Cart */}
                   <Link
                     href="/cart"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <ShoppingCart className="h-5 w-5" />
@@ -196,7 +184,7 @@ export function Header() {
                   {/* Wallet */}
                   <Link
                     href="/wallet"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <Wallet className="h-5 w-5" />
@@ -206,7 +194,7 @@ export function Header() {
                   {/* Profile */}
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <User className="h-5 w-5" />
@@ -216,7 +204,7 @@ export function Header() {
                   {/* Logout */}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
                   >
                     <LogOut className="h-5 w-5" />
                     Logout
@@ -226,14 +214,14 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                    className="rounded-lg bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Sign Up

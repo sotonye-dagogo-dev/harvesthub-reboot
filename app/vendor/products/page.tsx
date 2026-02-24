@@ -3,17 +3,10 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
-import { mockProducts } from "@/lib/data/mockData";
+import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
-import {
-  Package,
-  Plus,
-  Trash2,
-  Eye,
-  Search,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
+import { Package, Plus, Trash2, Eye, Search, ToggleLeft, ToggleRight } from "lucide-react";
+import { stockLevelColor } from "@/components/ui/StatusTag";
 import { Input, Select, Table, Modal, message, Tag } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -26,16 +19,16 @@ export default function VendorProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
 
-  // Get vendor's products
+  // Resolve vendor record from user ID, then filter products by vendor.id
+  const vendor = useMemo(() => mockVendors.find((v) => v.userId === user?.id), [user?.id]);
+
   const vendorProducts = useMemo(() => {
-    let filtered = mockProducts.filter((p) => p.vendorId === user?.id);
+    let filtered = mockProducts.filter((p) => p.vendorId === vendor?.id);
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query)
+        (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
       );
     }
 
@@ -46,7 +39,7 @@ export default function VendorProductsPage() {
     return filtered.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [user?.id, searchQuery, categoryFilter]);
+  }, [vendor?.id, searchQuery, categoryFilter]);
 
   // Redirect if not vendor
   if (user?.role !== "VENDOR") {
@@ -67,9 +60,7 @@ export default function VendorProductsPage() {
   };
 
   const handleToggleActive = (product: Product) => {
-    message.success(
-      `Product ${product.isActive ? "deactivated" : "activated"} successfully`
-    );
+    message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
   const columns = [
@@ -87,8 +78,8 @@ export default function VendorProductsPage() {
             />
           </div>
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">{record.name}</p>
-            <p className="text-xs text-gray-500">{record.category}</p>
+            <p className="font-medium text-ds-text-primary">{record.name}</p>
+            <p className="text-xs text-ds-text-tertiary">{record.category}</p>
           </div>
         </div>
       ),
@@ -97,9 +88,7 @@ export default function VendorProductsPage() {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price: number) => (
-        <span className="font-medium">{formatCurrency(price)}</span>
-      ),
+      render: (price: number) => <span className="font-medium">{formatCurrency(price)}</span>,
       sorter: (a: Product, b: Product) => a.price - b.price,
     },
     {
@@ -107,7 +96,7 @@ export default function VendorProductsPage() {
       dataIndex: "stock",
       key: "stock",
       render: (stock: number) => (
-        <Tag color={stock > 10 ? "green" : stock > 0 ? "orange" : "red"}>
+        <Tag color={stockLevelColor(stock)}>
           {stock > 0 ? `${stock} units` : "Out of stock"}
         </Tag>
       ),
@@ -135,9 +124,7 @@ export default function VendorProductsPage() {
       dataIndex: "isActive",
       key: "isActive",
       render: (isActive: boolean) => (
-        <Badge variant={isActive ? "success" : "default"}>
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
+        <Badge variant={isActive ? "success" : "default"}>{isActive ? "Active" : "Inactive"}</Badge>
       ),
     },
     {
@@ -160,18 +147,13 @@ export default function VendorProductsPage() {
             title={record.isActive ? "Deactivate" : "Activate"}
           >
             {record.isActive ? (
-              <ToggleRight className="h-4 w-4 text-green-500" />
+              <ToggleRight className="h-4 w-4 text-ds-status-success" />
             ) : (
-              <ToggleLeft className="h-4 w-4 text-gray-400" />
+              <ToggleLeft className="h-4 w-4 text-ds-text-placeholder" />
             )}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDelete(record.id)}
-            title="Delete"
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(record.id)} title="Delete">
+            <Trash2 className="h-4 w-4 text-ds-status-error" />
           </Button>
         </div>
       ),
@@ -183,8 +165,8 @@ export default function VendorProductsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Products</h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-ds-text-primary">Products</h1>
+          <p className="mt-1 text-ds-text-secondary">
             Manage your product listings ({vendorProducts.length} products)
           </p>
         </div>
@@ -200,7 +182,7 @@ export default function VendorProductsPage() {
           <div className="flex-1">
             <Input
               placeholder="Search products..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear

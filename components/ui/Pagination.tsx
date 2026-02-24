@@ -61,7 +61,7 @@ export function Pagination({
         <button
           onClick={handleFirst}
           disabled={currentPage === 1}
-          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="First page"
         >
           First
@@ -71,7 +71,7 @@ export function Pagination({
       <button
         onClick={handlePrevious}
         disabled={currentPage === 1}
-        className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Previous page"
       >
         Previous
@@ -80,7 +80,7 @@ export function Pagination({
       {visiblePages.map((page, index) => {
         if (page === "...") {
           return (
-            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500 dark:text-gray-400">
+            <span key={`ellipsis-${index}`} className="px-3 py-2 text-ds-text-tertiary">
               ...
             </span>
           );
@@ -94,10 +94,10 @@ export function Pagination({
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
             className={cn(
-              "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
               isActive
-                ? "bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
-                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                ? "bg-ds-brand-primary text-ds-text-inverse hover:bg-ds-brand-primary-hover"
+                : "text-ds-text-secondary hover:bg-ds-surface-sunken"
             )}
             aria-label={`Page ${pageNum}`}
             aria-current={isActive ? "page" : undefined}
@@ -110,7 +110,7 @@ export function Pagination({
       <button
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Next page"
       >
         Next
@@ -120,7 +120,7 @@ export function Pagination({
         <button
           onClick={handleLast}
           disabled={currentPage === totalPages}
-          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Last page"
         >
           Last
@@ -156,19 +156,19 @@ export function SimplePagination({
       <button
         onClick={handlePrevious}
         disabled={currentPage === 1}
-        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="rounded-ds-md px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
       >
         Previous
       </button>
 
-      <span className="text-sm text-gray-700 dark:text-gray-300">
+      <span className="text-sm text-ds-text-secondary">
         Page {currentPage} of {totalPages}
       </span>
 
       <button
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="rounded-ds-md px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
       >
         Next
       </button>

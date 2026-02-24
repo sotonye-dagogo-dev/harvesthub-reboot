@@ -50,8 +50,8 @@ export default function HelpCenterPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Help Center</h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+        <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Help Center</h1>
+        <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
           Find answers to your questions and get support for your HarvestHub experience
         </p>
       </div>
@@ -59,11 +59,11 @@ export default function HelpCenterPage() {
       {/* Search Bar */}
       <div className="mx-auto mb-12 max-w-2xl">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ds-text-placeholder" />
           <input
             type="text"
             placeholder="Search for help..."
-            className="w-full rounded-lg border border-gray-300 py-3 pl-12 pr-4 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="w-full rounded-lg border border-ds-border-base py-3 pl-12 pr-4 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
           />
         </div>
       </div>
@@ -76,45 +76,45 @@ export default function HelpCenterPage() {
             <Link
               key={topic.title}
               href={topic.link}
-              className="group rounded-lg border border-gray-200 p-6 transition-all hover:border-purple-300 hover:shadow-md dark:border-gray-800 dark:hover:border-purple-700"
+              className="group rounded-lg border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 transition-colors group-hover:bg-purple-200 dark:bg-purple-900 dark:group-hover:bg-purple-800">
-                <Icon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-ds-brand-subtle transition-colors group-hover:bg-ds-brand-subtle">
+                <Icon className="h-6 w-6 text-ds-text-brand" />
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-2 text-xl font-semibold text-ds-text-primary">
                 {topic.title}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{topic.description}</p>
+              <p className="text-sm text-ds-text-secondary">{topic.description}</p>
             </Link>
           );
         })}
       </div>
 
       {/* Quick Links */}
-      <div className="rounded-lg bg-purple-50 p-8 dark:bg-purple-900/20">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Quick Links</h2>
+      <div className="rounded-lg bg-ds-brand-surface p-8 dark:bg-ds-brand-subtle">
+        <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">Quick Links</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Link
             href="/faqs"
-            className="flex items-center gap-3 text-purple-600 hover:underline dark:text-purple-400"
+            className="flex items-center gap-3 text-ds-text-brand hover:underline"
           >
             → Frequently Asked Questions
           </Link>
           <Link
             href="/terms"
-            className="flex items-center gap-3 text-purple-600 hover:underline dark:text-purple-400"
+            className="flex items-center gap-3 text-ds-text-brand hover:underline"
           >
             → Terms of Service
           </Link>
           <Link
             href="/privacy"
-            className="flex items-center gap-3 text-purple-600 hover:underline dark:text-purple-400"
+            className="flex items-center gap-3 text-ds-text-brand hover:underline"
           >
             → Privacy Policy
           </Link>
           <Link
             href="/contact"
-            className="flex items-center gap-3 text-purple-600 hover:underline dark:text-purple-400"
+            className="flex items-center gap-3 text-ds-text-brand hover:underline"
           >
             → Contact Support
           </Link>
@@ -123,13 +123,13 @@ export default function HelpCenterPage() {
 
       {/* Still Need Help */}
       <div className="mt-12 text-center">
-        <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Still Need Help?</h2>
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
+        <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">Still Need Help?</h2>
+        <p className="mb-6 text-ds-text-secondary">
           Our support team is here to assist you
         </p>
         <Link
           href="/contact"
-          className="inline-block rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+          className="inline-block rounded-lg bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
         >
           Contact Support
         </Link>

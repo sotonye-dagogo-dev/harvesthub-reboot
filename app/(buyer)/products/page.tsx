@@ -4,11 +4,13 @@ import { useState } from "react";
 import { ProductCard, FilterSidebar, CategoryNav, SearchBar } from "@/components/features";
 import { SimplePagination, EmptyState } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
+import { useCart } from "@/lib/store/cartStore";
 import { Package } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default function ProductsPage() {
+  const { addItem } = useCart();
   const [filters, setFilters] = useState<{
     categories?: string[];
     minPrice?: number;
@@ -123,7 +125,7 @@ export default function ProductsPage() {
 
         {/* Products Grid */}
         <div className="lg:col-span-3">
-          <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mb-4 text-sm text-ds-text-secondary">
             Showing {paginatedProducts.length} of {filteredProducts.length} products
           </div>
 
@@ -157,6 +159,17 @@ export default function ProductsPage() {
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
                       isFeatured={product.isFeatured}
+                      onAddToCart={() => {
+                        addItem({
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.images[0] || "/placeholder-product.jpg",
+                          vendorId: product.vendorId,
+                          vendorName: vendor?.storeName || "Unknown Vendor",
+                          stock: product.stock,
+                        });
+                      }}
                     />
                   );
                 })}

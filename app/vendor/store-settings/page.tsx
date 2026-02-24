@@ -55,8 +55,8 @@ export default function VendorStoreSettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Store Settings</h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-ds-text-primary">Store Settings</h1>
+          <p className="mt-1 text-ds-text-secondary">
             Manage your store information and preferences
           </p>
         </div>
@@ -65,20 +65,20 @@ export default function VendorStoreSettingsPage() {
 
       {/* Store Branding */}
       <Card>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <Store className="h-5 w-5 text-purple-600" />
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
+          <Store className="h-5 w-5 text-ds-text-brand" />
           Store Branding
         </h2>
 
         <div className="space-y-6">
           {/* Store Logo */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Store Logo
             </label>
             <div className="flex items-center gap-4">
-              <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                <Camera className="h-8 w-8 text-gray-400" />
+              <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-ds-surface-sunken">
+                <Camera className="h-8 w-8 text-ds-text-placeholder" />
               </div>
               <Button variant="outline" size="sm">
                 <Upload className="mr-2 h-4 w-4" />
@@ -89,7 +89,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* Store Name */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Store Name
             </label>
             <AntInput
@@ -102,7 +102,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* Description */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Store Description
             </label>
             <TextArea
@@ -117,7 +117,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* Category */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Store Category
             </label>
             <Select
@@ -136,15 +136,15 @@ export default function VendorStoreSettingsPage() {
 
       {/* Location & Contact */}
       <Card>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <MapPin className="h-5 w-5 text-purple-600" />
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
+          <MapPin className="h-5 w-5 text-ds-text-brand" />
           Location & Contact
         </h2>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Campus */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Campus Location
             </label>
             <Select
@@ -161,7 +161,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* Phone */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               <Phone className="mr-1 inline h-4 w-4" />
               Phone Number
             </label>
@@ -174,7 +174,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* WhatsApp */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               WhatsApp Number
             </label>
             <AntInput
@@ -186,7 +186,7 @@ export default function VendorStoreSettingsPage() {
 
           {/* Email */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               <Mail className="mr-1 inline h-4 w-4" />
               Email
             </label>
@@ -201,16 +201,16 @@ export default function VendorStoreSettingsPage() {
 
       {/* Delivery & Pickup */}
       <Card>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <Truck className="h-5 w-5 text-purple-600" />
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
+          <Truck className="h-5 w-5 text-ds-text-brand" />
           Delivery & Pickup
         </h2>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+          <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-4">
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">Allow Church Pickup</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="font-medium text-ds-text-primary">Allow Church Pickup</p>
+              <p className="text-sm text-ds-text-secondary">
                 Buyers can pick up orders at church services
               </p>
             </div>
@@ -220,10 +220,10 @@ export default function VendorStoreSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+          <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-4">
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">Allow Home Delivery</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="font-medium text-ds-text-primary">Allow Home Delivery</p>
+              <p className="text-sm text-ds-text-secondary">
                 Buyers can have orders delivered to their address
               </p>
             </div>
@@ -237,14 +237,14 @@ export default function VendorStoreSettingsPage() {
 
       {/* Business Hours */}
       <Card>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-          <Clock className="h-5 w-5 text-purple-600" />
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
+          <Clock className="h-5 w-5 text-ds-text-brand" />
           Business Hours
         </h2>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Opening Time
             </label>
             <TimePicker
@@ -255,7 +255,7 @@ export default function VendorStoreSettingsPage() {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Closing Time
             </label>
             <TimePicker
@@ -268,7 +268,7 @@ export default function VendorStoreSettingsPage() {
         </div>
 
         <div className="mt-4">
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
             Processing Time
           </label>
           <Select
@@ -288,11 +288,11 @@ export default function VendorStoreSettingsPage() {
 
       {/* Policies */}
       <Card>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Store Policies</h2>
+        <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Store Policies</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Return Policy
             </label>
             <TextArea
@@ -303,7 +303,7 @@ export default function VendorStoreSettingsPage() {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Shipping Policy
             </label>
             <TextArea

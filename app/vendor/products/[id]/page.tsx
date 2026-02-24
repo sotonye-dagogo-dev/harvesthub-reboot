@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Product } from "@/lib/types";
-import { Form, Input, InputNumber, Select, Switch, message, Spin } from "antd";
-import { Button, Card } from "@/components/ui";
+import { Form, Input, InputNumber, Select, Switch, message } from "antd";
+import { Button, Card , PageLoader } from "@/components/ui";
 import { ArrowLeft, Package, Upload as UploadIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -36,8 +36,7 @@ const CATEGORY_LABELS: Record<string, string> = {
     BOOKS: "Books & Stationery",
     SERVICES: "Services",
     CRAFTS: "Crafts & Handmade",
-    OTHERS: "Others",
-};
+    OTHERS: "Others" };
 
 export default function VendorProductDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -73,8 +72,7 @@ export default function VendorProductDetailPage() {
                 isActive: data.product.isActive,
                 isFeatured: data.product.isFeatured,
                 allowsPickup: data.product.allowsPickup,
-                allowsDelivery: data.product.allowsDelivery,
-            });
+                allowsDelivery: data.product.allowsDelivery });
         } catch {
             message.error("Failed to load product");
             router.push("/vendor/products");
@@ -104,8 +102,7 @@ export default function VendorProductDetailPage() {
             const res = await fetch(url, {
                 method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
-            });
+                body: JSON.stringify(values) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Save failed");
             message.success(isNew ? "Product created successfully!" : "Product updated successfully!");
@@ -138,9 +135,7 @@ export default function VendorProductDetailPage() {
 
     if (authLoading || loading) {
         return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <Spin size="large" />
-            </div>
+            <PageLoader minHeight="min-h-[400px]" />
         );
     }
 
@@ -151,19 +146,19 @@ export default function VendorProductDetailPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => router.push("/vendor/products")}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="rounded-lg p-2 text-ds-text-tertiary hover:bg-ds-surface-sunken"
                         aria-label="Back to products"
                         title="Back to products"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Package className="h-6 w-6 text-purple-600" />
+                        <h1 className="text-2xl font-bold text-ds-text-primary flex items-center gap-2">
+                            <Package className="h-6 w-6 text-ds-text-brand" />
                             {isNew ? "Add New Product" : "Edit Product"}
                         </h1>
                         {product && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-ds-text-tertiary">
                                 {product.name} &bull; {formatCurrency(product.price)}
                             </p>
                         )}
@@ -174,7 +169,7 @@ export default function VendorProductDetailPage() {
                         variant="outline"
                         onClick={handleDelete}
                         disabled={deleting}
-                        className="border-red-300 text-red-600 hover:bg-red-50"
+                        className="border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg"
                     >
                         {deleting ? "Deleting..." : "Delete Product"}
                     </Button>
@@ -184,7 +179,7 @@ export default function VendorProductDetailPage() {
             <Form form={form} layout="vertical" onFinish={handleSave} className="space-y-6">
                 {/* Basic Info */}
                 <Card>
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
                         Basic Information
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2">
@@ -228,7 +223,7 @@ export default function VendorProductDetailPage() {
 
                 {/* Pricing & Stock */}
                 <Card>
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
                         Pricing & Stock
                     </h2>
                     <div className="grid gap-4 md:grid-cols-3">
@@ -266,7 +261,7 @@ export default function VendorProductDetailPage() {
 
                 {/* Fulfilment & Visibility */}
                 <Card>
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
                         Fulfilment & Visibility
                     </h2>
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -287,12 +282,12 @@ export default function VendorProductDetailPage() {
 
                 {/* Images (placeholder — Cloudinary in production) */}
                 <Card>
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
                         Product Images
                     </h2>
-                    <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 text-center">
-                        <UploadIcon className="mx-auto h-8 w-8 text-gray-400" />
-                        <p className="mt-2 text-sm text-gray-500">
+                    <div className="rounded-lg border-2 border-dashed border-ds-border-base p-8 text-center">
+                        <UploadIcon className="mx-auto h-8 w-8 text-ds-text-placeholder" />
+                        <p className="mt-2 text-sm text-ds-text-tertiary">
                             Image upload via Cloudinary available in production
                         </p>
                         {product?.images && product.images.length > 0 && (
