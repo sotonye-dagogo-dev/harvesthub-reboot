@@ -112,10 +112,8 @@ export function ReviewDisplay({
   return (
     <div className="space-y-6">
       {/* Rating Summary */}
-      <div className="bg-ds-surface-base p-6 rounded-lg shadow-ds-sm">
-        <h3 className="text-lg font-semibold text-ds-text-primary mb-4">
-          Customer Reviews
-        </h3>
+      <div className="bg-ds-surface-base p-6 rounded-ds-md shadow-ds-sm">
+        <h3 className="text-lg font-semibold text-ds-text-primary mb-4">Customer Reviews</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="text-center">
@@ -132,12 +130,10 @@ export function ReviewDisplay({
             {ratingDistribution.map(({ star, count, percentage }) => (
               <div key={star} className="flex items-center gap-3">
                 <span className="text-sm text-ds-text-secondary w-12">{star} star</span>
-                <div className="flex-1 h-2 bg-ds-surface-disabled dark:bg-ds-surface-overlay rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-ds-surface-disabled dark:bg-ds-surface-overlay rounded-ds-full overflow-hidden">
                   <div className="h-full bg-ds-brand-primary" style={{ width: `${percentage}%` }} />
                 </div>
-                <span className="text-sm text-ds-text-secondary w-12 text-right">
-                  {count}
-                </span>
+                <span className="text-sm text-ds-text-secondary w-12 text-right">{count}</span>
               </div>
             ))}
           </div>
@@ -182,12 +178,10 @@ export function ReviewDisplay({
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id} className="bg-ds-surface-base p-6 rounded-lg shadow-ds-sm">
+            <div key={review.id} className="bg-ds-surface-base p-6 rounded-ds-md shadow-ds-sm">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <div className="font-semibold text-ds-text-primary mb-1">
-                    {review.userName}
-                  </div>
+                  <div className="font-semibold text-ds-text-primary mb-1">{review.userName}</div>
                   <Rate disabled value={review.rating} className="text-sm" />
                 </div>
                 <span className="text-sm text-ds-text-tertiary">
@@ -195,9 +189,7 @@ export function ReviewDisplay({
                 </span>
               </div>
 
-              {review.comment && (
-                <p className="text-ds-text-secondary mb-4">{review.comment}</p>
-              )}
+              {review.comment && <p className="text-ds-text-secondary mb-4">{review.comment}</p>}
 
               {review.photos && review.photos.length > 0 && (
                 <div className="flex gap-2 mb-4 flex-wrap">
@@ -209,7 +201,7 @@ export function ReviewDisplay({
                         alt={`Review photo ${index + 1}`}
                         width={100}
                         height={100}
-                        className="rounded-md object-cover"
+                        className="rounded-ds-sm object-cover"
                       />
                     ))}
                   </Image.PreviewGroup>
@@ -233,7 +225,9 @@ export function ReviewDisplay({
                       size="small"
                       icon={<ThumbsDown className="h-4 w-4" />}
                       onClick={() => voteHelpful(review.id, false)}
-                      className={userVotes[review.id] === "not-helpful" ? "text-ds-status-error-text" : ""}
+                      className={
+                        userVotes[review.id] === "not-helpful" ? "text-ds-status-error-text" : ""
+                      }
                     >
                       Not Helpful ({review.notHelpfulCount || 0})
                     </Button>

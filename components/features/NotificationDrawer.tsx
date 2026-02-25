@@ -36,7 +36,8 @@ const notificationTypeLabels: Record<NotificationType, string> = {
   VENDOR_MESSAGE: "Vendor Message",
   LOW_STOCK: "Low Stock",
   NEW_PRODUCT: "New Product",
-  PROMOTION: "Promotion" };
+  PROMOTION: "Promotion",
+};
 
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const { notifications, loading, markAsRead, markAllAsRead, deleteNotification, unreadCount } =
@@ -90,17 +91,19 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <StatusTag domain="notification" status={notification.type} label={notificationTypeLabels[notification.type]} />
-                    {!notification.isRead && <div className="w-2 h-2 bg-ds-brand-primary-light rounded-full" />}
+                    <StatusTag
+                      domain="notification"
+                      status={notification.type}
+                      label={notificationTypeLabels[notification.type]}
+                    />
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-ds-brand-primary-light rounded-ds-full" />
+                    )}
                   </div>
 
-                  <h4 className="font-semibold text-ds-text-primary mb-1">
-                    {notification.title}
-                  </h4>
+                  <h4 className="font-semibold text-ds-text-primary mb-1">{notification.title}</h4>
 
-                  <p className="text-sm text-ds-text-secondary mb-2">
-                    {notification.message}
-                  </p>
+                  <p className="text-sm text-ds-text-secondary mb-2">{notification.message}</p>
 
                   <p className="text-xs text-ds-text-tertiary">
                     {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
@@ -114,14 +117,17 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         key: "mark",
                         icon: notification.isRead ? <Eye size={16} /> : <Check size={16} />,
                         label: notification.isRead ? "Mark as unread" : "Mark as read",
-                        onClick: () => markAsRead(notification.id) },
+                        onClick: () => markAsRead(notification.id),
+                      },
                       {
                         key: "delete",
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id) },
-                    ] }}
+                        onClick: () => deleteNotification(notification.id),
+                      },
+                    ],
+                  }}
                   trigger={["click"]}
                 >
                   <Button
@@ -143,17 +149,19 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <StatusTag domain="notification" status={notification.type} label={notificationTypeLabels[notification.type]} />
-                    {!notification.isRead && <div className="w-2 h-2 bg-ds-brand-primary-light rounded-full" />}
+                    <StatusTag
+                      domain="notification"
+                      status={notification.type}
+                      label={notificationTypeLabels[notification.type]}
+                    />
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-ds-brand-primary-light rounded-ds-full" />
+                    )}
                   </div>
 
-                  <h4 className="font-semibold text-ds-text-primary mb-1">
-                    {notification.title}
-                  </h4>
+                  <h4 className="font-semibold text-ds-text-primary mb-1">{notification.title}</h4>
 
-                  <p className="text-sm text-ds-text-secondary mb-2">
-                    {notification.message}
-                  </p>
+                  <p className="text-sm text-ds-text-secondary mb-2">{notification.message}</p>
 
                   <p className="text-xs text-ds-text-tertiary">
                     {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
@@ -167,14 +175,17 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         key: "mark",
                         icon: notification.isRead ? <Eye size={16} /> : <Check size={16} />,
                         label: notification.isRead ? "Mark as unread" : "Mark as read",
-                        onClick: () => markAsRead(notification.id) },
+                        onClick: () => markAsRead(notification.id),
+                      },
                       {
                         key: "delete",
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id) },
-                    ] }}
+                        onClick: () => deleteNotification(notification.id),
+                      },
+                    ],
+                  }}
                   trigger={["click"]}
                 >
                   <Button
@@ -203,7 +214,9 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 items: Object.entries(notificationTypeLabels).map(([type, label]) => ({
                   key: type,
                   label,
-                  onClick: () => setFilterType(type as NotificationType) })) }}
+                  onClick: () => setFilterType(type as NotificationType),
+                })),
+              }}
               trigger={["click"]}
             >
               <Button icon={<Filter size={16} />} size="small">
@@ -231,23 +244,21 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         items={[
           {
             key: "all",
-            label: `All (${notifications.length})` },
+            label: `All (${notifications.length})`,
+          },
           {
             key: "unread",
-            label: `Unread (${unreadCount})` },
+            label: `Unread (${unreadCount})`,
+          },
         ]}
       />
 
       <div className="mt-4">
-        {loading && (
-          <SectionLoader />
-        )}
+        {loading && <SectionLoader />}
 
         {!loading && filteredNotifications.length === 0 && (
           <EmptyState
-            title={
-              activeTab === "unread" ? "No unread notifications" : "No notifications yet"
-            }
+            title={activeTab === "unread" ? "No unread notifications" : "No notifications yet"}
             icon={<Check className="h-10 w-10" />}
           />
         )}

@@ -111,9 +111,7 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-ds-text-primary">
-              Order {order.orderNumber}
-            </h1>
+            <h1 className="text-2xl font-bold text-ds-text-primary">Order {order.orderNumber}</h1>
             <p className="text-sm text-ds-text-tertiary">
               Placed on{" "}
               {new Date(order.createdAt).toLocaleDateString("en-NG", {
@@ -149,10 +147,10 @@ export default function OrderDetailPage() {
             <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
               Order Items ({order.items.length})
             </h2>
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="divide-y divide-ds-border-subtle">
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg">
+                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-ds-md">
                     <Image
                       src={item.productImage || "/placeholder-product.png"}
                       alt={item.productName}
@@ -206,9 +204,7 @@ export default function OrderDetailPage() {
         <div className="space-y-6">
           {/* Order Summary */}
           <Card>
-            <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">
-              Order Summary
-            </h2>
+            <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Order Summary</h2>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-ds-text-secondary">Subtotal</span>
@@ -257,9 +253,7 @@ export default function OrderDetailPage() {
               {order.deliveryMethod === DeliveryMethod.DELIVERY && order.deliveryAddress && (
                 <>
                   <p className="font-medium">{order.deliveryAddress.fullName}</p>
-                  <p className="text-ds-text-secondary">
-                    {order.deliveryAddress.addressLine1}
-                  </p>
+                  <p className="text-ds-text-secondary">{order.deliveryAddress.addressLine1}</p>
                   <p className="text-ds-text-secondary">
                     {order.deliveryAddress.city}, {order.deliveryAddress.state}
                   </p>
@@ -286,7 +280,7 @@ export default function OrderDetailPage() {
                     <span>{order.pickupDetails.contactPhone}</span>
                   </div>
                   {order.pickupDetails.specialInstructions && (
-                    <p className="mt-2 rounded bg-ds-surface-sunken p-2 text-xs text-ds-text-secondary dark:text-ds-text-placeholder">
+                    <p className="mt-2 rounded-ds-xs bg-ds-surface-sunken p-2 text-xs text-ds-text-secondary dark:text-ds-text-placeholder">
                       {order.pickupDetails.specialInstructions}
                     </p>
                   )}
@@ -300,7 +294,7 @@ export default function OrderDetailPage() {
             <Card>
               <h2 className="mb-3 text-lg font-semibold text-ds-text-primary">Vendor</h2>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
+                <div className="flex h-10 w-10 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
                   {vendor.storeName[0]}
                 </div>
                 <div>
@@ -341,7 +335,7 @@ export default function OrderDetailPage() {
                 .reverse()
                 .map((entry, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-ds-brand-primary-light" />
+                    <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-ds-full bg-ds-brand-primary-light" />
                     <div>
                       <p className="text-sm font-medium text-ds-text-primary">
                         {entry.status.replace(/_/g, " ")}
@@ -355,7 +349,9 @@ export default function OrderDetailPage() {
                           minute: "2-digit",
                         })}
                       </p>
-                      {entry.notes && <p className="mt-0.5 text-xs text-ds-text-tertiary">{entry.notes}</p>}
+                      {entry.notes && (
+                        <p className="mt-0.5 text-xs text-ds-text-tertiary">{entry.notes}</p>
+                      )}
                     </div>
                   </div>
                 ))}

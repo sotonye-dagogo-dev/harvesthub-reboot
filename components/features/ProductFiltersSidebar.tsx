@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { Card, Checkbox, Slider, Rate, Button, Collapse, Badge } from "antd";
 import { Filter } from "lucide-react";
 import { PRODUCT_CATEGORIES, CAMPUS_LOCATIONS } from "@/lib/constants";
+import { formatCurrency } from "@/lib/utils";
 
 const { Panel } = Collapse;
 
@@ -110,11 +111,6 @@ export function ProductFiltersSidebar({
     updateFilters("locations", newLocations);
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return `₦${amount.toLocaleString()}`;
-  };
-
   return (
     <Card
       className={`product-filters ${className}`}
@@ -196,7 +192,7 @@ export function ProductFiltersSidebar({
                 onClick={() =>
                   updateFilters("minRating", filters.minRating === rating ? 0 : rating)
                 }
-                className="flex items-center gap-2 cursor-pointer hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay p-2 rounded"
+                className="flex items-center gap-2 cursor-pointer hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay p-2 rounded-ds-xs"
               >
                 <Checkbox checked={filters.minRating === rating} />
                 <Rate disabled value={rating} className="text-sm" />

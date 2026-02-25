@@ -157,7 +157,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             size="large"
             placeholder="Create a password"
             onChange={handlePasswordChange}
-            className="rounded-lg"
+            className="rounded-ds-md"
           />
         </Form.Item>
 
@@ -194,7 +194,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             }),
           ]}
         >
-          <Input.Password size="large" placeholder="Confirm your password" className="rounded-lg" />
+          <Input.Password size="large" placeholder="Confirm your password" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item
@@ -221,7 +221,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
+            className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>

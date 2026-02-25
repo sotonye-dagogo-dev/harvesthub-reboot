@@ -27,14 +27,11 @@ import { PageLoader } from "@/components/ui";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { redirect } from "next/navigation";
 
-
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <PageLoader />
-    );
+    return <PageLoader />;
   }
 
   if (!user) {

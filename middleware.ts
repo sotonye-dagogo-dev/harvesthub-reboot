@@ -21,7 +21,7 @@ const publicRoutes = [
 const authRoutes = ["/login", "/register"];
 const buyerRoutes = ["/cart", "/checkout"];
 // Routes accessible to all authenticated users (buyers, vendors, admins)
-const sharedAuthRoutes = ["/orders", "/wallet", "/profile", "/notifications"];
+const sharedAuthRoutes = ["/orders", "/wallet", "/profile", "/notifications", "/favourites"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;

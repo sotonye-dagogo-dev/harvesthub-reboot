@@ -42,9 +42,7 @@ export function PriceDisplay({
     <span
       className={cn(
         SIZE_CLASSES[size],
-        strikethrough
-          ? "text-ds-text-tertiary line-through"
-          : "text-ds-text-primary",
+        strikethrough ? "text-ds-text-tertiary line-through" : "text-ds-text-primary",
         className
       )}
     >

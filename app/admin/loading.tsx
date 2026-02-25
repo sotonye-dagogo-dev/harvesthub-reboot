@@ -14,14 +14,14 @@ export default function AdminLoading() {
       {/* Stats cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-ds-surface-base rounded-xl p-5 shadow-ds-sm">
+          <div key={i} className="bg-ds-surface-base rounded-ds-lg p-5 shadow-ds-sm">
             <Skeleton active paragraph={{ rows: 2 }} />
           </div>
         ))}
       </div>
 
       {/* Table skeleton */}
-      <div className="bg-ds-surface-base rounded-xl p-5 shadow-ds-sm">
+      <div className="bg-ds-surface-base rounded-ds-lg p-5 shadow-ds-sm">
         <Skeleton active paragraph={{ rows: 6 }} />
       </div>
     </div>

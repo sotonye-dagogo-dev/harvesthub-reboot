@@ -201,7 +201,7 @@ export function Footer() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-ds-overlay flex h-12 w-12 items-center justify-center rounded-full bg-ds-brand-primary text-white shadow-ds-lg transition-all hover:bg-ds-brand-primary-hover hover:shadow-ds-xl dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+          className="fixed bottom-8 right-8 z-ds-overlay flex h-12 w-12 items-center justify-center rounded-ds-full bg-ds-brand-primary text-white shadow-ds-lg transition-all hover:bg-ds-brand-primary-hover hover:shadow-ds-xl dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
           aria-label="Back to top"
         >
           <ArrowUp className="h-6 w-6" />

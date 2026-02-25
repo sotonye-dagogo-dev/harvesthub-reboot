@@ -115,13 +115,11 @@ const THEME_MAP: Record<ThemeKey, ThemeTokens> = {
   EVENT: {
     actionBg: "bg-rose-700 dark:bg-rose-900",
     actionText: "text-white",
-    primaryBtn:
-      "bg-ds-surface-base text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
+    primaryBtn: "bg-ds-surface-base text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
     secondaryBtn:
       "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
     badge: "bg-rose-500/20 text-rose-100",
-    knowMoreChip:
-      "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
+    knowMoreChip: "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
     overlayFrom: "from-rose-900/80",
   },
   PROMOTION: {
@@ -153,7 +151,7 @@ interface ActionBtnProps {
 function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
   const isSecondary = action.variant === "secondary" || action.variant === "outline";
   const base =
-    "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
+    "inline-flex items-center justify-center gap-1.5 rounded-ds-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
   const sizeClass = size === "sm" ? "px-3 py-1.5 text-sm" : "px-5 py-2.5 text-sm md:text-base";
   const colorClass = isSecondary ? tokens.secondaryBtn : tokens.primaryBtn;
 
@@ -225,7 +223,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
       {/* Sheet */}
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl",
+          "relative w-full max-w-lg rounded-t-ds-xl sm:rounded-2xl",
           tokens.actionBg,
           tokens.actionText,
           "p-6 pb-8 shadow-ds-xl"
@@ -235,7 +233,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-1 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="absolute right-4 top-4 rounded-ds-full p-1 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -243,7 +241,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
 
         {/* Thumbnail */}
         {banner.image && (
-          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
+          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-ds-lg">
             <Image
               src={banner.image}
               alt={banner.title}
@@ -257,14 +255,17 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
         {/* Content */}
         <div className="space-y-2">
           {banner.subtitle && (
-            <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-xs font-medium", tokens.badge)}>
+            <span
+              className={cn(
+                "inline-block rounded-ds-full px-2.5 py-0.5 text-xs font-medium",
+                tokens.badge
+              )}
+            >
               {banner.subtitle}
             </span>
           )}
           <h2 className="text-xl font-bold leading-snug">{banner.title}</h2>
-          {banner.description && (
-            <p className="text-sm opacity-90">{banner.description}</p>
-          )}
+          {banner.description && <p className="text-sm opacity-90">{banner.description}</p>}
           {banner.details && (
             <p className="mt-1 flex items-start gap-1.5 text-sm opacity-80">
               <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -287,7 +288,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
           <button
             onClick={onClose}
             className={cn(
-              "mt-5 w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+              "mt-5 w-full rounded-ds-md py-2.5 text-sm font-semibold transition-colors",
               tokens.primaryBtn
             )}
           >
@@ -318,14 +319,14 @@ function ActionPanel({ banner }: ActionPanelProps) {
       )}
       // CSS custom property must be set via inline style (cannot be a Tailwind class)
       style={
-        banner.accentColor
-          ? ({ "--accent": banner.accentColor } as React.CSSProperties)
-          : undefined
+        banner.accentColor ? ({ "--accent": banner.accentColor } as React.CSSProperties) : undefined
       }
     >
       {/* Badge / theme label */}
       {banner.subtitle && (
-        <span className={cn("self-start rounded-full px-3 py-1 text-xs font-semibold", tokens.badge)}>
+        <span
+          className={cn("self-start rounded-ds-full px-3 py-1 text-xs font-semibold", tokens.badge)}
+        >
           {banner.subtitle}
         </span>
       )}
@@ -396,9 +397,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
       {/* ── LARGE SCREEN: dual panel layout ── */}
       <div className="hidden md:flex h-full">
         {/* Display panel */}
-        <div
-          className="relative w-[65%] overflow-hidden"
-        >
+        <div className="relative w-[65%] overflow-hidden">
           <Image
             src={banner.image}
             alt={banner.title}
@@ -427,7 +426,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
               {!hasActions && (banner.link ?? null) && (
                 <Link
                   href={banner.link!}
-                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-ds-surface-base/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-ds-surface-base/30"
+                  className="mt-3 inline-flex items-center gap-1 rounded-ds-md bg-ds-surface-base/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-ds-surface-base/30"
                 >
                   {knowMoreLabel} →
                 </Link>
@@ -437,9 +436,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
         </div>
 
         {/* Action panel */}
-        <div
-          className="flex-shrink-0 w-[35%]"
-        >
+        <div className="flex-shrink-0 w-[35%]">
           <ActionPanel banner={banner} />
         </div>
       </div>
@@ -471,9 +468,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
           {/* Info block */}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold leading-snug">{banner.title}</p>
-            {banner.subtitle && (
-              <p className="truncate text-xs opacity-75">{banner.subtitle}</p>
-            )}
+            {banner.subtitle && <p className="truncate text-xs opacity-75">{banner.subtitle}</p>}
           </div>
 
           {/* "Know More" CTA — only shown when there is content / actions to reveal;
@@ -482,7 +477,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
             <button
               onClick={onKnowMore}
               className={cn(
-                "flex-shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold",
+                "flex-shrink-0 whitespace-nowrap rounded-ds-md px-3 py-1.5 text-xs font-semibold",
                 "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                 tokens.primaryBtn
               )}
@@ -558,7 +553,7 @@ export function BannerCarousel({
 
   return (
     <>
-      <div className={cn("relative overflow-hidden rounded-xl", className)}>
+      <div className={cn("relative overflow-hidden rounded-ds-lg", className)}>
         {/*
          * Height breakdown:
          *   < md  → image flex-1 + action-strip min-h-[64px] inside the Slide
@@ -566,7 +561,7 @@ export function BannerCarousel({
          *   sm    → 336px = ~272px image + 64px strip (large phone / tablet-portrait)
          *   md+   → dual-panel (no strip) so plain height for the whole card
          */}
-        <div className="relative h-[280px] sm:h-[336px] md:h-[360px] lg:h-[400px] xl:h-[440px]">
+        <div className="relative h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px]">
           {banners.map((banner, index) => (
             <Slide
               key={banner.id}
@@ -582,14 +577,14 @@ export function BannerCarousel({
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Previous banner"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Next banner"
             >
               <ChevronRight className="h-5 w-5" />
@@ -607,8 +602,10 @@ export function BannerCarousel({
                 key={index}
                 onClick={() => goTo(index)}
                 className={cn(
-                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  index === currentIndex ? "w-6 bg-ds-surface-base" : "w-2 bg-ds-surface-base/50 hover:bg-ds-surface-base/80"
+                  "h-2 rounded-ds-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                  index === currentIndex
+                    ? "w-6 bg-ds-surface-base"
+                    : "w-2 bg-ds-surface-base/50 hover:bg-ds-surface-base/80"
                 )}
                 aria-label={`Go to banner ${index + 1}`}
               />
@@ -618,12 +615,7 @@ export function BannerCarousel({
       </div>
 
       {/* Action Modal (small screens only, triggered by Know More) */}
-      {modalOpen && (
-        <ActionModal
-          banner={currentBanner}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
+      {modalOpen && <ActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />}
     </>
   );
 }

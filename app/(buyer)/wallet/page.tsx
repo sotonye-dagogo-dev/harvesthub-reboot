@@ -105,7 +105,7 @@ export default function WalletPage() {
         {/* Wallet Balance Card */}
         <Card className="lg:col-span-1">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-ds-brand-subtle">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-ds-full bg-ds-brand-subtle">
               <WalletIcon className="h-8 w-8 text-ds-text-brand" />
             </div>
             <div className="mb-2 text-sm text-ds-text-secondary">Available Balance</div>
@@ -154,7 +154,7 @@ export default function WalletPage() {
                       key={transaction.id}
                       className="flex items-center justify-between border-b border-ds-border-base pb-3 last:border-0"
                     >
-                      <div className="flex items-center gap-3"> <div className={`flex h-10 w-10 items-center justify-center rounded-full ${ transaction.type ==="DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg" }`}
+                      <div className="flex items-center gap-3"> <div className={`flex h-10 w-10 items-center justify-center rounded-ds-full ${ transaction.type ==="DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg" }`}
                         >
                           {transaction.type === "DEPOSIT" ? (
                             <ArrowDownCircle className="h-5 w-5 text-ds-status-success-text" />
@@ -240,7 +240,7 @@ export default function WalletPage() {
         okText="Withdraw"
       >
         <div className="py-4">
-          <div className="mb-4 rounded-lg bg-ds-surface-sunken p-3">
+          <div className="mb-4 rounded-ds-md bg-ds-surface-sunken p-3">
             <div className="text-sm text-ds-text-secondary">Available Balance</div>
             <div className="text-xl font-bold text-ds-text-primary">
               {formatCurrency(userWallet.balance)}

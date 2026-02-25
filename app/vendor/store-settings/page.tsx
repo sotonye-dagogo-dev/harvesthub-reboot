@@ -77,7 +77,7 @@ export default function VendorStoreSettingsPage() {
               Store Logo
             </label>
             <div className="flex items-center gap-4">
-              <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-ds-surface-sunken">
+              <div className="flex h-24 w-24 items-center justify-center rounded-ds-md bg-ds-surface-sunken">
                 <Camera className="h-8 w-8 text-ds-text-placeholder" />
               </div>
               <Button variant="outline" size="sm">
@@ -207,7 +207,7 @@ export default function VendorStoreSettingsPage() {
         </h2>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-4">
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
             <div>
               <p className="font-medium text-ds-text-primary">Allow Church Pickup</p>
               <p className="text-sm text-ds-text-secondary">
@@ -220,7 +220,7 @@ export default function VendorStoreSettingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-ds-border-base p-4">
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
             <div>
               <p className="font-medium text-ds-text-primary">Allow Home Delivery</p>
               <p className="text-sm text-ds-text-secondary">

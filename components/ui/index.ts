@@ -30,13 +30,13 @@ export { ThemeToggle } from "./ThemeToggle";
 export { StatusTag, getTagColor, stockLevelColor, booleanColor } from "./StatusTag";
 export type { StatusTagProps, StatusDomain } from "./StatusTag";
 export {
-  ORDER_STATUS_COLORS,
-  PAYMENT_STATUS_COLORS,
-  VENDOR_STATUS_COLORS,
-  USER_ROLE_COLORS,
-  USER_STATUS_COLORS,
-  TRANSACTION_STATUS_COLORS,
-  NOTIFICATION_TYPE_COLORS,
+    ORDER_STATUS_COLORS,
+    PAYMENT_STATUS_COLORS,
+    VENDOR_STATUS_COLORS,
+    USER_ROLE_COLORS,
+    USER_STATUS_COLORS,
+    TRANSACTION_STATUS_COLORS,
+    NOTIFICATION_TYPE_COLORS,
 } from "./StatusTag";
 
 export { StatCard } from "./StatCard";

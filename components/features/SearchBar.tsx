@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { mockProducts } from "@/lib/data/mockData";
 
 export interface SearchBarProps {
@@ -93,7 +93,7 @@ export function SearchBar({
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
             placeholder={placeholder}
-            className="w-full rounded-lg border border-ds-border-base bg-ds-surface-base py-2 pl-10 pr-10 text-ds-text-primary placeholder-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary dark:placeholder-ds-text-placeholder dark:focus:border-ds-brand-accent"
+            className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base py-2 pl-10 pr-10 text-ds-text-primary placeholder-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary dark:placeholder-ds-text-placeholder dark:focus:border-ds-brand-accent"
           />
           {query && (
             <button
@@ -110,7 +110,7 @@ export function SearchBar({
 
       {/* Suggestions Dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute z-ds-overlay mt-2 w-full rounded-lg border border-ds-border-base bg-ds-surface-base shadow-ds-lg">
+        <div className="absolute z-ds-overlay mt-2 w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-lg">
           <div className="max-h-96 overflow-y-auto">
             {suggestions.map((product) => (
               <button
@@ -123,15 +123,13 @@ export function SearchBar({
                   alt={product.name}
                   width={48}
                   height={48}
-                  className="h-12 w-12 rounded object-cover"
+                  className="h-12 w-12 rounded-ds-xs object-cover"
                 />
                 <div className="flex-1 overflow-hidden">
                   <h4 className="truncate text-sm font-medium text-ds-text-primary">
                     {product.name}
                   </h4>
-                  <p className="text-sm text-ds-text-secondary">
-                    ₦{product.price.toLocaleString()}
-                  </p>
+                  <p className="text-sm text-ds-text-secondary">{formatCurrency(product.price)}</p>
                 </div>
               </button>
             ))}

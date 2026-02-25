@@ -82,14 +82,45 @@ export default function VendorAnalyticsPage() {
     );
   }
 
-  const stats: { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[] = [
-    { title: "Total Revenue", value: formatCurrency(analytics.totalRevenue), icon: TrendingUp, colorPreset: "success" },
-    { title: "Total Products", value: analytics.totalProducts.toString(), icon: Package, colorPreset: "info" },
-    { title: "Total Views", value: analytics.totalViews.toLocaleString(), icon: Eye, colorPreset: "brand" },
-    { title: "Total Sales", value: analytics.totalSales.toString(), icon: ShoppingBag, colorPreset: "warning" },
-    { title: "Average Rating", value: analytics.avgRating.toFixed(1), icon: Star, colorPreset: "rating" },
-    { title: "Total Reviews", value: analytics.totalReviews.toString(), icon: Star, colorPreset: "pink" },
-  ];
+  const stats: { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[] =
+    [
+      {
+        title: "Total Revenue",
+        value: formatCurrency(analytics.totalRevenue),
+        icon: TrendingUp,
+        colorPreset: "success",
+      },
+      {
+        title: "Total Products",
+        value: analytics.totalProducts.toString(),
+        icon: Package,
+        colorPreset: "info",
+      },
+      {
+        title: "Total Views",
+        value: analytics.totalViews.toLocaleString(),
+        icon: Eye,
+        colorPreset: "brand",
+      },
+      {
+        title: "Total Sales",
+        value: analytics.totalSales.toString(),
+        icon: ShoppingBag,
+        colorPreset: "warning",
+      },
+      {
+        title: "Average Rating",
+        value: analytics.avgRating.toFixed(1),
+        icon: Star,
+        colorPreset: "rating",
+      },
+      {
+        title: "Total Reviews",
+        value: analytics.totalReviews.toString(),
+        icon: Star,
+        colorPreset: "pink",
+      },
+    ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -139,23 +170,18 @@ export default function VendorAnalyticsPage() {
 
         {/* Recent Reviews */}
         <Card>
-          <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-            Recent Reviews
-          </h2>
+          <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Recent Reviews</h2>
           <div className="space-y-3">
             {analytics.recentReviews.map((review) => {
               const product = mockProducts.find((p) => p.id === review.productId);
               return (
-                <div
-                  key={review.id}
-                  className="border-b border-ds-border-base pb-3 last:border-0"
-                >
+                <div key={review.id} className="border-b border-ds-border-base pb-3 last:border-0">
                   <div className="mb-1 flex items-center gap-2">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-4 w-4 ${ i < review.rating ? "fill-ds-rating-fill text-ds-rating-fill" : "text-ds-text-placeholder dark:text-ds-text-secondary" }`}
+                          className={`h-4 w-4 ${i < review.rating ? "fill-ds-rating-fill text-ds-rating-fill" : "text-ds-text-placeholder dark:text-ds-text-secondary"}`}
                         />
                       ))}
                     </div>

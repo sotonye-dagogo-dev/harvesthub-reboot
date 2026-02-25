@@ -16,7 +16,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       "block w-full rounded-ds-md border bg-ds-surface-base px-4 py-2.5 text-ds-text-primary placeholder-ds-text-placeholder transition-colors",
       "focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20",
       "disabled:cursor-not-allowed disabled:bg-ds-surface-disabled disabled:text-ds-text-disabled",
-      error ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20" : "border-ds-border-base",
+      error
+        ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20"
+        : "border-ds-border-base",
       prefix && "pl-12",
       suffix && "pr-12",
       className

@@ -105,7 +105,7 @@ export function NotificationBell() {
   };
 
   const dropdownContent = (
-    <div className="w-96 max-h-[500px] overflow-hidden flex flex-col bg-ds-surface-base rounded-lg shadow-ds-lg">
+    <div className="w-96 max-h-[500px] overflow-hidden flex flex-col bg-ds-surface-base rounded-ds-md shadow-ds-lg">
       {/* Header */}
       <div className="p-4 border-b border-ds-border-base flex justify-between items-center">
         <h3 className="font-semibold text-ds-text-primary">Notifications</h3>
@@ -134,7 +134,15 @@ export function NotificationBell() {
           <EmptyState
             title="No notifications"
             icon={<Bell className="h-10 w-10" />}
-            className="py-8"/> ) : ( <div> {notifications.map((notification) => ( <div key={notification.id} className={`p-4 border-b border-ds-border-base hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay cursor-pointer group ${ !notification.isRead ?"bg-ds-brand-surface dark:bg-ds-brand-subtle" : "" }`}
+            className="py-8"
+          />
+        ) : (
+          <div>
+            {" "}
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 border-b border-ds-border-base hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay cursor-pointer group ${!notification.isRead ? "bg-ds-brand-surface dark:bg-ds-brand-subtle" : ""}`}
                 onClick={() => {
                   if (!notification.isRead) {
                     markAsRead(notification.id);
@@ -152,12 +160,10 @@ export function NotificationBell() {
                         {notification.title}
                       </h4>
                       {!notification.isRead && (
-                        <span className="h-2 w-2 bg-ds-brand-primary rounded-full"></span>
+                        <span className="h-2 w-2 bg-ds-brand-primary rounded-ds-full"></span>
                       )}
                     </div>
-                    <p className="text-sm text-ds-text-secondary mb-2">
-                      {notification.message}
-                    </p>
+                    <p className="text-sm text-ds-text-secondary mb-2">{notification.message}</p>
                     <span className="text-xs text-ds-text-tertiary dark:text-ds-text-tertiary">
                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                     </span>
@@ -196,10 +202,7 @@ export function NotificationBell() {
       {/* Footer */}
       {notifications.length > 0 && (
         <div className="p-3 border-t border-ds-border-base text-center">
-          <Link
-            href="/notifications"
-            className="text-sm text-ds-text-brand hover:underline"
-          >
+          <Link href="/notifications" className="text-sm text-ds-text-brand hover:underline">
             View all notifications
           </Link>
         </div>

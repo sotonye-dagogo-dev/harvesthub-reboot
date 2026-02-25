@@ -10,6 +10,7 @@
 "use client";
 
 import { Tag } from "antd";
+import { formatCurrency } from "@/lib/utils";
 
 interface SearchFilterChipsProps {
   filters: {
@@ -43,7 +44,7 @@ export function SearchFilterChips({ filters, onRemoveFilter, onClearAll }: Searc
   if (filters.priceRange && (filters.priceRange[0] > 0 || filters.priceRange[1] < 100000)) {
     activeFilters.push({
       type: "priceRange",
-      label: `₦${filters.priceRange[0].toLocaleString()} - ₦${filters.priceRange[1].toLocaleString()}`,
+      label: `${formatCurrency(filters.priceRange[0])} - ${formatCurrency(filters.priceRange[1])}`,
     });
   }
 

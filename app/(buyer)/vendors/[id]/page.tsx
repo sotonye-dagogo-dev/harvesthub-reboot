@@ -52,7 +52,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
     <div className="min-h-screen bg-ds-surface-sunken py-8 dark:bg-ds-surface-sunken">
       <div className="container mx-auto px-4">
         {/* Vendor Header */}
-        <div className="mb-8 overflow-hidden rounded-lg bg-ds-surface-base shadow-ds-sm">
+        <div className="mb-8 overflow-hidden rounded-ds-md bg-ds-surface-base shadow-ds-sm">
           {/* Banner */}
           {vendor.storeBanner && (
             <div className="relative h-48 overflow-hidden bg-gradient-to-r from-ds-brand-primary to-ds-palette-purple-800">
@@ -69,7 +69,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
             <div className="flex flex-col gap-6 md:flex-row md:items-start">
               {/* Vendor Logo */}
               <div className="flex-shrink-0">
-                <div className="relative h-32 w-32 overflow-hidden rounded-lg border-4 border-ds-surface-base bg-ds-surface-sunken shadow-ds-lg">
+                <div className="relative h-32 w-32 overflow-hidden rounded-ds-md border-4 border-ds-surface-base bg-ds-surface-sunken shadow-ds-lg">
                   {vendor.storeLogo ? (
                     <Image
                       src={vendor.storeLogo}
@@ -106,7 +106,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
 
                 {/* Stats */}
                 <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                  <div className="rounded-ds-md bg-ds-surface-sunken p-3">
                     <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
                       <Star className="h-4 w-4 text-ds-status-warning" />
                       Rating
@@ -116,7 +116,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                  <div className="rounded-ds-md bg-ds-surface-sunken p-3">
                     <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
                       <Package className="h-4 w-4 text-ds-text-brand" />
                       Products
@@ -126,7 +126,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                  <div className="rounded-ds-md bg-ds-surface-sunken p-3">
                     <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
                       <ShoppingBag className="h-4 w-4 text-ds-status-info-text" />
                       Orders
@@ -136,7 +136,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     </div>
                   </div>
 
-                  <div className="rounded-lg bg-ds-surface-sunken p-3">
+                  <div className="rounded-ds-md bg-ds-surface-sunken p-3">
                     <div className="flex items-center gap-2 text-sm text-ds-text-secondary">
                       <Clock className="h-4 w-4 text-ds-status-success-text" />
                       Joined
@@ -179,7 +179,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
         </div>
 
         {/* Products Section */}
-        <div className="rounded-lg bg-ds-surface-base p-6 shadow-ds-sm">
+        <div className="rounded-ds-md bg-ds-surface-base p-6 shadow-ds-sm">
           <Tabs
             defaultActiveKey="all"
             items={[
@@ -209,6 +209,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                               rating={avgRating}
                               reviewCount={product.reviews?.length || 0}
                               stock={product.stock}
+                              discount={product.discount}
                               isFeatured={product.isFeatured}
                             />
                           );
@@ -250,6 +251,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                               rating={avgRating}
                               reviewCount={product.reviews?.length || 0}
                               stock={product.stock}
+                              discount={product.discount}
                               isFeatured={product.isFeatured}
                             />
                           );

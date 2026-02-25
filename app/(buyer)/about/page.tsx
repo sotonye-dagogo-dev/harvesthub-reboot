@@ -34,9 +34,9 @@ export default function AboutPage() {
               What We Do
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-lg border border-ds-border-base p-6">
+              <div className="rounded-ds-md border border-ds-border-base p-6">
                 <h3 className="mb-2 font-semibold text-ds-text-primary">For Buyers</h3>
-                <p className="text-sm text-ds-text-secondary"> Browse quality products from verified vendors, enjoy flexible pickup and delivery options, and shop with confidence using our integrated wallet system. </p> </div> <div className="rounded-lg border border-ds-border-base p-6">
+                <p className="text-sm text-ds-text-secondary"> Browse quality products from verified vendors, enjoy flexible pickup and delivery options, and shop with confidence using our integrated wallet system. </p> </div> <div className="rounded-ds-md border border-ds-border-base p-6">
                 <h3 className="mb-2 font-semibold text-ds-text-primary">For Vendors</h3>
                 <p className="text-sm text-ds-text-secondary">
                   Establish your digital storefront, reach customers across Lagos, manage inventory,
@@ -96,7 +96,7 @@ export default function AboutPage() {
           </section>
 
           {/* Contact Section */}
-          <section className="rounded-lg bg-ds-brand-surface p-6">
+          <section className="rounded-ds-md bg-ds-brand-surface p-6">
             <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
               Get in Touch
             </h2>
@@ -124,7 +124,7 @@ export default function AboutPage() {
           <div className="text-center">
             <Link
               href="/signup"
-              className="inline-block rounded-lg bg-ds-brand-primary px-8 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+              className="inline-block rounded-ds-md bg-ds-brand-primary px-8 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
             >
               Join HarvestHub Today
             </Link>

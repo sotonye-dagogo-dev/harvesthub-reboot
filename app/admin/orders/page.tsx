@@ -6,6 +6,7 @@ import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination, Button } from "@/components/ui";
 import { Package, Download } from "lucide-react";
 import { mockOrders, mockUsers } from "@/lib/data/mockData";
+import { formatCurrency } from "@/lib/utils";
 
 export default function AdminOrdersPage() {
   const { user } = useAuth();
@@ -78,9 +79,7 @@ export default function AdminOrdersPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-ds-text-primary">All Orders</h1>
-            <p className="mt-2 text-ds-text-secondary">
-              Monitor and manage all platform orders
-            </p>
+            <p className="mt-2 text-ds-text-secondary">Monitor and manage all platform orders</p>
           </div>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
@@ -90,26 +89,26 @@ export default function AdminOrdersPage() {
 
         {/* Stats Cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
-          <div className="rounded-lg bg-ds-surface-base p-4 shadow dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
             <p className="text-sm text-ds-text-secondary">Total Orders</p>
             <p className="mt-1 text-2xl font-bold text-ds-text-primary">{stats.total}</p>
           </div>
-          <div className="rounded-lg bg-ds-surface-base p-4 shadow dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
             <p className="text-sm text-ds-text-secondary">Pending</p>
             <p className="mt-1 text-2xl font-bold text-ds-status-warning-text">{stats.pending}</p>
           </div>
-          <div className="rounded-lg bg-ds-surface-base p-4 shadow dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
             <p className="text-sm text-ds-text-secondary">Processing</p>
             <p className="mt-1 text-2xl font-bold text-ds-status-info-text">{stats.processing}</p>
           </div>
-          <div className="rounded-lg bg-ds-surface-base p-4 shadow dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
             <p className="text-sm text-ds-text-secondary">Completed</p>
             <p className="mt-1 text-2xl font-bold text-ds-status-success-text">{stats.completed}</p>
           </div>
-          <div className="rounded-lg bg-ds-surface-base p-4 shadow dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
             <p className="text-sm text-ds-text-secondary">Total Revenue</p>
             <p className="mt-1 text-2xl font-bold text-ds-text-brand">
-              ₦{stats.totalRevenue.toLocaleString()}
+              {formatCurrency(stats.totalRevenue)}
             </p>
           </div>
         </div>

@@ -81,7 +81,7 @@ function ResetPasswordForm() {
       <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
           <div className="text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
+            <div className="mx-auto h-12 w-12 rounded-ds-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
               <CheckCircleOutlined className="text-2xl text-ds-status-success-text" />
             </div>
             <Title level={3} className="mb-2">

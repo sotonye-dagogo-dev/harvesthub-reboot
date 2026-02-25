@@ -19,12 +19,13 @@ import {
   Package,
   ShoppingCart,
   BarChart3,
+  Percent,
+  Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { UserRole, OrderStatus, VendorStatus } from "@/lib/constants";
 import { StatusTag } from "@/components/ui";
-
 
 export default function AdminAnalyticsPage() {
   const { user } = useAuth();
@@ -55,6 +56,24 @@ export default function AdminAnalyticsPage() {
 
     const totalTransactions = mockTransactions?.length || 0;
 
+    // Discount analytics
+    const productsWithDiscount = mockProducts.filter((p) => p.discount && p.discount > 0);
+    const discountedProductCount = productsWithDiscount.length;
+    const avgDiscount =
+      discountedProductCount > 0
+        ? productsWithDiscount.reduce((sum, p) => sum + (p.discount || 0), 0) /
+          discountedProductCount
+        : 0;
+    const totalDiscountSavings = productsWithDiscount.reduce((sum, p) => {
+      const saving = (p.price * (p.discount || 0)) / 100;
+      return sum + saving * (p.sales || 0);
+    }, 0);
+    const highestDiscount =
+      discountedProductCount > 0
+        ? Math.max(...productsWithDiscount.map((p) => p.discount || 0))
+        : 0;
+    const discountedActiveProducts = productsWithDiscount.filter((p) => p.isActive).length;
+
     return {
       totalRevenue,
       totalOrders,
@@ -71,6 +90,11 @@ export default function AdminAnalyticsPage() {
       vendorCount,
       averageOrderValue,
       totalTransactions,
+      discountedProductCount,
+      avgDiscount,
+      totalDiscountSavings,
+      highestDiscount,
+      discountedActiveProducts,
     };
   }, []);
 
@@ -106,6 +130,14 @@ export default function AdminAnalyticsPage() {
   // Top products by sales
   const topProducts = useMemo(() => {
     return [...mockProducts].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
+  }, []);
+
+  // Top discounted products
+  const topDiscountedProducts = useMemo(() => {
+    return mockProducts
+      .filter((p) => p.discount && p.discount > 0 && p.isActive)
+      .sort((a, b) => (b.discount || 0) - (a.discount || 0))
+      .slice(0, 5);
   }, []);
 
   if (user?.role !== "ADMIN") {
@@ -150,7 +182,9 @@ export default function AdminAnalyticsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-ds-text-secondary">Active Vendors</p>
-              <p className="text-2xl font-bold text-ds-status-success-text">{stats.activeVendors}</p>
+              <p className="text-2xl font-bold text-ds-status-success-text">
+                {stats.activeVendors}
+              </p>
             </div>
             <Store className="h-10 w-10 text-ds-status-success" />
           </div>
@@ -212,9 +246,7 @@ export default function AdminAnalyticsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Order Status Distribution */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">
-            Order Status Distribution
-          </h2>
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">Order Status Distribution</h2>
           <div className="space-y-3">
             {orderStatusData.map(({ status, count, percentage }) => (
               <div key={status} className="flex items-center justify-between">
@@ -223,9 +255,9 @@ export default function AdminAnalyticsPage() {
                   <span className="text-sm text-ds-text-secondary">{count} orders</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-24 overflow-hidden rounded-full bg-ds-surface-disabled dark:bg-ds-surface-overlay">
+                  <div className="h-2 w-24 overflow-hidden rounded-ds-full bg-ds-surface-disabled dark:bg-ds-surface-overlay">
                     <div
-                      className="h-full rounded-full bg-ds-brand-primary-light"
+                      className="h-full rounded-ds-full bg-ds-brand-primary-light"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -240,7 +272,7 @@ export default function AdminAnalyticsPage() {
         <Card>
           <h2 className="mb-4 text-lg font-bold text-ds-text-primary">User Breakdown</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg bg-ds-status-success-bg p-4 dark:bg-ds-status-success-bg/20">
+            <div className="flex items-center justify-between rounded-ds-md bg-ds-status-success-bg p-4 dark:bg-ds-status-success-bg/20">
               <div>
                 <p className="text-sm text-ds-text-secondary">Buyers</p>
                 <p className="text-2xl font-bold text-ds-status-success-text">{stats.buyerCount}</p>
@@ -249,7 +281,7 @@ export default function AdminAnalyticsPage() {
                 {((stats.buyerCount / stats.totalUsers) * 100).toFixed(0)}% of users
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-ds-status-info-bg p-4 dark:bg-ds-status-info-bg/20">
+            <div className="flex items-center justify-between rounded-ds-md bg-ds-status-info-bg p-4 dark:bg-ds-status-info-bg/20">
               <div>
                 <p className="text-sm text-ds-text-secondary">Vendors</p>
                 <p className="text-2xl font-bold text-ds-status-info-text">{stats.vendorCount}</p>
@@ -258,7 +290,7 @@ export default function AdminAnalyticsPage() {
                 {((stats.vendorCount / stats.totalUsers) * 100).toFixed(0)}% of users
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
+            <div className="flex items-center justify-between rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
               <div>
                 <p className="text-sm text-ds-text-secondary">Pending Vendors</p>
                 <p className="text-2xl font-bold text-ds-text-brand">{stats.pendingVendors}</p>
@@ -278,17 +310,17 @@ export default function AdminAnalyticsPage() {
               {topVendors.map((vendor, index) => (
                 <div
                   key={vendor.id}
-                  className="flex items-center justify-between rounded-lg border border-ds-border-subtle p-3"
+                  className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-sm font-bold text-ds-text-brand">
                       {index + 1}
                     </span>
                     <div>
-                      <p className="font-medium text-ds-text-primary">
-                        {vendor.storeName}
+                      <p className="font-medium text-ds-text-primary">{vendor.storeName}</p>
+                      <p className="text-xs text-ds-text-tertiary">
+                        {vendor.productCount} products
                       </p>
-                      <p className="text-xs text-ds-text-tertiary">{vendor.productCount} products</p>
                     </div>
                   </div>
                   <StatusTag domain="vendor" status={vendor.status} />
@@ -300,9 +332,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Top Products */}
         <Card>
-          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">
-            Top Products by Sales
-          </h2>
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">Top Products by Sales</h2>
           {topProducts.length === 0 ? (
             <p className="text-ds-text-tertiary">No product data available</p>
           ) : (
@@ -310,15 +340,17 @@ export default function AdminAnalyticsPage() {
               {topProducts.map((product, index) => (
                 <div
                   key={product.id}
-                  className="flex items-center justify-between rounded-lg border border-ds-border-subtle p-3"
+                  className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-status-info-bg text-sm font-bold text-ds-status-info-text dark:bg-ds-status-info-bg/30">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-ds-full bg-ds-status-info-bg text-sm font-bold text-ds-status-info-text dark:bg-ds-status-info-bg/30">
                       {index + 1}
                     </span>
                     <div>
                       <p className="font-medium text-ds-text-primary">{product.name}</p>
-                      <p className="text-xs text-ds-text-tertiary">{formatCurrency(product.price)}</p>
+                      <p className="text-xs text-ds-text-tertiary">
+                        {formatCurrency(product.price)}
+                      </p>
                     </div>
                   </div>
                   <span className="text-sm font-semibold text-ds-text-secondary">
@@ -326,6 +358,95 @@ export default function AdminAnalyticsPage() {
                   </span>
                 </div>
               ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Discount Analytics Section */}
+      <div>
+        <h2 className="mb-4 text-xl font-bold text-ds-text-primary flex items-center gap-2">
+          <Percent className="h-5 w-5 text-ds-text-brand" />
+          Discount Analytics
+        </h2>
+
+        {/* Discount Summary Metrics */}
+        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Card>
+            <div className="flex items-center gap-3">
+              <Tag className="h-8 w-8 text-ds-status-error" />
+              <div>
+                <p className="text-xs text-ds-text-tertiary">Discounted Products</p>
+                <p className="text-lg font-bold">
+                  {stats.discountedActiveProducts}/{stats.activeProducts} active
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <Percent className="h-8 w-8 text-ds-status-warning" />
+              <div>
+                <p className="text-xs text-ds-text-tertiary">Avg. Discount</p>
+                <p className="text-lg font-bold">{stats.avgDiscount.toFixed(1)}%</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-8 w-8 text-ds-status-info" />
+              <div>
+                <p className="text-xs text-ds-text-tertiary">Highest Discount</p>
+                <p className="text-lg font-bold">{stats.highestDiscount}%</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-8 w-8 text-ds-status-success" />
+              <div>
+                <p className="text-xs text-ds-text-tertiary">Total Savings (est.)</p>
+                <p className="text-lg font-bold">{formatCurrency(stats.totalDiscountSavings)}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Top Discounted Products */}
+        <Card>
+          <h2 className="mb-4 text-lg font-bold text-ds-text-primary">Top Discounted Products</h2>
+          {topDiscountedProducts.length === 0 ? (
+            <p className="text-ds-text-tertiary">No discounted products</p>
+          ) : (
+            <div className="space-y-3">
+              {topDiscountedProducts.map((product, index) => {
+                const discountedPrice =
+                  product.price - (product.price * (product.discount || 0)) / 100;
+                const vendor = mockVendors.find((v) => v.id === product.vendorId);
+                return (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-ds-full bg-ds-status-error/10 text-sm font-bold text-ds-status-error">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="font-medium text-ds-text-primary">{product.name}</p>
+                        <p className="text-xs text-ds-text-tertiary">
+                          {vendor?.storeName || "Unknown"} &bull;{" "}
+                          <span className="line-through">{formatCurrency(product.price)}</span> →{" "}
+                          {formatCurrency(discountedPrice)}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-ds-sm bg-ds-status-error px-2 py-0.5 text-sm font-semibold text-white">
+                      -{product.discount}%
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </Card>

@@ -64,7 +64,7 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           placeholder="Enter your street address"
           rows={3}
           className={cn(
-            "w-full rounded-lg border px-3 py-2 text-ds-text-primary placeholder-ds-text-placeholder focus:outline-none focus:ring-2 dark:text-ds-text-primary dark:placeholder-ds-text-placeholder",
+            "w-full rounded-ds-md border px-3 py-2 text-ds-text-primary placeholder-ds-text-placeholder focus:outline-none focus:ring-2 dark:text-ds-text-primary dark:placeholder-ds-text-placeholder",
             errors.address
               ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20"
               : "border-ds-border-base focus:border-ds-border-focus focus:ring-ds-focus-ring/20  dark:focus:border-ds-brand-accent"
@@ -95,7 +95,7 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           onChange={(e) => onChange({ ...value, state: e.target.value })}
           aria-label="Select state"
           className={cn(
-            "w-full rounded-lg border px-3 py-2 text-ds-text-primary focus:outline-none focus:ring-2 dark:bg-ds-surface-base dark:text-ds-text-primary",
+            "w-full rounded-ds-md border px-3 py-2 text-ds-text-primary focus:outline-none focus:ring-2 dark:bg-ds-surface-base dark:text-ds-text-primary",
             errors.state
               ? "border-ds-status-error focus:border-ds-status-error focus:ring-ds-status-error/20"
               : "border-ds-border-base focus:border-ds-border-focus focus:ring-ds-focus-ring/20  dark:focus:border-ds-brand-accent"
@@ -135,7 +135,7 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           id="isDefault"
           checked={value.isDefault || false}
           onChange={handleCheckboxChange("isDefault")}
-          className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+          className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
         />
         <label htmlFor="isDefault" className="text-sm text-ds-text-secondary">
           Set as default address

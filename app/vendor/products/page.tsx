@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
-import { Package, Plus, Trash2, Eye, Search, ToggleLeft, ToggleRight } from "lucide-react";
-import { stockLevelColor } from "@/components/ui/StatusTag";
+import { Package, Plus, Trash2, Eye, Search, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
 import { Input, Select, Table, Modal, message, Tag } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -69,7 +68,7 @@ export default function VendorProductsPage() {
       key: "product",
       render: (_: unknown, record: Product) => (
         <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+          <div className="relative h-12 w-12 overflow-hidden rounded-ds-md">
             <Image
               src={record.images?.[0] || "/placeholder-product.png"}
               alt={record.name}
@@ -88,7 +87,25 @@ export default function VendorProductsPage() {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price: number) => <span className="font-medium">{formatCurrency(price)}</span>,
+      render: (price: number, record: Product) => (
+        <div>
+          <span className="font-medium">
+            {record.discount
+              ? formatCurrency(price - (price * record.discount) / 100)
+              : formatCurrency(price)}
+          </span>
+          {record.discount && record.discount > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-ds-text-tertiary line-through">
+                {formatCurrency(price)}
+              </span>
+              <Tag color="red" className="!text-[10px] !px-1 !py-0 !m-0 !leading-4">
+                -{record.discount}%
+              </Tag>
+            </div>
+          )}
+        </div>
+      ),
       sorter: (a: Product, b: Product) => a.price - b.price,
     },
     {
@@ -96,9 +113,7 @@ export default function VendorProductsPage() {
       dataIndex: "stock",
       key: "stock",
       render: (stock: number) => (
-        <Tag color={stockLevelColor(stock)}>
-          {stock > 0 ? `${stock} units` : "Out of stock"}
-        </Tag>
+        <Tag color={stockLevelColor(stock)}>{stock > 0 ? `${stock} units` : "Out of stock"}</Tag>
       ),
       sorter: (a: Product, b: Product) => a.stock - b.stock,
     },
@@ -143,6 +158,14 @@ export default function VendorProductsPage() {
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => router.push(`/vendor/products/${record.id}`)}
+            title="Edit"
+          >
+            <Pencil className="h-4 w-4 text-ds-text-brand" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handleToggleActive(record)}
             title={record.isActive ? "Deactivate" : "Activate"}
           >
@@ -170,7 +193,7 @@ export default function VendorProductsPage() {
             Manage your product listings ({vendorProducts.length} products)
           </p>
         </div>
-        <Button onClick={() => message.info("Product creation form coming soon")}>
+        <Button onClick={() => router.push("/vendor/products/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
@@ -210,7 +233,7 @@ export default function VendorProductsPage() {
           title="No products yet"
           description="Start selling by adding your first product"
           action={
-            <Button onClick={() => message.info("Product creation form coming soon")}>
+            <Button onClick={() => router.push("/vendor/products/new")}>
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Product
             </Button>

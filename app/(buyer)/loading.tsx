@@ -11,7 +11,7 @@ export default function BuyerLoading() {
       {/* Content grid skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="bg-ds-surface-base rounded-xl overflow-hidden shadow-ds-sm">
+          <div key={i} className="bg-ds-surface-base rounded-ds-lg overflow-hidden shadow-ds-sm">
             <Skeleton.Image active className="w-full h-48" />
             <div className="p-4 space-y-2">
               <Skeleton active paragraph={{ rows: 2 }} title={false} />

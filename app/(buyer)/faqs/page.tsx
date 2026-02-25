@@ -163,7 +163,7 @@ export default function FAQsPage() {
               {section.questions.map((faq, index) => (
                 <details
                   key={index}
-                  className="group rounded-lg border border-ds-border-base p-4"
+                  className="group rounded-ds-md border border-ds-border-base p-4"
                 >
                   <summary className="flex cursor-pointer items-center justify-between font-semibold text-ds-text-primary">
                     <span>{faq.q}</span>
@@ -177,7 +177,7 @@ export default function FAQsPage() {
         ))}
       </div>
 
-      <div className="mt-16 rounded-lg bg-ds-brand-surface p-8 text-center dark:bg-ds-brand-subtle">
+      <div className="mt-16 rounded-ds-md bg-ds-brand-surface p-8 text-center dark:bg-ds-brand-subtle">
         <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
           Didn&apos;t find your answer?
         </h2>
@@ -187,13 +187,13 @@ export default function FAQsPage() {
         <div className="flex justify-center gap-4">
           <Link
             href="/contact"
-            className="rounded-lg bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+            className="rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
           >
             Contact Support
           </Link>
           <Link
             href="/help"
-            className="rounded-lg border-2 border-ds-border-brand px-6 py-3 font-semibold text-ds-text-brand hover:bg-ds-brand-surface dark:border-ds-border-focus dark:text-ds-brand-primary-light dark:hover:bg-ds-brand-subtle"
+            className="rounded-ds-md border-2 border-ds-border-brand px-6 py-3 font-semibold text-ds-text-brand hover:bg-ds-brand-surface dark:border-ds-border-focus dark:text-ds-brand-primary-light dark:hover:bg-ds-brand-subtle"
           >
             Visit Help Center
           </Link>

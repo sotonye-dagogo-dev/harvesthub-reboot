@@ -186,14 +186,7 @@ function formatLabel(raw: string): string {
  *   <StatusTag domain="vendor"  status={vendor.status} />
  *   <StatusTag domain="role"    status={user.role} />
  */
-export function StatusTag({
-  domain,
-  status,
-  label,
-  icon,
-  color,
-  className,
-}: StatusTagProps) {
+export function StatusTag({ domain, status, label, icon, color, className }: StatusTagProps) {
   const resolvedColor = color ?? getTagColor(domain, status);
   const displayLabel = label ?? formatLabel(status);
 

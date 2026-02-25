@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
 import { Package, Search, Eye, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
-import { stockLevelColor } from "@/components/ui/StatusTag";
 import { Input, Select, Table, Modal, message, Tag } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -74,7 +73,7 @@ export default function AdminProductsPage() {
       key: "product",
       render: (_: unknown, record: Product) => (
         <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+          <div className="relative h-12 w-12 overflow-hidden rounded-ds-md">
             <Image
               src={record.images?.[0] || "/placeholder-product.png"}
               alt={record.name}
@@ -108,9 +107,7 @@ export default function AdminProductsPage() {
       dataIndex: "stock",
       key: "stock",
       render: (stock: number) => (
-        <Tag color={stockLevelColor(stock)}>
-          {stock > 0 ? `${stock}` : "Out"}
-        </Tag>
+        <Tag color={stockLevelColor(stock)}>{stock > 0 ? `${stock}` : "Out"}</Tag>
       ),
     },
     {

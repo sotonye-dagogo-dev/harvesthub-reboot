@@ -40,7 +40,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="rounded-lg bg-ds-surface-base p-8 shadow-ds-lg">
+    <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">
       {/* Logo/Brand */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-ds-text-brand">HarvestHub</h1>
@@ -127,7 +127,7 @@ function LoginForm() {
       </div>
 
       {/* Demo Credentials */}
-      <div className="mt-8 rounded-lg bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
+      <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
         <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">
           Demo Credentials:
         </p>
@@ -150,7 +150,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-lg bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>
+        <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>
       }
     >
       <LoginForm />

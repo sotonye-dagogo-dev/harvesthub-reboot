@@ -13,7 +13,7 @@ export default function UnauthorizedPage() {
         </p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-lg bg-ds-brand-primary px-6 py-3 text-white hover:bg-ds-brand-primary-hover"
+          className="mt-6 inline-block rounded-ds-md bg-ds-brand-primary px-6 py-3 text-white hover:bg-ds-brand-primary-hover"
         >
           Go to Home
         </Link>

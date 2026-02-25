@@ -79,7 +79,7 @@ export default function CheckoutPage() {
                     alt={item.name}
                     width={60}
                     height={60}
-                    className="rounded-lg object-cover"
+                    className="rounded-ds-md object-cover"
                   />
                   <div className="flex-1">
                     <div className="font-medium text-ds-text-primary">{item.name}</div>
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
             >
               <Radio
                 value="PICKUP"
-                className="flex w-full items-center gap-3 rounded-lg border border-ds-border-base p-4"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 font-medium text-ds-text-primary">
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
               </Radio>
               <Radio
                 value="DELIVERY"
-                className="flex w-full items-center gap-3 rounded-lg border border-ds-border-base p-4"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 font-medium text-ds-text-primary">
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
                     <Radio
                       key={option.value}
                       value={option.value}
-                      className="flex w-full items-center justify-between rounded-lg border border-ds-border-base p-3"
+                      className="flex w-full items-center justify-between rounded-ds-md border border-ds-border-base p-3"
                     >
                       <div>
                         <div className="font-medium text-ds-text-primary">
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
             >
               <Radio
                 value="WALLET"
-                className="flex w-full items-center gap-3 rounded-lg border border-ds-border-base p-4"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 font-medium text-ds-text-primary">
@@ -204,7 +204,7 @@ export default function CheckoutPage() {
               </Radio>
               <Radio
                 value="CARD"
-                className="flex w-full items-center gap-3 rounded-lg border border-ds-border-base p-4"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 font-medium text-ds-text-primary">

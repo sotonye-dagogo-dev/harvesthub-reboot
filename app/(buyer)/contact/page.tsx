@@ -23,7 +23,7 @@ export default function ContactPage() {
 
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ds-brand-subtle">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
                 <Mail className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
@@ -41,7 +41,7 @@ export default function ContactPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ds-brand-subtle">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
                 <Phone className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
@@ -59,7 +59,7 @@ export default function ContactPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ds-brand-subtle">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
                 <MapPin className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
@@ -75,7 +75,7 @@ export default function ContactPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ds-brand-subtle">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
                 <Clock className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
@@ -92,7 +92,7 @@ export default function ContactPage() {
           </div>
 
           {/* Campus Locations */}
-          <div className="mt-8 rounded-lg bg-ds-brand-surface p-6 dark:bg-ds-brand-subtle">
+          <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-6 dark:bg-ds-brand-subtle">
             <h3 className="mb-4 font-semibold text-ds-text-primary">Our Locations</h3>
             <div className="space-y-2 text-sm text-ds-text-secondary">
               <p>📍 Oregun (Headquarters)</p>
@@ -106,7 +106,7 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="rounded-lg bg-ds-surface-base p-8 shadow-ds-sm dark:bg-ds-surface-base">
+        <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-sm dark:bg-ds-surface-base">
           <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">Send a Message</h2>
           <form className="space-y-4">
             <div>
@@ -119,7 +119,7 @@ export default function ContactPage() {
               <input
                 type="text"
                 id="name"
-                className="w-full rounded-lg border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="Your full name"
               />
             </div>
@@ -134,7 +134,7 @@ export default function ContactPage() {
               <input
                 type="email"
                 id="email"
-                className="w-full rounded-lg border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="your.email@example.com"
               />
             </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
               <input
                 type="text"
                 id="subject"
-                className="w-full rounded-lg border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="How can we help?"
               />
             </div>
@@ -164,14 +164,14 @@ export default function ContactPage() {
               <textarea
                 id="message"
                 rows={5}
-                className="w-full rounded-lg border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="Tell us more about your inquiry..."
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+              className="w-full rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
             >
               Send Message
             </button>

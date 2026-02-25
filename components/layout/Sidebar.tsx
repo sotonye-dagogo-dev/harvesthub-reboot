@@ -61,7 +61,7 @@ export function Sidebar({ type }: SidebarProps) {
           {/* Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="m-2 flex items-center justify-center rounded-lg p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+            className="m-2 flex items-center justify-center rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -78,7 +78,7 @@ export function Sidebar({ type }: SidebarProps) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised",

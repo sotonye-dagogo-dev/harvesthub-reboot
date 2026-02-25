@@ -47,7 +47,7 @@ export function RatingDistribution({ reviews }: RatingDistributionProps) {
   }, [reviews, totalReviews]);
 
   return (
-    <div className="bg-ds-surface-base rounded-lg p-6 border border-ds-border-base">
+    <div className="bg-ds-surface-base rounded-ds-md p-6 border border-ds-border-base">
       <h3 className="text-lg font-semibold mb-4 text-ds-text-primary">
         Rating Distribution
       </h3>

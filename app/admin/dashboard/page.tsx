@@ -3,7 +3,15 @@
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, StatCard } from "@/components/ui";
 import type { StatColorPreset } from "@/components/ui";
-import { Users, Package, ShoppingBag, Store, TrendingUp, AlertCircle, LucideIcon } from "lucide-react";
+import {
+  Users,
+  Package,
+  ShoppingBag,
+  Store,
+  TrendingUp,
+  AlertCircle,
+  LucideIcon,
+} from "lucide-react";
 import { mockUsers, mockVendors, mockProducts, mockOrders, mockReviews } from "@/lib/data/mockData";
 import { useMemo } from "react";
 import { OrderStatus } from "@/lib/constants";
@@ -20,12 +28,42 @@ export default function AdminDashboardPage() {
     const pendingReviews = mockReviews.filter((r) => r.status === "PENDING").length;
 
     return [
-      { title: "Total Users", value: mockUsers.length.toString(), icon: Users, colorPreset: "brand" as StatColorPreset },
-      { title: "Total Vendors", value: mockVendors.length.toString(), icon: Store, colorPreset: "info" as StatColorPreset },
-      { title: "Total Products", value: mockProducts.length.toString(), icon: Package, colorPreset: "success" as StatColorPreset },
-      { title: "Total Orders", value: mockOrders.length.toString(), icon: ShoppingBag, colorPreset: "warning" as StatColorPreset },
-      { title: "Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "success" as StatColorPreset },
-      { title: "Pending Reviews", value: pendingReviews.toString(), icon: AlertCircle, colorPreset: "error" as StatColorPreset },
+      {
+        title: "Total Users",
+        value: mockUsers.length.toString(),
+        icon: Users,
+        colorPreset: "brand" as StatColorPreset,
+      },
+      {
+        title: "Total Vendors",
+        value: mockVendors.length.toString(),
+        icon: Store,
+        colorPreset: "info" as StatColorPreset,
+      },
+      {
+        title: "Total Products",
+        value: mockProducts.length.toString(),
+        icon: Package,
+        colorPreset: "success" as StatColorPreset,
+      },
+      {
+        title: "Total Orders",
+        value: mockOrders.length.toString(),
+        icon: ShoppingBag,
+        colorPreset: "warning" as StatColorPreset,
+      },
+      {
+        title: "Revenue",
+        value: `₦${totalRevenue.toLocaleString()}`,
+        icon: TrendingUp,
+        colorPreset: "success" as StatColorPreset,
+      },
+      {
+        title: "Pending Reviews",
+        value: pendingReviews.toString(),
+        icon: AlertCircle,
+        colorPreset: "error" as StatColorPreset,
+      },
     ] satisfies { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[];
   }, []);
 

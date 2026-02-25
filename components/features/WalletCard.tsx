@@ -28,7 +28,7 @@ export function WalletCard({
       )}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="rounded-full bg-ds-surface-base/20 p-3">
+        <div className="rounded-ds-full bg-ds-surface-base/20 p-3">
           <Wallet className="h-6 w-6" />
         </div>
         <div>
@@ -96,12 +96,12 @@ export function TransactionItem({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-lg border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
+        "flex items-center justify-between rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
         className
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("rounded-full bg-ds-surface-sunken p-2 ", config.color)}>
+        <div className={cn("rounded-ds-full bg-ds-surface-sunken p-2 ", config.color)}>
           <Icon className="h-5 w-5" />
         </div>
         <div>

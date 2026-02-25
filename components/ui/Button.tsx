@@ -31,8 +31,7 @@ export function Button({
       "bg-ds-palette-neutral-600 text-ds-text-inverse hover:bg-ds-palette-neutral-700 focus:ring-ds-palette-neutral-500",
     outline:
       "border-2 border-ds-border-brand text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
-    ghost:
-      "text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
+    ghost: "text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
     danger:
       "bg-ds-status-error text-ds-text-inverse hover:bg-ds-status-error-text focus:ring-ds-status-error",
   };

@@ -74,7 +74,13 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
   const recentHistory = history.slice(0, maxItems);
 
   if (history.length === 0 && savedSearches.length === 0) {
-    return <EmptyState title="No search history" icon={<Clock className="h-10 w-10" />} className="py-8" />;
+    return (
+      <EmptyState
+        title="No search history"
+        icon={<Clock className="h-10 w-10" />}
+        className="py-8"
+      />
+    );
   }
 
   return (
@@ -113,7 +119,7 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
             {recentHistory.map((item) => (
               <div
                 key={item.query}
-                className="flex items-center justify-between p-2 rounded hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-ds-xs hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised cursor-pointer"
               >
                 <div
                   onClick={() => onSearchClick(item.query)}

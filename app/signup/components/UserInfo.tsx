@@ -71,7 +71,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
               { min: 2, message: "Min 2 characters" },
             ]}
           >
-            <Input size="large" placeholder="John" className="rounded-lg" />
+            <Input size="large" placeholder="John" className="rounded-ds-md" />
           </Form.Item>
 
           <Form.Item
@@ -82,7 +82,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
               { min: 2, message: "Min 2 characters" },
             ]}
           >
-            <Input size="large" placeholder="Doe" className="rounded-lg" />
+            <Input size="large" placeholder="Doe" className="rounded-ds-md" />
           </Form.Item>
         </div>
 
@@ -98,7 +98,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
             size="large"
             type="email"
             placeholder="john.doe@example.com"
-            className="rounded-lg"
+            className="rounded-ds-md"
           />
         </Form.Item>
 
@@ -113,14 +113,14 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
             },
           ]}
         >
-          <PhoneInput placeholder="803 456 7890" className="rounded-lg" />
+          <PhoneInput placeholder="803 456 7890" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item className="mb-0">
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
+            className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {submitting ? "Processing..." : "Continue"}
           </button>

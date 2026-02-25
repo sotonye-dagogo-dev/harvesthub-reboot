@@ -41,7 +41,7 @@ export default function AdminError({ error, reset }: ErrorProps) {
             {process.env.NODE_ENV === 'development' && (
                 <details className="mt-6 max-w-md">
                     <summary className="text-xs text-ds-text-placeholder cursor-pointer">Dev Details</summary>
-                    <pre className="mt-2 text-xs text-ds-status-error whitespace-pre-wrap break-all bg-ds-surface-raised p-4 rounded">
+                    <pre className="mt-2 text-xs text-ds-status-error whitespace-pre-wrap break-all bg-ds-surface-raised p-4 rounded-ds-xs">
                         {error.stack}
                     </pre>
                 </details>

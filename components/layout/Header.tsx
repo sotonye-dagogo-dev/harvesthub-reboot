@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, User, Search, Menu, Wallet, LayoutDashboard, LogOut } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  Search,
+  Menu,
+  Wallet,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Heart,
+} from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, ThemeToggle } from "@/components/ui";
@@ -34,7 +44,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-700">
+            <div className="flex h-10 w-10 items-center justify-center rounded-ds-md bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-700">
               <span className="text-xl font-bold text-white">H</span>
             </div>
             <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
@@ -49,7 +59,7 @@ export function Header() {
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full rounded-lg border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
               />
             </div>
           </div>
@@ -65,7 +75,7 @@ export function Header() {
                   <Link
                     href={getDashboardLink()}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                       isActive(getDashboardLink())
                         ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                         : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
@@ -80,7 +90,7 @@ export function Header() {
                 <Link
                   href="/cart"
                   className={cn(
-                    "relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "relative flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/cart")
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
@@ -88,18 +98,46 @@ export function Header() {
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {totalItems > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ds-brand-primary text-xs font-medium text-white">
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-ds-full bg-ds-brand-primary text-xs font-medium text-white">
                       {totalItems}
                     </span>
                   )}
                   <span className="hidden lg:block">Cart</span>
                 </Link>
 
+                {/* Orders - All users */}
+                <Link
+                  href="/orders"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/orders")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Package className="h-4 w-4" />
+                  <span className="hidden lg:block">Orders</span>
+                </Link>
+
+                {/* Favourites - All users */}
+                <Link
+                  href="/favourites"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/favourites")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Heart className="h-4 w-4" />
+                  <span className="hidden lg:block">Favourites</span>
+                </Link>
+
                 {/* Wallet - All users */}
                 <Link
                   href="/wallet"
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/wallet")
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
@@ -113,7 +151,7 @@ export function Header() {
                 <Link
                   href="/profile"
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive("/profile")
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
@@ -147,7 +185,7 @@ export function Header() {
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
-            className="rounded-lg p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
+            className="rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -163,7 +201,7 @@ export function Header() {
                   {(user.role === "ADMIN" || user.role === "VENDOR") && (
                     <Link
                       href={getDashboardLink()}
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                       onClick={() => setShowMobileMenu(false)}
                     >
                       <LayoutDashboard className="h-5 w-5" />
@@ -174,17 +212,37 @@ export function Header() {
                   {/* Cart */}
                   <Link
                     href="/cart"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <ShoppingCart className="h-5 w-5" />
                     Cart {totalItems > 0 && `(${totalItems})`}
                   </Link>
 
+                  {/* Orders */}
+                  <Link
+                    href="/orders"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Package className="h-5 w-5" />
+                    Orders
+                  </Link>
+
+                  {/* Favourites */}
+                  <Link
+                    href="/favourites"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Heart className="h-5 w-5" />
+                    Favourites
+                  </Link>
+
                   {/* Wallet */}
                   <Link
                     href="/wallet"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <Wallet className="h-5 w-5" />
@@ -194,7 +252,7 @@ export function Header() {
                   {/* Profile */}
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <User className="h-5 w-5" />
@@ -204,7 +262,7 @@ export function Header() {
                   {/* Logout */}
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
                   >
                     <LogOut className="h-5 w-5" />
                     Logout
@@ -214,14 +272,14 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className="rounded-ds-md px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="rounded-lg bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
+                    className="rounded-ds-md bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Sign Up

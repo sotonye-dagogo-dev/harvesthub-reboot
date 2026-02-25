@@ -57,7 +57,7 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
       <div className="grid gap-4 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = selectedType === option.name;
-          const IconComponent = option.icon === "buyer"? ShoppingBag : Store; return ( <button key={option.name} onClick={() => handleSelect(option.name)} className={`group relative overflow-hidden rounded-xl border-2 p-6 text-left transition-all ${ isSelected ?"border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`} > {/* Icon */} <div className={`mb-4 inline-flex rounded-lg p-3 transition-colors ${ isSelected ?"bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white " }`}
+          const IconComponent = option.icon === "buyer"? ShoppingBag : Store; return ( <button key={option.name} onClick={() => handleSelect(option.name)} className={`group relative overflow-hidden rounded-ds-lg border-2 p-6 text-left transition-all ${ isSelected ?"border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`} > {/* Icon */} <div className={`mb-4 inline-flex rounded-ds-md p-3 transition-colors ${ isSelected ?"bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white " }`}
               >
                 <IconComponent className="h-6 w-6" />
               </div>
@@ -77,7 +77,7 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
                     key={idx}
                     className="flex items-center gap-2 text-sm text-ds-text-secondary"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-ds-brand-primary"></span>
+                    <span className="h-1.5 w-1.5 rounded-ds-full bg-ds-brand-primary"></span>
                     {feature}
                   </li>
                 ))}
@@ -85,7 +85,7 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
 
               {/* Selected Indicator */}
               {isSelected && (
-                <div className="absolute right-4 top-4 rounded-full bg-ds-brand-primary p-1">
+                <div className="absolute right-4 top-4 rounded-ds-full bg-ds-brand-primary p-1">
                   <svg
                     className="h-4 w-4 text-white"
                     fill="none"

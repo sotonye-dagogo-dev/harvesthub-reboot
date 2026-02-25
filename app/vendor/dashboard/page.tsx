@@ -44,10 +44,30 @@ export default function VendorDashboardPage() {
     }, 0);
 
     return [
-      { title: "Total Sales", value: `\u20a6${totalSales.toLocaleString()}`, icon: DollarSign, colorPreset: "brand" as StatColorPreset },
-      { title: "Orders", value: vendorOrders.length.toString(), icon: ShoppingBag, colorPreset: "success" as StatColorPreset },
-      { title: "Products", value: productCount.toString(), icon: Package, colorPreset: "info" as StatColorPreset },
-      { title: "Revenue", value: `\u20a6${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "warning" as StatColorPreset },
+      {
+        title: "Total Sales",
+        value: `\u20a6${totalSales.toLocaleString()}`,
+        icon: DollarSign,
+        colorPreset: "brand" as StatColorPreset,
+      },
+      {
+        title: "Orders",
+        value: vendorOrders.length.toString(),
+        icon: ShoppingBag,
+        colorPreset: "success" as StatColorPreset,
+      },
+      {
+        title: "Products",
+        value: productCount.toString(),
+        icon: Package,
+        colorPreset: "info" as StatColorPreset,
+      },
+      {
+        title: "Revenue",
+        value: `\u20a6${totalRevenue.toLocaleString()}`,
+        icon: TrendingUp,
+        colorPreset: "warning" as StatColorPreset,
+      },
     ] satisfies { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[];
   }, [user]);
 

@@ -36,7 +36,7 @@ export function VendorCard({
       <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
         <div className="flex items-start gap-4">
           {/* Vendor Logo */}
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-ds-surface-sunken">
+          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-ds-md bg-ds-surface-sunken">
             {logo ? (
               <Image src={logo} alt={name} fill className="object-cover" sizes="64px" />
             ) : (

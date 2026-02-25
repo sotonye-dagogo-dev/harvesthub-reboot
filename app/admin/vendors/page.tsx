@@ -133,7 +133,7 @@ export default function AdminVendorsPage() {
         const vendorUser = getVendorUser(record);
         return (
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-full">
+            <div className="relative h-10 w-10 overflow-hidden rounded-ds-full">
               <Image
                 src={record.storeLogo || vendorUser?.profilePicture || "/placeholder-avatar.png"}
                 alt={record.storeName}

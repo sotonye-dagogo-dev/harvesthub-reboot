@@ -110,7 +110,7 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.categories?.includes(category.id) || false}
                   onChange={() => handleCategoryToggle(category.id)}
-                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+                  className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
                 <span className="text-sm text-ds-text-secondary">{category.name}</span>
               </label>
@@ -128,14 +128,14 @@ export function FilterSidebar({
             placeholder="Min"
             value={filters.priceRange?.min || ""}
             onChange={(e) => handlePriceChange("min", e.target.value)}
-            className="w-full rounded-lg border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
+            className="w-full rounded-ds-md border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
           />
           <input
             type="number"
             placeholder="Max"
             value={filters.priceRange?.max || ""}
             onChange={(e) => handlePriceChange("max", e.target.value)}
-            className="w-full rounded-lg border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
+            className="w-full rounded-ds-md border border-ds-border-base px-3 py-2 text-sm text-ds-text-primary focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary"
           />
         </div>
       </div>
@@ -169,7 +169,7 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.locations?.includes(location) || false}
                   onChange={() => handleLocationToggle(location)}
-                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+                  className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
                 <span className="text-sm text-ds-text-secondary">{location}</span>
               </label>
@@ -189,7 +189,7 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.status?.includes(status.value) || false}
                   onChange={() => handleStatusToggle(status.value)}
-                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+                  className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
                 <span className="text-sm text-ds-text-secondary">{status.label}</span>
               </label>
@@ -209,7 +209,7 @@ export function FilterSidebar({
                   type="checkbox"
                   checked={filters.vendors?.includes(vendor.id) || false}
                   onChange={() => handleVendorToggle(vendor.id)}
-                  className="h-4 w-4 rounded border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+                  className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
                 />
                 <span className="text-sm text-ds-text-secondary">{vendor.name}</span>
               </label>

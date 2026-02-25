@@ -40,7 +40,8 @@ export default function NotificationSettingsPage() {
     newProducts: false,
     promotions: false,
     emailNotifications: true,
-    smsNotifications: false });
+    smsNotifications: false,
+  });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -54,7 +55,7 @@ export default function NotificationSettingsPage() {
     try {
       const res = await fetch("/api/notifications/preferences");
       const data = await res.json();
-      
+
       if (data.success) {
         setPreferences(data.preferences);
       }
@@ -71,10 +72,11 @@ export default function NotificationSettingsPage() {
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(preferences) });
+        body: JSON.stringify(preferences),
+      });
 
       const data = await res.json();
-      
+
       if (data.success) {
         message.success("Notification preferences saved");
       } else {
@@ -89,21 +91,17 @@ export default function NotificationSettingsPage() {
   };
 
   const updatePreference = (key: keyof NotificationPreferences, value: boolean) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
   if (loading) {
-    return (
-      <PageLoader />
-    );
+    return <PageLoader />;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ds-text-primary mb-2">
-          Notification Settings
-        </h1>
+        <h1 className="text-2xl font-bold text-ds-text-primary mb-2">Notification Settings</h1>
         <p className="text-ds-text-secondary">
           Manage how you receive notifications about your orders, payments, and account activity
         </p>

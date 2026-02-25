@@ -76,7 +76,7 @@ export function VendorResponse({
   }
 
   return (
-    <div className="mt-4 ml-8 p-4 bg-ds-brand-surface rounded-lg border-l-4 border-ds-border-focus">
+    <div className="mt-4 ml-8 p-4 bg-ds-brand-surface rounded-ds-md border-l-4 border-ds-border-focus">
       <div className="flex items-start gap-3">
         <MessageSquare size={20} className="text-ds-text-brand mt-1" />
 

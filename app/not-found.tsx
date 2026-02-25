@@ -20,7 +20,7 @@ export default function NotFound() {
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/"
-            className="flex flex-col items-center gap-2 rounded-lg border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
+            className="flex flex-col items-center gap-2 rounded-ds-md border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
           >
             <Home className="h-8 w-8 text-ds-text-brand" />
             <span className="font-medium text-ds-text-primary">Home</span>
@@ -28,7 +28,7 @@ export default function NotFound() {
 
           <Link
             href="/products"
-            className="flex flex-col items-center gap-2 rounded-lg border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
+            className="flex flex-col items-center gap-2 rounded-ds-md border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
           >
             <ShoppingBag className="h-8 w-8 text-ds-text-brand" />
             <span className="font-medium text-ds-text-primary">Products</span>
@@ -36,7 +36,7 @@ export default function NotFound() {
 
           <Link
             href="/vendors"
-            className="flex flex-col items-center gap-2 rounded-lg border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
+            className="flex flex-col items-center gap-2 rounded-ds-md border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
           >
             <Search className="h-8 w-8 text-ds-text-brand" />
             <span className="font-medium text-ds-text-primary">Vendors</span>
@@ -44,7 +44,7 @@ export default function NotFound() {
 
           <Link
             href="/help"
-            className="flex flex-col items-center gap-2 rounded-lg border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
+            className="flex flex-col items-center gap-2 rounded-ds-md border border-ds-border-base p-6 transition-all hover:border-ds-brand-muted hover:shadow-ds-md"
           >
             <HelpCircle className="h-8 w-8 text-ds-text-brand" />
             <span className="font-medium text-ds-text-primary">Help</span>
@@ -54,7 +54,7 @@ export default function NotFound() {
         {/* Primary Action */}
         <Link
           href="/"
-          className="inline-block rounded-lg bg-ds-brand-primary px-8 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+          className="inline-block rounded-ds-md bg-ds-brand-primary px-8 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
         >
           Go Back Home
         </Link>

@@ -6,7 +6,7 @@ import { Card, Button, EmptyState } from "@/components/ui";
 import { mockBanners } from "@/lib/data/mockData";
 import type { Banner } from "@/lib/types";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
-import { Modal, Form, Input, Select, Switch, DatePicker, message, Table } from "antd";
+import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 export default function AdminBannersPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { modal, message } = App.useApp();
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [form] = Form.useForm();
@@ -49,13 +50,13 @@ export default function AdminBannersPage() {
   const handleSubmit = async () => {
     try {
       await form.validateFields();
-      
+
       if (editingBanner) {
         message.success("Banner updated successfully");
       } else {
         message.success("Banner created successfully");
       }
-      
+
       setShowModal(false);
       form.resetFields();
     } catch {
@@ -66,7 +67,7 @@ export default function AdminBannersPage() {
   const handleDelete = (bannerId: string) => {
     // In production, this would call API to delete banner
     console.log("Deleting banner:", bannerId);
-    Modal.confirm({
+    modal.confirm({
       title: "Delete Banner",
       content: "Are you sure you want to delete this banner?",
       okText: "Delete",
@@ -88,7 +89,7 @@ export default function AdminBannersPage() {
       key: "imageUrl",
       width: 120,
       render: (imageUrl: string) => (
-        <div className="relative h-16 w-24 overflow-hidden rounded">
+        <div className="relative h-16 w-24 overflow-hidden rounded-ds-xs">
           <Image src={imageUrl} alt="Banner" fill className="object-cover" />
         </div>
       ),
@@ -103,7 +104,7 @@ export default function AdminBannersPage() {
       dataIndex: "position",
       key: "position",
       render: (position: string) => (
-        <span className="rounded-full bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
+        <span className="rounded-ds-full bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
           {position}
         </span>
       ),
@@ -117,7 +118,11 @@ export default function AdminBannersPage() {
     {
       title: "Status",
       dataIndex: "isActive",
-      key: "isActive", width: 100, render: (isActive: boolean) => ( <span className={`rounded-full px-2 py-1 text-xs ${ isActive ?"bg-ds-status-success-bg text-ds-status-success-text dark:bg-ds-status-success-bg dark:text-ds-status-success" : "bg-ds-surface-sunken text-ds-text-secondary dark:text-ds-text-placeholder" }`}
+      key: "isActive",
+      width: 100,
+      render: (isActive: boolean) => (
+        <span
+          className={`rounded-ds-full px-2 py-1 text-xs ${isActive ? "bg-ds-status-success-bg text-ds-status-success-text dark:bg-ds-status-success-bg dark:text-ds-status-success" : "bg-ds-surface-sunken text-ds-text-secondary dark:text-ds-text-placeholder"}`}
         >
           {isActive ? "Active" : "Inactive"}
         </span>
@@ -142,16 +147,17 @@ export default function AdminBannersPage() {
       render: (_: unknown, record: Banner) => (
         <div className="flex gap-2">
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => handleToggleActive(record.id, record.isActive)}
           >
             {record.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => handleEdit(record)}>
+          <Button type="button" size="sm" variant="outline" onClick={() => handleEdit(record)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="outline" onClick={() => handleDelete(record.id)}>
+          <Button type="button" size="sm" variant="outline" onClick={() => handleDelete(record.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -164,9 +170,7 @@ export default function AdminBannersPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-ds-text-primary">Banners Management</h1>
-          <p className="mt-2 text-ds-text-secondary">
-            Create and manage promotional banners
-          </p>
+          <p className="mt-2 text-ds-text-secondary">Create and manage promotional banners</p>
         </div>
         <Button onClick={handleCreate}>
           <>

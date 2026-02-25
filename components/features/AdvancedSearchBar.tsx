@@ -136,7 +136,7 @@ export function AdvancedSearchBar({
 
       {/* Search History Dropdown */}
       {showHistory && history.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-lg shadow-ds-lg border border-ds-border-base z-ds-overlay max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-ds-md shadow-ds-lg border border-ds-border-base z-ds-overlay max-h-80 overflow-y-auto">
           <div className="p-3 border-b border-ds-border-base flex justify-between items-center">
             <span className="text-sm font-semibold text-ds-text-secondary flex items-center gap-2">
               <History className="h-4 w-4" />
@@ -155,7 +155,7 @@ export function AdvancedSearchBar({
             {history.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded cursor-pointer group"
+                className="flex items-center justify-between px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded-ds-xs cursor-pointer group"
                 onClick={() => {
                   setSearchValue(item.query);
                   handleSearch(item.query);
@@ -183,12 +183,12 @@ export function AdvancedSearchBar({
 
       {/* Autocomplete Suggestions */}
       {suggestions.length > 0 && searchValue && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-lg shadow-ds-lg border border-ds-border-base z-ds-overlay">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-ds-surface-base rounded-ds-md shadow-ds-lg border border-ds-border-base z-ds-overlay">
           <div className="p-2">
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
-                className="px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded cursor-pointer"
+                className="px-3 py-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay rounded-ds-xs cursor-pointer"
                 onClick={() => {
                   setSearchValue(suggestion);
                   handleSearch(suggestion);

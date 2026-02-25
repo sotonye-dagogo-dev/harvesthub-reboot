@@ -65,7 +65,7 @@ export default function VendorsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-8 rounded-lg bg-ds-surface-base p-6 shadow-ds-sm dark:bg-ds-surface-base">
+        <div className="mb-8 rounded-ds-md bg-ds-surface-base p-6 shadow-ds-sm dark:bg-ds-surface-base">
           <div className="grid gap-4 md:grid-cols-3">
             {/* Search */}
             <div>
@@ -131,17 +131,17 @@ export default function VendorsPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="text-sm text-ds-text-secondary">Active filters:</span>
               {searchTerm && (
-                <span className="inline-flex items-center rounded-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   Search: &quot;{searchTerm}&quot;
                 </span>
               )}
               {selectedCategory && (
-                <span className="inline-flex items-center rounded-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   {selectedCategory.replace(/_/g, " ")}
                 </span>
               )}
               {selectedCampus && (
-                <span className="inline-flex items-center rounded-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   {selectedCampus.replace(/_/g, " ")}
                 </span>
               )}
@@ -183,7 +183,7 @@ export default function VendorsPage() {
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-ds-surface-base p-12 text-center shadow-ds-sm dark:bg-ds-surface-base">
+          <div className="rounded-ds-md bg-ds-surface-base p-12 text-center shadow-ds-sm dark:bg-ds-surface-base">
             <EmptyState
               title="No Vendors Found"
               description={

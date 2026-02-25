@@ -40,7 +40,7 @@ export function ReviewPhotoGallery({ photos, maxDisplay = 4 }: ReviewPhotoGaller
           <div
             key={index}
             onClick={() => handlePhotoClick(index)}
-            className="relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border border-ds-border-base"
+            className="relative w-20 h-20 rounded-ds-md overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border border-ds-border-base"
           >
             <Image
               src={photo}

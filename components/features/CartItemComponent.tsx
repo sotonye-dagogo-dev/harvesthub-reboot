@@ -2,6 +2,7 @@
 
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { formatCurrency } from "@/lib/utils";
 
 interface CartItemProps {
   id: string;
@@ -40,17 +41,15 @@ export function CartItemComponent({
   };
 
   return (
-    <div className="flex gap-4 p-4 bg-ds-surface-base rounded-lg border border-ds-border-base">
+    <div className="flex gap-4 p-4 bg-ds-surface-base rounded-ds-md border border-ds-border-base">
       <div className="relative w-24 h-24 flex-shrink-0">
-        <Image src={image} alt={name} fill className="object-cover rounded-md" />
+        <Image src={image} alt={name} fill className="object-cover rounded-ds-sm" />
       </div>
 
       <div className="flex-1">
         <h3 className="font-medium text-ds-text-primary">{name}</h3>
         <p className="text-sm text-ds-text-secondary">{vendorName}</p>
-        <p className="text-lg font-semibold text-ds-text-brand mt-2">
-          ₦{price.toLocaleString()}
-        </p>
+        <p className="text-lg font-semibold text-ds-text-brand mt-2">{formatCurrency(price)}</p>
       </div>
 
       <div className="flex flex-col items-end justify-between">
@@ -62,7 +61,7 @@ export function CartItemComponent({
           <Trash2 size={20} />
         </button>
 
-        <div className="flex items-center gap-2 border border-ds-border-base rounded-lg">
+        <div className="flex items-center gap-2 border border-ds-border-base rounded-ds-md">
           <button
             onClick={handleDecrease}
             disabled={quantity <= 1}

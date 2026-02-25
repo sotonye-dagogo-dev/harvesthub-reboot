@@ -102,7 +102,7 @@ export default function ProfilePage() {
           <Card>
             <div className="mb-6 flex items-center gap-6">
               <div className="relative">
-                <div className="h-24 w-24 overflow-hidden rounded-full bg-ds-surface-disabled dark:bg-ds-surface-overlay">
+                <div className="h-24 w-24 overflow-hidden rounded-ds-full bg-ds-surface-disabled dark:bg-ds-surface-overlay">
                   {user.profilePicture ? (
                     <Image
                       src={user.profilePicture}
@@ -126,7 +126,7 @@ export default function ProfilePage() {
                   }}
                 >
                   <button
-                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-primary text-white shadow-ds-lg hover:bg-ds-brand-primary-hover"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-ds-full bg-ds-brand-primary text-white shadow-ds-lg hover:bg-ds-brand-primary-hover"
                     aria-label="Upload profile picture"
                   >
                     <UploadIcon className="h-4 w-4" />
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                   {userAddresses.map((address) => (
                     <div
                       key={address.id}
-                      className="flex items-start justify-between rounded-lg border border-ds-border-base p-4"
+                      className="flex items-start justify-between rounded-ds-md border border-ds-border-base p-4"
                     >
                       <div className="flex items-start gap-3">
                         <MapPin className="mt-1 h-5 w-5 text-ds-text-placeholder" />
@@ -265,7 +265,7 @@ export default function ProfilePage() {
                             {address.city}, {address.state}, Nigeria
                           </div>
                           {address.isDefault && (
-                            <span className="mt-1 inline-block rounded bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
+                            <span className="mt-1 inline-block rounded-ds-xs bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
                               Default
                             </span>
                           )}

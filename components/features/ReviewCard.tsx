@@ -35,14 +35,14 @@ export function ReviewCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
+        "rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
         className
       )}
     >
       {/* User Info */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-full bg-ds-surface-sunken">
+          <div className="relative h-10 w-10 overflow-hidden rounded-ds-full bg-ds-surface-sunken">
             {userAvatar ? (
               <Image src={userAvatar} alt={userName} fill className="object-cover" sizes="40px" />
             ) : (
@@ -81,7 +81,7 @@ export function ReviewCard({
           {images.map((image, index) => (
             <div
               key={index}
-              className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-ds-surface-sunken"
+              className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-ds-sm bg-ds-surface-sunken"
             >
               <Image
                 src={image}

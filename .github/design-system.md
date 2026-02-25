@@ -27,12 +27,12 @@ The design system uses a **three-tier token architecture** that separates raw co
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `app/_styles/globals.css` | Tier 1 + Tier 2 CSS custom properties |
-| `tailwind.config.ts` | Tier 3 Tailwind utility mapping |
-| `lib/theme/antd-theme.ts` | Ant Design `ConfigProvider` theme bridge + `DS_PALETTE` hex constants |
-| `lib/design-system/index.ts` | Central re-export barrel (palette, z-index, radius, status maps) |
+| File                         | Purpose                                                               |
+| ---------------------------- | --------------------------------------------------------------------- |
+| `app/_styles/globals.css`    | Tier 1 + Tier 2 CSS custom properties                                 |
+| `tailwind.config.ts`         | Tier 3 Tailwind utility mapping                                       |
+| `lib/theme/antd-theme.ts`    | Ant Design `ConfigProvider` theme bridge + `DS_PALETTE` hex constants |
+| `lib/design-system/index.ts` | Central re-export barrel (palette, z-index, radius, status maps)      |
 
 ---
 
@@ -40,68 +40,68 @@ The design system uses a **three-tier token architecture** that separates raw co
 
 ### Brand
 
-| Token | Light | Dark | Tailwind Class |
-|-------|-------|------|---------------|
-| `--ds-brand-primary` | Purple-600 `#9333ea` | Purple-500 `#a855f7` | `bg-ds-brand-primary`, `text-ds-brand-primary` |
-| `--ds-brand-primary-hover` | Purple-700 `#7e22ce` | Purple-600 `#9333ea` | `bg-ds-brand-primary-hover` |
-| `--ds-brand-primary-active` | Purple-800 `#6b21a8` | Purple-700 `#7e22ce` | `bg-ds-brand-primary-active` |
-| `--ds-brand-primary-light` | Purple-500 `#a855f7` | Purple-400 `#c084fc` | `text-ds-brand-primary-light` |
-| `--ds-brand-accent` | Purple-400 `#c084fc` | Purple-300 `#d8b4fe` | `text-ds-brand-accent` |
-| `--ds-brand-muted` | Purple-300 `#d8b4fe` | Purple-400 `#c084fc` | `border-ds-brand-muted` |
-| `--ds-brand-subtle` | Purple-100 `#f3e8ff` | Purple-900 `#581c87` | `bg-ds-brand-subtle` |
-| `--ds-brand-surface` | Purple-50 `#faf5ff` | Purple-950/20 | `bg-ds-brand-surface` |
+| Token                       | Light                | Dark                 | Tailwind Class                                 |
+| --------------------------- | -------------------- | -------------------- | ---------------------------------------------- |
+| `--ds-brand-primary`        | Purple-600 `#9333ea` | Purple-500 `#a855f7` | `bg-ds-brand-primary`, `text-ds-brand-primary` |
+| `--ds-brand-primary-hover`  | Purple-700 `#7e22ce` | Purple-600 `#9333ea` | `bg-ds-brand-primary-hover`                    |
+| `--ds-brand-primary-active` | Purple-800 `#6b21a8` | Purple-700 `#7e22ce` | `bg-ds-brand-primary-active`                   |
+| `--ds-brand-primary-light`  | Purple-500 `#a855f7` | Purple-400 `#c084fc` | `text-ds-brand-primary-light`                  |
+| `--ds-brand-accent`         | Purple-400 `#c084fc` | Purple-300 `#d8b4fe` | `text-ds-brand-accent`                         |
+| `--ds-brand-muted`          | Purple-300 `#d8b4fe` | Purple-400 `#c084fc` | `border-ds-brand-muted`                        |
+| `--ds-brand-subtle`         | Purple-100 `#f3e8ff` | Purple-900 `#581c87` | `bg-ds-brand-subtle`                           |
+| `--ds-brand-surface`        | Purple-50 `#faf5ff`  | Purple-950/20        | `bg-ds-brand-surface`                          |
 
 ### Text
 
-| Token | Light | Dark | Tailwind Class |
-|-------|-------|------|---------------|
-| `--ds-text-primary` | Black | White | `text-ds-text-primary` |
-| `--ds-text-secondary` | Neutral-600 | Neutral-400 | `text-ds-text-secondary` |
-| `--ds-text-tertiary` | Neutral-500 | Neutral-500 | `text-ds-text-tertiary` |
+| Token                   | Light       | Dark        | Tailwind Class             |
+| ----------------------- | ----------- | ----------- | -------------------------- |
+| `--ds-text-primary`     | Black       | White       | `text-ds-text-primary`     |
+| `--ds-text-secondary`   | Neutral-600 | Neutral-400 | `text-ds-text-secondary`   |
+| `--ds-text-tertiary`    | Neutral-500 | Neutral-500 | `text-ds-text-tertiary`    |
 | `--ds-text-placeholder` | Neutral-400 | Neutral-600 | `text-ds-text-placeholder` |
-| `--ds-text-disabled` | Neutral-400 | Neutral-600 | `text-ds-text-disabled` |
-| `--ds-text-inverse` | White | Black | `text-ds-text-inverse` |
-| `--ds-text-brand` | Purple-600 | Purple-400 | `text-ds-text-brand` |
-| `--ds-text-link` | Purple-600 | Purple-400 | `text-ds-text-link` |
+| `--ds-text-disabled`    | Neutral-400 | Neutral-600 | `text-ds-text-disabled`    |
+| `--ds-text-inverse`     | White       | Black       | `text-ds-text-inverse`     |
+| `--ds-text-brand`       | Purple-600  | Purple-400  | `text-ds-text-brand`       |
+| `--ds-text-link`        | Purple-600  | Purple-400  | `text-ds-text-link`        |
 
 ### Surfaces
 
-| Token | Light | Dark | Tailwind Class |
-|-------|-------|------|---------------|
-| `--ds-surface-base` | White | Neutral-900 | `bg-ds-surface-base` |
-| `--ds-surface-raised` | White | Neutral-800 | `bg-ds-surface-raised` |
-| `--ds-surface-overlay` | White | Neutral-800 | `bg-ds-surface-overlay` |
-| `--ds-surface-sunken` | Neutral-50 | Neutral-950 | `bg-ds-surface-sunken` |
+| Token                   | Light       | Dark        | Tailwind Class           |
+| ----------------------- | ----------- | ----------- | ------------------------ |
+| `--ds-surface-base`     | White       | Neutral-900 | `bg-ds-surface-base`     |
+| `--ds-surface-raised`   | White       | Neutral-800 | `bg-ds-surface-raised`   |
+| `--ds-surface-overlay`  | White       | Neutral-800 | `bg-ds-surface-overlay`  |
+| `--ds-surface-sunken`   | Neutral-50  | Neutral-950 | `bg-ds-surface-sunken`   |
 | `--ds-surface-disabled` | Neutral-100 | Neutral-800 | `bg-ds-surface-disabled` |
 
 ### Borders
 
-| Token | Light | Dark | Tailwind Class |
-|-------|-------|------|---------------|
-| `--ds-border-base` | Neutral-200 | Neutral-700 | `border-ds-border-base` |
+| Token                | Light       | Dark        | Tailwind Class            |
+| -------------------- | ----------- | ----------- | ------------------------- |
+| `--ds-border-base`   | Neutral-200 | Neutral-700 | `border-ds-border-base`   |
 | `--ds-border-strong` | Neutral-300 | Neutral-600 | `border-ds-border-strong` |
 | `--ds-border-subtle` | Neutral-100 | Neutral-800 | `border-ds-border-subtle` |
-| `--ds-border-brand` | Purple-600 | Purple-500 | `border-ds-border-brand` |
-| `--ds-border-focus` | Purple-500 | Purple-400 | `border-ds-border-focus` |
+| `--ds-border-brand`  | Purple-600  | Purple-500  | `border-ds-border-brand`  |
+| `--ds-border-focus`  | Purple-500  | Purple-400  | `border-ds-border-focus`  |
 
 ### Status
 
 Each status has four tokens: base, text, background, and border.
 
-| Status | Base | Text | Background | Border |
-|--------|------|------|------------|--------|
+| Status  | Base                  | Text                       | Background               | Border                       |
+| ------- | --------------------- | -------------------------- | ------------------------ | ---------------------------- |
 | Success | `--ds-status-success` | `--ds-status-success-text` | `--ds-status-success-bg` | `--ds-status-success-border` |
-| Error | `--ds-status-error` | `--ds-status-error-text` | `--ds-status-error-bg` | `--ds-status-error-border` |
+| Error   | `--ds-status-error`   | `--ds-status-error-text`   | `--ds-status-error-bg`   | `--ds-status-error-border`   |
 | Warning | `--ds-status-warning` | `--ds-status-warning-text` | `--ds-status-warning-bg` | `--ds-status-warning-border` |
-| Info | `--ds-status-info` | `--ds-status-info-text` | `--ds-status-info-bg` | `--ds-status-info-border` |
+| Info    | `--ds-status-info`    | `--ds-status-info-text`    | `--ds-status-info-bg`    | `--ds-status-info-border`    |
 
 ### Interaction
 
-| Token | Usage | Tailwind Class |
-|-------|-------|---------------|
-| `--ds-focus-ring` | Focus ring on inputs/buttons | `ring-ds-focus-ring`, `focus:ring-ds-focus-ring` |
-| `--ds-rating-fill` | Filled star colour | `text-ds-rating-fill`, `fill-ds-rating-fill` |
-| `--ds-rating-empty` | Empty star colour | `text-ds-rating-empty` |
+| Token               | Usage                        | Tailwind Class                                   |
+| ------------------- | ---------------------------- | ------------------------------------------------ |
+| `--ds-focus-ring`   | Focus ring on inputs/buttons | `ring-ds-focus-ring`, `focus:ring-ds-focus-ring` |
+| `--ds-rating-fill`  | Filled star colour           | `text-ds-rating-fill`, `fill-ds-rating-fill`     |
+| `--ds-rating-empty` | Empty star colour            | `text-ds-rating-empty`                           |
 
 ---
 
@@ -109,41 +109,41 @@ Each status has four tokens: base, text, background, and border.
 
 Defined as CSS custom properties with `box-shadow` values:
 
-| Token | Tailwind Class | Use Case |
-|-------|---------------|----------|
-| `--ds-shadow-xs` | `shadow-ds-xs` | Subtle elevation for inputs |
-| `--ds-shadow-sm` | `shadow-ds-sm` | Cards, default elevation |
-| `--ds-shadow-md` | `shadow-ds-md` | Dropdowns, popovers |
-| `--ds-shadow-lg` | `shadow-ds-lg` | Floating elements |
-| `--ds-shadow-xl` | `shadow-ds-xl` | Modals, dialogs |
+| Token                  | Tailwind Class       | Use Case                       |
+| ---------------------- | -------------------- | ------------------------------ |
+| `--ds-shadow-xs`       | `shadow-ds-xs`       | Subtle elevation for inputs    |
+| `--ds-shadow-sm`       | `shadow-ds-sm`       | Cards, default elevation       |
+| `--ds-shadow-md`       | `shadow-ds-md`       | Dropdowns, popovers            |
+| `--ds-shadow-lg`       | `shadow-ds-lg`       | Floating elements              |
+| `--ds-shadow-xl`       | `shadow-ds-xl`       | Modals, dialogs                |
 | `--ds-shadow-elevated` | `shadow-ds-elevated` | Ant Design–style elevated card |
 
 ---
 
 ## Z-Index Scale
 
-| Token | Value | Tailwind Class | Use Case |
-|-------|-------|---------------|----------|
-| `--ds-z-base` | 0 | `z-ds-base` | Default stacking |
-| `--ds-z-raised` | 10 | `z-ds-raised` | Sticky elements within flow |
-| `--ds-z-dropdown` | 20 | `z-ds-dropdown` | Dropdown menus |
-| `--ds-z-sticky` | 30 | `z-ds-sticky` | Sticky headers |
-| `--ds-z-header` | 40 | `z-ds-header` | Main app header |
-| `--ds-z-overlay` | 50 | `z-ds-overlay` | Backdrop overlays |
-| `--ds-z-modal` | 60 | `z-ds-modal` | Modal dialogs |
-| `--ds-z-toast` | 70 | `z-ds-toast` | Toast notifications |
+| Token             | Value | Tailwind Class  | Use Case                    |
+| ----------------- | ----- | --------------- | --------------------------- |
+| `--ds-z-base`     | 0     | `z-ds-base`     | Default stacking            |
+| `--ds-z-raised`   | 10    | `z-ds-raised`   | Sticky elements within flow |
+| `--ds-z-dropdown` | 20    | `z-ds-dropdown` | Dropdown menus              |
+| `--ds-z-sticky`   | 30    | `z-ds-sticky`   | Sticky headers              |
+| `--ds-z-header`   | 40    | `z-ds-header`   | Main app header             |
+| `--ds-z-overlay`  | 50    | `z-ds-overlay`  | Backdrop overlays           |
+| `--ds-z-modal`    | 60    | `z-ds-modal`    | Modal dialogs               |
+| `--ds-z-toast`    | 70    | `z-ds-toast`    | Toast notifications         |
 
 ---
 
 ## Border Radius
 
-| Token | Value | Tailwind Class |
-|-------|-------|---------------|
-| `--ds-radius-xs` | 4px | `rounded-ds-xs` |
-| `--ds-radius-sm` | 6px | `rounded-ds-sm` |
-| `--ds-radius-md` | 8px | `rounded-ds-md` |
-| `--ds-radius-lg` | 12px | `rounded-ds-lg` |
-| `--ds-radius-xl` | 16px | `rounded-ds-xl` |
+| Token              | Value  | Tailwind Class    |
+| ------------------ | ------ | ----------------- |
+| `--ds-radius-xs`   | 4px    | `rounded-ds-xs`   |
+| `--ds-radius-sm`   | 6px    | `rounded-ds-sm`   |
+| `--ds-radius-md`   | 8px    | `rounded-ds-md`   |
+| `--ds-radius-lg`   | 12px   | `rounded-ds-lg`   |
+| `--ds-radius-xl`   | 16px   | `rounded-ds-xl`   |
 | `--ds-radius-full` | 9999px | `rounded-ds-full` |
 
 ---
@@ -175,7 +175,7 @@ import { antdTheme, antdDarkTheme } from '@/lib/theme/antd-theme';
 For runtime colour access (charts, dynamic styles):
 
 ```ts
-import { DS_PALETTE } from '@/lib/design-system';
+import { DS_PALETTE } from "@/lib/design-system";
 
 // DS_PALETTE.purple[600] → '#9333ea'
 // DS_PALETTE.green[500]  → '#22c55e'
@@ -186,9 +186,9 @@ import { DS_PALETTE } from '@/lib/design-system';
 For dynamic status badges:
 
 ```ts
-import { getStatusColors, statusColorMap } from '@/lib/design-system';
+import { getStatusColors, statusColorMap } from "@/lib/design-system";
 
-const colors = getStatusColors('delivered');
+const colors = getStatusColors("delivered");
 // → { bg: 'bg-ds-status-success-bg', text: 'text-ds-status-success-text', border: '...', dot: '...' }
 ```
 

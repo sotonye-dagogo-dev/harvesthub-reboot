@@ -5,12 +5,21 @@ import { ProductCard, FilterSidebar, CategoryNav, SearchBar } from "@/components
 import { SimplePagination, EmptyState } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import { useCart } from "@/lib/store/cartStore";
+import { useFavorites } from "@/lib/store/favoritesStore";
+import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default function ProductsPage() {
   const { addItem } = useCart();
+  const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
+  const { requireAuth } = useGuestGuard();
+
+  const guardedToggleFavorite = (productId: string) => {
+    if (!requireAuth("save favourites")) return;
+    rawToggleFavorite(productId);
+  };
   const [filters, setFilters] = useState<{
     categories?: string[];
     minPrice?: number;
@@ -137,7 +146,7 @@ export default function ProductsPage() {
             />
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
                 {paginatedProducts.map((product) => {
                   const vendor = mockVendors.find((v) => v.id === product.vendorId);
                   const avgRating =
@@ -158,8 +167,12 @@ export default function ProductsPage() {
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
+                      discount={product.discount}
                       isFeatured={product.isFeatured}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => {
+                        if (!requireAuth("add items to your cart")) return;
                         addItem({
                           productId: product.id,
                           name: product.name,

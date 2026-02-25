@@ -60,24 +60,12 @@ export interface PageLoaderProps {
  *   // Section-level (e.g. detail page guard)
  *   <PageLoader minHeight="min-h-[400px]" />
  */
-export function PageLoader({
-  message,
-  minHeight = "min-h-screen",
-  className,
-}: PageLoaderProps) {
+export function PageLoader({ message, minHeight = "min-h-screen", className }: PageLoaderProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center justify-center",
-        minHeight,
-        className
-      )}
-    >
+    <div className={cn("flex items-center justify-center", minHeight, className)}>
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
-        {message && (
-          <p className="text-sm text-ds-text-tertiary animate-pulse">{message}</p>
-        )}
+        {message && <p className="text-sm text-ds-text-tertiary animate-pulse">{message}</p>}
       </div>
     </div>
   );
@@ -140,11 +128,7 @@ export function Skeleton({ className, variant = "rectangular" }: SkeletonProps) 
 
   return (
     <div
-      className={cn(
-        "animate-pulse rounded-md bg-ds-surface-sunken",
-        variants[variant],
-        className
-      )}
+      className={cn("animate-pulse rounded-md bg-ds-surface-sunken", variants[variant], className)}
     />
   );
 }

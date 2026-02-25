@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { booleanColor } from "@/components/ui/StatusTag";
+import { booleanColor } from "@/components/ui";
 import { Table, Button, Modal, message, Tag, Rate, Image, Space, Input } from "antd";
 import { Flag, Trash2, Eye, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -249,9 +249,7 @@ export function ReviewModerationPanel() {
 
             <div>
               <h4 className="font-semibold text-ds-text-primary mb-1">Comment</h4>
-              <p className="text-ds-text-secondary">
-                {selectedReview.comment || "No comment"}
-              </p>
+              <p className="text-ds-text-secondary">{selectedReview.comment || "No comment"}</p>
             </div>
 
             {selectedReview.photos && selectedReview.photos.length > 0 && (
@@ -265,7 +263,7 @@ export function ReviewModerationPanel() {
                       alt={`Review photo ${index + 1}`}
                       width={100}
                       height={100}
-                      className="rounded-md object-cover"
+                      className="rounded-ds-sm object-cover"
                     />
                   ))}
                 </div>

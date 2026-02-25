@@ -41,7 +41,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
     <button
       onClick={toggleTheme}
       className={cn(
-        "rounded-full p-2 text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken",
+        "rounded-ds-full p-2 text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken",
         className
       )}
       aria-label="Toggle theme"

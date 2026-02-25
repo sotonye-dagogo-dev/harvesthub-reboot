@@ -1131,6 +1131,16 @@ export const mockWallets: Wallet[] = [
         createdAt: new Date('2025-01-14'),
         updatedAt: new Date('2025-01-24'),
     },
+    // Admin
+    {
+        id: 'wallet-admin-001',
+        userId: 'user-admin-001',
+        balance: 500000,
+        currency: 'NGN',
+        isActive: true,
+        createdAt: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-24'),
+    },
 ];
 
 // ===================================
@@ -1178,6 +1188,46 @@ export const mockTransactions: Transaction[] = [
         orderId: 'order-001',
         createdAt: new Date('2025-01-18'),
         updatedAt: new Date('2025-01-18'),
+    },
+    // Admin transactions
+    {
+        id: 'txn-admin-001',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.DEPOSIT,
+        amount: 500000,
+        balanceBefore: 0,
+        balanceAfter: 500000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'DEP-2025-ADMIN-001',
+        description: 'Platform seed funding deposit',
+        createdAt: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-01'),
+    },
+    {
+        id: 'txn-admin-002',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.DEPOSIT,
+        amount: 25000,
+        balanceBefore: 500000,
+        balanceAfter: 525000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'COM-2025-ADMIN-001',
+        description: 'Platform commission earnings',
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-20'),
+    },
+    {
+        id: 'txn-admin-003',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.WITHDRAWAL,
+        amount: 25000,
+        balanceBefore: 525000,
+        balanceAfter: 500000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'WDR-2025-ADMIN-001',
+        description: 'Operational withdrawal',
+        createdAt: new Date('2025-01-22'),
+        updatedAt: new Date('2025-01-22'),
     },
 ];
 

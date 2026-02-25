@@ -120,7 +120,7 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
             },
           ]}
         >
-          <Input size="large" placeholder="Choose a username" className="rounded-lg" />
+          <Input size="large" placeholder="Choose a username" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item
@@ -131,7 +131,7 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
           <Input.TextArea
             rows={3}
             placeholder="Tell us about yourself"
-            className="rounded-lg"
+            className="rounded-ds-md"
             showCount
             maxLength={160}
           />
@@ -167,7 +167,7 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
           <button
             type="submit"
             disabled={submitting || uploading}
-            className="w-full rounded-lg bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
+            className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {submitting ? "Processing..." : "Continue"}
           </button>

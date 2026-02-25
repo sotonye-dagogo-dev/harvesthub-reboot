@@ -60,9 +60,7 @@ export function Rating({
         ))}
       </div>
       {showValue && (
-        <span className="ml-1 text-sm font-medium text-ds-text-secondary">
-          {value.toFixed(1)}
-        </span>
+        <span className="ml-1 text-sm font-medium text-ds-text-secondary">{value.toFixed(1)}</span>
       )}
     </div>
   );

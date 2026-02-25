@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart, Heart } from "lucide-react";
-import { Button, Badge, Rating } from "@/components/ui";
+import { Badge, Rating } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 
@@ -48,13 +48,13 @@ export function ProductCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-lg border border-ds-border-base bg-ds-surface-base transition-all hover:shadow-ds-lg  dark:bg-ds-surface-base",
+        "group relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base transition-all hover:shadow-ds-lg  dark:bg-ds-surface-base",
         className
       )}
     >
       {/* Image Container */}
       <Link href={`/products/${id}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-ds-surface-sunken">
+        <div className="relative aspect-[5/4] overflow-hidden bg-ds-surface-sunken">
           <Image
             src={image}
             alt={name}
@@ -64,81 +64,84 @@ export function ProductCard({
           />
 
           {/* Badges */}
-          <div className="absolute left-1.5 top-1.5 flex flex-col gap-1">
+          <div className="absolute left-1 top-1 flex flex-col gap-0.5 sm:left-1.5 sm:top-1.5 sm:gap-1">
             {isFeatured && <Badge variant="primary">Featured</Badge>}
             {discount && discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
             {isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
           </div>
 
-          {/* Favorite Button */}
-          {onToggleFavorite && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onToggleFavorite();
-              }}
-              className="absolute right-1.5 top-1.5 rounded-full bg-ds-surface-base p-1.5 shadow-ds-md transition-colors hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay"
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <Heart
-                className={cn(
-                  "h-4 w-4",
-                  isFavorite ? "fill-ds-status-error text-ds-status-error" : "text-ds-text-secondary"
-                )}
-              />
-            </button>
-          )}
+          {/* Favorite Button - always visible */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onToggleFavorite?.();
+            }}
+            className="absolute right-1.5 top-1.5 rounded-ds-full bg-ds-surface-base/80 p-1.5 shadow-ds-md transition-colors hover:bg-ds-surface-sunken dark:bg-ds-surface-overlay/80 dark:hover:bg-ds-surface-overlay"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              className={cn(
+                "h-4 w-4",
+                isFavorite ? "fill-ds-status-error text-ds-status-error" : "text-ds-text-secondary"
+              )}
+            />
+          </button>
         </div>
       </Link>
 
       {/* Product Info */}
-      <div className="p-2.5 sm:p-3">
+      <div className="p-2 sm:p-2.5">
         <Link href={`/products/${id}`}>
-          <h3 className="mb-0.5 line-clamp-1 text-sm font-semibold text-ds-text-primary transition-colors hover:text-ds-text-brand sm:line-clamp-2 sm:text-base dark:text-ds-text-primary dark:hover:text-ds-brand-accent">
+          <h3 className="mb-0.5 line-clamp-1 text-xs font-semibold text-ds-text-primary transition-colors hover:text-ds-text-brand sm:text-sm dark:text-ds-text-primary dark:hover:text-ds-brand-accent">
             {name}
           </h3>
         </Link>
 
         <Link
           href={`/vendors/${vendorId}`}
-          className="mb-1 block text-xs text-ds-text-secondary transition-colors hover:text-ds-text-brand sm:text-sm dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+          className="mb-0.5 block text-[11px] text-ds-text-secondary transition-colors hover:text-ds-text-brand sm:text-xs dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
         >
           {vendorName}
         </Link>
 
         {/* Rating */}
         {reviewCount > 0 && (
-          <div className="mb-1.5 flex items-center gap-1">
+          <div className="mb-1 flex items-center gap-0.5">
             <Rating value={rating} readonly size="sm" />
-            <span className="text-xs text-ds-text-secondary">({reviewCount})</span>
+            <span className="text-[10px] text-ds-text-secondary sm:text-xs">({reviewCount})</span>
           </div>
         )}
 
-        {/* Price */}
-        <div className="mb-2 flex items-center gap-1.5">
-          <span className="text-sm font-bold text-ds-text-brand sm:text-base">
-            {formatCurrency(discountedPrice)}
-          </span>
-          {discount && discount > 0 && (
-            <span className="text-xs text-ds-text-tertiary line-through dark:text-ds-text-placeholder">
-              {formatCurrency(price)}
+        {/* Price + Cart Row */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-xs font-bold text-ds-text-brand sm:text-sm truncate">
+              {formatCurrency(discountedPrice)}
             </span>
+            {discount && discount > 0 && (
+              <span className="text-[10px] text-ds-text-tertiary line-through sm:text-xs dark:text-ds-text-placeholder">
+                {formatCurrency(price)}
+              </span>
+            )}
+          </div>
+
+          {/* Add to Cart Button - compact icon */}
+          {onAddToCart && (
+            <button
+              onClick={onAddToCart}
+              disabled={isOutOfStock}
+              className={cn(
+                "flex-shrink-0 rounded-ds-md p-1.5 transition-colors sm:p-2",
+                isOutOfStock
+                  ? "cursor-not-allowed bg-ds-surface-sunken text-ds-text-placeholder"
+                  : "bg-ds-brand-primary text-white hover:bg-ds-brand-primary-hover"
+              )}
+              aria-label={isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            >
+              <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
           )}
         </div>
-
-        {/* Add to Cart Button */}
-        {onAddToCart && (
-          <Button
-            onClick={onAddToCart}
-            disabled={isOutOfStock}
-            fullWidth
-            size="sm"
-            className="gap-1.5 text-xs sm:text-sm"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            {isOutOfStock ? "Out of Stock" : "Add to Cart"}
-          </Button>
-        )}
       </div>
     </div>
   );

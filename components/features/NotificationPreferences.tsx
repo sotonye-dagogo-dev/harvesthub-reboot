@@ -42,37 +42,49 @@ const defaultPreferences: NotificationPreference[] = [
 const notificationLabels: Record<NotificationType, { title: string; description: string }> = {
   ORDER_CONFIRMED: {
     title: "Order Confirmed",
-    description: "When your order is confirmed by the vendor" },
+    description: "When your order is confirmed by the vendor",
+  },
   ORDER_READY: {
     title: "Order Ready",
-    description: "When your order is ready for pickup or delivery" },
+    description: "When your order is ready for pickup or delivery",
+  },
   ORDER_DELIVERED: {
     title: "Order Delivered",
-    description: "When your order has been delivered" },
+    description: "When your order has been delivered",
+  },
   ORDER_CANCELLED: {
     title: "Order Cancelled",
-    description: "When an order is cancelled" },
+    description: "When an order is cancelled",
+  },
   PAYMENT_SUCCESS: {
     title: "Payment Success",
-    description: "When a payment is successfully processed" },
+    description: "When a payment is successfully processed",
+  },
   PAYMENT_FAILED: {
     title: "Payment Failed",
-    description: "When a payment fails" },
+    description: "When a payment fails",
+  },
   DELIVERY_UPDATE: {
     title: "Delivery Updates",
-    description: "Updates about your delivery status" },
+    description: "Updates about your delivery status",
+  },
   VENDOR_MESSAGE: {
     title: "Vendor Messages",
-    description: "Messages from vendors about your orders" },
+    description: "Messages from vendors about your orders",
+  },
   LOW_STOCK: {
     title: "Low Stock Alerts",
-    description: "When products in your wishlist are running low" },
+    description: "When products in your wishlist are running low",
+  },
   NEW_PRODUCT: {
     title: "New Products",
-    description: "When vendors you follow add new products" },
+    description: "When vendors you follow add new products",
+  },
   PROMOTION: {
     title: "Promotions & Offers",
-    description: "Special offers and promotional deals" } };
+    description: "Special offers and promotional deals",
+  },
+};
 
 export function NotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreference[]>(defaultPreferences);
@@ -120,7 +132,9 @@ export function NotificationPreferences() {
           notificationTypes: preferences,
           quietHoursEnabled,
           quietHoursStart: quietHoursStart?.format("HH:mm"),
-          quietHoursEnd: quietHoursEnd?.format("HH:mm") }) });
+          quietHoursEnd: quietHoursEnd?.format("HH:mm"),
+        }),
+      });
 
       if (res.ok) {
         message.success("Preferences saved successfully");
@@ -146,9 +160,7 @@ export function NotificationPreferences() {
   };
 
   if (loading) {
-    return (
-      <SectionLoader size="lg" className="py-12" />
-    );
+    return <SectionLoader size="lg" className="py-12" />;
   }
 
   return (

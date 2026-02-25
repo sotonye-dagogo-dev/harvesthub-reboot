@@ -11,6 +11,8 @@ import {
 } from "@/components/features";
 import { mockBanners, mockProducts, mockVendors } from "@/lib/data/mockData";
 import { useCart } from "@/lib/store/cartStore";
+import { useFavorites } from "@/lib/store/favoritesStore";
+import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 
 export default function HomePage() {
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
@@ -77,8 +79,16 @@ export default function HomePage() {
   ];
 
   const { addItem } = useCart();
+  const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
+  const { requireAuth } = useGuestGuard();
+
+  const guardedToggleFavorite = (productId: string) => {
+    if (!requireAuth("save favourites")) return;
+    rawToggleFavorite(productId);
+  };
 
   const handleAddToCart = (product: (typeof featuredProducts)[number]) => {
+    if (!requireAuth("add items to your cart")) return;
     const vendor = mockVendors.find((v) => v.id === product.vendorId);
     addItem({
       productId: product.id,
@@ -103,9 +113,9 @@ export default function HomePage() {
         </section>
       )}
 
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         {/* Category Navigation */}
-        <section className="mb-4">
+        <section className="mb-3">
           <h2 className="mb-3 text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
             Shop by Category
           </h2>
@@ -114,8 +124,8 @@ export default function HomePage() {
 
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
+          <section className="mb-4">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
                 Featured Products
               </h2>
@@ -126,7 +136,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory sm:gap-4">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
               {featuredProducts.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -137,7 +147,7 @@ export default function HomePage() {
                 return (
                   <div
                     key={product.id}
-                    className="min-w-[160px] max-w-[160px] snap-start sm:min-w-[200px] sm:max-w-[200px] md:min-w-[220px] md:max-w-[220px]"
+                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
                   >
                     <ProductCard
                       id={product.id}
@@ -149,7 +159,10 @@ export default function HomePage() {
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
+                      discount={product.discount}
                       isFeatured={product.isFeatured}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
                     />
                   </div>
@@ -161,8 +174,8 @@ export default function HomePage() {
 
         {/* Trending Products */}
         {trendingProducts.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
+          <section className="mb-4">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
                 Trending Now
               </h2>
@@ -173,7 +186,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory sm:gap-4">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
               {trendingProducts.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -184,7 +197,7 @@ export default function HomePage() {
                 return (
                   <div
                     key={product.id}
-                    className="min-w-[160px] max-w-[160px] snap-start sm:min-w-[200px] sm:max-w-[200px] md:min-w-[220px] md:max-w-[220px]"
+                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
                   >
                     <ProductCard
                       id={product.id}
@@ -196,6 +209,9 @@ export default function HomePage() {
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
+                      discount={product.discount}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
                     />
                   </div>
@@ -207,8 +223,8 @@ export default function HomePage() {
 
         {/* New Arrivals */}
         {newArrivals.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
+          <section className="mb-4">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
                 New Arrivals
               </h2>
@@ -219,7 +235,7 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory sm:gap-4">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
               {newArrivals.map((product) => {
                 const vendor = mockVendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -230,7 +246,7 @@ export default function HomePage() {
                 return (
                   <div
                     key={product.id}
-                    className="min-w-[160px] max-w-[160px] snap-start sm:min-w-[200px] sm:max-w-[200px] md:min-w-[220px] md:max-w-[220px]"
+                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
                   >
                     <ProductCard
                       id={product.id}
@@ -242,6 +258,9 @@ export default function HomePage() {
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
+                      discount={product.discount}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
                     />
                   </div>
@@ -253,8 +272,8 @@ export default function HomePage() {
 
         {/* Popular Vendors */}
         {popularVendors.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
+          <section className="mb-4">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
                 Popular Vendors
               </h2>
@@ -265,11 +284,11 @@ export default function HomePage() {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory sm:gap-4">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
               {popularVendors.map((vendor) => (
                 <div
                   key={vendor.id}
-                  className="min-w-[260px] max-w-[260px] snap-start sm:min-w-[300px] sm:max-w-[300px]"
+                  className="min-w-[240px] max-w-[240px] snap-start sm:min-w-[280px] sm:max-w-[280px]"
                 >
                   <VendorCard
                     id={vendor.id}
@@ -288,14 +307,14 @@ export default function HomePage() {
         )}
 
         {/* CTA Section */}
-        <section className="rounded-lg bg-gradient-to-r from-ds-brand-primary to-ds-palette-purple-800 p-8 text-center text-white dark:from-ds-palette-purple-800">
+        <section className="rounded-ds-md bg-gradient-to-r from-ds-brand-primary to-ds-palette-purple-800 p-8 text-center text-white dark:from-ds-palette-purple-800">
           <h2 className="mb-4 text-3xl font-bold">Ready to Start Selling?</h2>
           <p className="mb-6 text-lg opacity-90">
             Join hundreds of vendors already selling on HarvestHub
           </p>
           <Link
             href="/signup"
-            className="inline-block rounded-lg bg-ds-surface-base px-8 py-3 font-semibold text-ds-text-brand transition-transform hover:scale-105 hover:shadow-ds-lg"
+            className="inline-block rounded-ds-md bg-ds-surface-base px-8 py-3 font-semibold text-ds-text-brand transition-transform hover:scale-105 hover:shadow-ds-lg"
           >
             Become a Vendor
           </Link>

@@ -69,7 +69,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
             { min: 3, message: "Store name must be at least 3 characters" },
           ]}
         >
-          <Input size="large" placeholder="e.g., Fresh Harvest Farms" className="rounded-lg" />
+          <Input size="large" placeholder="e.g., Fresh Harvest Farms" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item
@@ -80,7 +80,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <Select
             size="large"
             placeholder="Select your store category"
-            className="rounded-lg"
+            className="rounded-ds-md"
             options={VENDOR_CATEGORIES.map((cat) => ({
               value: cat.value,
               label: cat.label,
@@ -104,7 +104,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <Select
             size="large"
             placeholder="Select campus for product pickup"
-            className="rounded-lg"
+            className="rounded-ds-md"
             options={CAMPUS_LOCATIONS.map((campus) => ({
               value: campus.value,
               label: campus.label,
@@ -136,7 +136,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <Input.TextArea
             rows={3}
             placeholder="Brief description of your store and products..."
-            className="rounded-lg"
+            className="rounded-ds-md"
             maxLength={200}
             showCount
           />
@@ -146,7 +146,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
+            className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {submitting ? "Processing..." : "Continue"}
           </button>
