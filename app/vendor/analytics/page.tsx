@@ -30,7 +30,7 @@ export default function VendorAnalyticsPage() {
     );
 
     const totalRevenue = vendorOrders
-      .filter((o) => o.status === OrderStatus.COMPLETED)
+      .filter((o) => o.status === OrderStatus.DELIVERED)
       .reduce((sum, order) => {
         const vendorItemsTotal = order.items
           .filter((item) => vendorProducts.find((p) => p.id === item.productId))

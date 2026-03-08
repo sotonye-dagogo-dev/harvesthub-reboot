@@ -33,11 +33,11 @@ export default function AdminAnalyticsPage() {
 
   const stats = useMemo(() => {
     const totalRevenue = mockOrders
-      .filter((o) => o.status === OrderStatus.COMPLETED)
+      .filter((o) => o.status === OrderStatus.DELIVERED)
       .reduce((sum, o) => sum + o.total, 0);
 
     const totalOrders = mockOrders.length;
-    const completedOrders = mockOrders.filter((o) => o.status === OrderStatus.COMPLETED).length;
+    const completedOrders = mockOrders.filter((o) => o.status === OrderStatus.DELIVERED).length;
     const pendingOrders = mockOrders.filter((o) => o.status === OrderStatus.PENDING).length;
     const cancelledOrders = mockOrders.filter((o) => o.status === OrderStatus.CANCELLED).length;
 

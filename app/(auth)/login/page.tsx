@@ -43,7 +43,7 @@ function LoginForm() {
     <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">
       {/* Logo/Brand */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-ds-text-brand">HarvestHub</h1>
+        <h1 className="text-3xl font-bold text-ds-text-brand">MyHarvestHub</h1>
         <p className="mt-2 text-ds-text-secondary dark:text-ds-text-placeholder">Sign in to your account</p>
       </div>
 

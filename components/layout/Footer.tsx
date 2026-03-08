@@ -31,7 +31,7 @@ export function Footer() {
           {/* About Section */}
           <div>
             <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">
-              About HarvestHub
+              About MyHarvestHub
             </h3>
             <p className="text-sm text-ds-text-secondary">
               Your trusted marketplace connecting buyers with quality vendors across Lagos and
@@ -145,6 +145,14 @@ export function Footer() {
                   Privacy Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/bug-report"
+                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                >
+                  Report a Bug
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -168,10 +176,10 @@ export function Footer() {
               <li className="flex items-center gap-2 text-ds-text-secondary">
                 <Mail className="h-5 w-5 flex-shrink-0" />
                 <a
-                  href="mailto:support@harvesthub.ng"
+                  href="mailto:support@myharvesthub.org"
                   className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
                 >
-                  support@harvesthub.ng
+                  support@myharvesthub.org
                 </a>
               </li>
             </ul>
@@ -181,7 +189,20 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-ds-border-base pt-8">
           <div className="flex flex-col items-center justify-between gap-4 text-sm text-ds-text-secondary md:flex-row">
-            <p>&copy; {currentYear} HarvestHub. All rights reserved.</p>
+            <div className="flex flex-col items-center gap-1 md:items-start">
+              <p>&copy; {currentYear} MyHarvestHub. All rights reserved.</p>
+              <p className="text-xs text-ds-text-placeholder">
+                Built by{" "}
+                <a
+                  href="https://sotonye-dagogo.is-a.dev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-ds-text-brand hover:underline"
+                >
+                  S.D.
+                </a>
+              </p>
+            </div>
             <div className="flex gap-6">
               <Link href="/terms" className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent">
                 Terms

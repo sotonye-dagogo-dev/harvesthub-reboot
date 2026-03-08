@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   // Calculate platform stats from mock data
   const stats = useMemo(() => {
     const totalRevenue = mockOrders
-      .filter((o) => o.status === OrderStatus.COMPLETED)
+      .filter((o) => o.status === OrderStatus.DELIVERED)
       .reduce((sum, order) => sum + order.total, 0);
 
     const pendingReviews = mockReviews.filter((r) => r.status === "PENDING").length;

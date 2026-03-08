@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 
 interface CartItem {
     productId: string;
@@ -11,7 +12,11 @@ interface CartItem {
     quantity: number;
     stock: number;
     variant?: string;
+    isService?: boolean;
 }
+
+const isServiceItem = (item: { stock: number; isService?: boolean }) =>
+    item.isService || item.stock >= SERVICE_UNLIMITED_STOCK;
 
 interface CartStore {
     items: CartItem[];
@@ -33,9 +38,12 @@ export const useCart = create<CartStore>()(
 
             addItem: (item) => {
                 const existingItem = get().items.find((i) => i.productId === item.productId);
+                const service = isServiceItem(item);
 
                 if (existingItem) {
-                    // Update quantity if item already exists
+                    // Services are capped at quantity 1
+                    if (service) return;
+
                     const newQuantity = existingItem.quantity + (item.quantity || 1);
                     const limitedQuantity = Math.min(newQuantity, item.stock);
 
@@ -51,10 +59,10 @@ export const useCart = create<CartStore>()(
                         return { items: newItems, totalItems, totalPrice };
                     });
                 } else {
-                    // Add new item
                     const newItem: CartItem = {
                         ...item,
-                        quantity: Math.min(item.quantity || 1, item.stock),
+                        quantity: service ? 1 : Math.min(item.quantity || 1, item.stock),
+                        isService: service,
                     };
 
                     set((state) => {
@@ -69,11 +77,12 @@ export const useCart = create<CartStore>()(
 
             updateQuantity: (productId, quantity) => {
                 set((state) => {
-                    const newItems = state.items.map((item) =>
-                        item.productId === productId
-                            ? { ...item, quantity: Math.min(Math.max(1, quantity), item.stock) }
-                            : item
-                    );
+                    const newItems = state.items.map((item) => {
+                        if (item.productId !== productId) return item;
+                        // Services always stay at quantity 1
+                        if (isServiceItem(item)) return item;
+                        return { ...item, quantity: Math.min(Math.max(1, quantity), item.stock) };
+                    });
                     const totalItems = newItems.reduce((sum, i) => sum + i.quantity, 0);
                     const totalPrice = newItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 

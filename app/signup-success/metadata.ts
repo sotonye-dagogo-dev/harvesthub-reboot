@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Registration Complete | HarvestHub',
-  description: 'Your HarvestHub account has been successfully created',
+  title: 'Registration Complete | MyHarvestHub',
+  description: 'Your MyHarvestHub account has been successfully created',
 };

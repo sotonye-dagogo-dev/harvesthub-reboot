@@ -3,7 +3,10 @@
 import { Form, Input, Select } from "antd";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
-import { VENDOR_CATEGORIES, CAMPUS_LOCATIONS, POSITION_OPTIONS } from "@/lib/constants";
+import {
+  VENDOR_CATEGORIES, CAMPUS_LOCATIONS, POSITION_OPTIONS,
+  VendorCategory, SERVICE_CATEGORIES, SERVICE_LOCATIONS,
+} from "@/lib/constants";
 
 interface VendorInfoFields {
   storeName: string;
@@ -11,11 +14,16 @@ interface VendorInfoFields {
   campus: string;
   position?: string;
   storeDescription: string;
+  serviceCategory?: string;
+  serviceLocation?: string;
 }
 
 export default function StoreInfo({ onNext, updateFormData, formData }: FormComponentProps) {
   const [form] = Form.useForm<VendorInfoFields>();
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [isServiceVendor, setIsServiceVendor] = useState(
+    formData?.storeCategory === VendorCategory.SERVICES
+  );
 
   useEffect(() => {
     if (formData?.storeName) {
@@ -25,6 +33,8 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         campus: formData.campus || undefined,
         position: formData.position || undefined,
         storeDescription: formData.storeDescription || "",
+        serviceCategory: formData.serviceCategory || undefined,
+        serviceLocation: formData.serviceLocation || undefined,
       });
     }
   }, [form, formData]);
@@ -91,8 +101,50 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
+            onChange={(value) => setIsServiceVendor(value === VendorCategory.SERVICES)}
           />
         </Form.Item>
+
+        {/* Service-Specific Fields */}
+        {isServiceVendor && (
+          <>
+            <Form.Item
+              name="serviceCategory"
+              label={<span className="text-ds-text-primary font-medium">Service Type</span>}
+              rules={[{ required: true, message: "Please select your service type" }]}
+            >
+              <Select
+                size="large"
+                placeholder="What type of service do you offer?"
+                className="rounded-ds-md"
+                options={SERVICE_CATEGORIES.map((cat) => ({
+                  value: cat.value,
+                  label: `${cat.label}${cat.description ? ` — ${cat.description}` : ""}`,
+                }))}
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="serviceLocation"
+              label={<span className="text-ds-text-primary font-medium">Service Location</span>}
+              rules={[{ required: true, message: "Please select where you render your service" }]}
+            >
+              <Select
+                size="large"
+                placeholder="Where do you render your service?"
+                className="rounded-ds-md"
+                options={SERVICE_LOCATIONS.map((loc) => ({
+                  value: loc.value,
+                  label: loc.label,
+                }))}
+              />
+            </Form.Item>
+          </>
+        )}
 
         <Form.Item
           name="campus"

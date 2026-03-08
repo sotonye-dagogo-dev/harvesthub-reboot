@@ -1,5 +1,5 @@
 /**
- * HarvestHub Design System — Central Index
+ * MyHarvestHub Design System — Central Index
  *
  * This module is the **single import** for anything design-system related.
  * It re-exports the palette, semantic token helpers, Ant Design theme configs,

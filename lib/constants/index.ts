@@ -1,5 +1,5 @@
 /**
- * HarvestHub Platform Constants
+ * MyHarvestHub Platform Constants
  * All enums, configuration values, and static data used across the application
  */
 
@@ -17,8 +17,9 @@ export enum OrderStatus {
     PENDING = 'PENDING',
     CONFIRMED = 'CONFIRMED',
     PROCESSING = 'PROCESSING',
-    READY = 'READY',
-    COMPLETED = 'COMPLETED',
+    READY_FOR_PICKUP = 'READY_FOR_PICKUP',
+    OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+    DELIVERED = 'DELIVERED',
     CANCELLED = 'CANCELLED',
     REFUNDED = 'REFUNDED',
 }
@@ -34,6 +35,7 @@ export enum PaymentMethod {
     WALLET = 'WALLET',
     CARD = 'CARD',
     BANK_TRANSFER = 'BANK_TRANSFER',
+    BANK_TRANSFER_PROOF = 'BANK_TRANSFER_PROOF',
     USSD = 'USSD',
 }
 
@@ -145,6 +147,95 @@ export enum VendorStatus {
     APPROVED = 'APPROVED',
     REJECTED = 'REJECTED',
     SUSPENDED = 'SUSPENDED',
+}
+
+export enum UserStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    BANNED = 'BANNED',
+}
+
+export enum Gender {
+    MALE = 'MALE',
+    FEMALE = 'FEMALE',
+    OTHER = 'OTHER',
+}
+
+export enum BannerPosition {
+    TOP = 'TOP',
+    HERO = 'HERO',
+    SIDEBAR = 'SIDEBAR',
+}
+
+export enum BannerTheme {
+    BUSINESS = 'BUSINESS',
+    CHURCH = 'CHURCH',
+    EVENT = 'EVENT',
+    PROMOTION = 'PROMOTION',
+}
+
+export enum ReviewStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED',
+}
+
+export enum AvailabilityRequestStatus {
+    PENDING = 'PENDING',
+    CONFIRMED = 'CONFIRMED',
+    DECLINED = 'DECLINED',
+    EXPIRED = 'EXPIRED',
+}
+
+export enum AdStatus {
+    PENDING_PAYMENT = 'PENDING_PAYMENT',
+    PENDING_APPROVAL = 'PENDING_APPROVAL',
+    APPROVED = 'APPROVED',
+    ACTIVE = 'ACTIVE',
+    EXPIRED = 'EXPIRED',
+    REJECTED = 'REJECTED',
+}
+
+export enum AdPaymentStatus {
+    PENDING = 'PENDING',
+    VERIFIED = 'VERIFIED',
+    REJECTED = 'REJECTED',
+}
+
+export enum ProofOfTransferStatus {
+    PENDING = 'PENDING',
+    VERIFIED = 'VERIFIED',
+    REJECTED = 'REJECTED',
+}
+
+export enum VoucherType {
+    PERCENTAGE = 'PERCENTAGE',
+    FIXED_AMOUNT = 'FIXED_AMOUNT',
+    FREE_DELIVERY = 'FREE_DELIVERY',
+}
+
+export enum MilestoneType {
+    FIRST_1000_VENDORS = 'FIRST_1000_VENDORS',
+    FIRST_1000_BUYERS = 'FIRST_1000_BUYERS',
+    FIRST_PURCHASE = 'FIRST_PURCHASE',
+    FIRST_SALE = 'FIRST_SALE',
+    FIRST_REVIEW = 'FIRST_REVIEW',
+    VENDOR_100_SALES = 'VENDOR_100_SALES',
+    CUSTOM = 'CUSTOM',
+}
+
+export enum NotificationType {
+    ORDER_CONFIRMED = 'ORDER_CONFIRMED',
+    ORDER_READY = 'ORDER_READY',
+    ORDER_DELIVERED = 'ORDER_DELIVERED',
+    ORDER_CANCELLED = 'ORDER_CANCELLED',
+    PAYMENT_SUCCESS = 'PAYMENT_SUCCESS',
+    PAYMENT_FAILED = 'PAYMENT_FAILED',
+    DELIVERY_UPDATE = 'DELIVERY_UPDATE',
+    VENDOR_MESSAGE = 'VENDOR_MESSAGE',
+    LOW_STOCK = 'LOW_STOCK',
+    NEW_PRODUCT = 'NEW_PRODUCT',
+    PROMOTION = 'PROMOTION',
 }
 
 // ============================================================================
@@ -278,7 +369,7 @@ export const VENDOR_CATEGORIES = [
     {
         value: VendorCategory.SERVICES,
         label: 'Services',
-        description: 'Professional services',
+        description: 'Professional & freelance services (grooming, creative, digital, etc.)',
     },
     {
         value: VendorCategory.CRAFTS,
@@ -395,9 +486,10 @@ export const VALIDATION_RULES = {
 export const ORDER_STATUS_FLOW = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
     [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-    [OrderStatus.PROCESSING]: [OrderStatus.READY, OrderStatus.CANCELLED],
-    [OrderStatus.READY]: [OrderStatus.COMPLETED],
-    [OrderStatus.COMPLETED]: [OrderStatus.REFUNDED],
+    [OrderStatus.PROCESSING]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+    [OrderStatus.READY_FOR_PICKUP]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+    [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+    [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
     [OrderStatus.CANCELLED]: [OrderStatus.REFUNDED],
     [OrderStatus.REFUNDED]: [],
 } as const;
@@ -410,6 +502,124 @@ export const COMMISSION_RATES = {
     DEFAULT: 0.05, // 5%
     PREMIUM_VENDOR: 0.03, // 3%
     CHURCH_AFFILIATED: 0.02, // 2%
+} as const;
+
+// ============================================================================
+// LISTING TYPES
+// ============================================================================
+
+export enum ListingType {
+    PRODUCT = 'PRODUCT',
+    SERVICE = 'SERVICE',
+}
+
+export const LISTING_TYPES = [
+    { value: ListingType.PRODUCT, label: 'Physical Product', description: 'Tangible goods for sale' },
+    { value: ListingType.SERVICE, label: 'Service', description: 'Service offering with booking' },
+] as const;
+
+// ============================================================================
+// SERVICE ENUMS & CONSTANTS
+// ============================================================================
+
+export enum ServiceCategory {
+    GROOMING = 'GROOMING',
+    BEAUTY_WELLNESS = 'BEAUTY_WELLNESS',
+    CREATIVE = 'CREATIVE',
+    DIGITAL = 'DIGITAL',
+    WRITING_TRANSLATION = 'WRITING_TRANSLATION',
+    TUTORING_COACHING = 'TUTORING_COACHING',
+    HOME_SERVICES = 'HOME_SERVICES',
+    FOOD_CATERING = 'FOOD_CATERING',
+    EVENTS = 'EVENTS',
+    FASHION_TAILORING = 'FASHION_TAILORING',
+    FITNESS = 'FITNESS',
+    CONSULTING = 'CONSULTING',
+    OTHER_SERVICE = 'OTHER_SERVICE',
+}
+
+export const SERVICE_CATEGORIES = [
+    { value: ServiceCategory.GROOMING, label: 'Grooming', description: 'Barbing, hairdressing, shaving' },
+    { value: ServiceCategory.BEAUTY_WELLNESS, label: 'Beauty & Wellness', description: 'Makeup, spa, skincare treatments' },
+    { value: ServiceCategory.CREATIVE, label: 'Creative', description: 'Photography, videography, content creation' },
+    { value: ServiceCategory.DIGITAL, label: 'Digital Services', description: 'Web development, graphic design, social media' },
+    { value: ServiceCategory.WRITING_TRANSLATION, label: 'Writing & Translation', description: 'Copywriting, editing, translation' },
+    { value: ServiceCategory.TUTORING_COACHING, label: 'Tutoring & Coaching', description: 'Academic tutoring, mentoring, life coaching' },
+    { value: ServiceCategory.HOME_SERVICES, label: 'Home Services', description: 'Cleaning, repairs, laundry, plumbing' },
+    { value: ServiceCategory.FOOD_CATERING, label: 'Food & Catering', description: 'Catering, meal prep, baking' },
+    { value: ServiceCategory.EVENTS, label: 'Events', description: 'Event planning, decoration, DJ, MC' },
+    { value: ServiceCategory.FASHION_TAILORING, label: 'Fashion & Tailoring', description: 'Tailoring, alterations, custom clothing' },
+    { value: ServiceCategory.FITNESS, label: 'Fitness & Training', description: 'Personal training, yoga, sports coaching' },
+    { value: ServiceCategory.CONSULTING, label: 'Consulting', description: 'Business, career, financial consulting' },
+    { value: ServiceCategory.OTHER_SERVICE, label: 'Other Services', description: 'Other professional services' },
+] as const;
+
+export enum ServiceRateType {
+    FIXED = 'FIXED',
+    HOURLY = 'HOURLY',
+    PER_SESSION = 'PER_SESSION',
+    STARTING_FROM = 'STARTING_FROM',
+    CUSTOM = 'CUSTOM',
+}
+
+export const SERVICE_RATE_TYPES = [
+    { value: ServiceRateType.FIXED, label: 'Fixed Price', description: 'One-time fixed fee' },
+    { value: ServiceRateType.HOURLY, label: 'Per Hour', description: 'Charged by the hour' },
+    { value: ServiceRateType.PER_SESSION, label: 'Per Session', description: 'Charged per session' },
+    { value: ServiceRateType.STARTING_FROM, label: 'Starting From', description: 'Base price, may vary' },
+    { value: ServiceRateType.CUSTOM, label: 'Custom Quote', description: 'Price on request' },
+] as const;
+
+export enum ServiceLocation {
+    ON_SITE = 'ON_SITE',
+    REMOTE = 'REMOTE',
+    BOTH = 'BOTH',
+}
+
+export const SERVICE_LOCATIONS = [
+    { value: ServiceLocation.ON_SITE, label: 'On-Site', description: 'Service provided at a physical location' },
+    { value: ServiceLocation.REMOTE, label: 'Remote', description: 'Service provided online/remotely' },
+    { value: ServiceLocation.BOTH, label: 'Both', description: 'Available on-site and remotely' },
+] as const;
+
+export enum BookingStatus {
+    PENDING = 'PENDING',
+    CONFIRMED = 'CONFIRMED',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
+    CANCELLED = 'CANCELLED',
+    NO_SHOW = 'NO_SHOW',
+}
+
+export const BOOKING_STATUSES = [
+    { value: BookingStatus.PENDING, label: 'Pending', color: 'gold' },
+    { value: BookingStatus.CONFIRMED, label: 'Confirmed', color: 'blue' },
+    { value: BookingStatus.IN_PROGRESS, label: 'In Progress', color: 'processing' },
+    { value: BookingStatus.COMPLETED, label: 'Completed', color: 'green' },
+    { value: BookingStatus.CANCELLED, label: 'Cancelled', color: 'red' },
+    { value: BookingStatus.NO_SHOW, label: 'No Show', color: 'default' },
+] as const;
+
+/** Sentinel value for services: they have no physical stock. */
+export const SERVICE_UNLIMITED_STOCK = 999999;
+
+// ============================================================================
+// PLATFORM SETTINGS DEFAULTS
+// ============================================================================
+
+export const PLATFORM_DEFAULTS = {
+    /** Commission tiers (percentage as decimal) */
+    COMMISSION_DEFAULT: 0.05,
+    COMMISSION_PREMIUM: 0.03,
+    COMMISSION_CHURCH: 0.02,
+    /** Minimum order amount in NGN */
+    MIN_ORDER_AMOUNT: 500,
+    /** Maximum booking advance days */
+    MAX_BOOKING_ADVANCE_DAYS: 60,
+    /** Whether the platform currently processes payments */
+    PAYMENTS_ENABLED: false,
+    /** Payment notice message shown at checkout */
+    PAYMENT_NOTICE: 'Online payment processing is coming soon. For now, please arrange payment directly with the vendor after placing your order.',
 } as const;
 
 // ============================================================================
@@ -427,10 +637,10 @@ export const FILE_UPLOAD = {
 // ============================================================================
 
 export const APP_CONFIG = {
-    NAME: 'HarvestHub',
-    DESCRIPTION: 'E-Commerce Marketplace for the Harvesters Community',
-    URL: 'https://harvesthub.ng',
-    SUPPORT_EMAIL: 'support@harvesthub.ng',
+    NAME: 'MyHarvestHub',
+    DESCRIPTION: 'Faith-Based E-Marketplace for Christian Communities',
+    URL: 'https://myharvesthub.org',
+    SUPPORT_EMAIL: 'support@myharvesthub.org',
     SUPPORT_PHONE: '+234 800 000 0000',
 } as const;
 
@@ -451,6 +661,56 @@ export const APP_CONFIG = {
  * every new theme variant only needs one entry here, keeping components
  * theme-agnostic and easy to extend.
  */
+export enum BugReportCategory {
+    UI_ISSUE = 'UI_ISSUE',
+    PAYMENT = 'PAYMENT',
+    ORDER = 'ORDER',
+    ACCOUNT = 'ACCOUNT',
+    PERFORMANCE = 'PERFORMANCE',
+    OTHER = 'OTHER',
+}
+
+export enum BugReportPriority {
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH',
+    CRITICAL = 'CRITICAL',
+}
+
+export enum BugReportStatus {
+    OPEN = 'OPEN',
+    IN_PROGRESS = 'IN_PROGRESS',
+    RESOLVED = 'RESOLVED',
+    CLOSED = 'CLOSED',
+}
+
+export const BUG_REPORT_CATEGORIES = [
+    { value: BugReportCategory.UI_ISSUE, label: 'UI / Display Issue' },
+    { value: BugReportCategory.PAYMENT, label: 'Payment Problem' },
+    { value: BugReportCategory.ORDER, label: 'Order Issue' },
+    { value: BugReportCategory.ACCOUNT, label: 'Account Problem' },
+    { value: BugReportCategory.PERFORMANCE, label: 'Performance / Speed' },
+    { value: BugReportCategory.OTHER, label: 'Other' },
+];
+
+export const BUG_REPORT_PRIORITIES = [
+    { value: BugReportPriority.LOW, label: 'Low' },
+    { value: BugReportPriority.MEDIUM, label: 'Medium' },
+    { value: BugReportPriority.HIGH, label: 'High' },
+    { value: BugReportPriority.CRITICAL, label: 'Critical' },
+];
+
+export const BUG_REPORT_STATUSES = [
+    { value: BugReportStatus.OPEN, label: 'Open' },
+    { value: BugReportStatus.IN_PROGRESS, label: 'In Progress' },
+    { value: BugReportStatus.RESOLVED, label: 'Resolved' },
+    { value: BugReportStatus.CLOSED, label: 'Closed' },
+];
+
+// ============================================================================
+// BANNER CONFIGURATION
+// ============================================================================
+
 export const BANNER_CONFIG = {
     /** AUTO-ROTATION */
     HERO_DISPLAY_INTERVAL: 5000,   // 5 s – hero carousel

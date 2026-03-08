@@ -60,7 +60,7 @@ export default function VendorsPage() {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Our Vendors</h1>
           <p className="text-ds-text-secondary">
-            Discover trusted vendors from the HarvestHub community
+            Discover trusted vendors from the MyHarvestHub community
           </p>
         </div>
 

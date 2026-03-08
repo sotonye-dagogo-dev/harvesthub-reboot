@@ -1,5 +1,5 @@
 /**
- * HarvestHub Type System
+ * MyHarvestHub Type System
  * Comprehensive type definitions for the entire application
  * All types are globally available via tsconfig.json
  */
@@ -18,6 +18,18 @@ import {
     TransactionType,
     TransactionStatus,
     VendorStatus,
+    UserStatus,
+    Gender,
+    BannerPosition,
+    ReviewStatus,
+    BugReportCategory,
+    BugReportPriority,
+    BugReportStatus,
+    ListingType,
+    ServiceCategory,
+    ServiceRateType,
+    ServiceLocation,
+    BookingStatus,
 } from '@/lib/constants';
 
 // ============================================================================
@@ -163,10 +175,11 @@ export interface Product {
     name: string;
     description: string;
     category: ProductCategory;
+    listingType: ListingType;
     price: number;
     compareAtPrice?: number | null;
     discount?: number; // Discount percentage (0-100)
-    stock: number;
+    stock: number; // For services, use SERVICE_UNLIMITED_STOCK sentinel
     images: URL[];
     mainImage: URL;
     variants?: ProductVariant[] | null;
@@ -179,6 +192,9 @@ export interface Product {
     totalReviews: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
+
+    // Service-specific fields (only when listingType === SERVICE)
+    serviceDetails?: ServiceDetails | null;
 
     // Relations
     vendor?: Vendor;
@@ -535,6 +551,8 @@ export interface UserFormData {
     position?: string;
     storeDescription?: string;
     businessAddress?: string;
+    serviceCategory?: string;
+    serviceLocation?: string;
     username?: string;
     bio?: string;
     profilePicture?: {
@@ -549,14 +567,16 @@ export interface ProductFormData {
     name: string;
     description: string;
     category: ProductCategory;
+    listingType: ListingType;
     price: number;
     compareAtPrice?: number;
-    stock: number;
+    stock?: number; // Optional for services (auto-set to SERVICE_UNLIMITED_STOCK)
     images: File[] | URL[];
     variants?: ProductVariant[];
     tags?: string[];
     isActive: boolean;
     isFeatured: boolean;
+    serviceDetails?: ServiceFormData;
 }
 
 export interface OrderFormData {
@@ -619,6 +639,91 @@ export interface VendorStoreFormData {
 }
 
 // ============================================================================
+// SERVICE & BOOKING TYPES
+// ============================================================================
+
+export interface ServiceDetails {
+    serviceCategory: ServiceCategory;
+    rateType: ServiceRateType;
+    rate: number;
+    durationMinutes?: number | null;
+    location: ServiceLocation;
+    availableSlots?: WeeklySlot[] | null;
+    requiresConsultation: boolean;
+    maxBookingsPerDay?: number | null;
+}
+
+export interface WeeklySlot {
+    id: ID;
+    dayOfWeek: number; // 0 = Sunday, 6 = Saturday
+    startTime: string; // "09:00"
+    endTime: string;   // "10:00"
+    isAvailable: boolean;
+}
+
+export interface Booking {
+    id: ID;
+    serviceId: ID;
+    buyerId: ID;
+    vendorId: ID;
+    scheduledDate: Timestamp;
+    scheduledTime: string;
+    durationMinutes: number;
+    status: BookingStatus;
+    notes?: string | null;
+    orderId?: ID | null;
+    price: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+
+    // Relations
+    service?: Product;
+    buyer?: Buyer;
+    vendor?: Vendor;
+    order?: Order;
+}
+
+export interface BookingFormData {
+    serviceId: ID;
+    scheduledDate: string; // ISO date string
+    scheduledTime: string; // "09:00"
+    notes?: string;
+}
+
+export interface ServiceFormData {
+    serviceCategory: ServiceCategory;
+    rateType: ServiceRateType;
+    rate: number;
+    durationMinutes?: number;
+    location: ServiceLocation;
+    availableSlots?: Omit<WeeklySlot, 'id'>[];
+    requiresConsultation?: boolean;
+    maxBookingsPerDay?: number;
+}
+
+// ============================================================================
+// PLATFORM SETTINGS TYPES
+// ============================================================================
+
+export interface PlatformCommissionTier {
+    id: string;
+    label: string;
+    rate: number;
+    description: string;
+}
+
+export interface PlatformSettings {
+    commissionTiers: PlatformCommissionTier[];
+    defaultCommissionRate: number;
+    minOrderAmount: number;
+    maxBookingAdvanceDays: number;
+    paymentsEnabled: boolean;
+    paymentNotice: string;
+    updatedAt: Timestamp;
+    updatedBy?: ID | null;
+}
+
+// ============================================================================
 // API RESPONSE TYPES
 // ============================================================================
 
@@ -678,6 +783,8 @@ export interface JWTPayload {
 
 export interface ProductFilters {
     category?: ProductCategory;
+    listingType?: ListingType;
+    serviceCategory?: ServiceCategory;
     minPrice?: number;
     maxPrice?: number;
     vendorId?: ID;
@@ -837,6 +944,139 @@ export interface MilestoneRecord {
     metadata?: Record<string, unknown>;
 }
 
+// ============================================================================
+// VOUCHER TYPES
+// ============================================================================
+
+export type VoucherTypeValue = 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_DELIVERY';
+
+export interface Voucher {
+    id: ID;
+    code: string;
+    type: VoucherTypeValue;
+    value: number;
+    minOrderAmount: number;
+    maxDiscount?: number | null;
+    usageLimit?: number | null;
+    usedCount: number;
+    perUserLimit: number;
+    validFrom: Timestamp;
+    validTo: Timestamp;
+    isActive: boolean;
+    applicableCategories: string[];
+    applicableVendors: string[];
+    createdBy: ID;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+export interface VoucherRedemption {
+    id: ID;
+    voucherId: ID;
+    userId: ID;
+    orderId?: ID | null;
+    discountApplied: number;
+    redeemedAt: Timestamp;
+}
+
+// ============================================================================
+// PROOF OF TRANSFER TYPES
+// ============================================================================
+
+export type ProofOfTransferStatusValue = 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface ProofOfTransfer {
+    id: ID;
+    orderId?: ID | null;
+    userId: ID;
+    imageUrl: string;
+    imagePublicId?: string | null;
+    bankReference?: string | null;
+    amount: number;
+    status: ProofOfTransferStatusValue;
+    verifiedBy?: ID | null;
+    verifiedAt?: Timestamp | null;
+    notes?: string | null;
+    createdAt: Timestamp;
+}
+
+// ============================================================================
+// PUSH SUBSCRIPTION TYPES
+// ============================================================================
+
+export interface PushSubscriptionRecord {
+    id: ID;
+    userId: ID;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    createdAt: Timestamp;
+}
+
+export interface NotificationPreference {
+    id: ID;
+    userId: ID;
+    orderUpdates: boolean;
+    promotions: boolean;
+    vendorMessages: boolean;
+    lowStock: boolean;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+// ============================================================================
+// ADVERTISER PAYMENT TYPES
+// ============================================================================
+
+export interface AdvertiserPayment {
+    id: ID;
+    adId: ID;
+    userId: ID;
+    amount: number;
+    proofImageUrl?: string | null;
+    proofPublicId?: string | null;
+    bankReference?: string | null;
+    status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+    verifiedBy?: ID | null;
+    verifiedAt?: Timestamp | null;
+    createdAt: Timestamp;
+}
+
+// ============================================================================
+// BUG REPORT TYPES
+// ============================================================================
+
+export type BugReportCategoryValue = 'UI_ISSUE' | 'PAYMENT' | 'ORDER' | 'ACCOUNT' | 'PERFORMANCE' | 'OTHER';
+export type BugReportPriorityValue = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type BugReportStatusValue = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+
+export interface BugReport {
+    id: ID;
+    category: BugReportCategoryValue;
+    priority: BugReportPriorityValue;
+    status: BugReportStatusValue;
+    subject: string;
+    details: string;
+    email: Email;
+    userId?: ID | null;
+    screenshotUrl?: string | null;
+    screenshotPublicId?: string | null;
+    adminNotes?: string | null;
+    resolvedBy?: ID | null;
+    resolvedAt?: Timestamp | null;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+export interface BugReportFormData {
+    category: BugReportCategoryValue;
+    priority: BugReportPriorityValue;
+    subject: string;
+    details: string;
+    email: string;
+    screenshot?: string | null;
+}
+
 export {
     UserRole,
     OrderStatus,
@@ -850,4 +1090,16 @@ export {
     TransactionType,
     TransactionStatus,
     VendorStatus,
+    UserStatus,
+    Gender,
+    BannerPosition,
+    ReviewStatus,
+    BugReportCategory,
+    BugReportPriority,
+    BugReportStatus,
+    ListingType,
+    ServiceCategory,
+    ServiceRateType,
+    ServiceLocation,
+    BookingStatus,
 };

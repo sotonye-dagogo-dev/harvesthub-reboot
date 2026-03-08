@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
         const vendorId = searchParams.get("vendorId");
         const minPrice = searchParams.get("minPrice");
         const maxPrice = searchParams.get("maxPrice");
+        const listingType = searchParams.get("listingType");
         const minRating = searchParams.get("minRating");
         const inStock = searchParams.get("inStock") === "true";
         const sort = searchParams.get("sort") || "newest";
@@ -41,6 +42,11 @@ export async function GET(request: NextRequest) {
         // Filter by vendor
         if (vendorId) {
             products = products.filter((p: Product) => p.vendorId === vendorId);
+        }
+
+        // Filter by listing type
+        if (listingType) {
+            products = products.filter((p: Product) => p.listingType === listingType);
         }
 
         // Filter by price range

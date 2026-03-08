@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import { Footer } from "@/components/layout";
 
 export const metadata: Metadata = {
-  title: "Login | HarvestHub",
-  description: "Sign in to your HarvestHub account",
+  title: "Login | MyHarvestHub",
+  description: "Sign in to your MyHarvestHub account",
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

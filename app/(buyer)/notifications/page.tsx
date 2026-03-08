@@ -7,7 +7,7 @@ import { Metadata } from "next";
 import { NotificationPreferences } from "@/components/features/NotificationPreferences";
 
 export const metadata: Metadata = {
-  title: "Notification Preferences - HarvestHub",
+  title: "Notification Preferences - MyHarvestHub",
   description: "Manage your notification settings",
 };
 

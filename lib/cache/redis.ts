@@ -12,7 +12,7 @@ function createRedisClient(): Redis | null {
 
   if (!url || !token) {
     console.warn(
-      '[HarvestHub] Redis env vars (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) are missing. ' +
+      '[MyHarvestHub] Redis env vars (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) are missing. ' +
         'Caching and rate limiting will be disabled.'
     );
     return null;
@@ -33,7 +33,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await redis.get<T>(prefixKey(key));
     return data ?? null;
   } catch (error) {
-    console.error(`[HarvestHub] Redis cacheGet error for key "${key}":`, error);
+    console.error(`[MyHarvestHub] Redis cacheGet error for key "${key}":`, error);
     return null;
   }
 }
@@ -56,7 +56,7 @@ export async function cacheSet(
       await redis.set(prefixed, data);
     }
   } catch (error) {
-    console.error(`[HarvestHub] Redis cacheSet error for key "${key}":`, error);
+    console.error(`[MyHarvestHub] Redis cacheSet error for key "${key}":`, error);
   }
 }
 
@@ -69,7 +69,7 @@ export async function cacheInvalidate(key: string): Promise<void> {
   try {
     await redis.del(prefixKey(key));
   } catch (error) {
-    console.error(`[HarvestHub] Redis cacheInvalidate error for key "${key}":`, error);
+    console.error(`[MyHarvestHub] Redis cacheInvalidate error for key "${key}":`, error);
   }
 }
 
@@ -101,7 +101,7 @@ export async function cacheInvalidatePattern(pattern: string): Promise<void> {
     } while (cursor !== '0');
   } catch (error) {
     console.error(
-      `[HarvestHub] Redis cacheInvalidatePattern error for pattern "${pattern}":`,
+      `[MyHarvestHub] Redis cacheInvalidatePattern error for pattern "${pattern}":`,
       error
     );
   }

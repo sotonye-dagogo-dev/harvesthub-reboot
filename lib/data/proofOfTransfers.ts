@@ -68,7 +68,7 @@ export const proofOfTransferDb = {
   update: (id: string, data: Partial<ProofOfTransferRecord>): ProofOfTransferRecord | null => {
     const index = proofStore.findIndex((p) => p.id === id);
     if (index === -1) return null;
-    const updated: ProofOfTransferRecord = { ...proofStore[index], ...data };
+    const updated: ProofOfTransferRecord = { ...proofStore[index]!, ...data };
     proofStore[index] = updated;
     return updated;
   },

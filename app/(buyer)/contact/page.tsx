@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact Us | HarvestHub",
-  description: "Get in touch with HarvestHub. We're here to help with any questions or concerns.",
+  title: "Contact Us | MyHarvestHub",
+  description: "Get in touch with MyHarvestHub. We're here to help with any questions or concerns.",
 };
 
 export default function ContactPage() {
@@ -29,10 +29,10 @@ export default function ContactPage() {
               <div>
                 <h3 className="mb-1 font-semibold text-ds-text-primary">Email</h3>
                 <a
-                  href="mailto:support@harvesthub.ng"
+                  href="mailto:support@myharvesthub.org"
                   className="text-ds-text-brand hover:underline"
                 >
-                  support@harvesthub.ng
+                  support@myharvesthub.org
                 </a>
                 <p className="mt-1 text-sm text-ds-text-secondary">
                   For general inquiries and support

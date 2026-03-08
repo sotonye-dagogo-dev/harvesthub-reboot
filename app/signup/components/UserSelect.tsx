@@ -49,8 +49,8 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
     <div className="w-full">
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Join HarvestHub</h1>
-        <p className="text-ds-text-secondary">Choose how you want to use HarvestHub</p>
+        <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Join MyHarvestHub</h1>
+        <p className="text-ds-text-secondary">Choose how you want to use MyHarvestHub</p>
       </div>
 
       {/* Account Type Cards */}

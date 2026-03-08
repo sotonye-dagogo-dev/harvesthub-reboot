@@ -33,13 +33,13 @@ export async function generateMetadata({ params }: VendorDetailPageProps): Promi
 
   if (!vendor) {
     return {
-      title: "Vendor Not Found | HarvestHub",
+      title: "Vendor Not Found | MyHarvestHub",
     };
   }
 
   return {
-    title: `${vendor.storeName} | HarvestHub`,
-    description: vendor.storeDescription || `Shop from ${vendor.storeName} on HarvestHub`,
+    title: `${vendor.storeName} | MyHarvestHub`,
+    description: vendor.storeDescription || `Shop from ${vendor.storeName} on MyHarvestHub`,
   };
 }
 

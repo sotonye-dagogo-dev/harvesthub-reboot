@@ -95,8 +95,9 @@ export default function VendorOrdersPage() {
                 { label: "Pending", value: "PENDING" },
                 { label: "Confirmed", value: "CONFIRMED" },
                 { label: "Processing", value: "PROCESSING" },
-                { label: "Ready", value: "READY" },
-                { label: "Completed", value: "COMPLETED" },
+                { label: "Ready for Pickup", value: "READY_FOR_PICKUP" },
+                { label: "Out for Delivery", value: "OUT_FOR_DELIVERY" },
+                { label: "Delivered", value: "DELIVERED" },
                 { label: "Cancelled", value: "CANCELLED" },
               ]}
             />

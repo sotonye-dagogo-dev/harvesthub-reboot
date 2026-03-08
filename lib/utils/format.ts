@@ -45,8 +45,9 @@ export function formatOrderStatus(status: OrderStatus): string {
         PENDING: "Pending",
         CONFIRMED: "Confirmed",
         PROCESSING: "Processing",
-        READY: "Ready for Pickup/Delivery",
-        COMPLETED: "Completed",
+        READY_FOR_PICKUP: "Ready for Pickup",
+        OUT_FOR_DELIVERY: "Out for Delivery",
+        DELIVERED: "Delivered",
         CANCELLED: "Cancelled",
         REFUNDED: "Refunded",
     };

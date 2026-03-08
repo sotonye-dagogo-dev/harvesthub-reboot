@@ -122,7 +122,7 @@ export const voucherDb = {
     const index = voucherStore.findIndex((v) => v.id === id);
     if (index === -1) return null;
     const updated: VoucherRecord = {
-      ...voucherStore[index],
+      ...voucherStore[index]!,
       ...data,
       updatedAt: new Date().toISOString(),
     };
@@ -133,9 +133,10 @@ export const voucherDb = {
   incrementUsedCount: (id: string): VoucherRecord | null => {
     const index = voucherStore.findIndex((v) => v.id === id);
     if (index === -1) return null;
+    const current = voucherStore[index]!;
     const updated: VoucherRecord = {
-      ...voucherStore[index],
-      usedCount: voucherStore[index].usedCount + 1,
+      ...current,
+      usedCount: current.usedCount + 1,
       updatedAt: new Date().toISOString(),
     };
     voucherStore[index] = updated;

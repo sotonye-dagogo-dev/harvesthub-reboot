@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | HarvestHub",
-  description: "HarvestHub Privacy Policy - Learn how we collect, use, and protect your data.",
+  title: "Privacy Policy | MyHarvestHub",
+  description: "MyHarvestHub Privacy Policy - Learn how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
               1. Introduction
             </h2>
             <p className="text-ds-text-secondary">
-              HarvestHub (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This
+              MyHarvestHub (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This
               Privacy Policy explains how we collect, use, disclose, and safeguard your information
               when you use our e-commerce marketplace platform.
             </p>
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
               <li>Withdraw consent for data processing</li>
             </ul>
             <p className="mt-4 text-ds-text-secondary">
-              To exercise these rights, contact us at privacy@harvesthub.ng
+              To exercise these rights, contact us at privacy@myharvesthub.org
             </p>
           </section>
 
@@ -179,7 +179,7 @@ export default function PrivacyPolicyPage() {
               For questions about this Privacy Policy, contact us:
             </p>
             <ul className="space-y-1 text-ds-text-secondary">
-              <li>Email: privacy@harvesthub.ng</li>
+              <li>Email: privacy@myharvesthub.org</li>
               <li>Phone: +234 801 234 5678</li>
               <li>Address: Harvesters International Christian Centre, Oregun, Lagos, Nigeria</li>
             </ul>
@@ -188,7 +188,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="mt-12 border-t border-ds-border-base pt-8">
           <p className="text-center text-ds-text-secondary">
-            By using HarvestHub, you agree to this Privacy Policy.{" "}
+            By using MyHarvestHub, you agree to this Privacy Policy.{" "}
             <Link href="/terms" className="text-ds-text-brand hover:underline">
               Read our Terms of Service
             </Link>

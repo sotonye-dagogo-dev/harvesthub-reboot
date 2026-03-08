@@ -17,6 +17,8 @@ export interface UserFormData {
     position?: string;
     storeDescription?: string;
     businessAddress?: string;
+    serviceCategory?: string;
+    serviceLocation?: string;
     username?: string;
     bio?: string;
     profilePicture?: {

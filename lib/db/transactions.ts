@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 
 /**
- * ACID Transaction Utilities for HarvestHub
+ * ACID Transaction Utilities for MyHarvestHub
  * All multi-table mutations must go through these wrappers to ensure data consistency.
  */
 

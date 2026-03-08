@@ -1,105 +1,122 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Heart, ShieldCheck, Users, Sparkles, HandCoins, Gift } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about HarvestHub - Your trusted marketplace connecting buyers with quality vendors across Lagos and beyond.",
+    "MyHarvestHub.org is a revolutionary faith-based e-marketplace connecting members of Christian worship centers with vendors within their communities.",
 };
 
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-6 text-4xl font-bold text-ds-text-primary">About HarvestHub</h1>
+        <h1 className="mb-6 text-4xl font-bold text-ds-text-primary">About MyHarvestHub</h1>
 
         <div className="space-y-8">
-          {/* Mission Section */}
+          {/* Introduction */}
           <section>
-            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
-              Our Mission
-            </h2>
-            <p className="text-ds-text-secondary">
-              HarvestHub is dedicated to creating a trusted e-commerce ecosystem that empowers
-              vendors and delights customers. We connect quality vendors with buyers across Lagos
-              and Nigeria, providing a platform that combines community trust with modern
-              technology.
+            <p className="text-lg leading-relaxed text-ds-text-secondary">
+              MyHarvestHub.org is a revolutionary faith-based e-marketplace designed to connect
+              members of Christian worship centers with vendors within their communities. This
+              platform seeks to create a unique environment where shared faith fosters trust,
+              collaboration, and affordable commerce.
             </p>
           </section>
 
-          {/* What We Do */}
+          {/* Mission */}
           <section>
-            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
-              What We Do
-            </h2>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-ds-md border border-ds-border-base p-6">
-                <h3 className="mb-2 font-semibold text-ds-text-primary">For Buyers</h3>
-                <p className="text-sm text-ds-text-secondary"> Browse quality products from verified vendors, enjoy flexible pickup and delivery options, and shop with confidence using our integrated wallet system. </p> </div> <div className="rounded-ds-md border border-ds-border-base p-6">
-                <h3 className="mb-2 font-semibold text-ds-text-primary">For Vendors</h3>
+            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">Our Mission</h2>
+            <p className="text-ds-text-secondary">
+              By reducing vendor commissions, leveraging corporate advertising, and offering
+              innovative incentives like coupon vouchers, MyHarvestHub.org aims to empower
+              Christian vendors, increase buyer engagement, and build stronger faith-based
+              communities.
+            </p>
+          </section>
+
+          {/* Key Pillars */}
+          <section>
+            <h2 className="mb-6 text-2xl font-semibold text-ds-text-primary">What We Stand For</h2>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <Heart className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Faith-Driven Trust</h3>
                 <p className="text-sm text-ds-text-secondary">
-                  Establish your digital storefront, reach customers across Lagos, manage inventory,
-                  track sales, and grow your business with our comprehensive vendor tools.
+                  A marketplace rooted in shared Christian values where trust is the foundation of
+                  every transaction.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <HandCoins className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Low Commissions</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Reduced vendor commissions so sellers keep more of what they earn, making commerce
+                  affordable for all.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <Users className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Community Commerce</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Connecting church members with vendors in their communities to build stronger,
+                  self-sustaining ecosystems.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <Gift className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Innovative Incentives</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Coupon vouchers and rewards that increase buyer engagement and bring value to
+                  every purchase.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <Sparkles className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Corporate Advertising</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Leveraging corporate ad partnerships to keep costs low for vendors while
+                  sustaining the platform.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-5">
+                <ShieldCheck className="mb-3 h-8 w-8 text-ds-text-brand" />
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Vendor Empowerment</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Tools and support that empower Christian vendors to grow their businesses and
+                  reach more customers.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* Our Values */}
+          {/* For Buyers & Vendors */}
           <section>
-            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
-              Our Values
-            </h2>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className="text-ds-text-brand">✓</span>
-                <div>
-                  <strong className="text-ds-text-primary">Trust & Integrity:</strong>
-                  <span className="text-ds-text-secondary">
-                    {" "}
-                    We verify vendors and ensure quality standards
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-ds-text-brand">✓</span>
-                <div>
-                  <strong className="text-ds-text-primary">Community First:</strong>
-                  <span className="text-ds-text-secondary">
-                    {" "}
-                    Supporting local businesses and church-affiliated vendors
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-ds-text-brand">✓</span>
-                <div>
-                  <strong className="text-ds-text-primary">Innovation:</strong>
-                  <span className="text-ds-text-secondary">
-                    {" "}
-                    Leveraging technology to create seamless shopping experiences
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-ds-text-brand">✓</span>
-                <div>
-                  <strong className="text-ds-text-primary">Excellence:</strong>
-                  <span className="text-ds-text-secondary">
-                    {" "}
-                    Commitment to quality in products, service, and user experience
-                  </span>
-                </div>
-              </li>
-            </ul>
+            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">Who We Serve</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="rounded-ds-md border border-ds-border-base p-6">
+                <h3 className="mb-2 font-semibold text-ds-text-primary">For Buyers</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Browse quality products from trusted vendors in your church community. Enjoy
+                  flexible pickup at church services, home delivery, coupon vouchers, and the
+                  confidence of buying from people who share your faith.
+                </p>
+              </div>
+              <div className="rounded-ds-md border border-ds-border-base p-6">
+                <h3 className="mb-2 font-semibold text-ds-text-primary">For Vendors</h3>
+                <p className="text-sm text-ds-text-secondary">
+                  Set up your digital storefront with low commissions, reach buyers across church
+                  campuses, and grow your business with the support of a community that trusts and
+                  values your work.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* Contact Section */}
           <section className="rounded-ds-md bg-ds-brand-surface p-6">
-            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
-              Get in Touch
-            </h2>
+            <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">Get in Touch</h2>
             <div className="space-y-3 text-ds-text-secondary">
               <p className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-ds-text-brand" />
@@ -113,8 +130,8 @@ export default function AboutPage() {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="h-5 w-5 text-ds-text-brand" />
-                <a href="mailto:support@harvesthub.ng" className="hover:text-ds-text-brand">
-                  support@harvesthub.ng
+                <a href="mailto:support@myharvesthub.org" className="hover:text-ds-text-brand">
+                  support@myharvesthub.org
                 </a>
               </p>
             </div>
@@ -126,7 +143,7 @@ export default function AboutPage() {
               href="/signup"
               className="inline-block rounded-ds-md bg-ds-brand-primary px-8 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
             >
-              Join HarvestHub Today
+              Join MyHarvestHub Today
             </Link>
           </div>
         </div>

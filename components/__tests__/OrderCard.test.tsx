@@ -64,14 +64,14 @@ describe("OrderCard Component", () => {
       expect(screen.getByText(/Processing/i)).toBeInTheDocument();
     });
 
-    it("should display READY status", () => {
-      render(<OrderCard {...mockOrderProps} status={OrderStatus.READY} />);
+    it("should display READY_FOR_PICKUP status", () => {
+      render(<OrderCard {...mockOrderProps} status={OrderStatus.READY_FOR_PICKUP} />);
 
-      expect(screen.getByText(/Ready/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ready for Pickup/i)).toBeInTheDocument();
     });
 
-    it("should display COMPLETED status", () => {
-      render(<OrderCard {...mockOrderProps} status={OrderStatus.COMPLETED} />);
+    it("should display DELIVERED status", () => {
+      render(<OrderCard {...mockOrderProps} status={OrderStatus.DELIVERED} />);
 
       expect(screen.getByText(/Completed/i)).toBeInTheDocument();
     });

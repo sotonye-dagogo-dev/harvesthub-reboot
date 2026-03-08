@@ -310,7 +310,7 @@ export default function HomePage() {
         <section className="rounded-ds-md bg-gradient-to-r from-ds-brand-primary to-ds-palette-purple-800 p-8 text-center text-white dark:from-ds-palette-purple-800">
           <h2 className="mb-4 text-3xl font-bold">Ready to Start Selling?</h2>
           <p className="mb-6 text-lg opacity-90">
-            Join hundreds of vendors already selling on HarvestHub
+            Join hundreds of vendors already selling on MyHarvestHub
           </p>
           <Link
             href="/signup"

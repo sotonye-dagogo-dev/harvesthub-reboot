@@ -111,7 +111,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
             <div className="flex w-full items-start justify-between">
               <Image
                 src="/dark-bg-harvesters-Logo.jpg"
-                alt="HarvestHub Logo"
+                alt="MyHarvestHub Logo"
                 preview={false}
                 className="w-20 h-20 self-start"
               />
@@ -124,7 +124,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
             </div>
             <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
               <h3 className="text-[40px] leading-[44px]">Create Your Account</h3>
-              <p className="text-sm font-light">Join HarvestHub today and start your journey</p>
+              <p className="text-sm font-light">Join MyHarvestHub today and start your journey</p>
               <Image
                 src="/Points.svg"
                 alt="Points"
@@ -146,7 +146,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               className="w-20 h-20 self-start"
             />
             <p className="text-xs font-thin text-ds-text-secondary">
-              Join HarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
+              Join MyHarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
             </p>
           </div>
 

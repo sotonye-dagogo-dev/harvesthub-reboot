@@ -7,8 +7,8 @@ import "@/app/_styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | HarvestHub",
-    default: "HarvestHub | E-Commerce Marketplace",
+    template: "%s | MyHarvestHub",
+    default: "MyHarvestHub | Faith-Based E-Marketplace",
   },
   description:
     "A comprehensive e-commerce marketplace connecting buyers and vendors. Shop from verified vendors with integrated wallet, flexible pickup and delivery options.",
@@ -19,24 +19,24 @@ export const metadata: Metadata = {
     "Nigeria",
     "church vendors",
     "online shopping",
-    "HarvestHub",
+    "MyHarvestHub",
   ],
-  authors: [{ name: "HarvestHub Team" }],
-  creator: "HarvestHub",
-  publisher: "HarvestHub",
-  metadataBase: new URL("https://harvesthub.ng"),
+  authors: [{ name: "MyHarvestHub Team" }],
+  creator: "MyHarvestHub",
+  publisher: "MyHarvestHub",
+  metadataBase: new URL("https://myharvesthub.org"),
   openGraph: {
     type: "website",
     locale: "en_NG",
-    url: "https://harvesthub.ng",
-    title: "HarvestHub | E-Commerce Marketplace",
-    description: "A comprehensive e-commerce marketplace connecting buyers and vendors in Nigeria.",
-    siteName: "HarvestHub",
+    url: "https://myharvesthub.org",
+    title: "MyHarvestHub | Faith-Based E-Marketplace",
+    description: "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
+    siteName: "MyHarvestHub",
   },
   twitter: {
     card: "summary_large_image",
-    title: "HarvestHub | E-Commerce Marketplace",
-    description: "A comprehensive e-commerce marketplace connecting buyers and vendors in Nigeria.",
+    title: "MyHarvestHub | Faith-Based E-Marketplace",
+    description: "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
   },
   robots: {
     index: true,

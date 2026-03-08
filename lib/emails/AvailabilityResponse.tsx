@@ -26,7 +26,7 @@ export function AvailabilityResponse({
   estimatedPrice,
   vendorMessage,
 }: AvailabilityResponseProps) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org';
 
   return (
     <EmailLayout

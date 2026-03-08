@@ -114,7 +114,7 @@ export function TopAdBanner() {
   const stripContent = (
     <div
       className={cn(
-        "relative flex h-[56px] w-full items-center justify-between gap-2 overflow-hidden px-3 text-sm sm:h-[64px]",
+        "relative flex h-[72px] w-full items-center justify-between gap-2 overflow-hidden px-3 text-sm sm:h-[84px]",
         !hasImage && themeClasses.bg,
         themeClasses.text
       )}
@@ -133,7 +133,7 @@ export function TopAdBanner() {
             priority
           />
           {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/55" />
         </>
       )}
 
@@ -154,7 +154,7 @@ export function TopAdBanner() {
       )}
 
       {/* Message */}
-      <p className="relative z-10 flex-1 truncate text-center text-xs font-medium sm:text-sm">
+      <p className="relative z-10 flex-1 truncate text-center text-sm font-semibold sm:text-base">
         {banner.title}
       </p>
 

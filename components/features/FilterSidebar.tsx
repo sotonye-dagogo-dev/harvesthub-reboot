@@ -4,9 +4,11 @@ import { useState } from "react";
 import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { LISTING_TYPES } from "@/lib/constants";
 
 export interface FilterOptions {
   categories?: string[];
+  listingType?: string;
   priceRange?: { min: number; max: number };
   rating?: number;
   vendors?: string[];
@@ -82,6 +84,13 @@ export function FilterSidebar({
     onFilterChange({ ...filters, rating: filters.rating === rating ? undefined : rating });
   };
 
+  const handleListingTypeToggle = (type: string) => {
+    onFilterChange({
+      ...filters,
+      listingType: filters.listingType === type ? undefined : type,
+    });
+  };
+
   const handleClearAll = () => {
     onFilterChange({});
   };
@@ -97,6 +106,24 @@ export function FilterSidebar({
         >
           Clear all
         </button>
+      </div>
+
+      {/* Listing Type */}
+      <div>
+        <h4 className="mb-3 font-medium text-ds-text-primary">Type</h4>
+        <div className="space-y-2">
+          {LISTING_TYPES.map((type) => (
+            <label key={type.value} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.listingType === type.value}
+                onChange={() => handleListingTypeToggle(type.value)}
+                className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+              />
+              <span className="text-sm text-ds-text-secondary">{type.label}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Categories */}

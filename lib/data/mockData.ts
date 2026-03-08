@@ -1,5 +1,5 @@
-﻿/**
- * HarvestHub Mock Data
+/**
+ * MyHarvestHub Mock Data
  * 
  * Comprehensive sample data matching lib/types.ts structure
  * All entities maintain referential integrity
@@ -31,6 +31,11 @@ import {
     TransactionType,
     TransactionStatus,
     VendorStatus,
+    ListingType,
+    ServiceCategory,
+    ServiceRateType,
+    ServiceLocation,
+    SERVICE_UNLIMITED_STOCK,
 } from '@/lib/constants';
 
 import type {
@@ -269,6 +274,20 @@ export const mockUsers: User[] = [
         createdAt: new Date('2025-01-19'),
         updatedAt: new Date('2025-01-24'),
     },
+    // Service vendor user
+    {
+        id: 'user-vendor-006',
+        email: 'grace.okafor@gmail.com',
+        firstName: 'Grace',
+        lastName: 'Okafor',
+        phoneNumber: '+2348098765432',
+        role: UserRole.VENDOR,
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=grace',
+        emailVerified: true,
+        isActive: true,
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-24'),
+    },
 ];
 
 // ===================================
@@ -445,7 +464,7 @@ export const mockVendors: Vendor[] = [
             businessHours: 'Mon-Sat: 9AM-6PM',
             policies: {
                 returnPolicy: 'Demo return policy: Returns accepted within 7 days.',
-                shippingPolicy: 'Demo shipping policy: Free delivery for orders above â‚¦5,000',
+                shippingPolicy: 'Demo shipping policy: Free delivery for orders above ₦5,000',
             },
         },
         analytics: {
@@ -483,7 +502,7 @@ export const mockVendors: Vendor[] = [
             businessHours: 'Mon-Sat: 8AM-6PM',
             policies: {
                 returnPolicy: 'Fresh produce can be returned within 24 hours if not satisfactory.',
-                shippingPolicy: 'Free delivery for orders above â‚¦10,000',
+                shippingPolicy: 'Free delivery for orders above ₦10,000',
             },
         },
         analytics: {
@@ -631,11 +650,42 @@ export const mockVendors: Vendor[] = [
         createdAt: new Date('2025-01-14'),
         updatedAt: new Date('2025-01-24'),
     },
+    // Service vendor
+    {
+        id: 'vendor-006',
+        userId: 'user-vendor-006',
+        storeName: "Grace's Glow Studio",
+        storeDescription:
+            'Professional grooming, hairdressing, and beauty services. Walk-ins welcome, bookings preferred. Serving the Harvesters community with excellence.',
+        category: VendorCategory.SERVICES,
+        whatsappNumber: '+2348098765432',
+        campus: Campus.LEKKI,
+        position: Position.SMALL_GROUP_LEADER,
+        status: VendorStatus.APPROVED,
+        isChurchAffiliated: true,
+        commissionRate: 0.02,
+        storeLogo: 'https://api.dicebear.com/7.x/shapes/svg?seed=graceglow',
+        storeBanner: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=400&fit=crop',
+        storeSettings: {
+            allowsPickup: false,
+            allowsDelivery: false,
+            pickupServices: [],
+            deliveryZones: [],
+            businessHours: '9:00 AM - 7:00 PM',
+        },
+        analytics: {
+            totalSales: 85000,
+            totalOrders: 42,
+            totalProducts: 5,
+            averageRating: 4.8,
+            totalReviews: 38,
+            conversionRate: 0.45,
+            lastUpdated: new Date('2025-01-24'),
+        },
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-24'),
+    },
 ];
-
-// ===================================
-// PRODUCTS (Continuing in next chunk due to size)
-// ===================================
 
 export const mockProducts: Product[] = [
     // Chioma's Fresh Farms Products
@@ -646,6 +696,7 @@ export const mockProducts: Product[] = [
         description:
             'Juicy, vine-ripened organic tomatoes harvested fresh from our farms. Perfect for salads, stews, and sauces.',
         category: ProductCategory.FARM_PRODUCE,
+        listingType: ListingType.PRODUCT,
         price: 2500,
         compareAtPrice: 3000,
         discount: 17,
@@ -672,6 +723,7 @@ export const mockProducts: Product[] = [
         description:
             'Free-range chicken eggs from healthy, well-fed chickens. Rich in protein and nutrients.',
         category: ProductCategory.FARM_PRODUCE,
+        listingType: ListingType.PRODUCT,
         price: 1800,
         stock: 200,
         images: [
@@ -696,6 +748,7 @@ export const mockProducts: Product[] = [
         description:
             'Crispy, fresh spinach leaves rich in iron and vitamins. Great for soups, salads, and smoothies.',
         category: ProductCategory.FARM_PRODUCE,
+        listingType: ListingType.PRODUCT,
         price: 1200,
         stock: 80,
         images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=800'],
@@ -719,6 +772,7 @@ export const mockProducts: Product[] = [
         description:
             'Stylish African print shirt for men. Made from quality ankara fabric with modern tailoring.',
         category: ProductCategory.FASHION,
+        listingType: ListingType.PRODUCT,
         price: 8500,
         compareAtPrice: 12000,
         discount: 29,
@@ -757,6 +811,7 @@ export const mockProducts: Product[] = [
         description:
             'Elegant African print dress with modern cut. Perfect for events, church, and special occasions.',
         category: ProductCategory.FASHION,
+        listingType: ListingType.PRODUCT,
         price: 12000,
         compareAtPrice: 15000,
         discount: 20,
@@ -797,6 +852,7 @@ export const mockProducts: Product[] = [
         description:
             'Premium face cream with natural ingredients for glowing, youthful skin. Suitable for all skin types.',
         category: ProductCategory.BEAUTY,
+        listingType: ListingType.PRODUCT,
         price: 5500,
         compareAtPrice: 7000,
         discount: 21,
@@ -823,6 +879,7 @@ export const mockProducts: Product[] = [
         description:
             'Set of 5 long-lasting matte lipsticks in trending shades. Smooth application, vibrant colors.',
         category: ProductCategory.BEAUTY,
+        listingType: ListingType.PRODUCT,
         price: 8000,
         compareAtPrice: 10000,
         discount: 20,
@@ -851,6 +908,7 @@ export const mockProducts: Product[] = [
         description:
             'High-quality wireless earbuds with noise cancellation. Crystal clear sound, 24-hour battery life.',
         category: ProductCategory.ELECTRONICS,
+        listingType: ListingType.PRODUCT,
         price: 15000,
         compareAtPrice: 20000,
         discount: 25,
@@ -884,6 +942,7 @@ export const mockProducts: Product[] = [
         description:
             '20,000mAh power bank with dual USB ports. Fast charging support for all devices.',
         category: ProductCategory.ELECTRONICS,
+        listingType: ListingType.PRODUCT,
         price: 12000,
         stock: 45,
         images: ['https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800'],
@@ -907,6 +966,7 @@ export const mockProducts: Product[] = [
         description:
             '5-piece non-stick cookware set with glass lids. Includes frying pans, sauce pan, and casserole.',
         category: ProductCategory.HOME_KITCHEN,
+        listingType: ListingType.PRODUCT,
         price: 18000,
         compareAtPrice: 25000,
         discount: 28,
@@ -933,6 +993,7 @@ export const mockProducts: Product[] = [
         description:
             'Set of 10 glass food storage containers with airtight lids. Microwave and dishwasher safe.',
         category: ProductCategory.HOME_KITCHEN,
+        listingType: ListingType.PRODUCT,
         price: 8500,
         stock: 35,
         images: ['https://images.unsplash.com/photo-1586864387634-37a273b74380?w=800'],
@@ -946,6 +1007,150 @@ export const mockProducts: Product[] = [
         totalReviews: 56,
         createdAt: new Date('2025-01-17'),
         updatedAt: new Date('2025-01-24'),
+    },
+    // Grace's Glow Studio — Service Listings
+    {
+        id: 'prod-012',
+        vendorId: 'vendor-006',
+        name: 'Professional Haircut & Styling',
+        description:
+            'Expert haircut and styling service for men and women. Includes consultation, wash, cut, blow-dry, and styling. All hair types welcome.',
+        category: ProductCategory.SERVICES,
+        listingType: ListingType.SERVICE,
+        price: 5000,
+        stock: SERVICE_UNLIMITED_STOCK,
+        images: [
+            'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800',
+        ],
+        mainImage: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+        tags: ['haircut', 'styling', 'grooming', 'salon'],
+        isActive: true,
+        isFeatured: true,
+        views: 320,
+        sales: 85,
+        averageRating: 4.9,
+        totalReviews: 34,
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-24'),
+        serviceDetails: {
+            serviceCategory: ServiceCategory.GROOMING,
+            rateType: ServiceRateType.FIXED,
+            rate: 5000,
+            durationMinutes: 60,
+            location: ServiceLocation.ON_SITE,
+            requiresConsultation: false,
+            maxBookingsPerDay: 8,
+            availableSlots: [
+                { id: 'slot-001', dayOfWeek: 1, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-002', dayOfWeek: 1, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-003', dayOfWeek: 1, startTime: '11:00', endTime: '12:00', isAvailable: true },
+                { id: 'slot-004', dayOfWeek: 1, startTime: '13:00', endTime: '14:00', isAvailable: true },
+                { id: 'slot-005', dayOfWeek: 1, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                { id: 'slot-006', dayOfWeek: 2, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-007', dayOfWeek: 2, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-008', dayOfWeek: 2, startTime: '11:00', endTime: '12:00', isAvailable: true },
+                { id: 'slot-009', dayOfWeek: 2, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                { id: 'slot-010', dayOfWeek: 3, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-011', dayOfWeek: 3, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-012', dayOfWeek: 3, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                { id: 'slot-013', dayOfWeek: 4, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-014', dayOfWeek: 4, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-015', dayOfWeek: 4, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                { id: 'slot-016', dayOfWeek: 5, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-017', dayOfWeek: 5, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-018', dayOfWeek: 5, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                { id: 'slot-019', dayOfWeek: 6, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                { id: 'slot-020', dayOfWeek: 6, startTime: '10:00', endTime: '11:00', isAvailable: true },
+            ],
+        },
+    },
+    {
+        id: 'prod-013',
+        vendorId: 'vendor-006',
+        name: 'Makeup Artistry Session',
+        description:
+            'Full professional makeup session for events, photoshoots, and special occasions. Includes skin prep, application, and setting. Bring your own references or let me create a look for you.',
+        category: ProductCategory.SERVICES,
+        listingType: ListingType.SERVICE,
+        price: 15000,
+        compareAtPrice: 20000,
+        discount: 25,
+        stock: SERVICE_UNLIMITED_STOCK,
+        images: [
+            'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800',
+            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800',
+        ],
+        mainImage: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800',
+        tags: ['makeup', 'beauty', 'bridal', 'events'],
+        isActive: true,
+        isFeatured: false,
+        views: 210,
+        sales: 32,
+        averageRating: 4.8,
+        totalReviews: 18,
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-24'),
+        serviceDetails: {
+            serviceCategory: ServiceCategory.BEAUTY_WELLNESS,
+            rateType: ServiceRateType.PER_SESSION,
+            rate: 15000,
+            durationMinutes: 90,
+            location: ServiceLocation.BOTH,
+            requiresConsultation: true,
+            maxBookingsPerDay: 4,
+            availableSlots: [
+                { id: 'slot-m01', dayOfWeek: 1, startTime: '10:00', endTime: '11:30', isAvailable: true },
+                { id: 'slot-m02', dayOfWeek: 1, startTime: '14:00', endTime: '15:30', isAvailable: true },
+                { id: 'slot-m03', dayOfWeek: 2, startTime: '10:00', endTime: '11:30', isAvailable: true },
+                { id: 'slot-m04', dayOfWeek: 3, startTime: '10:00', endTime: '11:30', isAvailable: true },
+                { id: 'slot-m05', dayOfWeek: 4, startTime: '10:00', endTime: '11:30', isAvailable: true },
+                { id: 'slot-m06', dayOfWeek: 5, startTime: '10:00', endTime: '11:30', isAvailable: true },
+                { id: 'slot-m07', dayOfWeek: 6, startTime: '09:00', endTime: '10:30', isAvailable: true },
+                { id: 'slot-m08', dayOfWeek: 6, startTime: '11:00', endTime: '12:30', isAvailable: true },
+            ],
+        },
+    },
+    {
+        id: 'prod-014',
+        vendorId: 'vendor-006',
+        name: 'Social Media Content Creation',
+        description:
+            'Professional social media content creation package. Includes content strategy, 10 post designs, copywriting, and scheduling guidance. Perfect for small businesses and personal brands.',
+        category: ProductCategory.SERVICES,
+        listingType: ListingType.SERVICE,
+        price: 25000,
+        stock: SERVICE_UNLIMITED_STOCK,
+        images: [
+            'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800',
+            'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=800',
+        ],
+        mainImage: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800',
+        tags: ['content', 'social-media', 'digital', 'branding'],
+        isActive: true,
+        isFeatured: true,
+        views: 180,
+        sales: 15,
+        averageRating: 4.7,
+        totalReviews: 8,
+        createdAt: new Date('2025-01-21'),
+        updatedAt: new Date('2025-01-24'),
+        serviceDetails: {
+            serviceCategory: ServiceCategory.CREATIVE,
+            rateType: ServiceRateType.STARTING_FROM,
+            rate: 25000,
+            durationMinutes: null,
+            location: ServiceLocation.REMOTE,
+            requiresConsultation: true,
+            maxBookingsPerDay: 2,
+            availableSlots: [
+                { id: 'slot-c01', dayOfWeek: 1, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-c02', dayOfWeek: 2, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-c03', dayOfWeek: 3, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-c04', dayOfWeek: 4, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                { id: 'slot-c05', dayOfWeek: 5, startTime: '10:00', endTime: '11:00', isAvailable: true },
+            ],
+        },
     },
 ];
 
@@ -1320,7 +1525,7 @@ export const mockOrders: Order[] = [
         orderNumber: 'ORD-2025-001',
         buyerId: 'buyer-001',
         vendorId: 'vendor-001',
-        status: OrderStatus.COMPLETED,
+        status: OrderStatus.DELIVERED,
         items: [
             {
                 id: 'order-item-001',
@@ -1368,12 +1573,12 @@ export const mockOrders: Order[] = [
                 updatedBy: 'user-vendor-001',
             },
             {
-                status: OrderStatus.READY,
+                status: OrderStatus.READY_FOR_PICKUP,
                 timestamp: new Date('2025-01-20'),
                 updatedBy: 'user-vendor-001',
             },
             {
-                status: OrderStatus.COMPLETED,
+                status: OrderStatus.DELIVERED,
                 timestamp: new Date('2025-01-21'),
                 updatedBy: 'user-buyer-001',
             },
@@ -1387,7 +1592,7 @@ export const mockOrders: Order[] = [
         orderNumber: 'ORD-2025-002',
         buyerId: 'buyer-002',
         vendorId: 'vendor-003',
-        status: OrderStatus.READY,
+        status: OrderStatus.READY_FOR_PICKUP,
         items: [
             {
                 id: 'order-item-003',
@@ -1447,7 +1652,7 @@ export const mockOrders: Order[] = [
                 updatedBy: 'user-vendor-003',
             },
             {
-                status: OrderStatus.READY,
+                status: OrderStatus.READY_FOR_PICKUP,
                 timestamp: new Date('2025-01-24'),
                 updatedBy: 'user-vendor-003',
             },
@@ -1560,9 +1765,9 @@ export const mockReviews: Review[] = [
 // ===================================
 
 export const mockBanners: Banner[] = [
-    // â”€â”€â”€ HERO banners (large landing-page carousel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── HERO banners (large landing-page carousel) ──────────────────────────
 
-    // Church programme â€“ annual convention
+    // Church programme – annual convention
     {
         id: 'banner-001',
         title: 'Harvesters Annual Convention 2026',
@@ -1577,7 +1782,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'CHURCH',
         accentColor: '#b45309',
-        details: 'March 14â€“16, 2026 Â· Harvesters Oregun HQ Â· 7 AM & 4 PM daily',
+        details: 'March 14–16, 2026 · Harvesters Oregun HQ · 7 AM & 4 PM daily',
         knowMoreLabel: 'Know More',
         position: 'HERO',
         isActive: true,
@@ -1591,7 +1796,7 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-02-01'),
         createdBy: 'user-admin-001',
     },
-    // Promotional â€“ farm produce sale
+    // Promotional – farm produce sale
     {
         id: 'banner-002',
         title: 'Fresh Farms, Fresh Deals!',
@@ -1605,7 +1810,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'PROMOTION',
         accentColor: '#047857',
-        details: 'Use code FRESH20 at checkout. Offer valid Jan 27 â€“ Feb 3, 2026.',
+        details: 'Use code FRESH20 at checkout. Offer valid Jan 27 – Feb 3, 2026.',
         knowMoreLabel: 'See All Deals',
         position: 'HERO',
         isActive: true,
@@ -1619,12 +1824,12 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-01-26'),
         createdBy: 'user-admin-001',
     },
-    // Business â€“ fashion week
+    // Business – fashion week
     {
         id: 'banner-003',
         title: 'Fashion Week Special',
         subtitle: 'Up to 40% off',
-        description: 'Discover curated fashion from top HarvestHub vendors. Limited time, huge savings.',
+        description: 'Discover curated fashion from top MyHarvestHub vendors. Limited time, huge savings.',
         imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=600&fit=crop',
         linkUrl: '/products?category=fashion',
         actions: [
@@ -1632,7 +1837,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'BUSINESS',
         accentColor: '#7e22ce',
-        details: 'Valid Jan 15 â€“ Jan 30, 2026. Selected items only.',
+        details: 'Valid Jan 15 – Jan 30, 2026. Selected items only.',
         knowMoreLabel: 'Explore Looks',
         position: 'HERO',
         isActive: true,
@@ -1646,15 +1851,15 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-01-14'),
         createdBy: 'user-admin-001',
     },
-    // Church programme â€“ midweek service (no call-to-action â€“ tests fallback)
+    // Church programme – midweek service (no call-to-action – tests fallback)
     {
         id: 'banner-004',
         title: 'Midweek Recharge',
-        subtitle: 'Every Wednesday â€” 6 PM',
+        subtitle: 'Every Wednesday — 6 PM',
         description: 'Refresh and reconnect at our midweek service. All campuses. Online streaming available.',
         imageUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=600&fit=crop',
         linkUrl: null,
-        actions: null,          // intentionally no action â†’ fallback rendering tested
+        actions: null,          // intentionally no action → fallback rendering tested
         theme: 'CHURCH',
         accentColor: '#92400e',
         details: null,
@@ -1685,7 +1890,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'PROMOTION',
         accentColor: '#be185d',
-        details: 'Valid Jan 22 â€“ Feb 5, 2026.',
+        details: 'Valid Jan 22 – Feb 5, 2026.',
         knowMoreLabel: 'See Products',
         position: 'HERO',
         isActive: true,
@@ -1700,11 +1905,11 @@ export const mockBanners: Banner[] = [
         createdBy: 'user-admin-001',
     },
 
-    // â”€â”€â”€ TOP banners (small fixed strip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── TOP banners (small fixed strip) ─────────────────────────────────────
 
     {
         id: 'banner-top-001',
-        title: 'âš¡ New Vendor Alert: Shop Fresh Organic!',
+        title: '⚡ New Vendor Alert: Shop Fresh Organic!',
         subtitle: null,
         description: null,
         imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=100&fit=crop',
@@ -1725,7 +1930,7 @@ export const mockBanners: Banner[] = [
     },
     {
         id: 'banner-top-002',
-        title: 'ðŸŽ‰ Annual Convention â€” Register before seats fill up!',
+        title: '🎉 Annual Convention — Register before seats fill up!',
         subtitle: null,
         description: null,
         imageUrl: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&h=100&fit=crop',
@@ -1746,7 +1951,7 @@ export const mockBanners: Banner[] = [
     },
     {
         id: 'banner-top-003',
-        title: 'ðŸ›’ Free delivery on orders over â‚¦5,000 today only',
+        title: '🛒 Free delivery on orders over ₦5,000 today only',
         subtitle: null,
         description: null,
         imageUrl: '',

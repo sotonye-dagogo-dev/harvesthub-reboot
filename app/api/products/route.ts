@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         const isActive = searchParams.get("isActive");
         const isFeatured = searchParams.get("isFeatured");
         const search = searchParams.get("search") || undefined;
+        const listingType = searchParams.get("listingType") || undefined;
         const minPrice = searchParams.get("minPrice");
         const maxPrice = searchParams.get("maxPrice");
         const page = searchParams.get("page")
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
         const products = db.products.findAll({
             category,
             vendorId,
+            listingType,
             isActive: isActive !== null ? isActive === "true" : undefined,
             isFeatured: isFeatured !== null ? isFeatured === "true" : undefined,
             search,

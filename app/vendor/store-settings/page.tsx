@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button } from "@/components/ui";
-import { Upload, Camera, Store, MapPin, Clock, Truck, Phone, Mail } from "lucide-react";
+import { Upload, Camera, Store, MapPin, Clock, Truck, Phone, Mail, Percent, Info } from "lucide-react";
 import { Switch, Select, TimePicker, message, Input as AntInput } from "antd";
 import { mockVendors } from "@/lib/data/mockData";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
-import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES } from "@/lib/constants";
+import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
 
 const { TextArea } = AntInput;
 
@@ -62,6 +62,36 @@ export default function VendorStoreSettingsPage() {
         </div>
         <Button onClick={handleSave}>Save Changes</Button>
       </div>
+
+      {/* Commission Rate Info */}
+      <Card>
+        <div className="flex items-center gap-2 mb-3">
+          <Percent className="h-5 w-5 text-ds-text-brand" />
+          <h2 className="text-lg font-semibold text-ds-text-primary">Platform Commission</h2>
+        </div>
+        <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+          <div>
+            <p className="font-medium text-ds-text-primary">Your Commission Rate</p>
+            <p className="text-xs text-ds-text-secondary">
+              {vendor?.isChurchAffiliated
+                ? "Church-affiliated vendor rate"
+                : "Standard vendor rate"}{" "}
+              — applied to each sale
+            </p>
+          </div>
+          <div className="text-right">
+            <span className="text-2xl font-bold text-ds-text-brand">
+              {((vendor?.commissionRate ?? COMMISSION_RATES.DEFAULT) * 100).toFixed(1)}%
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex items-start gap-2 rounded-ds-sm bg-ds-surface-sunken p-3">
+          <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-ds-text-tertiary" />
+          <p className="text-xs text-ds-text-tertiary">
+            Commission is automatically deducted from your earnings on each sale. Contact the admin team for questions about your commission tier.
+          </p>
+        </div>
+      </Card>
 
       {/* Store Branding */}
       <Card>
