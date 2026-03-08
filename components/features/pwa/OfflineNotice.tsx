@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { X } from "lucide-react";
 
 type NoticeState = "hidden" | "offline-collapsed" | "offline-expanded" | "back-online";
 
@@ -107,10 +108,7 @@ export default function OfflineNotice() {
               className="rounded-full p-1 text-purple-300 transition-colors hover:bg-purple-700 hover:text-white"
               aria-label="Dismiss offline notice"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X size={16} />
             </button>
           </div>
           <p className="text-xs leading-relaxed text-purple-200">

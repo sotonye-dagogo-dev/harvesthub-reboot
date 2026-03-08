@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/utils/auth";
-
-// In-memory store (will be replaced with database in production)
-const subscriptions = new Map<string, { endpoint: string; keys: { p256dh: string; auth: string } }>();
+import { setSubscription } from "@/lib/data/pushSubscriptions";
 
 // POST /api/push/subscribe - Store push subscription for the authenticated user
 export async function POST(request: NextRequest) {
@@ -30,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    subscriptions.set(payload.userId, { endpoint, keys });
+    setSubscription(payload.userId, { endpoint, keys });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {

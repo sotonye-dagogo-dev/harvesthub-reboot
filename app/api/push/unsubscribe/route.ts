@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/utils/auth";
-
-// Shared in-memory store reference (in production this would be database operations)
-const subscriptions = new Map<string, unknown>();
+import { deleteSubscription } from "@/lib/data/pushSubscriptions";
 
 // POST /api/push/unsubscribe - Remove push subscription for the authenticated user
 export async function POST() {
@@ -20,7 +18,7 @@ export async function POST() {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    subscriptions.delete(payload.userId);
+    deleteSubscription(payload.userId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
