@@ -1,0 +1,601 @@
+// HarvestHub Database Schema
+// Matches lib/types.ts and lib/constants/index.ts
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  ADMIN
+  VENDOR
+  BUYER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum VendorCategory {
+  FARM_PRODUCE
+  FASHION
+  FOOD_BEVERAGES
+  BEAUTY
+  ELECTRONICS
+  HOME_KITCHEN
+  BOOKS
+  SERVICES
+  CRAFTS
+  OTHERS
+}
+
+enum ProductCategory {
+  FRUITS
+  VEGETABLES
+  GRAINS
+  DAIRY
+  MEAT
+  SEAFOOD
+  BEVERAGES
+  SNACKS
+  SPICES
+  ORGANIC
+  CLOTHING
+  SHOES
+  ACCESSORIES
+  SKINCARE
+  MAKEUP
+  HAIRCARE
+  FRAGRANCE
+  PHONES
+  LAPTOPS
+  AUDIO
+  KITCHEN
+  FURNITURE
+  DECOR
+  STATIONERY
+  TEXTBOOKS
+  FICTION
+  OTHERS
+}
+
+enum Campus {
+  LONDON
+  BIRMINGHAM
+  GLASGOW
+  MANCHESTER
+  HOUSTON
+  NORTH_LONDON
+  KENT
+  TORONTO
+  GBAGADA
+  MAGODO
+  IKORODU
+  IBADAN_JERICHO
+  AKOBO
+  APAPA
+  SURULERE
+  ABEOKUTA
+  ILUPEJU
+  YABA
+  PORT_HARCOURT
+  OLUYOLE
+  OGBA
+  ANTHONY
+  ALIMOSHO
+  IKEJA
+  IKOYI
+  ISOLO
+  IYANA_IPAJA
+  ABULE_EGBA
+  GHANA
+  ABUJA
+  LEKKI
+  GLOBE
+  AJAH
+  ONLINE
+}
+
+enum Position {
+  HOD
+  ASST_HOD
+  SUB_TEAM_LEADER
+  TEAM_LEAD
+  SMALL_GROUP_LEADER
+  ASST_SMALL_GROUP_LEADER
+  ZONAL_COORDINATOR
+  COMMUNITY_LEADER
+  DISTRICT_PASTOR
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  WALLET
+  BANK_TRANSFER
+  CARD
+  USSD
+}
+
+enum DeliveryMethod {
+  PICKUP
+  DELIVERY
+}
+
+enum PickupService {
+  SUNDAY_FIRST
+  SUNDAY_SECOND
+  MIDWEEK
+  SPECIAL_EVENT
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+  COMMISSION
+  PAYOUT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum BannerPosition {
+  TOP
+  HERO
+  SIDEBAR
+}
+
+enum BannerTheme {
+  BUSINESS
+  CHURCH
+  EVENT
+  PROMOTION
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  ORDER_CONFIRMED
+  ORDER_READY
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  DELIVERY_UPDATE
+  VENDOR_MESSAGE
+  LOW_STOCK
+  NEW_PRODUCT
+  PROMOTION
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  password        String
+  firstName       String
+  lastName        String
+  phoneNumber     String
+  role            UserRole   @default(BUYER)
+  profilePicture  String?
+  emailVerified   Boolean    @default(false)
+  isActive        Boolean    @default(true)
+  status          UserStatus @default(ACTIVE)
+
+  // Password reset
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  buyer         Buyer?
+  vendor        Vendor?
+  addresses     Address[]
+  notifications Notification[]
+  wallet        Wallet?
+  bannersCreated Banner[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Buyer {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  dateOfBirth DateTime?
+  gender      Gender?
+
+  // Preferences stored as JSON
+  preferences Json?     @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart    Cart?
+  orders  Order[]
+  reviews Review[]
+
+  @@index([userId])
+  @@map("buyers")
+}
+
+model Vendor {
+  id                String         @id @default(cuid())
+  userId            String         @unique
+  storeName         String
+  storeDescription  String?
+  category          VendorCategory
+  whatsappNumber    String
+  campus            Campus
+  position          Position?
+  status            VendorStatus   @default(PENDING)
+  isChurchAffiliated Boolean       @default(false)
+  commissionRate    Float          @default(0.05)
+  storeLogo         String?
+  storeBanner       String?
+
+  // Structured JSON fields
+  businessVerification Json?
+  storeSettings        Json         @default("{\"allowsPickup\":true,\"allowsDelivery\":false,\"pickupServices\":[],\"deliveryZones\":[]}")
+
+  // Denormalized analytics
+  totalSales     Float   @default(0)
+  totalOrders    Int     @default(0)
+  totalProducts  Int     @default(0)
+  averageRating  Float   @default(0)
+  totalReviews   Int     @default(0)
+  conversionRate Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+  orders   Order[]
+
+  @@index([userId])
+  @@index([campus])
+  @@index([category])
+  @@index([status])
+  @@map("vendors")
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  vendorId       String
+  name           String
+  description    String
+  category       ProductCategory
+  price          Float
+  compareAtPrice Float?
+  discount       Float           @default(0)
+  stock          Int             @default(0)
+  images         String[]
+  mainImage      String
+  variants       Json?
+  tags           String[]        @default([])
+  isActive       Boolean         @default(true)
+  isFeatured     Boolean         @default(false)
+  views          Int             @default(0)
+  sales          Int             @default(0)
+  averageRating  Float           @default(0)
+  totalReviews   Int             @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vendor     Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  reviews    Review[]
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@index([vendorId])
+  @@index([category])
+  @@index([isActive, isFeatured])
+  @@index([name])
+  @@index([price])
+  @@map("products")
+}
+
+model Cart {
+  id       String @id @default(cuid())
+  buyerId  String @unique
+  subtotal Float  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  buyer Buyer      @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@index([buyerId])
+  @@map("carts")
+}
+
+model CartItem {
+  id               String  @id @default(cuid())
+  cartId           String
+  productId        String
+  quantity         Int     @default(1)
+  selectedVariants Json?
+  price            Float
+  subtotal         Float
+
+  addedAt DateTime @default(now())
+
+  // Relations
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  orderNumber     String         @unique
+  buyerId         String
+  vendorId        String
+  status          OrderStatus    @default(PENDING)
+  subtotal        Float
+  deliveryFee     Float          @default(0)
+  total           Float
+  paymentStatus   PaymentStatus  @default(PENDING)
+  paymentMethod   PaymentMethod
+  deliveryMethod  DeliveryMethod
+  deliveryAddress Json?
+  pickupDetails   Json?
+  notes           String?
+  statusHistory   Json           @default("[]")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  buyer        Buyer         @relation(fields: [buyerId], references: [id])
+  vendor       Vendor        @relation(fields: [vendorId], references: [id])
+  items        OrderItem[]
+  transactions Transaction[]
+
+  @@index([buyerId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String  @id @default(cuid())
+  orderId          String
+  productId        String
+  productName      String
+  productImage     String
+  quantity         Int
+  selectedVariants Json?
+  price            Float
+  subtotal         Float
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  label        String
+  fullName     String
+  phoneNumber  String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  campus       Campus?
+  landmark     String?
+  isDefault    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Wallet {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  balance  Float   @default(0)
+  currency String  @default("NGN")
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  walletId      String
+  type          TransactionType
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  status        TransactionStatus @default(PENDING)
+  reference     String            @unique
+  description   String
+  metadata      Json?
+  orderId       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  order  Order? @relation(fields: [orderId], references: [id])
+
+  @@index([walletId])
+  @@index([reference])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Review {
+  id                 String       @id @default(cuid())
+  productId          String
+  buyerId            String
+  orderId            String
+  rating             Int
+  comment            String?
+  images             String[]     @default([])
+  isVerifiedPurchase Boolean      @default(true)
+  helpfulCount       Int          @default(0)
+  notHelpfulCount    Int          @default(0)
+  isFlagged          Boolean      @default(false)
+  status             ReviewStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyer   Buyer   @relation(fields: [buyerId], references: [id])
+
+  @@unique([productId, buyerId, orderId])
+  @@index([productId])
+  @@index([buyerId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model Banner {
+  id              String         @id @default(cuid())
+  title           String
+  subtitle        String?
+  description     String?
+  imageUrl        String
+  linkUrl         String?
+  actions         Json?
+  position        BannerPosition @default(HERO)
+  theme           BannerTheme    @default(BUSINESS)
+  accentColor     String?
+  details         String?
+  knowMoreLabel   String?
+  isActive        Boolean        @default(true)
+  startDate       DateTime       @default(now())
+  endDate         DateTime?
+  displayOrder    Int            @default(0)
+  targetAudience  UserRole[]     @default([])
+  clickCount      Int            @default(0)
+  impressionCount Int            @default(0)
+  createdBy       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@index([isActive, startDate, endDate])
+  @@index([position])
+  @@map("banners")
+}
+
+model Notification {
+  id       String           @id @default(cuid())
+  userId   String
+  type     NotificationType
+  title    String
+  message  String
+  link     String?
+  isRead   Boolean          @default(false)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}

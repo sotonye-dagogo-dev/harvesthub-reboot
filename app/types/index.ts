@@ -14,6 +14,7 @@ export interface UserFormData {
     storeType?: StoreType;
     storeCategory?: string;
     campus?: string;
+    position?: string;
     storeDescription?: string;
     businessAddress?: string;
     username?: string;

@@ -3,12 +3,13 @@
 import { Form, Input, Select } from "antd";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
-import { VENDOR_CATEGORIES, CAMPUS_LOCATIONS } from "@/lib/constants";
+import { VENDOR_CATEGORIES, CAMPUS_LOCATIONS, POSITION_OPTIONS } from "@/lib/constants";
 
 interface VendorInfoFields {
   storeName: string;
   storeCategory: string;
   campus: string;
+  position?: string;
   storeDescription: string;
 }
 
@@ -22,6 +23,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         storeName: formData.storeName,
         storeCategory: formData.storeCategory || undefined,
         campus: formData.campus || undefined,
+        position: formData.position || undefined,
         storeDescription: formData.storeDescription || "",
       });
     }
@@ -108,20 +110,35 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
             options={CAMPUS_LOCATIONS.map((campus) => ({
               value: campus.value,
               label: campus.label,
-              description: campus.description,
             }))}
             showSearch
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
-            optionRender={(option) => (
-              <div>
-                <div className="font-medium">{option.label}</div>
-                {option.data.description && (
-                  <div className="text-xs text-ds-text-tertiary">{option.data.description}</div>
-                )}
-              </div>
-            )}
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="position"
+          label={
+            <span className="text-ds-text-primary font-medium">
+              Position in Church (Optional)
+            </span>
+          }
+        >
+          <Select
+            size="large"
+            placeholder="Select your position"
+            className="rounded-ds-md"
+            allowClear
+            options={POSITION_OPTIONS.map((pos) => ({
+              value: pos.value,
+              label: pos.label,
+            }))}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
           />
         </Form.Item>
 

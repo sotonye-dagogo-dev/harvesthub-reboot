@@ -50,13 +50,52 @@ export enum PickupService {
 }
 
 export enum Campus {
-    OREGUN_HQ = 'OREGUN_HQ',
-    LEKKI = 'LEKKI',
-    VICTORIA_ISLAND = 'VICTORIA_ISLAND',
+    LONDON = 'LONDON',
+    BIRMINGHAM = 'BIRMINGHAM',
+    GLASGOW = 'GLASGOW',
+    MANCHESTER = 'MANCHESTER',
+    HOUSTON = 'HOUSTON',
+    NORTH_LONDON = 'NORTH_LONDON',
+    KENT = 'KENT',
+    TORONTO = 'TORONTO',
+    GBAGADA = 'GBAGADA',
+    MAGODO = 'MAGODO',
+    IKORODU = 'IKORODU',
+    IBADAN_JERICHO = 'IBADAN_JERICHO',
+    AKOBO = 'AKOBO',
+    APAPA = 'APAPA',
+    SURULERE = 'SURULERE',
+    ABEOKUTA = 'ABEOKUTA',
+    ILUPEJU = 'ILUPEJU',
+    YABA = 'YABA',
+    PORT_HARCOURT = 'PORT_HARCOURT',
+    OLUYOLE = 'OLUYOLE',
+    OGBA = 'OGBA',
+    ANTHONY = 'ANTHONY',
+    ALIMOSHO = 'ALIMOSHO',
     IKEJA = 'IKEJA',
-    FESTAC = 'FESTAC',
+    IKOYI = 'IKOYI',
+    ISOLO = 'ISOLO',
+    IYANA_IPAJA = 'IYANA_IPAJA',
+    ABULE_EGBA = 'ABULE_EGBA',
+    GHANA = 'GHANA',
+    ABUJA = 'ABUJA',
+    LEKKI = 'LEKKI',
+    GLOBE = 'GLOBE',
     AJAH = 'AJAH',
-    OUTSIDE_LAGOS = 'OUTSIDE_LAGOS',
+    ONLINE = 'ONLINE',
+}
+
+export enum Position {
+    HOD = 'HOD',
+    ASST_HOD = 'ASST_HOD',
+    SUB_TEAM_LEADER = 'SUB_TEAM_LEADER',
+    TEAM_LEAD = 'TEAM_LEAD',
+    SMALL_GROUP_LEADER = 'SMALL_GROUP_LEADER',
+    ASST_SMALL_GROUP_LEADER = 'ASST_SMALL_GROUP_LEADER',
+    ZONAL_COORDINATOR = 'ZONAL_COORDINATOR',
+    COMMUNITY_LEADER = 'COMMUNITY_LEADER',
+    DISTRICT_PASTOR = 'DISTRICT_PASTOR',
 }
 
 export enum VendorCategory {
@@ -113,48 +152,56 @@ export enum VendorStatus {
 // ============================================================================
 
 export const CAMPUS_LOCATIONS = [
-    {
-        value: Campus.OREGUN_HQ,
-        label: 'Oregun (Headquarters)',
-        description: 'Main campus in Oregun, Lagos',
-        address: 'Oregun, Lagos State',
-    },
-    {
-        value: Campus.LEKKI,
-        label: 'Lekki',
-        description: 'Lekki Peninsula campus',
-        address: 'Lekki, Lagos State',
-    },
-    {
-        value: Campus.VICTORIA_ISLAND,
-        label: 'Victoria Island',
-        description: 'Victoria Island business district',
-        address: 'Victoria Island, Lagos State',
-    },
-    {
-        value: Campus.IKEJA,
-        label: 'Ikeja',
-        description: 'Ikeja and environs',
-        address: 'Ikeja, Lagos State',
-    },
-    {
-        value: Campus.FESTAC,
-        label: 'Festac',
-        description: 'Festac Town',
-        address: 'Festac Town, Lagos State',
-    },
-    {
-        value: Campus.AJAH,
-        label: 'Ajah',
-        description: 'Ajah and Badore area',
-        address: 'Ajah, Lagos State',
-    },
-    {
-        value: Campus.OUTSIDE_LAGOS,
-        label: 'Outside Lagos',
-        description: 'Other Nigerian states',
-        address: 'Outside Lagos State',
-    },
+    { value: Campus.LONDON, label: 'London' },
+    { value: Campus.BIRMINGHAM, label: 'Birmingham' },
+    { value: Campus.GLASGOW, label: 'Glasgow' },
+    { value: Campus.MANCHESTER, label: 'Manchester' },
+    { value: Campus.HOUSTON, label: 'Houston' },
+    { value: Campus.NORTH_LONDON, label: 'North London' },
+    { value: Campus.KENT, label: 'Kent' },
+    { value: Campus.TORONTO, label: 'Toronto' },
+    { value: Campus.GBAGADA, label: 'Gbagada' },
+    { value: Campus.MAGODO, label: 'Magodo' },
+    { value: Campus.IKORODU, label: 'Ikorodu' },
+    { value: Campus.IBADAN_JERICHO, label: 'Ibadan Jericho' },
+    { value: Campus.AKOBO, label: 'Akobo' },
+    { value: Campus.APAPA, label: 'Apapa' },
+    { value: Campus.SURULERE, label: 'Surulere' },
+    { value: Campus.ABEOKUTA, label: 'Abeokuta' },
+    { value: Campus.ILUPEJU, label: 'Ilupeju' },
+    { value: Campus.YABA, label: 'Yaba' },
+    { value: Campus.PORT_HARCOURT, label: 'Port Harcourt' },
+    { value: Campus.OLUYOLE, label: 'Oluyole' },
+    { value: Campus.OGBA, label: 'Ogba' },
+    { value: Campus.ANTHONY, label: 'Anthony' },
+    { value: Campus.ALIMOSHO, label: 'Alimosho' },
+    { value: Campus.IKEJA, label: 'Ikeja' },
+    { value: Campus.IKOYI, label: 'Ikoyi' },
+    { value: Campus.ISOLO, label: 'Isolo' },
+    { value: Campus.IYANA_IPAJA, label: 'Iyana Ipaja' },
+    { value: Campus.ABULE_EGBA, label: 'Abule Egba' },
+    { value: Campus.GHANA, label: 'Ghana' },
+    { value: Campus.ABUJA, label: 'Abuja' },
+    { value: Campus.LEKKI, label: 'Lekki' },
+    { value: Campus.GLOBE, label: 'Globe' },
+    { value: Campus.AJAH, label: 'Ajah' },
+    { value: Campus.ONLINE, label: 'Online' },
+] as const;
+
+// ============================================================================
+// POSITION OPTIONS
+// ============================================================================
+
+export const POSITION_OPTIONS = [
+    { value: Position.HOD, label: 'HOD' },
+    { value: Position.ASST_HOD, label: 'Ass. HOD' },
+    { value: Position.SUB_TEAM_LEADER, label: 'Sub Team Leader' },
+    { value: Position.TEAM_LEAD, label: 'Team Lead' },
+    { value: Position.SMALL_GROUP_LEADER, label: 'Small Group Leader' },
+    { value: Position.ASST_SMALL_GROUP_LEADER, label: 'Ass. Small Group Leader' },
+    { value: Position.ZONAL_COORDINATOR, label: 'Zonal Coordinator' },
+    { value: Position.COMMUNITY_LEADER, label: 'Community Leader' },
+    { value: Position.DISTRICT_PASTOR, label: 'District Pastor' },
 ] as const;
 
 // ============================================================================

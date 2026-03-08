@@ -46,6 +46,7 @@ export interface RegisterData {
   category?: string;
   whatsappNumber?: string;
   campus?: string;
+  position?: string;
   isChurchAffiliated?: boolean;
 }
 
