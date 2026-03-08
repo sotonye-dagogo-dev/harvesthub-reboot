@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/data/database";
-import { VendorStatus } from "@/lib/constants";
+import { UserRole, VendorStatus, PickupService } from "@/lib/constants";
 
 // GET /api/vendors - Get vendor list (public)
 export async function GET(request: NextRequest) {
@@ -50,5 +50,124 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error("Get vendors error:", error);
         return NextResponse.json({ error: "Failed to fetch vendors" }, { status: 500 });
+    }
+}
+
+// POST /api/vendors - Create a new vendor (admin only, or during registration)
+export async function POST(request: NextRequest) {
+    try {
+        const { cookies } = await import("next/headers");
+        const { verifyToken } = await import("@/lib/utils/auth");
+
+        const cookieStore = await cookies();
+        const token = cookieStore.get("accessToken")?.value;
+
+        if (!token) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const payload = await verifyToken(token);
+        if (!payload) {
+            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        }
+
+        const user = db.users.findById(payload.userId);
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // Only admins can create vendor profiles for other users
+        // Vendors can only be created for users with VENDOR role
+        if (user.role !== UserRole.ADMIN && user.role !== UserRole.VENDOR) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const body = await request.json();
+        const {
+            userId,
+            storeName,
+            storeDescription,
+            category,
+            whatsappNumber,
+            campus,
+            position,
+            isChurchAffiliated,
+        } = body;
+
+        // Determine target user
+        const targetUserId = user.role === UserRole.ADMIN && userId ? userId : user.id;
+
+        // Validate target user exists and has VENDOR role
+        const targetUser = db.users.findById(targetUserId);
+        if (!targetUser) {
+            return NextResponse.json(
+                { error: "Target user not found" },
+                { status: 404 }
+            );
+        }
+        if (targetUser.role !== UserRole.VENDOR) {
+            return NextResponse.json(
+                { error: "Target user must have VENDOR role" },
+                { status: 400 }
+            );
+        }
+
+        // Check if vendor already exists for this user
+        const existingVendor = db.vendors.findByUserId(targetUserId);
+        if (existingVendor) {
+            return NextResponse.json(
+                { error: "Vendor profile already exists for this user" },
+                { status: 409 }
+            );
+        }
+
+        if (!storeName || !category || !whatsappNumber || !campus) {
+            return NextResponse.json(
+                { error: "storeName, category, whatsappNumber, and campus are required" },
+                { status: 400 }
+            );
+        }
+
+        const newVendor = db.vendors.create({
+            userId: targetUserId,
+            storeName,
+            storeDescription: storeDescription || null,
+            category,
+            whatsappNumber,
+            campus,
+            position: position || null,
+            status: VendorStatus.PENDING,
+            isChurchAffiliated: isChurchAffiliated ?? false,
+            commissionRate: 0.05,
+            storeLogo: null,
+            storeBanner: null,
+            businessVerification: null,
+            storeSettings: {
+                allowsPickup: true,
+                allowsDelivery: false,
+                pickupServices: [PickupService.SUNDAY_FIRST],
+                deliveryZones: [],
+                businessHours: null,
+                policies: {
+                    returnPolicy: null,
+                    shippingPolicy: null,
+                    privacyPolicy: null,
+                },
+            },
+            analytics: {
+                totalSales: 0,
+                totalOrders: 0,
+                totalProducts: 0,
+                averageRating: 0,
+                totalReviews: 0,
+                conversionRate: 0,
+                lastUpdated: new Date(),
+            },
+        });
+
+        return NextResponse.json({ success: true, vendor: newVendor }, { status: 201 });
+    } catch (error) {
+        console.error("Create vendor error:", error);
+        return NextResponse.json({ error: "Failed to create vendor" }, { status: 500 });
     }
 }
