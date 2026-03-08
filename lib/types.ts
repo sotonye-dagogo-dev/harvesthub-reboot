@@ -53,6 +53,10 @@ export interface User {
     resetToken?: string | null;
     resetTokenExpiry?: Timestamp | null;
 
+    // Email verification fields
+    emailVerificationToken?: string | null;
+    emailVerificationExpiry?: Timestamp | null;
+
     // Relations
     buyer?: Buyer | null;
     vendor?: Vendor | null;
@@ -754,6 +758,61 @@ export interface PlatformAnalytics {
     activeUsers: number;
     newUsers: number;
     period: string;
+}
+
+// ============================================================================
+// AVAILABILITY REQUEST TYPES
+// ============================================================================
+
+export type AvailabilityRequestStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'EXPIRED';
+
+export interface AvailabilityRequestItem {
+    productId: ID;
+    quantity: number;
+    productName: string;
+}
+
+export interface AvailabilityRequest {
+    id: ID;
+    buyerId: ID;
+    vendorId: ID;
+    items: AvailabilityRequestItem[];
+    buyerNote?: string | null;
+    status: AvailabilityRequestStatus;
+    vendorResponse?: string | null;
+    respondedAt?: Timestamp | null;
+    expiresAt: Timestamp;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+// ============================================================================
+// AD TYPES
+// ============================================================================
+
+export type AdStatus = 'PENDING_PAYMENT' | 'PENDING_REVIEW' | 'ACTIVE' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
+
+export interface Ad {
+    id: ID;
+    userId: ID;
+    title: string;
+    subtitle?: string | null;
+    ctaText?: string | null;
+    ctaLink?: string | null;
+    imageUrl: string;
+    imagePublicId?: string | null;
+    dailyRate: number;
+    totalCost: number;
+    startDate: Timestamp;
+    endDate: Timestamp;
+    duration: number;
+    status: AdStatus;
+    rejectionReason?: string | null;
+    paymentVerified: boolean;
+    impressions: number;
+    clicks: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export {
