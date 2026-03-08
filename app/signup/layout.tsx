@@ -105,9 +105,9 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-1 overflow-hidden">
         {/* Left section with purple gradient background */}
-        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-gradient-to-br from-purple-600 to-purple-800 p-10 text-white overflow-y-auto">
+        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-800 p-10 text-white overflow-y-auto">
           <div className="splines-bg"></div>
-          <div className="w-full flex flex-col justify-stretch items-center z-[2] pb-16">
+          <div className="w-full flex flex-col justify-stretch items-center z-ds-raised pb-16">
             <div className="flex w-full items-start justify-between">
               <Image
                 src="/dark-bg-harvesters-Logo.jpg"
@@ -138,14 +138,14 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
         {/* Right section with sign up form */}
         <div className="overflow-y-auto w-full md:w-2/3 lg:w-1/2 flex flex-col items-center gap-6 p-6 md:p-10">
           <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
-            <h6 className="text-[20px] leading-[22px] text-gray-900 dark:text-white">Sign up to</h6>
+            <h6 className="text-[20px] leading-[22px] text-ds-text-primary">Sign up to</h6>
             <Image
               src="/dark-bg-harvesters-Logo.jpg"
               alt="Logo"
               preview={false}
               className="w-20 h-20 self-start"
             />
-            <p className="text-xs font-thin text-gray-600 dark:text-gray-400">
+            <p className="text-xs font-thin text-ds-text-secondary">
               Join HarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
             </p>
           </div>
@@ -164,11 +164,11 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               {childrenWithProps}
             </div>
 
-            <p className="text-xs text-start w-full text-gray-700 dark:text-gray-300">
+            <p className="text-xs text-start w-full text-ds-text-secondary">
               Already have an account?{" "}
               <Link
                 href={"/"}
-                className="text-purple-600 hover:text-purple-700 font-medium underline hover:no-underline"
+                className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium underline hover:no-underline"
               >
                 Sign in here
               </Link>

@@ -1,8 +1,17 @@
 "use client";
 
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card } from "@/components/ui";
-import { Users, Package, ShoppingBag, Store, TrendingUp, AlertCircle } from "lucide-react";
+import { Card, StatCard } from "@/components/ui";
+import type { StatColorPreset } from "@/components/ui";
+import {
+  Users,
+  Package,
+  ShoppingBag,
+  Store,
+  TrendingUp,
+  AlertCircle,
+  LucideIcon,
+} from "lucide-react";
 import { mockUsers, mockVendors, mockProducts, mockOrders, mockReviews } from "@/lib/data/mockData";
 import { useMemo } from "react";
 import { OrderStatus } from "@/lib/constants";
@@ -23,78 +32,59 @@ export default function AdminDashboardPage() {
         title: "Total Users",
         value: mockUsers.length.toString(),
         icon: Users,
-        color: "text-purple-600 dark:text-purple-400",
-        bgColor: "bg-purple-50 dark:bg-purple-900/20",
+        colorPreset: "brand" as StatColorPreset,
       },
       {
         title: "Total Vendors",
         value: mockVendors.length.toString(),
         icon: Store,
-        color: "text-blue-600 dark:text-blue-400",
-        bgColor: "bg-blue-50 dark:bg-blue-900/20",
+        colorPreset: "info" as StatColorPreset,
       },
       {
         title: "Total Products",
         value: mockProducts.length.toString(),
         icon: Package,
-        color: "text-green-600 dark:text-green-400",
-        bgColor: "bg-green-50 dark:bg-green-900/20",
+        colorPreset: "success" as StatColorPreset,
       },
       {
         title: "Total Orders",
         value: mockOrders.length.toString(),
         icon: ShoppingBag,
-        color: "text-amber-600 dark:text-amber-400",
-        bgColor: "bg-amber-50 dark:bg-amber-900/20",
+        colorPreset: "warning" as StatColorPreset,
       },
       {
         title: "Revenue",
         value: `₦${totalRevenue.toLocaleString()}`,
         icon: TrendingUp,
-        color: "text-emerald-600 dark:text-emerald-400",
-        bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+        colorPreset: "success" as StatColorPreset,
       },
       {
         title: "Pending Reviews",
         value: pendingReviews.toString(),
         icon: AlertCircle,
-        color: "text-red-600 dark:text-red-400",
-        bgColor: "bg-red-50 dark:bg-red-900/20",
+        colorPreset: "error" as StatColorPreset,
       },
-    ];
+    ] satisfies { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[];
   }, []);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">Admin Dashboard</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Welcome back, {user?.firstName}! Here&apos;s your platform overview.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className={stat.bgColor}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {stat.title}
-                  </p>
-                  <p className={`mt-2 text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-                </div>
-                <Icon className={`h-12 w-12 ${stat.color}`} />
-              </div>
-            </Card>
-          );
-        })}
+        {stats.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
       </div>
 
       <Card>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Platform Management</h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <h2 className="text-lg font-semibold text-ds-text-primary">Platform Management</h2>
+        <p className="mt-2 text-sm text-ds-text-secondary">
           Platform administration tools will appear here. Manage vendors, products, and users from
           the sidebar.
         </p>

@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { mockVendors, mockProducts } from "@/lib/data/mockData";
 import { VendorCard } from "@/components/features";
-import { Input, Select, Empty } from "antd";
+import { Input, Select } from "antd";
+import { EmptyState } from "@/components/ui";
 import { Search } from "lucide-react";
 
 export default function VendorsPage() {
@@ -53,26 +54,26 @@ export default function VendorsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-950">
+    <div className="min-h-screen bg-ds-surface-sunken py-8 dark:bg-ds-surface-sunken">
       <div className="container mx-auto px-4">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Our Vendors</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Our Vendors</h1>
+          <p className="text-ds-text-secondary">
             Discover trusted vendors from the HarvestHub community
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-900">
+        <div className="mb-8 rounded-ds-md bg-ds-surface-base p-6 shadow-ds-sm dark:bg-ds-surface-base">
           <div className="grid gap-4 md:grid-cols-3">
             {/* Search */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
                 Search Vendors
               </label>
               <Input
-                prefix={<Search className="h-4 w-4 text-gray-400" />}
+                prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
                 placeholder="Search by name or description..."
                 size="large"
                 className="w-full"
@@ -84,7 +85,7 @@ export default function VendorsPage() {
 
             {/* Category Filter */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
                 Category
               </label>
               <Select
@@ -105,7 +106,7 @@ export default function VendorsPage() {
 
             {/* Campus Filter */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
                 Location
               </label>
               <Select
@@ -128,19 +129,19 @@ export default function VendorsPage() {
           {/* Active Filters Summary */}
           {(searchTerm || selectedCategory || selectedCampus) && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+              <span className="text-sm text-ds-text-secondary">Active filters:</span>
               {searchTerm && (
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   Search: &quot;{searchTerm}&quot;
                 </span>
               )}
               {selectedCategory && (
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   {selectedCategory.replace(/_/g, " ")}
                 </span>
               )}
               {selectedCampus && (
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
                   {selectedCampus.replace(/_/g, " ")}
                 </span>
               )}
@@ -150,7 +151,7 @@ export default function VendorsPage() {
                   setSelectedCategory("");
                   setSelectedCampus("");
                 }}
-                className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                className="text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
               >
                 Clear all
               </button>
@@ -161,7 +162,7 @@ export default function VendorsPage() {
         {/* Vendor Grid */}
         {filteredVendors.length > 0 ? (
           <>
-            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mb-4 text-sm text-ds-text-secondary">
               Showing {filteredVendors.length} of {allVendors.length}{" "}
               {filteredVendors.length === 1 ? "vendor" : "vendors"}
             </div>
@@ -182,20 +183,15 @@ export default function VendorsPage() {
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-white p-12 text-center shadow-sm dark:bg-gray-900">
-            <Empty
+          <div className="rounded-ds-md bg-ds-surface-base p-12 text-center shadow-ds-sm dark:bg-ds-surface-base">
+            <EmptyState
+              title="No Vendors Found"
               description={
-                <div>
-                  <p className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                    No Vendors Found
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {searchTerm || selectedCategory || selectedCampus
-                      ? "Try adjusting your filters to see more results"
-                      : "There are no vendors available at the moment"}
-                  </p>
-                </div>
+                searchTerm || selectedCategory || selectedCampus
+                  ? "Try adjusting your filters to see more results"
+                  : "There are no vendors available at the moment"
               }
+              icon={<Search className="h-10 w-10" />}
             />
           </div>
         )}

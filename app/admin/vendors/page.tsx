@@ -2,35 +2,32 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { Card, Button, EmptyState } from "@/components/ui";
 import { mockVendors, mockUsers, mockProducts } from "@/lib/data/mockData";
 import type { Vendor } from "@/lib/types";
-import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin } from "lucide-react";
-import { Input, Select, Table, Modal, message, Tag } from "antd";
+import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
+import { StatusTag } from "@/components/ui";
+import { Input, Select, Table, Modal, message, Tag, Tooltip } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { VendorStatus, CAMPUS_LOCATIONS, VENDOR_CATEGORIES } from "@/lib/constants";
+import { VendorStatus, CAMPUS_LOCATIONS } from "@/lib/constants";
 
 export default function AdminVendorsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
-  // Redirect if not admin
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
+  const [vendors, setVendors] = useState<Vendor[]>([...mockVendors]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const filteredVendors = useMemo(() => {
-    let filtered = [...mockVendors];
+    let filtered = [...vendors];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.storeName.toLowerCase().includes(query) || v.description?.toLowerCase().includes(query)
+          v.storeName.toLowerCase().includes(query) || v.storeDescription?.toLowerCase().includes(query)
       );
     }
 
@@ -41,29 +38,85 @@ export default function AdminVendorsPage() {
     return filtered.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [searchQuery, statusFilter]);
+  }, [vendors, searchQuery, statusFilter]);
+
+  // Redirect if not admin
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
+
+  const updateVendorStatus = async (vendorId: string, status: VendorStatus) => {
+    setLoadingId(vendorId);
+    try {
+      const res = await fetch(`/api/vendors/${vendorId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Update failed");
+      setVendors((prev) =>
+        prev.map((v) => (v.id === vendorId ? { ...v, status, updatedAt: new Date() } : v))
+      );
+      return true;
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : "Failed to update vendor status");
+      return false;
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   const handleApprove = (vendorId: string) => {
-    message.success("Vendor approved successfully");
+    Modal.confirm({
+      title: "Approve Vendor",
+      content: "Approve this vendor? They will be able to list products and accept orders.",
+      okText: "Approve",
+      okButtonProps: { style: { backgroundColor: "#22c55e", borderColor: "#22c55e" } },
+      onOk: async () => {
+        const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
+        if (ok) message.success("Vendor approved successfully");
+      },
+    });
   };
 
   const handleReject = (vendorId: string) => {
     Modal.confirm({
       title: "Reject Vendor",
-      content: "Are you sure you want to reject this vendor application?",
+      content: "Are you sure you want to reject this vendor application? The vendor will be notified.",
       okText: "Reject",
       okType: "danger",
-      onOk: () => message.success("Vendor rejected"),
+      onOk: async () => {
+        const ok = await updateVendorStatus(vendorId, VendorStatus.REJECTED);
+        if (ok) message.warning("Vendor application rejected");
+      },
     });
   };
 
   const handleSuspend = (vendorId: string) => {
     Modal.confirm({
       title: "Suspend Vendor",
-      content: "Are you sure you want to suspend this vendor?",
+      content: "Suspending this vendor will hide their store and products from buyers. Continue?",
       okText: "Suspend",
       okType: "danger",
-      onOk: () => message.success("Vendor suspended"),
+      onOk: async () => {
+        const ok = await updateVendorStatus(vendorId, VendorStatus.SUSPENDED);
+        if (ok) message.warning("Vendor has been suspended");
+      },
+    });
+  };
+
+  const handleUnsuspend = (vendorId: string) => {
+    Modal.confirm({
+      title: "Reactivate Vendor",
+      content: "Reactivate this vendor? Their store and products will become visible again.",
+      okText: "Reactivate",
+      okButtonProps: { style: { backgroundColor: "#22c55e", borderColor: "#22c55e" } },
+      onOk: async () => {
+        const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
+        if (ok) message.success("Vendor reactivated successfully");
+      },
     });
   };
 
@@ -71,13 +124,6 @@ export default function AdminVendorsPage() {
 
   const getVendorProductCount = (vendorId: string) =>
     mockProducts.filter((p) => p.vendorId === vendorId).length;
-
-  const statusColors: Record<string, string> = {
-    APPROVED: "green",
-    PENDING: "orange",
-    REJECTED: "red",
-    SUSPENDED: "volcano",
-  };
 
   const columns = [
     {
@@ -87,17 +133,17 @@ export default function AdminVendorsPage() {
         const vendorUser = getVendorUser(record);
         return (
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-full">
+            <div className="relative h-10 w-10 overflow-hidden rounded-ds-full">
               <Image
-                src={record.logoUrl || vendorUser?.profilePicture || "/placeholder-avatar.png"}
+                src={record.storeLogo || vendorUser?.profilePicture || "/placeholder-avatar.png"}
                 alt={record.storeName}
                 fill
                 className="object-cover"
               />
             </div>
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">{record.storeName}</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-medium text-ds-text-primary">{record.storeName}</p>
+              <p className="text-xs text-ds-text-tertiary">
                 {vendorUser?.firstName} {vendorUser?.lastName}
               </p>
             </div>
@@ -141,7 +187,7 @@ export default function AdminVendorsPage() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => <Tag color={statusColors[status] || "default"}>{status}</Tag>,
+      render: (status: string) => <StatusTag domain="vendor" status={status} />,
     },
     {
       title: "Actions",
@@ -158,33 +204,51 @@ export default function AdminVendorsPage() {
           </Button>
           {record.status === VendorStatus.PENDING && (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleApprove(record.id)}
-                title="Approve"
-              >
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleReject(record.id)}
-                title="Reject"
-              >
-                <XCircle className="h-4 w-4 text-red-500" />
-              </Button>
+              <Tooltip title="Approve">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleApprove(record.id)}
+                  disabled={loadingId === record.id}
+                >
+                  <CheckCircle className="h-4 w-4 text-ds-status-success" />
+                </Button>
+              </Tooltip>
+              <Tooltip title="Reject">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleReject(record.id)}
+                  disabled={loadingId === record.id}
+                >
+                  <XCircle className="h-4 w-4 text-ds-status-error" />
+                </Button>
+              </Tooltip>
             </>
           )}
-          {record.status === VendorStatus.APPROVED && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleSuspend(record.id)}
-              title="Suspend"
-            >
-              <Ban className="h-4 w-4 text-orange-500" />
-            </Button>
+                {record.status === VendorStatus.APPROVED && (
+            <Tooltip title="Suspend">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSuspend(record.id)}
+                disabled={loadingId === record.id}
+              >
+                <Ban className="h-4 w-4 text-ds-status-warning" />
+              </Button>
+            </Tooltip>
+          )}
+          {record.status === VendorStatus.SUSPENDED && (
+            <Tooltip title="Reactivate">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleUnsuspend(record.id)}
+                disabled={loadingId === record.id}
+              >
+                <RefreshCw className="h-4 w-4 text-ds-status-success" />
+              </Button>
+            </Tooltip>
           )}
         </div>
       ),
@@ -194,35 +258,37 @@ export default function AdminVendorsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vendor Management</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">Vendor Management</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Manage vendor accounts and applications ({filteredVendors.length} vendors)
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-green-50 dark:bg-green-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Approved</p>
-          <p className="text-2xl font-bold text-green-600">
-            {mockVendors.filter((v) => v.status === VendorStatus.APPROVED).length}
+        <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
+          <p className="text-sm text-ds-text-secondary">Approved</p>
+          <p className="text-2xl font-bold text-ds-status-success-text">
+            {vendors.filter((v) => v.status === VendorStatus.APPROVED).length}
           </p>
         </Card>
-        <Card className="bg-orange-50 dark:bg-orange-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-          <p className="text-2xl font-bold text-orange-600">
-            {mockVendors.filter((v) => v.status === VendorStatus.PENDING).length}
+        <Card className="bg-ds-status-warning-bg /20">
+          <p className="text-sm text-ds-text-secondary">Pending</p>
+          <p className="text-2xl font-bold text-ds-status-warning-text">
+            {vendors.filter((v) => v.status === VendorStatus.PENDING).length}
           </p>
         </Card>
-        <Card className="bg-red-50 dark:bg-red-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Rejected</p>
-          <p className="text-2xl font-bold text-red-600">
-            {mockVendors.filter((v) => v.status === VendorStatus.REJECTED).length}
+        <Card className="bg-ds-status-error-bg dark:bg-ds-status-error-bg/20">
+          <p className="text-sm text-ds-text-secondary">Rejected</p>
+          <p className="text-2xl font-bold text-ds-status-error-text">
+            {vendors.filter((v) => v.status === VendorStatus.REJECTED).length}
           </p>
         </Card>
-        <Card className="bg-purple-50 dark:bg-purple-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
-          <p className="text-2xl font-bold text-purple-600">{mockVendors.length}</p>
+        <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
+          <p className="text-sm text-ds-text-secondary">Suspended</p>
+          <p className="text-2xl font-bold text-ds-text-brand">
+            {vendors.filter((v) => v.status === VendorStatus.SUSPENDED).length}
+          </p>
         </Card>
       </div>
 
@@ -232,7 +298,7 @@ export default function AdminVendorsPage() {
           <div className="flex-1">
             <Input
               placeholder="Search vendors..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear

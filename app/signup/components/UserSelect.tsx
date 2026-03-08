@@ -49,53 +49,35 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
     <div className="w-full">
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Join HarvestHub</h1>
-        <p className="text-gray-600 dark:text-gray-400">Choose how you want to use HarvestHub</p>
+        <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Join HarvestHub</h1>
+        <p className="text-ds-text-secondary">Choose how you want to use HarvestHub</p>
       </div>
 
       {/* Account Type Cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = selectedType === option.name;
-          const IconComponent = option.icon === "buyer" ? ShoppingBag : Store;
-
-          return (
-            <button
-              key={option.name}
-              onClick={() => handleSelect(option.name)}
-              className={`group relative overflow-hidden rounded-xl border-2 p-6 text-left transition-all ${
-                isSelected
-                  ? "border-purple-600 bg-purple-50 dark:border-purple-500 dark:bg-purple-900/20"
-                  : "border-gray-200 bg-white hover:border-purple-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700"
-              }`}
-            >
-              {/* Icon */}
-              <div
-                className={`mb-4 inline-flex rounded-lg p-3 transition-colors ${
-                  isSelected
-                    ? "bg-purple-600 text-white"
-                    : "bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-900/30 dark:text-purple-400"
-                }`}
+          const IconComponent = option.icon === "buyer"? ShoppingBag : Store; return ( <button key={option.name} onClick={() => handleSelect(option.name)} className={`group relative overflow-hidden rounded-ds-lg border-2 p-6 text-left transition-all ${ isSelected ?"border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`} > {/* Icon */} <div className={`mb-4 inline-flex rounded-ds-md p-3 transition-colors ${ isSelected ?"bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white " }`}
               >
                 <IconComponent className="h-6 w-6" />
               </div>
 
               {/* Title */}
-              <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
+              <h3 className="mb-2 text-xl font-bold text-ds-text-primary">
                 {option.title}
               </h3>
 
               {/* Description */}
-              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{option.description}</p>
+              <p className="mb-4 text-sm text-ds-text-secondary">{option.description}</p>
 
               {/* Features */}
               <ul className="space-y-2">
                 {option.features.map((feature, idx) => (
                   <li
                     key={idx}
-                    className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center gap-2 text-sm text-ds-text-secondary"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
+                    <span className="h-1.5 w-1.5 rounded-ds-full bg-ds-brand-primary"></span>
                     {feature}
                   </li>
                 ))}
@@ -103,7 +85,7 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
 
               {/* Selected Indicator */}
               {isSelected && (
-                <div className="absolute right-4 top-4 rounded-full bg-purple-600 p-1">
+                <div className="absolute right-4 top-4 rounded-ds-full bg-ds-brand-primary p-1">
                   <svg
                     className="h-4 w-4 text-white"
                     fill="none"
@@ -125,11 +107,11 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
       </div>
 
       {/* Additional Info */}
-      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+      <p className="mt-6 text-center text-sm text-ds-text-secondary">
         Already have an account?{" "}
         <a
           href="/login"
-          className="font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400"
+          className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
         >
           Sign in here
         </a>

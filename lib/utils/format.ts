@@ -1,19 +1,21 @@
-import type { Campus, VendorCategory, OrderStatus, PaymentStatus, DeliveryMethod } from "@/lib/types";
+import type { VendorCategory, OrderStatus, PaymentStatus, DeliveryMethod } from "@/lib/types";
+import type { Campus, Position } from "@/lib/constants";
+import { CAMPUS_LOCATIONS, POSITION_OPTIONS } from "@/lib/constants";
 
 /**
  * Format campus enum to readable string
  */
 export function formatCampus(campus: Campus): string {
-    const campusMap: Record<Campus, string> = {
-        OREGUN_HQ: "Oregun (HQ)",
-        LEKKI: "Lekki",
-        VICTORIA_ISLAND: "Victoria Island",
-        IKEJA: "Ikeja",
-        FESTAC: "Festac",
-        AJAH: "Ajah",
-        OUTSIDE_LAGOS: "Outside Lagos",
-    };
-    return campusMap[campus] || campus;
+    const entry = CAMPUS_LOCATIONS.find((c) => c.value === campus);
+    return entry?.label ?? campus;
+}
+
+/**
+ * Format position enum to readable string
+ */
+export function formatPosition(position: Position): string {
+    const entry = POSITION_OPTIONS.find((p) => p.value === position);
+    return entry?.label ?? position;
 }
 
 /**

@@ -8,17 +8,27 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose';
 import { UserRole } from '@/lib/constants';
 
-// Secret keys (in production, use environment variables)
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'harvesthub-access-secret-key-2026';
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'harvesthub-refresh-secret-key-2026';
+// Secret keys — hardcoded fallback is dev-only; production MUST set env vars
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Convert secrets to Uint8Array for jose
-const accessTokenSecret = new TextEncoder().encode(ACCESS_TOKEN_SECRET);
-const refreshTokenSecret = new TextEncoder().encode(REFRESH_TOKEN_SECRET);
+function getSecret(envKey: string, devFallback: string): Uint8Array {
+    const value = process.env[envKey];
+    if (!value && isProduction) {
+        throw new Error(`Missing required environment variable: ${envKey}`);
+    }
+    return new TextEncoder().encode(value || devFallback);
+}
 
-// Token expiry times (in seconds)
-const ACCESS_TOKEN_EXPIRY = '8h'; // 8 hours
-const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
+const accessTokenSecret = getSecret('JWT_SECRET', 'harvesthub-dev-access-secret-2026');
+const refreshTokenSecret = getSecret('JWT_REFRESH_SECRET', 'harvesthub-dev-refresh-secret-2026');
+
+// JWT claims
+const ISSUER = 'harvesthub';
+const AUDIENCE = 'harvesthub-app';
+
+// Token expiry
+const ACCESS_TOKEN_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '8h';
+const REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
 
 // JWT Payload interface
 export interface JWTPayload {
@@ -40,6 +50,8 @@ export async function generateAccessToken(userId: string, email: string, role: U
     })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
+        .setIssuer(ISSUER)
+        .setAudience(AUDIENCE)
         .setExpirationTime(ACCESS_TOKEN_EXPIRY)
         .sign(accessTokenSecret);
 
@@ -58,6 +70,8 @@ export async function generateRefreshToken(userId: string, email: string, role: 
     })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
+        .setIssuer(ISSUER)
+        .setAudience(AUDIENCE)
         .setExpirationTime(REFRESH_TOKEN_EXPIRY)
         .sign(refreshTokenSecret);
 
@@ -87,7 +101,10 @@ export async function generateTokenPair(userId: string, email: string, role: Use
  */
 export async function verifyAccessToken(token: string): Promise<JWTPayload | null> {
     try {
-        const { payload } = await jwtVerify(token, accessTokenSecret);
+        const { payload } = await jwtVerify(token, accessTokenSecret, {
+            issuer: ISSUER,
+            audience: AUDIENCE,
+        });
         const decoded = payload as unknown as JWTPayload;
 
         if (decoded.type !== 'access') {
@@ -105,7 +122,10 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload | nul
  */
 export async function verifyRefreshToken(token: string): Promise<JWTPayload | null> {
     try {
-        const { payload } = await jwtVerify(token, refreshTokenSecret);
+        const { payload } = await jwtVerify(token, refreshTokenSecret, {
+            issuer: ISSUER,
+            audience: AUDIENCE,
+        });
         const decoded = payload as unknown as JWTPayload;
 
         if (decoded.type !== 'refresh') {

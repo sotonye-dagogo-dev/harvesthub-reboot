@@ -17,7 +17,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
       <button
         onClick={toggleTheme}
         className={cn(
-          "inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800",
+          "inline-flex items-center gap-2 rounded-ds-md border border-ds-border-base bg-ds-surface-base px-4 py-2 text-sm font-medium text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken",
           className
         )}
         aria-label="Toggle theme"
@@ -41,7 +41,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
     <button
       onClick={toggleTheme}
       className={cn(
-        "rounded-full p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800",
+        "rounded-ds-full p-2 text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken",
         className
       )}
       aria-label="Toggle theme"

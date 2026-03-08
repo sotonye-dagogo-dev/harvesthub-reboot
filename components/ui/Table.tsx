@@ -52,12 +52,12 @@ export function Table<T extends Record<string, unknown>>({
 
   const getSortIcon = (columnKey: string) => {
     if (sortState.key !== columnKey) {
-      return <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />;
+      return <ChevronsUpDown className="ml-2 h-4 w-4 text-ds-text-placeholder" />;
     }
     return sortState.direction === "asc" ? (
-      <ChevronUp className="ml-2 h-4 w-4 text-purple-600 dark:text-purple-400" />
+      <ChevronUp className="ml-2 h-4 w-4 text-ds-text-brand" />
     ) : (
-      <ChevronDown className="ml-2 h-4 w-4 text-purple-600 dark:text-purple-400" />
+      <ChevronDown className="ml-2 h-4 w-4 text-ds-text-brand" />
     );
   };
 
@@ -77,11 +77,11 @@ export function Table<T extends Record<string, unknown>>({
       <div className="w-full overflow-x-auto">
         <table className={cn("w-full border-collapse", className)}>
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800">
+            <tr className="border-b border-ds-border-base">
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className="bg-gray-50 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  className="bg-ds-surface-sunken px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-ds-text-secondary"
                 >
                   {column.title}
                 </th>
@@ -90,10 +90,10 @@ export function Table<T extends Record<string, unknown>>({
           </thead>
           <tbody>
             {[...Array(5)].map((_, index) => (
-              <tr key={index} className="border-b border-gray-200 dark:border-gray-800">
+              <tr key={index} className="border-b border-ds-border-base">
                 {columns.map((_, colIndex) => (
                   <td key={colIndex} className="px-6 py-4">
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-4 w-full animate-pulse rounded bg-ds-surface-sunken" />
                   </td>
                 ))}
               </tr>
@@ -112,15 +112,14 @@ export function Table<T extends Record<string, unknown>>({
     <div className="w-full overflow-x-auto">
       <table className={cn("w-full border-collapse", className)}>
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-800">
+          <tr className="border-b border-ds-border-base">
             {columns.map((column, index) => (
               <th
                 key={index}
                 className={cn(
-                  "bg-gray-50 px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+                  "bg-ds-surface-sunken px-6 py-3 text-xs font-medium uppercase tracking-wider text-ds-text-secondary",
                   getAlignClass(column.align),
-                  column.sortable &&
-                    "cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700"
+                  column.sortable && "cursor-pointer select-none hover:bg-ds-surface-disabled"
                 )}
                 style={{ width: column.width }}
                 onClick={() => column.sortable && handleSort(column.key as string)}
@@ -140,9 +139,9 @@ export function Table<T extends Record<string, unknown>>({
               <tr
                 key={key}
                 className={cn(
-                  "border-b border-gray-200 dark:border-gray-800",
-                  striped && rowIndex % 2 === 1 && "bg-gray-50 dark:bg-gray-800/50",
-                  hoverable && "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  "border-b border-ds-border-base",
+                  striped && rowIndex % 2 === 1 && "bg-ds-surface-sunken",
+                  hoverable && "hover:bg-ds-surface-sunken"
                 )}
               >
                 {columns.map((column, colIndex) => {
@@ -155,7 +154,7 @@ export function Table<T extends Record<string, unknown>>({
                     <td
                       key={colIndex}
                       className={cn(
-                        "px-6 py-4 text-sm text-gray-900 dark:text-gray-100",
+                        "px-6 py-4 text-sm text-ds-text-primary",
                         getAlignClass(column.align)
                       )}
                     >

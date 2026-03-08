@@ -41,11 +41,7 @@ export function OptimizedImage({
         {...props}
         src={imgSrc}
         alt={alt}
-        className={`
-          transition-opacity duration-300
-          ${isLoading ? "opacity-0" : "opacity-100"}
-          ${className}
-        `}
+        className={` transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"} ${className} `}
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setImgSrc(fallbackSrc);
@@ -56,8 +52,8 @@ export function OptimizedImage({
       />
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse">
-          <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center bg-ds-surface-sunken animate-pulse">
+          <div className="w-8 h-8 border-4 border-ds-brand-muted border-t-ds-brand-primary rounded-ds-full animate-spin" />
         </div>
       )}
     </div>

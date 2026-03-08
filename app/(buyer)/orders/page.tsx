@@ -59,7 +59,7 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900 dark:text-white">My Orders</h1>
+      <h1 className="mb-8 text-3xl font-bold text-ds-text-primary">My Orders</h1>
 
       <Tabs
         activeKey={activeTab}

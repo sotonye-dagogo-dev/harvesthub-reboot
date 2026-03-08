@@ -6,6 +6,7 @@ import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination, Button } from "@/components/ui";
 import { Package, Download } from "lucide-react";
 import { mockOrders, mockUsers } from "@/lib/data/mockData";
+import { formatCurrency } from "@/lib/utils";
 
 export default function AdminOrdersPage() {
   const { user } = useAuth();
@@ -73,14 +74,12 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Orders</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Monitor and manage all platform orders
-            </p>
+            <h1 className="text-3xl font-bold text-ds-text-primary">All Orders</h1>
+            <p className="mt-2 text-ds-text-secondary">Monitor and manage all platform orders</p>
           </div>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
@@ -90,26 +89,26 @@ export default function AdminOrdersPage() {
 
         {/* Stats Cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Orders</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
+            <p className="text-sm text-ds-text-secondary">Total Orders</p>
+            <p className="mt-1 text-2xl font-bold text-ds-text-primary">{stats.total}</p>
           </div>
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
-            <p className="mt-1 text-2xl font-bold text-yellow-600">{stats.pending}</p>
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
+            <p className="text-sm text-ds-text-secondary">Pending</p>
+            <p className="mt-1 text-2xl font-bold text-ds-status-warning-text">{stats.pending}</p>
           </div>
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Processing</p>
-            <p className="mt-1 text-2xl font-bold text-blue-600">{stats.processing}</p>
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
+            <p className="text-sm text-ds-text-secondary">Processing</p>
+            <p className="mt-1 text-2xl font-bold text-ds-status-info-text">{stats.processing}</p>
           </div>
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-            <p className="mt-1 text-2xl font-bold text-green-600">{stats.completed}</p>
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
+            <p className="text-sm text-ds-text-secondary">Completed</p>
+            <p className="mt-1 text-2xl font-bold text-ds-status-success-text">{stats.completed}</p>
           </div>
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
-            <p className="mt-1 text-2xl font-bold text-purple-600">
-              ₦{stats.totalRevenue.toLocaleString()}
+          <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-base">
+            <p className="text-sm text-ds-text-secondary">Total Revenue</p>
+            <p className="mt-1 text-2xl font-bold text-ds-text-brand">
+              {formatCurrency(stats.totalRevenue)}
             </p>
           </div>
         </div>
@@ -137,7 +136,7 @@ export default function AdminOrdersPage() {
           {/* Orders List */}
           <div className="lg:col-span-3">
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-ds-text-secondary">
                 {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""} found
               </p>
             </div>

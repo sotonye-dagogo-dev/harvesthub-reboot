@@ -89,52 +89,50 @@ interface ThemeTokens {
 
 const THEME_MAP: Record<ThemeKey, ThemeTokens> = {
   BUSINESS: {
-    actionBg: "bg-purple-700 dark:bg-purple-900",
+    actionBg: "bg-ds-brand-primary-hover ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-purple-700 hover:bg-purple-50 focus-visible:ring-purple-300",
+      "bg-ds-surface-base text-ds-palette-purple-700 hover:bg-ds-brand-surface focus-visible:ring-ds-focus-ring/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-purple-500/20 text-purple-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-brand-primary-light/20 text-ds-palette-purple-100",
     knowMoreChip:
-      "bg-purple-600/90 text-white hover:bg-purple-700 focus-visible:ring-purple-300",
-    overlayFrom: "from-purple-900/80",
+      "bg-ds-brand-primary/90 text-white hover:bg-ds-brand-primary-hover focus-visible:ring-ds-focus-ring/30",
+    overlayFrom: "from-ds-palette-purple-900/80",
   },
   CHURCH: {
-    actionBg: "bg-amber-700 dark:bg-amber-900",
+    actionBg: "bg-ds-status-warning-text ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-amber-700 hover:bg-amber-50 focus-visible:ring-amber-300",
+      "bg-ds-surface-base text-ds-status-warning-text hover:bg-ds-status-warning-bg focus-visible:ring-ds-status-warning/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-amber-500/20 text-amber-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-status-warning/20 text-ds-palette-amber-100",
     knowMoreChip:
-      "bg-amber-600/90 text-white hover:bg-amber-700 focus-visible:ring-amber-300",
-    overlayFrom: "from-amber-900/80",
+      "bg-ds-status-warning/90 text-white hover:bg-ds-status-warning-text focus-visible:ring-ds-status-warning/30",
+    overlayFrom: "from-ds-palette-amber-900/80",
   },
   EVENT: {
     actionBg: "bg-rose-700 dark:bg-rose-900",
     actionText: "text-white",
-    primaryBtn:
-      "bg-white text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
+    primaryBtn: "bg-ds-surface-base text-rose-700 hover:bg-rose-50 focus-visible:ring-rose-300",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
     badge: "bg-rose-500/20 text-rose-100",
-    knowMoreChip:
-      "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
+    knowMoreChip: "bg-rose-600/90 text-white hover:bg-rose-700 focus-visible:ring-rose-300",
     overlayFrom: "from-rose-900/80",
   },
   PROMOTION: {
-    actionBg: "bg-emerald-700 dark:bg-emerald-900",
+    actionBg: "bg-ds-status-success-text ",
     actionText: "text-white",
     primaryBtn:
-      "bg-white text-emerald-700 hover:bg-emerald-50 focus-visible:ring-emerald-300",
+      "bg-ds-surface-base text-ds-status-success-text hover:bg-ds-status-success-bg focus-visible:ring-ds-status-success/30",
     secondaryBtn:
-      "border border-white/60 text-white hover:bg-white/10 focus-visible:ring-white/40",
-    badge: "bg-emerald-500/20 text-emerald-100",
+      "border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10 focus-visible:ring-white/40",
+    badge: "bg-ds-status-success/20 text-ds-palette-green-100",
     knowMoreChip:
-      "bg-emerald-600/90 text-white hover:bg-emerald-700 focus-visible:ring-emerald-300",
-    overlayFrom: "from-emerald-900/80",
+      "bg-ds-status-success/90 text-white hover:bg-ds-status-success-text focus-visible:ring-ds-status-success/30",
+    overlayFrom: "from-ds-palette-green-900/80",
   },
 };
 
@@ -153,7 +151,7 @@ interface ActionBtnProps {
 function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
   const isSecondary = action.variant === "secondary" || action.variant === "outline";
   const base =
-    "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
+    "inline-flex items-center justify-center gap-1.5 rounded-ds-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
   const sizeClass = size === "sm" ? "px-3 py-1.5 text-sm" : "px-5 py-2.5 text-sm md:text-base";
   const colorClass = isSecondary ? tokens.secondaryBtn : tokens.primaryBtn;
 
@@ -225,17 +223,17 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
       {/* Sheet */}
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl",
+          "relative w-full max-w-lg rounded-t-ds-xl sm:rounded-2xl",
           tokens.actionBg,
           tokens.actionText,
-          "p-6 pb-8 shadow-2xl"
+          "p-6 pb-8 shadow-ds-xl"
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-1 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="absolute right-4 top-4 rounded-ds-full p-1 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -243,7 +241,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
 
         {/* Thumbnail */}
         {banner.image && (
-          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
+          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-ds-lg">
             <Image
               src={banner.image}
               alt={banner.title}
@@ -257,14 +255,17 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
         {/* Content */}
         <div className="space-y-2">
           {banner.subtitle && (
-            <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-xs font-medium", tokens.badge)}>
+            <span
+              className={cn(
+                "inline-block rounded-ds-full px-2.5 py-0.5 text-xs font-medium",
+                tokens.badge
+              )}
+            >
               {banner.subtitle}
             </span>
           )}
           <h2 className="text-xl font-bold leading-snug">{banner.title}</h2>
-          {banner.description && (
-            <p className="text-sm opacity-90">{banner.description}</p>
-          )}
+          {banner.description && <p className="text-sm opacity-90">{banner.description}</p>}
           {banner.details && (
             <p className="mt-1 flex items-start gap-1.5 text-sm opacity-80">
               <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -287,7 +288,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
           <button
             onClick={onClose}
             className={cn(
-              "mt-5 w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",
+              "mt-5 w-full rounded-ds-md py-2.5 text-sm font-semibold transition-colors",
               tokens.primaryBtn
             )}
           >
@@ -316,15 +317,16 @@ function ActionPanel({ banner }: ActionPanelProps) {
         tokens.actionBg,
         tokens.actionText
       )}
+      // CSS custom property must be set via inline style (cannot be a Tailwind class)
       style={
-        banner.accentColor
-          ? ({ "--accent": banner.accentColor } as React.CSSProperties)
-          : undefined
+        banner.accentColor ? ({ "--accent": banner.accentColor } as React.CSSProperties) : undefined
       }
     >
       {/* Badge / theme label */}
       {banner.subtitle && (
-        <span className={cn("self-start rounded-full px-3 py-1 text-xs font-semibold", tokens.badge)}>
+        <span
+          className={cn("self-start rounded-ds-full px-3 py-1 text-xs font-semibold", tokens.badge)}
+        >
           {banner.subtitle}
         </span>
       )}
@@ -390,15 +392,12 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
         BANNER_CONFIG.TRANSITION_MS === 400 ? "duration-400" : "duration-500",
         isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
       )}
-      aria-hidden={!isActive}
+      aria-hidden={!isActive ? "true" : "false"}
     >
       {/* ── LARGE SCREEN: dual panel layout ── */}
       <div className="hidden md:flex h-full">
         {/* Display panel */}
-        <div
-          className="relative overflow-hidden"
-          style={{ width: `${BANNER_CONFIG.DISPLAY_PANEL_PERCENT}%` }}
-        >
+        <div className="relative w-[65%] overflow-hidden">
           <Image
             src={banner.image}
             alt={banner.title}
@@ -417,7 +416,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
             )}
           >
             <div className="text-white">
-              <h2 className="text-2xl font-bold drop-shadow-md xl:text-4xl">{banner.title}</h2>
+              <h2 className="text-2xl font-bold drop-shadow-ds-md xl:text-4xl">{banner.title}</h2>
               {!hasActions && banner.description && (
                 <p className="mt-1 max-w-lg text-sm text-white/90 xl:text-base">
                   {banner.description}
@@ -427,7 +426,7 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
               {!hasActions && (banner.link ?? null) && (
                 <Link
                   href={banner.link!}
-                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/30"
+                  className="mt-3 inline-flex items-center gap-1 rounded-ds-md bg-ds-surface-base/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-ds-surface-base/30"
                 >
                   {knowMoreLabel} →
                 </Link>
@@ -437,45 +436,50 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
         </div>
 
         {/* Action panel */}
-        <div
-          className="flex-shrink-0"
-          style={{ width: `${BANNER_CONFIG.ACTION_PANEL_PERCENT}%` }}
-        >
+        <div className="flex-shrink-0 w-[35%]">
           <ActionPanel banner={banner} />
         </div>
       </div>
 
-      {/* ── SMALL SCREEN: full image + optional "Know More" chip ── */}
-      <div className="relative flex h-full md:hidden">
-        <Image
-          src={banner.image}
-          alt={banner.title}
-          fill
-          className="object-cover"
-          priority={isActive}
-          sizes="100vw"
-        />
-        {/* Bottom overlay */}
+      {/* ── SMALL SCREEN: stacked dual-section — image panel + action strip ── */}
+      <div className="flex h-full flex-col md:hidden">
+        {/* ▌ Display section – image fills remaining height */}
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <Image
+            src={banner.image}
+            alt={banner.title}
+            fill
+            className="object-cover"
+            priority={isActive}
+            sizes="100vw"
+          />
+          {/* Subtle vignette for visual depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        </div>
+
+        {/* ▌ Action strip – themed colour, fixed height, always visible */}
         <div
           className={cn(
-            "absolute inset-0 flex flex-col justify-end bg-gradient-to-t to-transparent p-4",
-            tokens.overlayFrom
+            "flex min-h-[64px] flex-shrink-0 items-center gap-3 px-4 py-2",
+            tokens.actionBg,
+            tokens.actionText
           )}
         >
-          <h2 className="text-lg font-bold text-white drop-shadow-sm sm:text-xl">
-            {banner.title}
-          </h2>
-          {banner.subtitle && (
-            <p className="mt-0.5 text-xs text-white/80">{banner.subtitle}</p>
-          )}
+          {/* Info block */}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold leading-snug">{banner.title}</p>
+            {banner.subtitle && <p className="truncate text-xs opacity-75">{banner.subtitle}</p>}
+          </div>
 
-          {/* Know More chip — only render when there's content to show */}
+          {/* "Know More" CTA — only shown when there is content / actions to reveal;
+               suppressed when banner has no actions AND no description/details (fallback). */}
           {(hasActions || banner.description || banner.details) && (
             <button
               onClick={onKnowMore}
               className={cn(
-                "mt-3 self-start rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2",
-                tokens.knowMoreChip
+                "flex-shrink-0 whitespace-nowrap rounded-ds-md px-3 py-1.5 text-xs font-semibold",
+                "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+                tokens.primaryBtn
               )}
               aria-label={`${knowMoreLabel} about ${banner.title}`}
             >
@@ -549,9 +553,15 @@ export function BannerCarousel({
 
   return (
     <>
-      <div className={cn("relative overflow-hidden rounded-xl", className)}>
-        {/* Height: taller on large screens to give action panel room */}
-        <div className="relative h-56 sm:h-72 md:h-[360px] lg:h-[400px] xl:h-[440px]">
+      <div className={cn("relative overflow-hidden rounded-ds-lg", className)}>
+        {/*
+         * Height breakdown:
+         *   < md  → image flex-1 + action-strip min-h-[64px] inside the Slide
+         *          280px = ~216px image + 64px strip (mobile)
+         *   sm    → 336px = ~272px image + 64px strip (large phone / tablet-portrait)
+         *   md+   → dual-panel (no strip) so plain height for the whole card
+         */}
+        <div className="relative h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px]">
           {banners.map((banner, index) => (
             <Slide
               key={banner.id}
@@ -567,14 +577,14 @@ export function BannerCarousel({
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Previous banner"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/90 p-1.5 text-gray-900 shadow-md transition-all hover:bg-white dark:bg-gray-900/90 dark:text-white dark:hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Next banner"
             >
               <ChevronRight className="h-5 w-5" />
@@ -582,16 +592,20 @@ export function BannerCarousel({
           </>
         )}
 
-        {/* Dot Indicators */}
+        {/* Dot Indicators
+             On small screens the action strip is at the bottom (~64 px), so dots
+             are nudged up above it. On md+ the strip is gone → back to bottom-3. */}
         {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-[76px] left-1/2 z-20 flex -translate-x-1/2 gap-1.5 md:bottom-3">
             {banners.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goTo(index)}
                 className={cn(
-                  "h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  index === currentIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                  "h-2 rounded-ds-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                  index === currentIndex
+                    ? "w-6 bg-ds-surface-base"
+                    : "w-2 bg-ds-surface-base/50 hover:bg-ds-surface-base/80"
                 )}
                 aria-label={`Go to banner ${index + 1}`}
               />
@@ -601,12 +615,7 @@ export function BannerCarousel({
       </div>
 
       {/* Action Modal (small screens only, triggered by Know More) */}
-      {modalOpen && (
-        <ActionModal
-          banner={currentBanner}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
+      {modalOpen && <ActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />}
     </>
   );
 }

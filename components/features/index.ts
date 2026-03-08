@@ -11,9 +11,6 @@ export type { CategoryNavProps, Category } from "./CategoryNav";
 export { VendorCard } from "./VendorCard";
 export type { VendorCardProps } from "./VendorCard";
 
-export { CartItem } from "./CartItem";
-export type { CartItemProps } from "./CartItem";
-
 export { SearchBar } from "./SearchBar";
 export type { SearchBarProps } from "./SearchBar";
 

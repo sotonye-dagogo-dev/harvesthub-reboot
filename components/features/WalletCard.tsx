@@ -23,16 +23,16 @@ export function WalletCard({
   return (
     <Card
       className={cn(
-        "bg-gradient-to-br from-purple-600 to-purple-800 text-white dark:from-purple-700 dark:to-purple-900",
+        "bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-800 text-white  ",
         className
       )}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="rounded-full bg-white/20 p-3">
+        <div className="rounded-ds-full bg-ds-surface-base/20 p-3">
           <Wallet className="h-6 w-6" />
         </div>
         <div>
-          <p className="text-sm text-purple-100">Wallet Balance</p>
+          <p className="text-sm text-ds-palette-purple-100">Wallet Balance</p>
           <p className="text-3xl font-bold">{formatCurrency(balance)}</p>
         </div>
       </div>
@@ -43,7 +43,7 @@ export function WalletCard({
             <Button
               onClick={onDeposit}
               variant="outline"
-              className="flex-1 border-white/30 bg-white/10 text-white hover:bg-white/20"
+              className="flex-1 border-ds-surface-base/30 bg-ds-surface-base/10 text-white hover:bg-ds-surface-base/20"
             >
               <ArrowDownLeft className="mr-2 h-4 w-4" />
               Deposit
@@ -53,7 +53,7 @@ export function WalletCard({
             <Button
               onClick={onWithdraw}
               variant="outline"
-              className="flex-1 border-white/30 bg-white/10 text-white hover:bg-white/20"
+              className="flex-1 border-ds-surface-base/30 bg-ds-surface-base/10 text-white hover:bg-ds-surface-base/20"
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Withdraw
@@ -75,11 +75,11 @@ export interface TransactionItemProps {
 }
 
 const typeConfig = {
-  deposit: { icon: ArrowDownLeft, color: "text-green-600 dark:text-green-400", sign: "+" },
-  withdrawal: { icon: ArrowUpRight, color: "text-red-600 dark:text-red-400", sign: "-" },
-  payment: { icon: DollarSign, color: "text-blue-600 dark:text-blue-400", sign: "-" },
-  refund: { icon: ArrowDownLeft, color: "text-green-600 dark:text-green-400", sign: "+" },
-  commission: { icon: DollarSign, color: "text-amber-600 dark:text-amber-400", sign: "-" },
+  deposit: { icon: ArrowDownLeft, color: "text-ds-status-success-text", sign: "+" },
+  withdrawal: { icon: ArrowUpRight, color: "text-ds-status-error-text", sign: "-" },
+  payment: { icon: DollarSign, color: "text-ds-status-info-text", sign: "-" },
+  refund: { icon: ArrowDownLeft, color: "text-ds-status-success-text", sign: "+" },
+  commission: { icon: DollarSign, color: "text-ds-status-warning-text", sign: "-" },
 };
 
 export function TransactionItem({
@@ -96,17 +96,17 @@ export function TransactionItem({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900",
+        "flex items-center justify-between rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
         className
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("rounded-full bg-gray-100 p-2 dark:bg-gray-800", config.color)}>
+        <div className={cn("rounded-ds-full bg-ds-surface-sunken p-2 ", config.color)}>
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="font-medium text-gray-900 dark:text-white">{description}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{date.toLocaleDateString()}</p>
+          <p className="font-medium text-ds-text-primary">{description}</p>
+          <p className="text-sm text-ds-text-secondary">{date.toLocaleDateString()}</p>
         </div>
       </div>
       <div className="text-right">
@@ -114,7 +114,7 @@ export function TransactionItem({
           {config.sign}
           {formatCurrency(amount)}
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{status}</p>
+        <p className="text-sm text-ds-text-secondary capitalize">{status}</p>
       </div>
     </div>
   );

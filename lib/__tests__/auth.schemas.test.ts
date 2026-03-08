@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import {
     loginSchema,
     registerBuyerSchema,
@@ -186,7 +186,7 @@ describe('Auth Validation Schemas', () => {
                 storeDescription: 'Selling fresh farm produce',
                 category: 'Farm Produce',
                 whatsapp: '08087654321',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
             };
 
             const result = registerVendorSchema.safeParse(validData);
@@ -203,7 +203,7 @@ describe('Auth Validation Schemas', () => {
                 storeDescription: 'Selling fresh farm produce',
                 category: 'Farm Produce',
                 whatsapp: '08087654321',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
             };
 
             const result = registerVendorSchema.safeParse(invalidData);
@@ -220,7 +220,7 @@ describe('Auth Validation Schemas', () => {
                 storeName: 'Fresh Foods Store',
                 storeDescription: 'Selling fresh farm produce',
                 whatsapp: '08087654321',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
             };
 
             const result = registerVendorSchema.safeParse(invalidData);
@@ -245,7 +245,7 @@ describe('Auth Validation Schemas', () => {
                     storeDescription: 'Selling fresh farm produce',
                     category: 'Farm Produce',
                     whatsapp,
-                    campus: 'OREGUN_HQ',
+                    campus: 'GBAGADA',
                 };
 
                 const result = registerVendorSchema.safeParse(data);
@@ -264,7 +264,7 @@ describe('Auth Validation Schemas', () => {
                 storeDescription: 'Selling fresh farm produce',
                 category: 'Farm Produce',
                 whatsapp: '08087654321',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
             };
 
             const result = registerVendorSchema.safeParse(completeData);

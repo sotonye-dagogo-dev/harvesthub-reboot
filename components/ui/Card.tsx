@@ -26,10 +26,10 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-lg bg-white dark:bg-gray-800",
-        bordered && "border border-gray-200 dark:border-gray-700",
+        "rounded-ds-md bg-ds-surface-base",
+        bordered && "border border-ds-border-base",
         paddingClasses[padding],
-        hoverable && "transition-shadow hover:shadow-lg",
+        hoverable && "transition-shadow hover:shadow-ds-lg",
         className
       )}
     >
@@ -49,8 +49,8 @@ export function CardHeader({ title, subtitle, action, className }: CardHeaderPro
   return (
     <div className={cn("flex items-start justify-between", className)}>
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-        {subtitle && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>}
+        <h3 className="text-lg font-semibold text-ds-text-primary">{title}</h3>
+        {subtitle && <p className="mt-1 text-sm text-ds-text-secondary">{subtitle}</p>}
       </div>
       {action && <div className="ml-4">{action}</div>}
     </div>

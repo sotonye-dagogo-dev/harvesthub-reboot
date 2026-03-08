@@ -112,10 +112,10 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">
           Security Information
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-ds-text-secondary">
           Create a strong password for your account
         </p>
       </div>
@@ -143,7 +143,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
       >
         <Form.Item
           name="password"
-          label={<span className="text-gray-900 dark:text-white font-medium">Password</span>}
+          label={<span className="text-ds-text-primary font-medium">Password</span>}
           rules={[
             { required: true, message: "Please enter your password" },
             { min: 8, message: "Password must be at least 8 characters" },
@@ -157,7 +157,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             size="large"
             placeholder="Create a password"
             onChange={handlePasswordChange}
-            className="rounded-lg"
+            className="rounded-ds-md"
           />
         </Form.Item>
 
@@ -179,7 +179,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
         <Form.Item
           name="confirmPassword"
           label={
-            <span className="text-gray-900 dark:text-white font-medium">Confirm Password</span>
+            <span className="text-ds-text-primary font-medium">Confirm Password</span>
           }
           dependencies={["password"]}
           rules={[
@@ -194,7 +194,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             }),
           ]}
         >
-          <Input.Password size="large" placeholder="Confirm your password" className="rounded-lg" />
+          <Input.Password size="large" placeholder="Confirm your password" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item
@@ -211,7 +211,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
         >
           <Checkbox>
             I agree to the{" "}
-            <Link href="/terms" className="text-purple-600 hover:text-purple-700 font-medium">
+            <Link href="/terms" className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium">
               Terms & Conditions
             </Link>
           </Checkbox>
@@ -221,7 +221,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-purple-600 py-3 text-white font-semibold hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+            className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>

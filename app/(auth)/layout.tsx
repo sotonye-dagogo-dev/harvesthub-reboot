@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-50 px-4 py-12 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900">
+      <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-ds-brand-surface via-ds-surface-base to-ds-brand-surface px-4 py-12">
         <div className="w-full max-w-md">{children}</div>
       </div>
       <Footer />

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HarvestHub Mock Data
  * 
  * Comprehensive sample data matching lib/types.ts structure
@@ -25,6 +25,7 @@ import {
     DeliveryMethod,
     PickupService,
     Campus,
+    Position,
     VendorCategory,
     ProductCategory,
     TransactionType,
@@ -287,7 +288,7 @@ export const mockBuyers: Buyer[] = [
                 sms: true,
                 push: true,
             },
-            defaultCampus: Campus.OREGUN_HQ,
+            defaultCampus: Campus.GBAGADA,
             defaultDeliveryMethod: DeliveryMethod.PICKUP,
         },
         createdAt: new Date('2025-01-03'),
@@ -321,7 +322,7 @@ export const mockBuyers: Buyer[] = [
                 sms: false,
                 push: true,
             },
-            defaultCampus: Campus.VICTORIA_ISLAND,
+            defaultCampus: Campus.IKOYI,
             defaultDeliveryMethod: DeliveryMethod.DELIVERY,
         },
         createdAt: new Date('2025-01-12'),
@@ -352,7 +353,7 @@ export const mockBuyers: Buyer[] = [
                 sms: true,
                 push: true,
             },
-            defaultCampus: Campus.FESTAC,
+            defaultCampus: Campus.ISOLO,
         },
         createdAt: new Date('2025-01-15'),
         updatedAt: new Date('2025-01-24'),
@@ -429,7 +430,8 @@ export const mockVendors: Vendor[] = [
             'This is a demo vendor account for testing purposes. Feel free to explore all vendor features!',
         category: VendorCategory.OTHERS,
         whatsappNumber: '+2348011111111',
-        campus: Campus.OREGUN_HQ,
+        campus: Campus.GBAGADA,
+        position: Position.TEAM_LEAD,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: true,
         commissionRate: 0.05,
@@ -443,7 +445,7 @@ export const mockVendors: Vendor[] = [
             businessHours: 'Mon-Sat: 9AM-6PM',
             policies: {
                 returnPolicy: 'Demo return policy: Returns accepted within 7 days.',
-                shippingPolicy: 'Demo shipping policy: Free delivery for orders above ₦5,000',
+                shippingPolicy: 'Demo shipping policy: Free delivery for orders above â‚¦5,000',
             },
         },
         analytics: {
@@ -467,6 +469,7 @@ export const mockVendors: Vendor[] = [
         category: VendorCategory.FARM_PRODUCE,
         whatsappNumber: '+2348023456789',
         campus: Campus.LEKKI,
+        position: Position.HOD,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: true,
         commissionRate: 0.05,
@@ -480,7 +483,7 @@ export const mockVendors: Vendor[] = [
             businessHours: 'Mon-Sat: 8AM-6PM',
             policies: {
                 returnPolicy: 'Fresh produce can be returned within 24 hours if not satisfactory.',
-                shippingPolicy: 'Free delivery for orders above ₦10,000',
+                shippingPolicy: 'Free delivery for orders above â‚¦10,000',
             },
         },
         analytics: {
@@ -504,6 +507,7 @@ export const mockVendors: Vendor[] = [
         category: VendorCategory.FASHION,
         whatsappNumber: '+2348034567890',
         campus: Campus.IKEJA,
+        position: Position.SMALL_GROUP_LEADER,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: true,
         commissionRate: 0.05,
@@ -536,7 +540,8 @@ export const mockVendors: Vendor[] = [
             'Your one-stop shop for authentic beauty products, skincare, and cosmetics. Quality products for radiant skin.',
         category: VendorCategory.BEAUTY,
         whatsappNumber: '+2348045678901',
-        campus: Campus.VICTORIA_ISLAND,
+        campus: Campus.IKOYI,
+        position: null,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: false,
         commissionRate: 0.05,
@@ -568,7 +573,8 @@ export const mockVendors: Vendor[] = [
             'Latest electronics and gadgets at competitive prices. From smartphones to laptops and accessories.',
         category: VendorCategory.ELECTRONICS,
         whatsappNumber: '+2348056789012',
-        campus: Campus.OREGUN_HQ,
+        campus: Campus.GBAGADA,
+        position: Position.ASST_HOD,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: true,
         commissionRate: 0.05,
@@ -600,7 +606,8 @@ export const mockVendors: Vendor[] = [
             'Quality kitchen utensils, cookware, and home essentials. Everything you need for a well-equipped kitchen.',
         category: VendorCategory.HOME_KITCHEN,
         whatsappNumber: '+2348067890123',
-        campus: Campus.FESTAC,
+        campus: Campus.ISOLO,
+        position: Position.ZONAL_COORDINATOR,
         status: VendorStatus.APPROVED,
         isChurchAffiliated: true,
         commissionRate: 0.05,
@@ -970,7 +977,7 @@ export const mockAddresses: Address[] = [
         addressLine1: '12 Ozumba Mbadiwe Avenue',
         city: 'Lagos',
         state: 'Lagos',
-        campus: Campus.VICTORIA_ISLAND,
+        campus: Campus.IKOYI,
         isDefault: true,
         createdAt: new Date('2025-01-12'),
         updatedAt: new Date('2025-01-12'),
@@ -998,7 +1005,7 @@ export const mockAddresses: Address[] = [
         addressLine1: '23 2nd Avenue, Festac Town',
         city: 'Lagos',
         state: 'Lagos',
-        campus: Campus.FESTAC,
+        campus: Campus.ISOLO,
         isDefault: true,
         createdAt: new Date('2025-01-15'),
         updatedAt: new Date('2025-01-15'),
@@ -1131,6 +1138,16 @@ export const mockWallets: Wallet[] = [
         createdAt: new Date('2025-01-14'),
         updatedAt: new Date('2025-01-24'),
     },
+    // Admin
+    {
+        id: 'wallet-admin-001',
+        userId: 'user-admin-001',
+        balance: 500000,
+        currency: 'NGN',
+        isActive: true,
+        createdAt: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-24'),
+    },
 ];
 
 // ===================================
@@ -1178,6 +1195,46 @@ export const mockTransactions: Transaction[] = [
         orderId: 'order-001',
         createdAt: new Date('2025-01-18'),
         updatedAt: new Date('2025-01-18'),
+    },
+    // Admin transactions
+    {
+        id: 'txn-admin-001',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.DEPOSIT,
+        amount: 500000,
+        balanceBefore: 0,
+        balanceAfter: 500000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'DEP-2025-ADMIN-001',
+        description: 'Platform seed funding deposit',
+        createdAt: new Date('2025-01-01'),
+        updatedAt: new Date('2025-01-01'),
+    },
+    {
+        id: 'txn-admin-002',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.DEPOSIT,
+        amount: 25000,
+        balanceBefore: 500000,
+        balanceAfter: 525000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'COM-2025-ADMIN-001',
+        description: 'Platform commission earnings',
+        createdAt: new Date('2025-01-20'),
+        updatedAt: new Date('2025-01-20'),
+    },
+    {
+        id: 'txn-admin-003',
+        walletId: 'wallet-admin-001',
+        type: TransactionType.WITHDRAWAL,
+        amount: 25000,
+        balanceBefore: 525000,
+        balanceAfter: 500000,
+        status: TransactionStatus.COMPLETED,
+        reference: 'WDR-2025-ADMIN-001',
+        description: 'Operational withdrawal',
+        createdAt: new Date('2025-01-22'),
+        updatedAt: new Date('2025-01-22'),
     },
 ];
 
@@ -1368,7 +1425,7 @@ export const mockOrders: Order[] = [
             addressLine1: '12 Ozumba Mbadiwe Avenue',
             city: 'Lagos',
             state: 'Lagos',
-            campus: Campus.VICTORIA_ISLAND,
+            campus: Campus.IKOYI,
             isDefault: true,
             createdAt: new Date('2025-01-12'),
             updatedAt: new Date('2025-01-12'),
@@ -1503,9 +1560,9 @@ export const mockReviews: Review[] = [
 // ===================================
 
 export const mockBanners: Banner[] = [
-    // ─── HERO banners (large landing-page carousel) ──────────────────────────
+    // â”€â”€â”€ HERO banners (large landing-page carousel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    // Church programme – annual convention
+    // Church programme â€“ annual convention
     {
         id: 'banner-001',
         title: 'Harvesters Annual Convention 2026',
@@ -1520,7 +1577,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'CHURCH',
         accentColor: '#b45309',
-        details: 'March 14–16, 2026 · Harvesters Oregun HQ · 7 AM & 4 PM daily',
+        details: 'March 14â€“16, 2026 Â· Harvesters Oregun HQ Â· 7 AM & 4 PM daily',
         knowMoreLabel: 'Know More',
         position: 'HERO',
         isActive: true,
@@ -1534,7 +1591,7 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-02-01'),
         createdBy: 'user-admin-001',
     },
-    // Promotional – farm produce sale
+    // Promotional â€“ farm produce sale
     {
         id: 'banner-002',
         title: 'Fresh Farms, Fresh Deals!',
@@ -1548,7 +1605,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'PROMOTION',
         accentColor: '#047857',
-        details: 'Use code FRESH20 at checkout. Offer valid Jan 27 – Feb 3, 2026.',
+        details: 'Use code FRESH20 at checkout. Offer valid Jan 27 â€“ Feb 3, 2026.',
         knowMoreLabel: 'See All Deals',
         position: 'HERO',
         isActive: true,
@@ -1562,7 +1619,7 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-01-26'),
         createdBy: 'user-admin-001',
     },
-    // Business – fashion week
+    // Business â€“ fashion week
     {
         id: 'banner-003',
         title: 'Fashion Week Special',
@@ -1575,7 +1632,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'BUSINESS',
         accentColor: '#7e22ce',
-        details: 'Valid Jan 15 – Jan 30, 2026. Selected items only.',
+        details: 'Valid Jan 15 â€“ Jan 30, 2026. Selected items only.',
         knowMoreLabel: 'Explore Looks',
         position: 'HERO',
         isActive: true,
@@ -1589,15 +1646,15 @@ export const mockBanners: Banner[] = [
         updatedAt: new Date('2026-01-14'),
         createdBy: 'user-admin-001',
     },
-    // Church programme – midweek service (no call-to-action – tests fallback)
+    // Church programme â€“ midweek service (no call-to-action â€“ tests fallback)
     {
         id: 'banner-004',
         title: 'Midweek Recharge',
-        subtitle: 'Every Wednesday — 6 PM',
+        subtitle: 'Every Wednesday â€” 6 PM',
         description: 'Refresh and reconnect at our midweek service. All campuses. Online streaming available.',
         imageUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=600&fit=crop',
         linkUrl: null,
-        actions: null,          // intentionally no action → fallback rendering tested
+        actions: null,          // intentionally no action â†’ fallback rendering tested
         theme: 'CHURCH',
         accentColor: '#92400e',
         details: null,
@@ -1628,7 +1685,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'PROMOTION',
         accentColor: '#be185d',
-        details: 'Valid Jan 22 – Feb 5, 2026.',
+        details: 'Valid Jan 22 â€“ Feb 5, 2026.',
         knowMoreLabel: 'See Products',
         position: 'HERO',
         isActive: true,
@@ -1643,11 +1700,11 @@ export const mockBanners: Banner[] = [
         createdBy: 'user-admin-001',
     },
 
-    // ─── TOP banners (small fixed strip) ─────────────────────────────────────
+    // â”€â”€â”€ TOP banners (small fixed strip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     {
         id: 'banner-top-001',
-        title: '⚡ New Vendor Alert: Shop Fresh Organic!',
+        title: 'âš¡ New Vendor Alert: Shop Fresh Organic!',
         subtitle: null,
         description: null,
         imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=100&fit=crop',
@@ -1668,7 +1725,7 @@ export const mockBanners: Banner[] = [
     },
     {
         id: 'banner-top-002',
-        title: '🎉 Annual Convention — Register before seats fill up!',
+        title: 'ðŸŽ‰ Annual Convention â€” Register before seats fill up!',
         subtitle: null,
         description: null,
         imageUrl: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&h=100&fit=crop',
@@ -1689,7 +1746,7 @@ export const mockBanners: Banner[] = [
     },
     {
         id: 'banner-top-003',
-        title: '🛒 Free delivery on orders over ₦5,000 today only',
+        title: 'ðŸ›’ Free delivery on orders over â‚¦5,000 today only',
         subtitle: null,
         description: null,
         imageUrl: '',

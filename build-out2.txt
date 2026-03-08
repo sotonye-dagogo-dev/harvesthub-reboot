@@ -1,0 +1,138 @@
+﻿   Ôû▓ Next.js 15.5.12
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 2.6min
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/47) ...
+   Generating static pages (11/47) 
+node.exe : (node:22416) Warning: `--localstorage-file` was provided without a 
+valid path
+At line:1 char:1
++ & "C:\nvm4w\nodejs/node.exe" "C:\nvm4w\nodejs/node_modules/npm/bin/np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:22416) Wa...ut a valid path 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+   Generating static pages (23/47) 
+   Generating static pages (35/47) 
+ Ô£ô Generating static pages (47/47)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+Ôöî Ôùï /                                    3.61 kB         263 kB
+Ôö£ Ôùï /_not-found                            259 B         102 kB
+Ôö£ ãÆ /about                                 192 B         106 kB
+Ôö£ ãÆ /admin/analytics                     5.81 kB         232 kB
+Ôö£ ãÆ /admin/banners                       10.7 kB         439 kB
+Ôö£ ãÆ /admin/dashboard                     1.82 kB         228 kB
+Ôö£ ãÆ /admin/orders                        2.05 kB         255 kB
+Ôö£ ãÆ /admin/orders/[id]                   3.89 kB         284 kB
+Ôö£ ãÆ /admin/products                      2.23 kB         394 kB
+Ôö£ ãÆ /admin/products/[id]                 4.51 kB         242 kB
+Ôö£ ãÆ /admin/users                         6.88 kB         393 kB
+Ôö£ ãÆ /admin/users/[id]                    4.07 kB         234 kB
+Ôö£ ãÆ /admin/vendors                       3.52 kB         395 kB
+Ôö£ ãÆ /admin/vendors/[id]                  4.42 kB         234 kB
+Ôö£ ãÆ /api/admin/reviews                     259 B         102 kB
+Ôö£ ãÆ /api/admin/reviews/[id]                259 B         102 kB
+Ôö£ ãÆ /api/admin/reviews/[id]/flag           259 B         102 kB
+Ôö£ ãÆ /api/auth/forgot-password              259 B         102 kB
+Ôö£ ãÆ /api/auth/login                        259 B         102 kB
+Ôö£ ãÆ /api/auth/logout                       259 B         102 kB
+Ôö£ ãÆ /api/auth/me                           259 B         102 kB
+Ôö£ ãÆ /api/auth/refresh                      259 B         102 kB
+Ôö£ ãÆ /api/auth/register                     259 B         102 kB
+Ôö£ ãÆ /api/auth/reset-password               259 B         102 kB
+Ôö£ ãÆ /api/banners                           259 B         102 kB
+Ôö£ ãÆ /api/banners/[id]                      259 B         102 kB
+Ôö£ ãÆ /api/cart                              259 B         102 kB
+Ôö£ ãÆ /api/cart/clear                        259 B         102 kB
+Ôö£ ãÆ /api/cart/items                        259 B         102 kB
+Ôö£ ãÆ /api/cart/items/[id]                   259 B         102 kB
+Ôö£ ãÆ /api/notifications                     259 B         102 kB
+Ôö£ ãÆ /api/notifications/[id]                259 B         102 kB
+Ôö£ ãÆ /api/notifications/[id]/read           259 B         102 kB
+Ôö£ ãÆ /api/notifications/preferences         259 B         102 kB
+Ôö£ ãÆ /api/notifications/read-all            259 B         102 kB
+Ôö£ ãÆ /api/orders                            259 B         102 kB
+Ôö£ ãÆ /api/orders/[id]                       259 B         102 kB
+Ôö£ ãÆ /api/orders/[id]/cancel                259 B         102 kB
+Ôö£ ãÆ /api/orders/[id]/status                259 B         102 kB
+Ôö£ ãÆ /api/products                          259 B         102 kB
+Ôö£ ãÆ /api/products/[id]                     259 B         102 kB
+Ôö£ ãÆ /api/products/[id]/related             259 B         102 kB
+Ôö£ ãÆ /api/products/[id]/reviews             259 B         102 kB
+Ôö£ ãÆ /api/products/featured                 259 B         102 kB
+Ôö£ ãÆ /api/products/new-arrivals             259 B         102 kB
+Ôö£ ãÆ /api/products/search                   259 B         102 kB
+Ôö£ ãÆ /api/products/trending                 259 B         102 kB
+Ôö£ ãÆ /api/reviews                           259 B         102 kB
+Ôö£ ãÆ /api/reviews/[id]                      259 B         102 kB
+Ôö£ ãÆ /api/reviews/[id]/flag                 259 B         102 kB
+Ôö£ ãÆ /api/reviews/[id]/response             259 B         102 kB
+Ôö£ ãÆ /api/reviews/[id]/vote                 259 B         102 kB
+Ôö£ ãÆ /api/users                             259 B         102 kB
+Ôö£ ãÆ /api/users/[id]                        259 B         102 kB
+Ôö£ ãÆ /api/vendors                           259 B         102 kB
+Ôö£ ãÆ /api/vendors/[id]                      259 B         102 kB
+Ôö£ ãÆ /api/vendors/[id]/products             259 B         102 kB
+Ôö£ ãÆ /api/wallet                            259 B         102 kB
+Ôö£ ãÆ /api/wallet/balance                    259 B         102 kB
+Ôö£ ãÆ /api/wallet/deposit                    259 B         102 kB
+Ôö£ ãÆ /api/wallet/transactions               259 B         102 kB
+Ôö£ ãÆ /api/wallet/withdraw                   259 B         102 kB
+Ôö£ ãÆ /cart                                1.87 kB         258 kB
+Ôö£ ãÆ /checkout                            5.18 kB         266 kB
+Ôö£ ãÆ /contact                               259 B         102 kB
+Ôö£ ãÆ /cookies                               192 B         106 kB
+Ôö£ Ôùï /dashboard                             457 B         106 kB
+Ôö£ ãÆ /faqs                                  192 B         106 kB
+Ôö£ Ôùï /forgot-password                      2.2 kB         267 kB
+Ôö£ ãÆ /help                                  192 B         106 kB
+Ôö£ Ôùï /login                               10.1 kB         230 kB
+Ôö£ ãÆ /notifications                       5.18 kB         278 kB
+Ôö£ ãÆ /notifications/settings              4.19 kB         233 kB
+Ôö£ ãÆ /orders                              1.68 kB         297 kB
+Ôö£ ãÆ /orders/[id]                         8.85 kB         276 kB
+Ôö£ Ôùï /orders/management                     448 B         106 kB
+Ôö£ ãÆ /privacy                               192 B         106 kB
+Ôö£ ãÆ /products                            2.17 kB         258 kB
+Ôö£ ãÆ /products/[id]                       4.63 kB         261 kB
+Ôö£ Ôùï /products/management                   434 B         106 kB
+Ôö£ ãÆ /profile                             3.58 kB         324 kB
+Ôö£ Ôùï /reset-password                      2.62 kB         267 kB
+Ôö£ Ôùï /signup                              2.35 kB         208 kB
+Ôö£ Ôùï /signup-success                        744 B         210 kB
+Ôö£ Ôùï /signup/account-info                 2.04 kB         275 kB
+Ôö£ Ôùï /signup/security-info                5.57 kB         271 kB
+Ôö£ Ôùï /signup/store-info                   1.54 kB         287 kB
+Ôö£ Ôùï /signup/user-info                    1.33 kB         268 kB
+Ôö£ Ôùï /store-settings                        480 B         106 kB
+Ôö£ ãÆ /terms                                 192 B         106 kB
+Ôö£ Ôùï /unauthorized                          192 B         106 kB
+Ôö£ ãÆ /vendor/analytics                    2.23 kB         229 kB
+Ôö£ ãÆ /vendor/dashboard                    1.54 kB         228 kB
+Ôö£ ãÆ /vendor/orders                        1.7 kB         255 kB
+Ôö£ ãÆ /vendor/orders/[id]                  7.79 kB         281 kB
+Ôö£ ãÆ /vendor/products                     2.14 kB         394 kB
+Ôö£ ãÆ /vendor/products/[id]                12.5 kB         323 kB
+Ôö£ ãÆ /vendor/store-settings                5.2 kB         332 kB
+Ôö£ ãÆ /vendor/wallet                       4.79 kB         279 kB
+Ôö£ ãÆ /vendors                             1.88 kB         317 kB
+Ôö£ ãÆ /vendors/[id]                        2.87 kB         294 kB
+Ôöö ãÆ /wallet                              4.56 kB         251 kB
++ First Load JS shared by all             102 kB
+  Ôö£ chunks/1255-ad409e5887c155b0.js      45.7 kB
+  Ôö£ chunks/4bd1b696-100b9d70ed4e49c1.js  54.2 kB
+  Ôöö other shared chunks (total)          2.01 kB
+
+
+ãÆ Middleware                             40.3 kB
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

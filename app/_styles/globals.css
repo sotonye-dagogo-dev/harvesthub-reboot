@@ -3,48 +3,274 @@
 @tailwind utilities;
 
 /* ============================================================================
-   ROOT VARIABLES
+   DESIGN SYSTEM — TIER 1: PALETTE (raw color values)
+   These are the immutable color primitives. Never reference these directly
+   in components — use the semantic layer instead.
+   Format: space-separated R G B for Tailwind alpha-value support.
    ============================================================================ */
 @layer base {
   :root {
-    /* Purple Theme Colors */
-    --primary-50: 250 245 255;
-    --primary-100: 243 232 255;
-    --primary-200: 233 213 255;
-    --primary-300: 216 180 254;
-    --primary-400: 192 132 252;
-    --primary-500: 168 85 247;
-    --primary-600: 147 51 234;
-    --primary-700: 126 34 206;
-    --primary-800: 107 33 168;
-    --primary-900: 88 28 135;
-    --primary-950: 59 7 100;
+    /* Purple palette */
+    --ds-palette-purple-50: 250 245 255;
+    --ds-palette-purple-100: 243 232 255;
+    --ds-palette-purple-200: 233 213 255;
+    --ds-palette-purple-300: 216 180 254;
+    --ds-palette-purple-400: 192 132 252;
+    --ds-palette-purple-500: 168 85 247;
+    --ds-palette-purple-600: 147 51 234;
+    --ds-palette-purple-700: 126 34 206;
+    --ds-palette-purple-800: 107 33 168;
+    --ds-palette-purple-900: 88 28 135;
+    --ds-palette-purple-950: 59 7 100;
 
-    /* Semantic Colors */
-    --success: 34 197 94;
-    --warning: 245 158 11;
-    --error: 239 68 68;
-    --info: 59 130 246;
+    /* Neutral palette */
+    --ds-palette-white: 255 255 255;
+    --ds-palette-black: 6 6 6;
+    --ds-palette-neutral-50: 250 250 250;
+    --ds-palette-neutral-100: 245 245 245;
+    --ds-palette-neutral-200: 229 229 229;
+    --ds-palette-neutral-300: 212 212 212;
+    --ds-palette-neutral-400: 163 163 163;
+    --ds-palette-neutral-500: 115 115 115;
+    --ds-palette-neutral-600: 82 82 82;
+    --ds-palette-neutral-700: 64 64 64;
+    --ds-palette-neutral-800: 38 38 38;
+    --ds-palette-neutral-900: 26 26 26;
+    --ds-palette-neutral-950: 15 15 15;
 
-    /* Light Mode */
-    --background: 255 255 255;
-    --foreground: 6 6 6;
-    --card: 255 255 255;
-    --card-foreground: 6 6 6;
-    --border: 229 229 229;
-    --input: 229 229 229;
-    --ring: 147 51 234;
+    /* Status palette */
+    --ds-palette-green-50: 240 253 244;
+    --ds-palette-green-100: 220 252 231;
+    --ds-palette-green-400: 74 222 128;
+    --ds-palette-green-500: 34 197 94;
+    --ds-palette-green-600: 22 163 74;
+    --ds-palette-green-800: 22 101 52;
+    --ds-palette-green-900: 5 46 22;
+
+    --ds-palette-red-50: 254 242 242;
+    --ds-palette-red-100: 254 226 226;
+    --ds-palette-red-400: 248 113 113;
+    --ds-palette-red-500: 239 68 68;
+    --ds-palette-red-600: 220 38 38;
+    --ds-palette-red-800: 153 27 27;
+    --ds-palette-red-900: 69 10 10;
+
+    --ds-palette-amber-50: 255 251 235;
+    --ds-palette-amber-100: 254 243 199;
+    --ds-palette-amber-400: 251 191 36;
+    --ds-palette-amber-500: 245 158 11;
+    --ds-palette-amber-600: 217 119 6;
+    --ds-palette-amber-800: 146 64 14;
+    --ds-palette-amber-900: 69 26 3;
+
+    --ds-palette-blue-50: 239 246 255;
+    --ds-palette-blue-100: 219 234 254;
+    --ds-palette-blue-400: 96 165 250;
+    --ds-palette-blue-500: 59 130 246;
+    --ds-palette-blue-600: 37 99 235;
+    --ds-palette-blue-800: 30 64 175;
+    --ds-palette-blue-900: 14 26 63;
+
+    --ds-palette-yellow-400: 250 204 21;
+    --ds-palette-yellow-500: 234 179 8;
+
+    --ds-palette-orange-500: 249 115 22;
+    --ds-palette-orange-600: 234 88 12;
+  }
+}
+
+/* ============================================================================
+   DESIGN SYSTEM — TIER 2: SEMANTIC TOKENS (purpose-driven aliases)
+   These map palette values to UI purposes. Components should reference
+   ONLY these tokens. Light/dark switching happens here.
+   ============================================================================ */
+@layer base {
+  :root {
+    /* ---- Brand ---- */
+    --ds-brand-primary: var(--ds-palette-purple-600);
+    --ds-brand-primary-hover: var(--ds-palette-purple-700);
+    --ds-brand-primary-active: var(--ds-palette-purple-800);
+    --ds-brand-primary-light: var(--ds-palette-purple-500);
+    --ds-brand-accent: var(--ds-palette-purple-400);
+    --ds-brand-muted: var(--ds-palette-purple-300);
+    --ds-brand-subtle: var(--ds-palette-purple-100);
+    --ds-brand-surface: var(--ds-palette-purple-50);
+
+    /* ---- Text ---- */
+    --ds-text-primary: var(--ds-palette-black);
+    --ds-text-secondary: var(--ds-palette-neutral-600);
+    --ds-text-tertiary: var(--ds-palette-neutral-500);
+    --ds-text-placeholder: var(--ds-palette-neutral-400);
+    --ds-text-disabled: var(--ds-palette-neutral-400);
+    --ds-text-inverse: var(--ds-palette-white);
+    --ds-text-brand: var(--ds-palette-purple-600);
+    --ds-text-link: var(--ds-palette-purple-600);
+    --ds-text-link-hover: var(--ds-palette-purple-700);
+
+    /* ---- Surfaces ---- */
+    --ds-surface-base: var(--ds-palette-white);
+    --ds-surface-raised: var(--ds-palette-white);
+    --ds-surface-overlay: var(--ds-palette-white);
+    --ds-surface-sunken: var(--ds-palette-neutral-50);
+    --ds-surface-disabled: var(--ds-palette-neutral-100);
+
+    /* ---- Borders ---- */
+    --ds-border-base: var(--ds-palette-neutral-200);
+    --ds-border-strong: var(--ds-palette-neutral-300);
+    --ds-border-subtle: var(--ds-palette-neutral-100);
+    --ds-border-brand: var(--ds-palette-purple-600);
+    --ds-border-focus: var(--ds-palette-purple-500);
+
+    /* ---- Status ---- */
+    --ds-status-success: var(--ds-palette-green-500);
+    --ds-status-success-text: var(--ds-palette-green-600);
+    --ds-status-success-bg: var(--ds-palette-green-50);
+    --ds-status-success-border: var(--ds-palette-green-500);
+
+    --ds-status-error: var(--ds-palette-red-500);
+    --ds-status-error-text: var(--ds-palette-red-600);
+    --ds-status-error-bg: var(--ds-palette-red-50);
+    --ds-status-error-border: var(--ds-palette-red-500);
+
+    --ds-status-warning: var(--ds-palette-amber-500);
+    --ds-status-warning-text: var(--ds-palette-amber-600);
+    --ds-status-warning-bg: var(--ds-palette-amber-50);
+    --ds-status-warning-border: var(--ds-palette-amber-500);
+
+    --ds-status-info: var(--ds-palette-blue-500);
+    --ds-status-info-text: var(--ds-palette-blue-600);
+    --ds-status-info-bg: var(--ds-palette-blue-50);
+    --ds-status-info-border: var(--ds-palette-blue-500);
+
+    /* ---- Interaction ---- */
+    --ds-ring: var(--ds-palette-purple-500);
+    --ds-focus-ring: var(--ds-palette-purple-500);
+
+    /* ---- Rating ---- */
+    --ds-rating-fill: var(--ds-palette-yellow-400);
+    --ds-rating-empty: var(--ds-palette-neutral-200);
+
+    /* ---- Shadows (hex for rgba, not RGB triplets) ---- */
+    --ds-shadow-xs:
+      0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02),
+      0 2px 4px 0 rgba(0, 0, 0, 0.02);
+    --ds-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    --ds-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+    --ds-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+    --ds-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    --ds-shadow-elevated:
+      0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+      0 9px 28px 8px rgba(0, 0, 0, 0.05);
+
+    /* ---- Z-Index Scale ---- */
+    --ds-z-base: 0;
+    --ds-z-raised: 10;
+    --ds-z-dropdown: 20;
+    --ds-z-sticky: 30;
+    --ds-z-header: 40;
+    --ds-z-overlay: 50;
+    --ds-z-modal: 60;
+    --ds-z-toast: 70;
+
+    /* ---- Border Radius ---- */
+    --ds-radius-xs: 4px;
+    --ds-radius-sm: 6px;
+    --ds-radius-md: 8px;
+    --ds-radius-lg: 12px;
+    --ds-radius-xl: 16px;
+    --ds-radius-full: 9999px;
+
+    /* ---- Legacy compat (consumed by existing Tailwind classes) ---- */
+    --background: var(--ds-palette-white);
+    --foreground: var(--ds-palette-black);
+    --card: var(--ds-palette-white);
+    --card-foreground: var(--ds-palette-black);
+    --border: var(--ds-palette-neutral-200);
+    --input: var(--ds-palette-neutral-200);
+    --ring: var(--ds-palette-purple-600);
+
+    /* Legacy primary aliases (consumed by old btn-primary etc.) */
+    --primary-50: var(--ds-palette-purple-50);
+    --primary-100: var(--ds-palette-purple-100);
+    --primary-200: var(--ds-palette-purple-200);
+    --primary-300: var(--ds-palette-purple-300);
+    --primary-400: var(--ds-palette-purple-400);
+    --primary-500: var(--ds-palette-purple-500);
+    --primary-600: var(--ds-palette-purple-600);
+    --primary-700: var(--ds-palette-purple-700);
+    --primary-800: var(--ds-palette-purple-800);
+    --primary-900: var(--ds-palette-purple-900);
+    --primary-950: var(--ds-palette-purple-950);
   }
 
   .dark {
-    /* Dark Mode */
-    --background: 15 15 15;
-    --foreground: 229 229 229;
-    --card: 26 26 26;
-    --card-foreground: 229 229 229;
-    --border: 51 51 51;
-    --input: 51 51 51;
-    --ring: 168 85 247;
+    /* ---- Brand (dark) ---- */
+    --ds-brand-primary: var(--ds-palette-purple-500);
+    --ds-brand-primary-hover: var(--ds-palette-purple-400);
+    --ds-brand-primary-active: var(--ds-palette-purple-600);
+    --ds-brand-primary-light: var(--ds-palette-purple-400);
+    --ds-brand-accent: var(--ds-palette-purple-300);
+    --ds-brand-muted: var(--ds-palette-purple-700);
+    --ds-brand-subtle: var(--ds-palette-purple-900);
+    --ds-brand-surface: var(--ds-palette-purple-950);
+
+    /* ---- Text (dark) ---- */
+    --ds-text-primary: var(--ds-palette-neutral-200);
+    --ds-text-secondary: var(--ds-palette-neutral-400);
+    --ds-text-tertiary: var(--ds-palette-neutral-500);
+    --ds-text-placeholder: var(--ds-palette-neutral-600);
+    --ds-text-disabled: var(--ds-palette-neutral-600);
+    --ds-text-inverse: var(--ds-palette-black);
+    --ds-text-brand: var(--ds-palette-purple-400);
+    --ds-text-link: var(--ds-palette-purple-400);
+    --ds-text-link-hover: var(--ds-palette-purple-300);
+
+    /* ---- Surfaces (dark) ---- */
+    --ds-surface-base: var(--ds-palette-neutral-950);
+    --ds-surface-raised: var(--ds-palette-neutral-900);
+    --ds-surface-overlay: var(--ds-palette-neutral-800);
+    --ds-surface-sunken: var(--ds-palette-neutral-950);
+    --ds-surface-disabled: var(--ds-palette-neutral-800);
+
+    /* ---- Borders (dark) ---- */
+    --ds-border-base: var(--ds-palette-neutral-700);
+    --ds-border-strong: var(--ds-palette-neutral-600);
+    --ds-border-subtle: var(--ds-palette-neutral-800);
+    --ds-border-brand: var(--ds-palette-purple-500);
+    --ds-border-focus: var(--ds-palette-purple-400);
+
+    /* ---- Status (dark) ---- */
+    --ds-status-success-text: var(--ds-palette-green-400);
+    --ds-status-success-bg: var(--ds-palette-green-900);
+    --ds-status-error-text: var(--ds-palette-red-400);
+    --ds-status-error-bg: var(--ds-palette-red-900);
+    --ds-status-warning-text: var(--ds-palette-amber-400);
+    --ds-status-warning-bg: var(--ds-palette-amber-900);
+    --ds-status-info-text: var(--ds-palette-blue-400);
+    --ds-status-info-bg: var(--ds-palette-blue-900);
+
+    /* ---- Interaction (dark) ---- */
+    --ds-ring: var(--ds-palette-purple-400);
+    --ds-focus-ring: var(--ds-palette-purple-400);
+
+    /* ---- Shadows (dark) ---- */
+    --ds-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+    --ds-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.25), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
+    --ds-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --ds-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+    --ds-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    --ds-shadow-elevated:
+      0 6px 16px 0 rgba(0, 0, 0, 0.25), 0 3px 6px -4px rgba(0, 0, 0, 0.3),
+      0 9px 28px 8px rgba(0, 0, 0, 0.2);
+
+    /* ---- Legacy compat (dark) ---- */
+    --background: var(--ds-palette-neutral-950);
+    --foreground: var(--ds-palette-neutral-200);
+    --card: var(--ds-palette-neutral-900);
+    --card-foreground: var(--ds-palette-neutral-200);
+    --border: var(--ds-palette-neutral-700);
+    --input: var(--ds-palette-neutral-700);
+    --ring: var(--ds-palette-purple-500);
   }
 }
 
@@ -53,7 +279,7 @@
    ============================================================================ */
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    @apply bg-ds-surface-base text-ds-text-primary;
     font-family:
       var(--font-geist-sans),
       -apple-system,
@@ -74,11 +300,11 @@
   h4,
   h5,
   h6 {
-    @apply font-semibold text-foreground;
+    @apply font-semibold text-ds-text-primary;
   }
 
   a {
-    @apply text-primary-600 hover:text-primary-700 transition-colors;
+    @apply text-ds-text-link hover:text-ds-text-link-hover transition-colors;
   }
 }
 
@@ -95,17 +321,11 @@
   }
 
   .card-shadow {
-    box-shadow:
-      0 1px 2px 0 rgba(0, 0, 0, 0.03),
-      0 1px 6px -1px rgba(0, 0, 0, 0.02),
-      0 2px 4px 0 rgba(0, 0, 0, 0.02);
+    box-shadow: var(--ds-shadow-xs);
   }
 
   .card-shadow-hover {
-    box-shadow:
-      0 6px 16px 0 rgba(0, 0, 0, 0.08),
-      0 3px 6px -4px rgba(0, 0, 0, 0.12),
-      0 9px 28px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--ds-shadow-elevated);
   }
 }
 
@@ -114,15 +334,15 @@
    ============================================================================ */
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200;
+    @apply bg-ds-brand-primary hover:bg-ds-brand-primary-hover active:bg-ds-brand-primary-active text-ds-text-inverse font-semibold px-6 py-2.5 rounded-ds-md transition-colors duration-200;
   }
 
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 active:bg-gray-100 text-primary-700 border border-primary-300 font-semibold px-6 py-2.5 rounded-lg transition-colors duration-200;
+    @apply bg-ds-surface-base hover:bg-ds-surface-sunken active:bg-ds-surface-sunken text-ds-text-brand border border-ds-brand-muted font-semibold px-6 py-2.5 rounded-ds-md transition-colors duration-200;
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200;
+    @apply w-full px-4 py-2.5 border border-ds-border-base rounded-ds-md focus:outline-none focus:ring-2 focus:ring-ds-focus-ring focus:border-transparent transition-all duration-200;
   }
 
   .splines-bg {
@@ -146,7 +366,7 @@
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(var(--primary-400)) transparent;
+    scrollbar-color: rgb(var(--ds-brand-accent)) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -159,11 +379,11 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgb(var(--primary-400));
-    border-radius: 3px;
+    background-color: rgb(var(--ds-brand-accent));
+    border-radius: var(--ds-radius-xs);
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(var(--primary-500));
+    background-color: rgb(var(--ds-brand-primary-light));
   }
 }

@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/ui";
 import { ReviewCard, ProductCard } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/lib/store/cartStore";
+import { useFavorites } from "@/lib/store/favoritesStore";
+import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { ShoppingCart, Store, Package, Truck, ArrowLeft, Heart, Share2 } from "lucide-react";
 import { message } from "antd";
 import Image from "next/image";
@@ -20,10 +22,11 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = params?.id as string;
   const { addItem, getItem } = useCart();
+  const { toggleFavorite: rawToggleFavorite, isFavorite: checkIsFavorite } = useFavorites();
+  const { requireAuth } = useGuestGuard();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   const product = mockProducts.find((p) => p.id === productId);
   const vendor = product ? mockVendors.find((v) => v.id === product.vendorId) : null;
@@ -54,6 +57,7 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
+    if (!requireAuth("add items to your cart")) return;
     const cartItem = getItem(product.id);
     const totalQuantity = (cartItem?.quantity || 0) + quantity;
 
@@ -94,7 +98,7 @@ export default function ProductDetailPage() {
       {/* Back Button */}
       <button
         onClick={() => router.back()}
-        className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        className="mb-6 flex items-center gap-2 text-ds-text-secondary hover:text-ds-text-primary dark:text-ds-text-placeholder dark:hover:text-white"
       >
         <ArrowLeft className="h-5 w-5" />
         Back to Products
@@ -103,7 +107,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Product Images */}
         <div>
-          <div className="mb-4 aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+          <div className="mb-4 aspect-square overflow-hidden rounded-ds-md bg-ds-surface-sunken">
             <Image
               src={product.images[selectedImage] || "/placeholder-product.jpg"}
               alt={product.name}
@@ -115,16 +119,13 @@ export default function ProductDetailPage() {
 
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
+              {" "}
               {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
                   aria-label={`View image ${index + 1} of ${product.images.length}`}
-                  className={`aspect-square overflow-hidden rounded-lg border-2 ${
-                    selectedImage === index
-                      ? "border-purple-600"
-                      : "border-gray-200 dark:border-gray-700"
-                  }`}
+                  className={`aspect-square overflow-hidden rounded-ds-md border-2 ${selectedImage === index ? "border-ds-border-brand" : "border-ds-border-base"}`}
                 >
                   <Image
                     src={image}
@@ -143,14 +144,12 @@ export default function ProductDetailPage() {
         <div>
           <div className="mb-4 flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
-                {product.name}
-              </h1>
+              <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">{product.name}</h1>
 
               <div className="mb-4 flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Rating value={avgRating} readonly />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-ds-text-secondary">
                     ({productReviews.length} reviews)
                   </span>
                 </div>
@@ -160,8 +159,17 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsFavorite(!isFavorite)}>
-                <Heart className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (!requireAuth("save favourites")) return;
+                  rawToggleFavorite(productId);
+                }}
+              >
+                <Heart
+                  className={`h-5 w-5 ${checkIsFavorite(productId) ? "fill-ds-status-error text-ds-status-error" : ""}`}
+                />
               </Button>
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="h-5 w-5" />
@@ -169,22 +177,42 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="mb-6 border-b border-gray-200 pb-6 dark:border-gray-800">
-            <div className="mb-2 text-4xl font-bold text-purple-600 dark:text-purple-400">
-              {formatCurrency(product.price)}
+          <div className="mb-6 border-b border-ds-border-base pb-6">
+            <div className="mb-2 flex items-center gap-3">
+              <span className="text-4xl font-bold text-ds-text-brand">
+                {formatCurrency(
+                  product.discount
+                    ? product.price - (product.price * product.discount) / 100
+                    : product.price
+                )}
+              </span>
+              {product.discount && product.discount > 0 && (
+                <>
+                  <span className="text-xl text-ds-text-tertiary line-through">
+                    {formatCurrency(product.price)}
+                  </span>
+                  <span className="rounded-ds-sm bg-ds-status-error px-2 py-0.5 text-sm font-semibold text-white">
+                    -{product.discount}%
+                  </span>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-gray-500" />
-                <span className={product.stock > 0 ? "text-green-600" : "text-red-600"}>
+                <Package className="h-4 w-4 text-ds-text-tertiary" />
+                <span
+                  className={
+                    product.stock > 0 ? "text-ds-status-success-text" : "text-ds-status-error-text"
+                  }
+                >
                   {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-600 dark:text-gray-400">Delivery available</span>
+                <Truck className="h-4 w-4 text-ds-text-tertiary" />
+                <span className="text-ds-text-secondary">Delivery available</span>
               </div>
             </div>
           </div>
@@ -192,14 +220,14 @@ export default function ProductDetailPage() {
           {/* Vendor Info */}
           <Link
             href={`/vendors/${vendor.id}`}
-            className="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900"
+            className="mb-6 flex items-center gap-3 rounded-ds-md border border-ds-border-base p-4 transition-colors hover:bg-ds-surface-sunken"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
-              <Store className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-ds-full bg-ds-brand-subtle">
+              <Store className="h-6 w-6 text-ds-text-brand" />
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-gray-900 dark:text-white">{vendor.storeName}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="font-semibold text-ds-text-primary">{vendor.storeName}</div>
+              <div className="text-sm text-ds-text-secondary">
                 {vendor.campus} · {vendor.category}
               </div>
             </div>
@@ -208,7 +236,7 @@ export default function ProductDetailPage() {
           {/* Add to Cart */}
           <div className="mb-6 space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
                 Quantity
               </label>
               <div className="flex items-center gap-3">
@@ -239,20 +267,16 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Description */}
-          <div className="border-t border-gray-200 pt-6 dark:border-gray-800">
-            <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
-              Description
-            </h2>
-            <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-              {product.description}
-            </p>
+          <div className="border-t border-ds-border-base pt-6">
+            <h2 className="mb-3 text-lg font-semibold text-ds-text-primary">Description</h2>
+            <p className="whitespace-pre-line text-ds-text-secondary">{product.description}</p>
           </div>
         </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="mt-12 border-t border-gray-200 pt-12 dark:border-gray-800">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+      <div className="mt-12 border-t border-ds-border-base pt-12">
+        <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">
           Customer Reviews ({productReviews.length})
         </h2>
 
@@ -278,12 +302,12 @@ export default function ProductDetailPage() {
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <div className="mt-12 border-t border-gray-200 pt-12 dark:border-gray-800">
+        <div className="mt-12 border-t border-ds-border-base pt-12">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Related Products</h2>
+            <h2 className="text-2xl font-bold text-ds-text-primary">Related Products</h2>
             <Link
               href={`/products?category=${product.category}`}
-              className="text-purple-600 hover:text-purple-700 dark:text-purple-400"
+              className="text-ds-text-brand hover:text-ds-palette-purple-700"
             >
               View All
             </Link>
@@ -310,7 +334,31 @@ export default function ProductDetailPage() {
                   rating={relatedAvgRating}
                   reviewCount={relatedReviews.length}
                   stock={relatedProduct.stock}
+                  discount={relatedProduct.discount}
                   isFeatured={relatedProduct.isFeatured}
+                  isFavorite={checkIsFavorite(relatedProduct.id)}
+                  onToggleFavorite={() => {
+                    if (!requireAuth("save favourites")) return;
+                    rawToggleFavorite(relatedProduct.id);
+                  }}
+                  onAddToCart={() => {
+                    if (!requireAuth("add items to your cart")) return;
+                    const relatedCartItem = getItem(relatedProduct.id);
+                    if ((relatedCartItem?.quantity || 0) >= relatedProduct.stock) {
+                      message.error(`Only ${relatedProduct.stock} items available in stock`);
+                      return;
+                    }
+                    addItem({
+                      productId: relatedProduct.id,
+                      name: relatedProduct.name,
+                      price: relatedProduct.price,
+                      image: relatedProduct.images[0] || "/placeholder-product.jpg",
+                      vendorId: relatedProduct.vendorId,
+                      vendorName: relatedVendor?.storeName || "Unknown Vendor",
+                      stock: relatedProduct.stock,
+                    });
+                    message.success(`${relatedProduct.name} added to cart`);
+                  }}
                 />
               );
             })}

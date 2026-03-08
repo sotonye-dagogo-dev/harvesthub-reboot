@@ -59,35 +59,35 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900 dark:text-white">Checkout</h1>
+      <h1 className="mb-8 text-3xl font-bold text-ds-text-primary">Checkout</h1>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Order Items */}
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Order Items ({items.length})
             </h2>
             <div className="space-y-3">
               {items.map((item) => (
                 <div
                   key={item.productId}
-                  className="flex items-center gap-4 border-b border-gray-200 pb-3 last:border-0 dark:border-gray-800"
+                  className="flex items-center gap-4 border-b border-ds-border-base pb-3 last:border-0"
                 >
                   <Image
                     src={item.image}
                     alt={item.name}
                     width={60}
                     height={60}
-                    className="rounded-lg object-cover"
+                    className="rounded-ds-md object-cover"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">{item.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="font-medium text-ds-text-primary">{item.name}</div>
+                    <div className="text-sm text-ds-text-secondary">
                       {item.vendorName} · Qty: {item.quantity}
                     </div>
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">
+                  <div className="font-semibold text-ds-text-primary">
                     {formatCurrency(item.price * item.quantity)}
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
 
           {/* Delivery Method */}
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Delivery Method
             </h2>
             <Radio.Group
@@ -107,38 +107,38 @@ export default function CheckoutPage() {
             >
               <Radio
                 value="PICKUP"
-                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
                     <Store className="h-5 w-5" />
                     Church Pickup
                   </div>
-                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-1 text-sm text-ds-text-secondary">
                     Pick up your order at church service
                   </div>
                 </div>
               </Radio>
               <Radio
                 value="DELIVERY"
-                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
                     <Truck className="h-5 w-5" />
                     Home Delivery
                   </div>
-                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-1 text-sm text-ds-text-secondary">
                     Get your order delivered to your address
                   </div>
                 </div>
-                <div className="font-semibold text-purple-600">+{formatCurrency(deliveryFee)}</div>
+                <div className="font-semibold text-ds-text-brand">+{formatCurrency(deliveryFee)}</div>
               </Radio>
             </Radio.Group>
 
             {deliveryMethod === "PICKUP" && (
               <div className="mt-4 space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-ds-text-secondary">
                   Select Pickup Time
                 </label>
                 <Radio.Group
@@ -150,13 +150,13 @@ export default function CheckoutPage() {
                     <Radio
                       key={option.value}
                       value={option.value}
-                      className="flex w-full items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800"
+                      className="flex w-full items-center justify-between rounded-ds-md border border-ds-border-base p-3"
                     >
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-medium text-ds-text-primary">
                           {option.label}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-ds-text-secondary">
                           {option.time}
                         </div>
                       </div>
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
 
           {/* Payment Method */}
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Payment Method
             </h2>
             <Radio.Group
@@ -190,28 +190,28 @@ export default function CheckoutPage() {
             >
               <Radio
                 value="WALLET"
-                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
                     <Wallet className="h-5 w-5" />
                     Pay with Wallet
                   </div>
-                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-1 text-sm text-ds-text-secondary">
                     Balance: {formatCurrency(50000)}
                   </div>
                 </div>
               </Radio>
               <Radio
                 value="CARD"
-                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
                     <CreditCard className="h-5 w-5" />
                     Pay with Card
                   </div>
-                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-1 text-sm text-ds-text-secondary">
                     Paystack secure payment
                   </div>
                 </div>
@@ -223,25 +223,25 @@ export default function CheckoutPage() {
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-24">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Order Summary
             </h2>
 
-            <div className="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
-              <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+            <div className="space-y-3 border-t border-ds-border-base pt-4">
+              <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Subtotal ({items.length} items)</span>
                 <span className="font-medium">{formatCurrency(totalPrice)}</span>
               </div>
-              <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+              <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Delivery Fee</span>
                 <span className="font-medium">{formatCurrency(deliveryFee)}</span>
               </div>
             </div>
 
-            <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-800">
-              <div className="flex items-center justify-between text-lg font-bold text-gray-900 dark:text-white">
+            <div className="mt-4 border-t border-ds-border-base pt-4">
+              <div className="flex items-center justify-between text-lg font-bold text-ds-text-primary">
                 <span>Total</span>
-                <span className="text-purple-600 dark:text-purple-400">
+                <span className="text-ds-text-brand">
                   {formatCurrency(total)}
                 </span>
               </div>

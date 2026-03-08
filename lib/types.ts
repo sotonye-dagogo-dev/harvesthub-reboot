@@ -12,6 +12,7 @@ import {
     DeliveryMethod,
     PickupService,
     Campus,
+    Position,
     VendorCategory,
     ProductCategory,
     TransactionType,
@@ -44,6 +45,7 @@ export interface User {
     profilePicture?: URL | null;
     emailVerified: boolean;
     isActive: boolean;
+    status?: 'ACTIVE' | 'INACTIVE' | 'BANNED' | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 
@@ -96,6 +98,7 @@ export interface Vendor {
     category: VendorCategory;
     whatsappNumber: PhoneNumber;
     campus: Campus;
+    position?: Position | null;
     status: VendorStatus;
     isChurchAffiliated: boolean;
     commissionRate: number;
@@ -508,6 +511,7 @@ export interface RegisterFormData {
     storeCategory?: VendorCategory;
     whatsappNumber?: PhoneNumber;
     campus?: Campus;
+    position?: Position;
 }
 
 export interface UserFormData {
@@ -524,6 +528,7 @@ export interface UserFormData {
     storeType?: 'retail' | 'wholesale' | 'manufacturing' | 'service';
     storeCategory?: string;
     campus?: string;
+    position?: string;
     storeDescription?: string;
     businessAddress?: string;
     username?: string;
@@ -602,6 +607,7 @@ export interface VendorStoreFormData {
     category: VendorCategory;
     whatsappNumber: PhoneNumber;
     campus: Campus;
+    position?: Position;
     allowsPickup: boolean;
     allowsDelivery: boolean;
     pickupServices?: PickupService[];

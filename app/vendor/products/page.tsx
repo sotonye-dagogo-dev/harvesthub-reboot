@@ -2,20 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
-import { mockProducts } from "@/lib/data/mockData";
+import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
+import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
-import {
-  Package,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Search,
-  Filter,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
+import { Package, Plus, Trash2, Eye, Search, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
 import { Input, Select, Table, Modal, message, Tag } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -28,22 +18,16 @@ export default function VendorProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
 
-  // Redirect if not vendor
-  if (user?.role !== "VENDOR") {
-    router.push("/unauthorized");
-    return null;
-  }
+  // Resolve vendor record from user ID, then filter products by vendor.id
+  const vendor = useMemo(() => mockVendors.find((v) => v.userId === user?.id), [user?.id]);
 
-  // Get vendor's products
   const vendorProducts = useMemo(() => {
-    let filtered = mockProducts.filter((p) => p.vendorId === user?.id);
+    let filtered = mockProducts.filter((p) => p.vendorId === vendor?.id);
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query)
+        (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
       );
     }
 
@@ -54,9 +38,15 @@ export default function VendorProductsPage() {
     return filtered.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [user?.id, searchQuery, categoryFilter]);
+  }, [vendor?.id, searchQuery, categoryFilter]);
 
-  const handleDelete = (productId: string) => {
+  // Redirect if not vendor
+  if (user?.role !== "VENDOR") {
+    router.push("/unauthorized");
+    return null;
+  }
+
+  const handleDelete = (_productId: string) => {
     Modal.confirm({
       title: "Delete Product",
       content: "Are you sure you want to delete this product? This action cannot be undone.",
@@ -69,9 +59,7 @@ export default function VendorProductsPage() {
   };
 
   const handleToggleActive = (product: Product) => {
-    message.success(
-      `Product ${product.isActive ? "deactivated" : "activated"} successfully`
-    );
+    message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
   const columns = [
@@ -80,7 +68,7 @@ export default function VendorProductsPage() {
       key: "product",
       render: (_: unknown, record: Product) => (
         <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+          <div className="relative h-12 w-12 overflow-hidden rounded-ds-md">
             <Image
               src={record.images?.[0] || "/placeholder-product.png"}
               alt={record.name}
@@ -89,8 +77,8 @@ export default function VendorProductsPage() {
             />
           </div>
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">{record.name}</p>
-            <p className="text-xs text-gray-500">{record.category}</p>
+            <p className="font-medium text-ds-text-primary">{record.name}</p>
+            <p className="text-xs text-ds-text-tertiary">{record.category}</p>
           </div>
         </div>
       ),
@@ -99,8 +87,24 @@ export default function VendorProductsPage() {
       title: "Price",
       dataIndex: "price",
       key: "price",
-      render: (price: number) => (
-        <span className="font-medium">{formatCurrency(price)}</span>
+      render: (price: number, record: Product) => (
+        <div>
+          <span className="font-medium">
+            {record.discount
+              ? formatCurrency(price - (price * record.discount) / 100)
+              : formatCurrency(price)}
+          </span>
+          {record.discount && record.discount > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-ds-text-tertiary line-through">
+                {formatCurrency(price)}
+              </span>
+              <Tag color="red" className="!text-[10px] !px-1 !py-0 !m-0 !leading-4">
+                -{record.discount}%
+              </Tag>
+            </div>
+          )}
+        </div>
       ),
       sorter: (a: Product, b: Product) => a.price - b.price,
     },
@@ -109,9 +113,7 @@ export default function VendorProductsPage() {
       dataIndex: "stock",
       key: "stock",
       render: (stock: number) => (
-        <Tag color={stock > 10 ? "green" : stock > 0 ? "orange" : "red"}>
-          {stock > 0 ? `${stock} units` : "Out of stock"}
-        </Tag>
+        <Tag color={stockLevelColor(stock)}>{stock > 0 ? `${stock} units` : "Out of stock"}</Tag>
       ),
       sorter: (a: Product, b: Product) => a.stock - b.stock,
     },
@@ -137,9 +139,7 @@ export default function VendorProductsPage() {
       dataIndex: "isActive",
       key: "isActive",
       render: (isActive: boolean) => (
-        <Badge variant={isActive ? "success" : "default"}>
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
+        <Badge variant={isActive ? "success" : "default"}>{isActive ? "Active" : "Inactive"}</Badge>
       ),
     },
     {
@@ -158,22 +158,25 @@ export default function VendorProductsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleToggleActive(record)}
-            title={record.isActive ? "Deactivate" : "Activate"}
+            onClick={() => router.push(`/vendor/products/${record.id}`)}
+            title="Edit"
           >
-            {record.isActive ? (
-              <ToggleRight className="h-4 w-4 text-green-500" />
-            ) : (
-              <ToggleLeft className="h-4 w-4 text-gray-400" />
-            )}
+            <Pencil className="h-4 w-4 text-ds-text-brand" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(record.id)}
-            title="Delete"
+            onClick={() => handleToggleActive(record)}
+            title={record.isActive ? "Deactivate" : "Activate"}
           >
-            <Trash2 className="h-4 w-4 text-red-500" />
+            {record.isActive ? (
+              <ToggleRight className="h-4 w-4 text-ds-status-success" />
+            ) : (
+              <ToggleLeft className="h-4 w-4 text-ds-text-placeholder" />
+            )}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(record.id)} title="Delete">
+            <Trash2 className="h-4 w-4 text-ds-status-error" />
           </Button>
         </div>
       ),
@@ -185,12 +188,12 @@ export default function VendorProductsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Products</h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-ds-text-primary">Products</h1>
+          <p className="mt-1 text-ds-text-secondary">
             Manage your product listings ({vendorProducts.length} products)
           </p>
         </div>
-        <Button onClick={() => message.info("Product creation form coming soon")}>
+        <Button onClick={() => router.push("/vendor/products/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
@@ -202,7 +205,7 @@ export default function VendorProductsPage() {
           <div className="flex-1">
             <Input
               placeholder="Search products..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear
@@ -230,7 +233,7 @@ export default function VendorProductsPage() {
           title="No products yet"
           description="Start selling by adding your first product"
           action={
-            <Button onClick={() => message.info("Product creation form coming soon")}>
+            <Button onClick={() => router.push("/vendor/products/new")}>
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Product
             </Button>

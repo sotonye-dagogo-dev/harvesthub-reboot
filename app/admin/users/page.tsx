@@ -6,7 +6,8 @@ import { Card, Button, Badge, EmptyState } from "@/components/ui";
 import { mockUsers } from "@/lib/data/mockData";
 import type { User } from "@/lib/types";
 import { Users, Search, Eye, Ban, CheckCircle, Trash2 } from "lucide-react";
-import { Input, Select, Table, Modal, message, Tag, Avatar } from "antd";
+import { StatusTag } from "@/components/ui";
+import { Input, Select, Table, Modal, message, Avatar } from "antd";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/lib/constants";
 
@@ -16,11 +17,6 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
 
   const filteredUsers = useMemo(() => {
     let filtered = [...mockUsers];
@@ -51,11 +47,26 @@ export default function AdminUsersPage() {
     );
   }, [searchQuery, roleFilter, statusFilter]);
 
+  const roleCounts = useMemo(
+    () => ({
+      total: mockUsers.length,
+      admins: mockUsers.filter((u) => u.role === UserRole.ADMIN).length,
+      vendors: mockUsers.filter((u) => u.role === UserRole.VENDOR).length,
+      buyers: mockUsers.filter((u) => u.role === UserRole.BUYER).length,
+    }),
+    []
+  );
+
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
+
   const handleToggleStatus = (targetUser: User) => {
     message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = (_userId: string) => {
     Modal.confirm({
       title: "Delete User",
       content:
@@ -64,19 +75,6 @@ export default function AdminUsersPage() {
       okType: "danger",
       onOk: () => message.success("User deleted"),
     });
-  };
-
-  const roleColor = (role: UserRole) => {
-    switch (role) {
-      case UserRole.ADMIN:
-        return "purple";
-      case UserRole.VENDOR:
-        return "blue";
-      case UserRole.BUYER:
-        return "green";
-      default:
-        return "default";
-    }
   };
 
   const columns = [
@@ -90,10 +88,10 @@ export default function AdminUsersPage() {
             {record.lastName[0]}
           </Avatar>
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">
+            <p className="font-medium text-ds-text-primary">
               {record.firstName} {record.lastName}
             </p>
-            <p className="text-xs text-gray-500">{record.email}</p>
+            <p className="text-xs text-ds-text-tertiary">{record.email}</p>
           </div>
         </div>
       ),
@@ -108,7 +106,7 @@ export default function AdminUsersPage() {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role: UserRole) => <Tag color={roleColor(role)}>{role}</Tag>,
+      render: (role: UserRole) => <StatusTag domain="role" status={role} />,
       filters: Object.values(UserRole).map((r) => ({ text: r, value: r })),
       onFilter: (value: unknown, record: User) => record.role === value,
     },
@@ -117,7 +115,7 @@ export default function AdminUsersPage() {
       dataIndex: "emailVerified",
       key: "verified",
       render: (verified: boolean) =>
-        verified ? <Tag color="green">Verified</Tag> : <Tag color="orange">Pending</Tag>,
+        verified ? <StatusTag domain="user" status="ACTIVE" label="Verified" /> : <StatusTag domain="user" status="INACTIVE" label="Pending" color="orange" />,
     },
     {
       title: "Status",
@@ -156,9 +154,9 @@ export default function AdminUsersPage() {
             title={record.isActive ? "Suspend" : "Activate"}
           >
             {record.isActive ? (
-              <Ban className="h-4 w-4 text-red-500" />
+              <Ban className="h-4 w-4 text-ds-status-error" />
             ) : (
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-ds-status-success" />
             )}
           </Button>
           {record.role !== UserRole.ADMIN && (
@@ -168,7 +166,7 @@ export default function AdminUsersPage() {
               onClick={() => handleDelete(record.id)}
               title="Delete"
             >
-              <Trash2 className="h-4 w-4 text-red-500" />
+              <Trash2 className="h-4 w-4 text-ds-status-error" />
             </Button>
           )}
         </div>
@@ -176,42 +174,32 @@ export default function AdminUsersPage() {
     },
   ];
 
-  const roleCounts = useMemo(
-    () => ({
-      total: mockUsers.length,
-      admins: mockUsers.filter((u) => u.role === UserRole.ADMIN).length,
-      vendors: mockUsers.filter((u) => u.role === UserRole.VENDOR).length,
-      buyers: mockUsers.filter((u) => u.role === UserRole.BUYER).length,
-    }),
-    []
-  );
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">User Management</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Manage platform users and access control ({filteredUsers.length} users)
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-purple-50 dark:bg-purple-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-          <p className="text-2xl font-bold text-purple-600">{roleCounts.total}</p>
+        <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
+          <p className="text-sm text-ds-text-secondary">Total Users</p>
+          <p className="text-2xl font-bold text-ds-text-brand">{roleCounts.total}</p>
         </Card>
-        <Card className="bg-blue-50 dark:bg-blue-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Vendors</p>
-          <p className="text-2xl font-bold text-blue-600">{roleCounts.vendors}</p>
+        <Card className="bg-ds-status-info-bg dark:bg-ds-status-info-bg/20">
+          <p className="text-sm text-ds-text-secondary">Vendors</p>
+          <p className="text-2xl font-bold text-ds-status-info-text">{roleCounts.vendors}</p>
         </Card>
-        <Card className="bg-green-50 dark:bg-green-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Buyers</p>
-          <p className="text-2xl font-bold text-green-600">{roleCounts.buyers}</p>
+        <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
+          <p className="text-sm text-ds-text-secondary">Buyers</p>
+          <p className="text-2xl font-bold text-ds-status-success-text">{roleCounts.buyers}</p>
         </Card>
-        <Card className="bg-amber-50 dark:bg-amber-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
-          <p className="text-2xl font-bold text-amber-600">{roleCounts.admins}</p>
+        <Card className="bg-ds-status-warning-bg /20">
+          <p className="text-sm text-ds-text-secondary">Admins</p>
+          <p className="text-2xl font-bold text-ds-status-warning-text">{roleCounts.admins}</p>
         </Card>
       </div>
 
@@ -221,7 +209,7 @@ export default function AdminUsersPage() {
           <div className="flex-1">
             <Input
               placeholder="Search by name, email or phone..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear

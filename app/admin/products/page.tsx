@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
 import { Package, Search, Eye, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
@@ -18,12 +18,6 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
-  // Redirect if not admin
-  if (user?.role !== "ADMIN") {
-    router.push("/unauthorized");
-    return null;
-  }
 
   const filteredProducts = useMemo(() => {
     let filtered = [...mockProducts];
@@ -50,6 +44,12 @@ export default function AdminProductsPage() {
     );
   }, [searchQuery, categoryFilter, statusFilter]);
 
+  // Redirect if not admin
+  if (user?.role !== "ADMIN") {
+    router.push("/unauthorized");
+    return null;
+  }
+
   const getVendorName = (vendorId: string) =>
     mockVendors.find((v) => v.id === vendorId)?.storeName || "Unknown";
 
@@ -57,7 +57,7 @@ export default function AdminProductsPage() {
     message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
-  const handleDelete = (productId: string) => {
+  const handleDelete = (_productId: string) => {
     Modal.confirm({
       title: "Delete Product",
       content: "Are you sure you want to remove this product from the platform?",
@@ -73,7 +73,7 @@ export default function AdminProductsPage() {
       key: "product",
       render: (_: unknown, record: Product) => (
         <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+          <div className="relative h-12 w-12 overflow-hidden rounded-ds-md">
             <Image
               src={record.images?.[0] || "/placeholder-product.png"}
               alt={record.name}
@@ -82,8 +82,8 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">{record.name}</p>
-            <p className="text-xs text-gray-500">{record.category?.replace(/_/g, " ")}</p>
+            <p className="font-medium text-ds-text-primary">{record.name}</p>
+            <p className="text-xs text-ds-text-tertiary">{record.category?.replace(/_/g, " ")}</p>
           </div>
         </div>
       ),
@@ -107,9 +107,7 @@ export default function AdminProductsPage() {
       dataIndex: "stock",
       key: "stock",
       render: (stock: number) => (
-        <Tag color={stock > 10 ? "green" : stock > 0 ? "orange" : "red"}>
-          {stock > 0 ? `${stock}` : "Out"}
-        </Tag>
+        <Tag color={stockLevelColor(stock)}>{stock > 0 ? `${stock}` : "Out"}</Tag>
       ),
     },
     {
@@ -155,13 +153,13 @@ export default function AdminProductsPage() {
             title={record.isActive ? "Deactivate" : "Activate"}
           >
             {record.isActive ? (
-              <ToggleRight className="h-4 w-4 text-green-500" />
+              <ToggleRight className="h-4 w-4 text-ds-status-success" />
             ) : (
-              <ToggleLeft className="h-4 w-4 text-gray-400" />
+              <ToggleLeft className="h-4 w-4 text-ds-text-placeholder" />
             )}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => handleDelete(record.id)} title="Remove">
-            <Trash2 className="h-4 w-4 text-red-500" />
+            <Trash2 className="h-4 w-4 text-ds-status-error" />
           </Button>
         </div>
       ),
@@ -171,33 +169,33 @@ export default function AdminProductsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Product Management</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary">Product Management</h1>
+        <p className="mt-1 text-ds-text-secondary">
           Moderate and manage platform products ({filteredProducts.length} products)
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-purple-50 dark:bg-purple-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
-          <p className="text-2xl font-bold text-purple-600">{mockProducts.length}</p>
+        <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
+          <p className="text-sm text-ds-text-secondary">Total</p>
+          <p className="text-2xl font-bold text-ds-text-brand">{mockProducts.length}</p>
         </Card>
-        <Card className="bg-green-50 dark:bg-green-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-          <p className="text-2xl font-bold text-green-600">
+        <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
+          <p className="text-sm text-ds-text-secondary">Active</p>
+          <p className="text-2xl font-bold text-ds-status-success-text">
             {mockProducts.filter((p) => p.isActive).length}
           </p>
         </Card>
-        <Card className="bg-red-50 dark:bg-red-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-600">
+        <Card className="bg-ds-status-error-bg dark:bg-ds-status-error-bg/20">
+          <p className="text-sm text-ds-text-secondary">Out of Stock</p>
+          <p className="text-2xl font-bold text-ds-status-error-text">
             {mockProducts.filter((p) => p.stock === 0).length}
           </p>
         </Card>
-        <Card className="bg-blue-50 dark:bg-blue-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Featured</p>
-          <p className="text-2xl font-bold text-blue-600">
+        <Card className="bg-ds-status-info-bg dark:bg-ds-status-info-bg/20">
+          <p className="text-sm text-ds-text-secondary">Featured</p>
+          <p className="text-2xl font-bold text-ds-status-info-text">
             {mockProducts.filter((p) => p.isFeatured).length}
           </p>
         </Card>
@@ -209,7 +207,7 @@ export default function AdminProductsPage() {
           <div className="flex-1">
             <Input
               placeholder="Search products..."
-              prefix={<Search className="h-4 w-4 text-gray-400" />}
+              prefix={<Search className="h-4 w-4 text-ds-text-placeholder" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear

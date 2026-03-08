@@ -80,22 +80,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // Default fallback UI using Ant Design Result component
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken p-4">
           <div className="max-w-md w-full">
             <Result
               status="error"
               title="Something Went Wrong"
               subTitle={
                 <div className="space-y-2">
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-ds-text-secondary">
                     We encountered an unexpected error. Please try again.
                   </p>
                   {process.env.NODE_ENV === "development" && (
                     <details className="mt-4 text-left">
-                      <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                      <summary className="cursor-pointer text-sm text-ds-text-tertiary hover:text-ds-text-secondary dark:text-ds-text-placeholder">
                         Error Details (Development Only)
                       </summary>
-                      <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-auto max-h-48">
+                      <pre className="mt-2 text-xs bg-ds-surface-sunken p-3 rounded-ds-xs overflow-auto max-h-48">
                         {this.state.error.message}
                         {this.state.error.stack && `\n\n${this.state.error.stack}`}
                       </pre>
@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   key="reset"
                   type="primary"
                   onClick={this.handleReset}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-ds-brand-primary hover:bg-ds-brand-primary-hover"
                 >
                   Try Again
                 </Button>,

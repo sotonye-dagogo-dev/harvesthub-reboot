@@ -11,7 +11,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Badge, Dropdown, Button, Empty, Spin } from "antd";
+import { Badge, Dropdown, Button } from "antd";
+import { SectionLoader, EmptyState } from "@/components/ui";
 import { Bell, Check, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -89,32 +90,32 @@ export function NotificationBell() {
     switch (type) {
       case "ORDER_CONFIRMED":
       case "PAYMENT_SUCCESS":
-        return "text-green-600 dark:text-green-400";
+        return "text-ds-status-success-text";
       case "ORDER_CANCELLED":
       case "PAYMENT_FAILED":
-        return "text-red-600 dark:text-red-400";
+        return "text-ds-status-error-text";
       case "ORDER_READY":
       case "ORDER_DELIVERED":
-        return "text-blue-600 dark:text-blue-400";
+        return "text-ds-status-info-text";
       case "LOW_STOCK":
-        return "text-orange-600 dark:text-orange-400";
+        return "text-ds-status-warning-text ";
       default:
-        return "text-gray-600 dark:text-gray-400";
+        return "text-ds-text-secondary";
     }
   };
 
   const dropdownContent = (
-    <div className="w-96 max-h-[500px] overflow-hidden flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="w-96 max-h-[500px] overflow-hidden flex flex-col bg-ds-surface-base rounded-ds-md shadow-ds-lg">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+      <div className="p-4 border-b border-ds-border-base flex justify-between items-center">
+        <h3 className="font-semibold text-ds-text-primary">Notifications</h3>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <Button
               type="text"
               size="small"
               onClick={markAllAsRead}
-              className="text-xs text-purple-600 dark:text-purple-400"
+              className="text-xs text-ds-text-brand"
             >
               Mark all read
             </Button>
@@ -128,23 +129,20 @@ export function NotificationBell() {
       {/* Notifications List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex justify-center items-center p-8">
-            <Spin />
-          </div>
+          <SectionLoader className="px-8" />
         ) : notifications.length === 0 ? (
-          <Empty
-            description="No notifications"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          <EmptyState
+            title="No notifications"
+            icon={<Bell className="h-10 w-10" />}
             className="py-8"
           />
         ) : (
           <div>
+            {" "}
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer group ${
-                  !notification.isRead ? "bg-purple-50 dark:bg-purple-900/20" : ""
-                }`}
+                className={`p-4 border-b border-ds-border-base hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay cursor-pointer group ${!notification.isRead ? "bg-ds-brand-surface dark:bg-ds-brand-subtle" : ""}`}
                 onClick={() => {
                   if (!notification.isRead) {
                     markAsRead(notification.id);
@@ -158,17 +156,15 @@ export function NotificationBell() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Bell className={`h-4 w-4 ${getNotificationColor(notification.type)}`} />
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <h4 className="text-sm font-semibold text-ds-text-primary">
                         {notification.title}
                       </h4>
                       {!notification.isRead && (
-                        <span className="h-2 w-2 bg-purple-600 rounded-full"></span>
+                        <span className="h-2 w-2 bg-ds-brand-primary rounded-ds-full"></span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {notification.message}
-                    </p>
-                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-sm text-ds-text-secondary mb-2">{notification.message}</p>
+                    <span className="text-xs text-ds-text-tertiary dark:text-ds-text-tertiary">
                       {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                     </span>
                   </div>
@@ -205,11 +201,8 @@ export function NotificationBell() {
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-          <Link
-            href="/notifications"
-            className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
-          >
+        <div className="p-3 border-t border-ds-border-base text-center">
+          <Link href="/notifications" className="text-sm text-ds-text-brand hover:underline">
             View all notifications
           </Link>
         </div>
@@ -229,7 +222,7 @@ export function NotificationBell() {
         type="text"
         icon={
           <Badge count={unreadCount} size="small" offset={[-2, 2]}>
-            <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <Bell className="h-5 w-5 text-ds-text-secondary" />
           </Badge>
         }
         className="flex items-center"

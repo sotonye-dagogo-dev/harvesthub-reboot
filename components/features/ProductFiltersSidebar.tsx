@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { Card, Checkbox, Slider, Rate, Button, Collapse, Badge } from "antd";
 import { Filter } from "lucide-react";
 import { PRODUCT_CATEGORIES, CAMPUS_LOCATIONS } from "@/lib/constants";
+import { formatCurrency } from "@/lib/utils";
 
 const { Panel } = Collapse;
 
@@ -110,11 +111,6 @@ export function ProductFiltersSidebar({
     updateFilters("locations", newLocations);
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return `₦${amount.toLocaleString()}`;
-  };
-
   return (
     <Card
       className={`product-filters ${className}`}
@@ -130,7 +126,7 @@ export function ProductFiltersSidebar({
               type="text"
               size="small"
               onClick={clearAllFilters}
-              className="text-xs text-purple-600 dark:text-purple-400"
+              className="text-xs text-ds-text-brand"
             >
               Clear All
             </Button>
@@ -180,7 +176,7 @@ export function ProductFiltersSidebar({
                 formatter: (value) => formatCurrency(value || 0),
               }}
             />
-            <div className="flex justify-between mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex justify-between mt-2 text-sm text-ds-text-secondary">
               <span>{formatCurrency(filters.priceRange[0])}</span>
               <span>{formatCurrency(filters.priceRange[1])}</span>
             </div>
@@ -196,11 +192,11 @@ export function ProductFiltersSidebar({
                 onClick={() =>
                   updateFilters("minRating", filters.minRating === rating ? 0 : rating)
                 }
-                className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded"
+                className="flex items-center gap-2 cursor-pointer hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay p-2 rounded-ds-xs"
               >
                 <Checkbox checked={filters.minRating === rating} />
                 <Rate disabled value={rating} className="text-sm" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">& up</span>
+                <span className="text-sm text-ds-text-secondary">& up</span>
               </div>
             ))}
           </div>

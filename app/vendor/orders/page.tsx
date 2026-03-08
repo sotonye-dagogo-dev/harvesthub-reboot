@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination } from "@/components/ui";
 import { Package } from "lucide-react";
-import { mockOrders, mockProducts, mockUsers } from "@/lib/data/mockData";
+import { mockOrders, mockProducts, mockUsers, mockVendors } from "@/lib/data/mockData";
 
 export default function VendorOrdersPage() {
   const { user } = useAuth();
@@ -34,11 +34,14 @@ export default function VendorOrdersPage() {
     );
   }
 
-  // Get orders for vendor's products
+  // Resolve vendor record from user ID
+  const vendor = mockVendors.find((v) => v.userId === user.id);
+
+  // Get orders for vendor's products using vendor.id
   const vendorOrders = mockOrders.filter((order) =>
     order.items.some((item) => {
       const product = mockProducts.find((p) => p.id === item.productId);
-      return product?.vendorId === user.id;
+      return product?.vendorId === vendor?.id;
     })
   );
 
@@ -71,11 +74,11 @@ export default function VendorOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Orders</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold text-ds-text-primary">My Orders</h1>
+          <p className="mt-2 text-ds-text-secondary">
             Manage and track your incoming orders
           </p>
         </div>
@@ -102,7 +105,7 @@ export default function VendorOrdersPage() {
           {/* Orders List */}
           <div className="lg:col-span-3">
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-ds-text-secondary">
                 {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""} found
               </p>
             </div>
