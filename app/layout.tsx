@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Providers } from "./providers";
+import OfflineNotice from "@/components/features/pwa/OfflineNotice";
 import "@/app/_styles/globals.css";
 
 export const metadata: Metadata = {
@@ -53,9 +54,16 @@ export const metadata: Metadata = {
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#9333ea" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
       <body className={GeistSans.className}>
         <Providers>
           <main>{children}</main>
+          <OfflineNotice />
         </Providers>
       </body>
     </html>

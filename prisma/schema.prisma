@@ -151,6 +151,7 @@ enum PaymentStatus {
 enum PaymentMethod {
   WALLET
   BANK_TRANSFER
+  BANK_TRANSFER_PROOF
   CARD
   USSD
 }
@@ -202,6 +203,50 @@ enum ReviewStatus {
   REJECTED
 }
 
+enum AvailabilityRequestStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+  EXPIRED
+}
+
+enum AdStatus {
+  PENDING_PAYMENT
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  EXPIRED
+  REJECTED
+}
+
+enum AdPaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ProofOfTransferStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum VoucherType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_DELIVERY
+}
+
+enum MilestoneType {
+  FIRST_1000_VENDORS
+  FIRST_1000_BUYERS
+  FIRST_PURCHASE
+  FIRST_SALE
+  FIRST_REVIEW
+  VENDOR_100_SALES
+  CUSTOM
+}
+
 enum NotificationType {
   ORDER_CONFIRMED
   ORDER_READY
@@ -221,32 +266,45 @@ enum NotificationType {
 // ============================================================================
 
 model User {
-  id              String     @id @default(cuid())
-  email           String     @unique
-  password        String
-  firstName       String
-  lastName        String
-  phoneNumber     String
-  role            UserRole   @default(BUYER)
-  profilePicture  String?
-  emailVerified   Boolean    @default(false)
-  isActive        Boolean    @default(true)
-  status          UserStatus @default(ACTIVE)
+  id             String     @id @default(cuid())
+  email          String     @unique
+  password       String
+  firstName      String
+  lastName       String
+  phoneNumber    String
+  role           UserRole   @default(BUYER)
+  profilePicture String?
+  emailVerified  Boolean    @default(false)
+  isActive       Boolean    @default(true)
+  status         UserStatus @default(ACTIVE)
 
   // Password reset
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
+  // Email verification
+  emailVerificationToken  String?   @unique
+  emailVerificationExpiry DateTime?
+
+  // Tracks user registration order for milestone features (e.g., first 1000 vendors/buyers)
+  registrationSequence Int?    @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  buyer         Buyer?
-  vendor        Vendor?
-  addresses     Address[]
-  notifications Notification[]
-  wallet        Wallet?
-  bannersCreated Banner[]
+  buyer                  Buyer?
+  vendor                 Vendor?
+  addresses              Address[]
+  notifications          Notification[]
+  wallet                 Wallet?
+  bannersCreated         Banner[]
+  pushSubscriptions      PushSubscription[]
+  notificationPreference NotificationPreference?
+  milestones             UserMilestone[]
+  advertisements         Advertisement[]
+  proofOfTransfers       ProofOfTransfer[]
+  voucherRedemptions     VoucherRedemption[]
 
   @@index([email])
   @@index([role])
@@ -261,55 +319,57 @@ model Buyer {
   gender      Gender?
 
   // Preferences stored as JSON
-  preferences Json?     @default("{}")
+  preferences Json? @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cart    Cart?
-  orders  Order[]
-  reviews Review[]
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart                 Cart?
+  orders               Order[]
+  reviews              Review[]
+  availabilityRequests ProductAvailabilityRequest[]
 
   @@index([userId])
   @@map("buyers")
 }
 
 model Vendor {
-  id                String         @id @default(cuid())
-  userId            String         @unique
-  storeName         String
-  storeDescription  String?
-  category          VendorCategory
-  whatsappNumber    String
-  campus            Campus
-  position          Position?
-  status            VendorStatus   @default(PENDING)
-  isChurchAffiliated Boolean       @default(false)
-  commissionRate    Float          @default(0.05)
-  storeLogo         String?
-  storeBanner       String?
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+  storeName          String
+  storeDescription   String?
+  category           VendorCategory
+  whatsappNumber     String
+  campus             Campus
+  position           Position?
+  status             VendorStatus   @default(PENDING)
+  isChurchAffiliated Boolean        @default(false)
+  commissionRate     Float          @default(0.05)
+  storeLogo          String?
+  storeBanner        String?
 
   // Structured JSON fields
   businessVerification Json?
-  storeSettings        Json         @default("{\"allowsPickup\":true,\"allowsDelivery\":false,\"pickupServices\":[],\"deliveryZones\":[]}")
+  storeSettings        Json  @default("{\"allowsPickup\":true,\"allowsDelivery\":false,\"pickupServices\":[],\"deliveryZones\":[]}")
 
   // Denormalized analytics
-  totalSales     Float   @default(0)
-  totalOrders    Int     @default(0)
-  totalProducts  Int     @default(0)
-  averageRating  Float   @default(0)
-  totalReviews   Int     @default(0)
-  conversionRate Float   @default(0)
+  totalSales     Float @default(0)
+  totalOrders    Int   @default(0)
+  totalProducts  Int   @default(0)
+  averageRating  Float @default(0)
+  totalReviews   Int   @default(0)
+  conversionRate Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products Product[]
-  orders   Order[]
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products             Product[]
+  orders               Order[]
+  availabilityRequests ProductAvailabilityRequest[]
 
   @@index([userId])
   @@index([campus])
@@ -373,10 +433,10 @@ model Cart {
 }
 
 model CartItem {
-  id               String  @id @default(cuid())
+  id               String @id @default(cuid())
   cartId           String
   productId        String
-  quantity         Int     @default(1)
+  quantity         Int    @default(1)
   selectedVariants Json?
   price            Float
   subtotal         Float
@@ -415,10 +475,11 @@ model Order {
   completedAt DateTime?
 
   // Relations
-  buyer        Buyer         @relation(fields: [buyerId], references: [id])
-  vendor       Vendor        @relation(fields: [vendorId], references: [id])
-  items        OrderItem[]
-  transactions Transaction[]
+  buyer            Buyer             @relation(fields: [buyerId], references: [id])
+  vendor           Vendor            @relation(fields: [vendorId], references: [id])
+  items            OrderItem[]
+  transactions     Transaction[]
+  proofOfTransfers ProofOfTransfer[]
 
   @@index([buyerId])
   @@index([vendorId])
@@ -429,7 +490,7 @@ model Order {
 }
 
 model OrderItem {
-  id               String  @id @default(cuid())
+  id               String @id @default(cuid())
   orderId          String
   productId        String
   productName      String
@@ -598,4 +659,208 @@ model Notification {
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("notifications")
+}
+
+// ============================================================================
+// NEW MODELS
+// ============================================================================
+
+model PushSubscription {
+  id       String @id @default(cuid())
+  userId   String
+  endpoint String
+  keys     Json
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model NotificationPreference {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(false)
+  pushNotifications  Boolean @default(true)
+  orderUpdates       Boolean @default(true)
+  promotions         Boolean @default(true)
+  vendorMessages     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+model ProductAvailabilityRequest {
+  id             String                    @id @default(cuid())
+  buyerId        String
+  vendorId       String
+  items          Json
+  status         AvailabilityRequestStatus @default(PENDING)
+  buyerNote      String?
+  vendorResponse String?
+  expiresAt      DateTime
+
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  // Relations
+  buyer  Buyer  @relation(fields: [buyerId], references: [id])
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@index([buyerId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("product_availability_requests")
+}
+
+model Advertisement {
+  id              String    @id @default(cuid())
+  advertiserId    String
+  title           String
+  subtitle        String?
+  ctaText         String?
+  ctaLink         String?
+  imageUrl        String
+  imagePublicId   String?
+  status          AdStatus  @default(PENDING_PAYMENT)
+  dailyRate       Float
+  startDate       DateTime?
+  endDate         DateTime?
+  totalPaid       Float     @default(0)
+  rejectionReason String?
+  impressions     Int       @default(0)
+  clicks          Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  advertiser User                @relation(fields: [advertiserId], references: [id])
+  payments   AdvertiserPayment[]
+
+  @@index([advertiserId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("advertisements")
+}
+
+model AdvertiserPayment {
+  id                 String          @id @default(cuid())
+  advertisementId    String
+  amount             Float
+  proofOfTransferUrl String?
+  proofPublicId      String?
+  bankReference      String?
+  status             AdPaymentStatus @default(PENDING)
+  verifiedBy         String?
+  verifiedAt         DateTime?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  advertisement Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+
+  @@index([advertisementId])
+  @@index([status])
+  @@map("advertiser_payments")
+}
+
+model ProofOfTransfer {
+  id            String                @id @default(cuid())
+  orderId       String?
+  userId        String
+  imageUrl      String
+  imagePublicId String?
+  bankReference String?
+  amount        Float
+  status        ProofOfTransferStatus @default(PENDING)
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  notes         String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@map("proof_of_transfers")
+}
+
+model Voucher {
+  id                   String      @id @default(cuid())
+  code                 String      @unique
+  type                 VoucherType
+  value                Float
+  minOrderAmount       Float?      @default(0)
+  maxDiscount          Float?
+  usageLimit           Int?
+  usedCount            Int         @default(0)
+  perUserLimit         Int         @default(1)
+  validFrom            DateTime
+  validTo              DateTime
+  isActive             Boolean     @default(true)
+  applicableCategories Json?       @default("[]")
+  applicableVendors    Json?       @default("[]")
+  createdBy            String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  redemptions VoucherRedemption[]
+
+  @@index([code])
+  @@index([isActive, validFrom, validTo])
+  @@map("vouchers")
+}
+
+model VoucherRedemption {
+  id              String  @id @default(cuid())
+  voucherId       String
+  userId          String
+  orderId         String?
+  discountApplied Float
+
+  redeemedAt DateTime @default(now())
+
+  // Relations
+  voucher Voucher @relation(fields: [voucherId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([voucherId])
+  @@index([userId])
+  @@index([orderId])
+  @@map("voucher_redemptions")
+}
+
+model UserMilestone {
+  id            String        @id @default(cuid())
+  userId        String
+  milestoneType MilestoneType
+  label         String
+  metadata      Json?
+
+  achievedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([milestoneType])
+  @@map("user_milestones")
 }
