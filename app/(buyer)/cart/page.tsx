@@ -32,7 +32,7 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-ds-text-primary">
           Shopping Cart ({totalItems} {totalItems === 1 ? "item" : "items"})
         </h1>
         <Button variant="outline" onClick={clearCart}>
@@ -62,25 +62,25 @@ export default function CartPage() {
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-24">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Order Summary
             </h2>
 
-            <div className="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
-              <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+            <div className="space-y-3 border-t border-ds-border-base pt-4">
+              <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Subtotal ({totalItems} items)</span>
                 <span className="font-medium">{formatCurrency(totalPrice)}</span>
               </div>
-              <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+              <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Delivery Fee</span>
-                <span className="text-sm text-gray-500">Calculated at checkout</span>
+                <span className="text-sm text-ds-text-tertiary">Calculated at checkout</span>
               </div>
             </div>
 
-            <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-800">
-              <div className="flex items-center justify-between text-lg font-bold text-gray-900 dark:text-white">
+            <div className="mt-4 border-t border-ds-border-base pt-4">
+              <div className="flex items-center justify-between text-lg font-bold text-ds-text-primary">
                 <span>Total</span>
-                <span className="text-purple-600 dark:text-purple-400">
+                <span className="text-ds-text-brand">
                   {formatCurrency(totalPrice)}
                 </span>
               </div>

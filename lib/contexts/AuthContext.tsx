@@ -16,6 +16,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  whatsappNumber?: string;
   role: UserRole;
   profilePicture?: string | null;
   emailVerified: boolean;
@@ -45,6 +46,7 @@ export interface RegisterData {
   category?: string;
   whatsappNumber?: string;
   campus?: string;
+  position?: string;
   isChurchAffiliated?: boolean;
 }
 

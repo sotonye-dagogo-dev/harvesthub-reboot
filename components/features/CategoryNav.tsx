@@ -32,10 +32,10 @@ export function CategoryNav({
         <Link
           href="/products"
           className={cn(
-            "block rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+            "block rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
             !currentCategory
-              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-              : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+              : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
           )}
         >
           All Categories
@@ -45,16 +45,16 @@ export function CategoryNav({
             key={category.id}
             href={`/products?category=${category.slug}`}
             className={cn(
-              "block rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+              "block rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
               isActive(category.slug)
-                ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
             )}
           >
             <div className="flex items-center justify-between">
               <span>{category.name}</span>
               {category.count !== undefined && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">{category.count}</span>
+                <span className="text-xs text-ds-text-tertiary">{category.count}</span>
               )}
             </div>
           </Link>
@@ -68,10 +68,10 @@ export function CategoryNav({
       <Link
         href="/products"
         className={cn(
-          "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
+          "whitespace-nowrap rounded-ds-full px-4 py-2 text-sm font-medium transition-colors",
           !currentCategory
-            ? "bg-purple-600 text-white dark:bg-purple-500"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            ? "bg-ds-brand-primary text-white dark:bg-ds-brand-primary"
+            : "bg-ds-surface-sunken text-ds-text-secondary hover:bg-ds-surface-disabled  dark:text-ds-text-placeholder dark:hover:bg-ds-surface-overlay"
         )}
       >
         All
@@ -81,10 +81,10 @@ export function CategoryNav({
           key={category.id}
           href={`/products?category=${category.slug}`}
           className={cn(
-            "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
+            "whitespace-nowrap rounded-ds-full px-4 py-2 text-sm font-medium transition-colors",
             isActive(category.slug)
-              ? "bg-purple-600 text-white dark:bg-purple-500"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              ? "bg-ds-brand-primary text-white dark:bg-ds-brand-primary"
+              : "bg-ds-surface-sunken text-ds-text-secondary hover:bg-ds-surface-disabled  dark:text-ds-text-placeholder dark:hover:bg-ds-surface-overlay"
           )}
         >
           {category.name}

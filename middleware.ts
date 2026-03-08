@@ -19,7 +19,9 @@ const publicRoutes = [
     "/vendors",
 ];
 const authRoutes = ["/login", "/register"];
-const buyerRoutes = ["/cart", "/checkout", "/orders", "/wallet", "/profile"];
+const buyerRoutes = ["/cart", "/checkout"];
+// Routes accessible to all authenticated users (buyers, vendors, admins)
+const sharedAuthRoutes = ["/orders", "/wallet", "/profile", "/notifications", "/favourites"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -31,7 +33,7 @@ export async function middleware(request: NextRequest) {
     let user = null;
     if (accessToken) {
         try {
-            user = verifyAccessToken(accessToken);
+            user = await verifyAccessToken(accessToken);
         } catch {
             // Token is invalid or expired
             // Continue without user (will redirect if needed)
@@ -69,6 +71,8 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/unauthorized", request.url));
         }
     }
+    // Shared auth routes (/wallet, /orders, /profile, /notifications) are accessible
+    // to all authenticated users — no role check needed (auth was verified above).
 
     return NextResponse.next();
 }

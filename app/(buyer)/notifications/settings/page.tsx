@@ -5,8 +5,9 @@
 
 "use client";
 
+import { PageLoader } from "@/components/ui";
 import { useState, useEffect } from "react";
-import { Card, Switch, Button, message, Spin } from "antd";
+import { Card, Switch, Button, message } from "antd";
 import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
 
 interface NotificationPreferences {
@@ -54,7 +55,7 @@ export default function NotificationSettingsPage() {
     try {
       const res = await fetch("/api/notifications/preferences");
       const data = await res.json();
-      
+
       if (data.success) {
         setPreferences(data.preferences);
       }
@@ -75,7 +76,7 @@ export default function NotificationSettingsPage() {
       });
 
       const data = await res.json();
-      
+
       if (data.success) {
         message.success("Notification preferences saved");
       } else {
@@ -90,38 +91,32 @@ export default function NotificationSettingsPage() {
   };
 
   const updatePreference = (key: keyof NotificationPreferences, value: boolean) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spin size="large" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Notification Settings
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-ds-text-primary mb-2">Notification Settings</h1>
+        <p className="text-ds-text-secondary">
           Manage how you receive notifications about your orders, payments, and account activity
         </p>
       </div>
 
       <div className="space-y-6">
         {/* Order Notifications */}
-        <Card title="Order Notifications" className="shadow-sm">
+        <Card title="Order Notifications" className="shadow-ds-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-purple-600" />
+                <Package className="h-5 w-5 text-ds-text-brand" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Order Confirmed</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Order Confirmed</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when your order is confirmed
                   </div>
                 </div>
@@ -134,10 +129,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-blue-600" />
+                <Package className="h-5 w-5 text-ds-status-info-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Order Ready</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Order Ready</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when your order is ready for pickup
                   </div>
                 </div>
@@ -150,10 +145,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-green-600" />
+                <Package className="h-5 w-5 text-ds-status-success-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Order Delivered</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Order Delivered</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when your order is delivered
                   </div>
                 </div>
@@ -166,10 +161,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-red-600" />
+                <Package className="h-5 w-5 text-ds-status-error-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Order Cancelled</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Order Cancelled</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when an order is cancelled
                   </div>
                 </div>
@@ -183,14 +178,14 @@ export default function NotificationSettingsPage() {
         </Card>
 
         {/* Payment Notifications */}
-        <Card title="Payment Notifications" className="shadow-sm">
+        <Card title="Payment Notifications" className="shadow-ds-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <DollarSign className="h-5 w-5 text-green-600" />
+                <DollarSign className="h-5 w-5 text-ds-status-success-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Payment Success</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Payment Success</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when a payment is successful
                   </div>
                 </div>
@@ -203,10 +198,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <DollarSign className="h-5 w-5 text-red-600" />
+                <DollarSign className="h-5 w-5 text-ds-status-error-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Payment Failed</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Payment Failed</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when a payment fails
                   </div>
                 </div>
@@ -220,14 +215,14 @@ export default function NotificationSettingsPage() {
         </Card>
 
         {/* Delivery & Vendor Notifications */}
-        <Card title="Delivery & Vendor Notifications" className="shadow-sm">
+        <Card title="Delivery & Vendor Notifications" className="shadow-ds-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-blue-600" />
+                <Package className="h-5 w-5 text-ds-status-info-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Delivery Updates</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Delivery Updates</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get real-time updates on your delivery status
                   </div>
                 </div>
@@ -240,10 +235,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-purple-600" />
+                <MessageSquare className="h-5 w-5 text-ds-text-brand" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Vendor Messages</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Vendor Messages</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when vendors send you messages
                   </div>
                 </div>
@@ -257,14 +252,14 @@ export default function NotificationSettingsPage() {
         </Card>
 
         {/* Stock & Promotional Notifications */}
-        <Card title="Stock & Promotional Notifications" className="shadow-sm">
+        <Card title="Stock & Promotional Notifications" className="shadow-ds-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <AlertTriangle className="h-5 w-5 text-ds-status-warning-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Low Stock Alerts</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Low Stock Alerts</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified when items on your wishlist are low in stock
                   </div>
                 </div>
@@ -277,10 +272,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Bell className="h-5 w-5 text-purple-600" />
+                <Bell className="h-5 w-5 text-ds-text-brand" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">New Products</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">New Products</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified about new products from vendors you follow
                   </div>
                 </div>
@@ -293,10 +288,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-green-600" />
+                <Mail className="h-5 w-5 text-ds-status-success-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Promotions</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Promotions</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Get notified about special offers and promotions
                   </div>
                 </div>
@@ -310,14 +305,14 @@ export default function NotificationSettingsPage() {
         </Card>
 
         {/* Email & SMS Notifications */}
-        <Card title="Email & SMS Notifications" className="shadow-sm">
+        <Card title="Email & SMS Notifications" className="shadow-ds-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-blue-600" />
+                <Mail className="h-5 w-5 text-ds-status-info-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Email Notifications</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">Email Notifications</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Receive important notifications via email
                   </div>
                 </div>
@@ -330,10 +325,10 @@ export default function NotificationSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-green-600" />
+                <MessageSquare className="h-5 w-5 text-ds-status-success-text" />
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">SMS Notifications</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="font-medium text-ds-text-primary">SMS Notifications</div>
+                  <div className="text-sm text-ds-text-secondary">
                     Receive critical notifications via SMS
                   </div>
                 </div>

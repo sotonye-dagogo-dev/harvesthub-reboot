@@ -16,7 +16,7 @@ export default function AccountInfoPage() {
     }
 
     // If store owner but hasn't filled store info, redirect
-    if (formData.userType === "store" && !formData.storeName) {
+    if (formData.userType === "vendor" && !formData.storeName) {
       router.push("/signup/store-info");
     }
   }, [formData, router]);
@@ -32,7 +32,7 @@ export default function AccountInfoPage() {
         updateFormData={updateFormData}
         formData={{
           ...formData,
-          username: formData.username || ''  // This ensures username is a string
+          username: formData.username || "", // This ensures username is a string
         }}
       />
     </>

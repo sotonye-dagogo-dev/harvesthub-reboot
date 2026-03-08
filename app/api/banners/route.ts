@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
             endDate,
             order,
             isActive,
+            position,
         } = body;
 
         if (!title || !imageUrl) {
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
             description,
             imageUrl,
             linkUrl,
+            position: position || 'HERO',
             startDate: startDate ? new Date(startDate) : new Date(),
             endDate: endDate ? new Date(endDate) : null,
             displayOrder: order || 0,

@@ -35,32 +35,32 @@ export function ReviewCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900",
+        "rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4  dark:bg-ds-surface-base",
         className
       )}
     >
       {/* User Info */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div className="relative h-10 w-10 overflow-hidden rounded-ds-full bg-ds-surface-sunken">
             {userAvatar ? (
               <Image src={userAvatar} alt={userName} fill className="object-cover" sizes="40px" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm font-bold text-gray-400 dark:text-gray-600">
+              <div className="flex h-full w-full items-center justify-center text-sm font-bold text-ds-text-placeholder">
                 {userName.charAt(0)}
               </div>
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-900 dark:text-white">{userName}</p>
+              <p className="font-semibold text-ds-text-primary">{userName}</p>
               {verified && (
                 <Badge variant="success" size="sm">
                   Verified Purchase
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-ds-text-secondary">
               {formatDistanceToNow(createdAt, { addSuffix: true })}
             </p>
           </div>
@@ -73,7 +73,7 @@ export function ReviewCard({
       </div>
 
       {/* Comment */}
-      <p className="mb-3 text-gray-700 dark:text-gray-300">{comment}</p>
+      <p className="mb-3 text-ds-text-secondary">{comment}</p>
 
       {/* Review Images */}
       {images.length > 0 && (
@@ -81,7 +81,7 @@ export function ReviewCard({
           {images.map((image, index) => (
             <div
               key={index}
-              className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800"
+              className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-ds-sm bg-ds-surface-sunken"
             >
               <Image
                 src={image}
@@ -99,7 +99,7 @@ export function ReviewCard({
       {onHelpful && (
         <button
           onClick={onHelpful}
-          className="flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
+          className="flex items-center gap-2 text-sm text-ds-text-secondary transition-colors hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
         >
           <ThumbsUp className="h-4 w-4" />
           <span>Helpful ({helpful})</span>

@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, User, Search, Menu, Store } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  Search,
+  Menu,
+  Wallet,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Heart,
+} from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, ThemeToggle } from "@/components/ui";
@@ -20,78 +30,142 @@ export function Header() {
     window.location.href = "/login";
   };
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path);
+
+  const getDashboardLink = () => {
+    if (user?.role === "ADMIN") return "/admin/dashboard";
+    if (user?.role === "VENDOR") return "/vendor/dashboard";
+    return "/profile";
+  };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700">
-              <Store className="h-6 w-6 text-white" />
+        <div className="flex h-16 items-center justify-between gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-ds-md bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-700">
+              <span className="text-xl font-bold text-white">H</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">HarvestHub</span>
+            <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
+              HarvestHub
+            </span>
           </Link>
 
-          <div className="hidden flex-1 max-w-xl mx-8 md:block">
+          {/* Search Bar - Always visible */}
+          <div className="flex-1 min-w-0 max-w-xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ds-text-placeholder sm:left-3 sm:h-5 sm:w-5" />
               <input
                 type="text"
-                placeholder="Search products, stores..."
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Search..."
+                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
               />
             </div>
           </div>
 
-          <div className="hidden items-center gap-4 md:flex">
+          {/* Desktop Navigation */}
+          <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
 
             {user ? (
               <>
-                {user.role === "BUYER" && (
+                {/* Dashboard (Admin & Vendor only) */}
+                {(user.role === "ADMIN" || user.role === "VENDOR") && (
                   <Link
-                    href="/cart"
-                    className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {totalItems > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-purple-600 text-xs font-medium text-white">
-                        {totalItems}
-                      </span>
+                    href={getDashboardLink()}
+                    className={cn(
+                      "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive(getDashboardLink())
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     )}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="hidden lg:block">Dashboard</span>
                   </Link>
                 )}
 
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={
-                      user.role === "ADMIN"
-                        ? "/admin/dashboard"
-                        : user.role === "VENDOR"
-                          ? "/vendor/dashboard"
-                          : "/profile"
-                    }
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
-                      isActive(
-                        user.role === "ADMIN"
-                          ? "/admin/dashboard"
-                          : user.role === "VENDOR"
-                            ? "/vendor/dashboard"
-                            : "/profile"
-                      )
-                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                    )}
-                  >
-                    <User className="h-4 w-4" />
-                    <span>{user.firstName}</span>
-                  </Link>
-                  <Button variant="outline" size="sm" onClick={handleLogout}>
-                    Logout
-                  </Button>
-                </div>
+                {/* Cart - All users */}
+                <Link
+                  href="/cart"
+                  className={cn(
+                    "relative flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/cart")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {totalItems > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-ds-full bg-ds-brand-primary text-xs font-medium text-white">
+                      {totalItems}
+                    </span>
+                  )}
+                  <span className="hidden lg:block">Cart</span>
+                </Link>
+
+                {/* Orders - All users */}
+                <Link
+                  href="/orders"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/orders")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Package className="h-4 w-4" />
+                  <span className="hidden lg:block">Orders</span>
+                </Link>
+
+                {/* Favourites - All users */}
+                <Link
+                  href="/favourites"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/favourites")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Heart className="h-4 w-4" />
+                  <span className="hidden lg:block">Favourites</span>
+                </Link>
+
+                {/* Wallet - All users */}
+                <Link
+                  href="/wallet"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/wallet")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span className="hidden lg:block">Wallet</span>
+                </Link>
+
+                {/* Profile - All users */}
+                <Link
+                  href="/profile"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/profile")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden lg:block">{user.firstName}</span>
+                </Link>
+
+                {/* Logout */}
+                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1">
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden lg:block">Logout</span>
+                </Button>
               </>
             ) : (
               <div className="flex items-center gap-3">
@@ -107,55 +181,90 @@ export function Header() {
             )}
           </div>
 
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 md:hidden"
+            className="rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
           >
             <Menu className="h-6 w-6" />
           </button>
         </div>
 
+        {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="border-t border-gray-200 py-4 dark:border-gray-800 md:hidden">
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2 pl-10 pr-4 text-sm dark:border-gray-700 dark:bg-gray-800"
-                />
-              </div>
-            </div>
-
+          <div className="border-t border-ds-border-base py-4 md:hidden">
             <div className="flex flex-col gap-2">
               {user ? (
                 <>
-                  <Link
-                    href={
-                      user.role === "ADMIN"
-                        ? "/admin/dashboard"
-                        : user.role === "VENDOR"
-                          ? "/vendor/dashboard"
-                          : "/profile"
-                    }
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  >
-                    Profile
-                  </Link>
-                  {user.role === "BUYER" && (
+                  {/* Dashboard (Admin & Vendor only) */}
+                  {(user.role === "ADMIN" || user.role === "VENDOR") && (
                     <Link
-                      href="/cart"
-                      className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                      href={getDashboardLink()}
+                      className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      onClick={() => setShowMobileMenu(false)}
                     >
-                      Cart ({totalItems})
+                      <LayoutDashboard className="h-5 w-5" />
+                      Dashboard
                     </Link>
                   )}
+
+                  {/* Cart */}
+                  <Link
+                    href="/cart"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Cart {totalItems > 0 && `(${totalItems})`}
+                  </Link>
+
+                  {/* Orders */}
+                  <Link
+                    href="/orders"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Package className="h-5 w-5" />
+                    Orders
+                  </Link>
+
+                  {/* Favourites */}
+                  <Link
+                    href="/favourites"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Heart className="h-5 w-5" />
+                    Favourites
+                  </Link>
+
+                  {/* Wallet */}
+                  <Link
+                    href="/wallet"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Wallet className="h-5 w-5" />
+                    Wallet
+                  </Link>
+
+                  {/* Profile */}
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <User className="h-5 w-5" />
+                    Profile
+                  </Link>
+
+                  {/* Logout */}
                   <button
                     onClick={handleLogout}
-                    className="rounded-lg px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
                   >
+                    <LogOut className="h-5 w-5" />
                     Logout
                   </button>
                 </>
@@ -163,13 +272,15 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    className="rounded-ds-md px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    onClick={() => setShowMobileMenu(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                    className="rounded-ds-md bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
+                    onClick={() => setShowMobileMenu(false)}
                   >
                     Sign Up
                   </Link>

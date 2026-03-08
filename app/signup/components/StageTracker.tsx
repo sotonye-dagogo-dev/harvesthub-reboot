@@ -37,7 +37,7 @@ const StageTracker: React.FC<StageTrackerProps> = ({
               className="flex items-center justify-center"
             />
           )}
-          <span className="text-sm text-gray-400">Back</span>
+          <span className="text-sm text-ds-text-placeholder">Back</span>
         </div>
         <span className="font-semibold text-sm capitalize">
           {(stageNames[stages[currentStage] as keyof typeof stageNames])?.replace("-", " ")}

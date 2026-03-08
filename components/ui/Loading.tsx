@@ -15,7 +15,7 @@ export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) 
 
   return (
     <svg
-      className={cn("animate-spin text-purple-600 dark:text-purple-400", sizes[size], className)}
+      className={cn("animate-spin text-ds-brand-primary", sizes[size], className)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -37,6 +37,64 @@ export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) 
   );
 }
 
+// ============================================================================
+// PAGE LOADER — Full-page centered spinner with optional subtitle
+// Replaces: <div className="min-h-screen flex items-center justify-center"><Spin size="large" /></div>
+// ============================================================================
+
+export interface PageLoaderProps {
+  /** Optional subtitle text shown below the spinner. */
+  message?: string;
+  /** Minimum height for the container. @default "min-h-screen" */
+  minHeight?: string;
+  className?: string;
+}
+
+/**
+ * `PageLoader` — A full-page or section-level centered loading spinner.
+ *
+ * @example
+ *   // Full-page (default)
+ *   <PageLoader message="Loading…" />
+ *
+ *   // Section-level (e.g. detail page guard)
+ *   <PageLoader minHeight="min-h-[400px]" />
+ */
+export function PageLoader({ message, minHeight = "min-h-screen", className }: PageLoaderProps) {
+  return (
+    <div className={cn("flex items-center justify-center", minHeight, className)}>
+      <div className="flex flex-col items-center gap-4">
+        <LoadingSpinner size="lg" />
+        {message && <p className="text-sm text-ds-text-tertiary animate-pulse">{message}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// SECTION LOADER — Smaller centered spinner for inline/section content
+// Replaces: <div className="flex justify-center py-8"><Spin /></div>
+// ============================================================================
+
+export interface SectionLoaderProps {
+  size?: LoadingSpinnerProps["size"];
+  className?: string;
+}
+
+/**
+ * `SectionLoader` — A centered spinner for use inside content areas.
+ *
+ * @example
+ *   {loading && <SectionLoader />}
+ */
+export function SectionLoader({ size = "md", className }: SectionLoaderProps) {
+  return (
+    <div className={cn("flex items-center justify-center py-8", className)}>
+      <LoadingSpinner size={size} />
+    </div>
+  );
+}
+
 export interface LoadingOverlayProps {
   message?: string;
   className?: string;
@@ -46,12 +104,12 @@ export function LoadingOverlay({ message = "Loading...", className }: LoadingOve
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-lg bg-white/80 p-8 backdrop-blur-sm dark:bg-gray-800/80",
+        "flex flex-col items-center justify-center gap-4 rounded-ds-md bg-ds-surface-base/80 p-8 backdrop-blur-sm",
         className
       )}
     >
       <LoadingSpinner size="lg" />
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{message}</p>
+      <p className="text-sm font-medium text-ds-text-secondary">{message}</p>
     </div>
   );
 }
@@ -70,11 +128,7 @@ export function Skeleton({ className, variant = "rectangular" }: SkeletonProps) 
 
   return (
     <div
-      className={cn(
-        "animate-pulse rounded-md bg-gray-200 dark:bg-gray-700",
-        variants[variant],
-        className
-      )}
+      className={cn("animate-pulse rounded-md bg-ds-surface-sunken", variants[variant], className)}
     />
   );
 }
@@ -85,7 +139,7 @@ export interface CardSkeletonProps {
 
 export function CardSkeleton({ lines = 3 }: CardSkeletonProps) {
   return (
-    <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+    <div className="space-y-3 rounded-ds-md border border-ds-border-base bg-ds-surface-base p-6">
       <Skeleton className="h-6 w-3/4" />
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton key={i} className="h-4 w-full" />

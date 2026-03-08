@@ -52,17 +52,15 @@ export function Rating({
               className={cn(
                 sizes[size],
                 rating <= value
-                  ? "fill-amber-400 text-amber-400"
-                  : "fill-none text-gray-300 dark:text-gray-600"
+                  ? "fill-ds-rating-fill text-ds-rating-fill"
+                  : "fill-none text-ds-rating-empty"
               )}
             />
           </button>
         ))}
       </div>
       {showValue && (
-        <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-          {value.toFixed(1)}
-        </span>
+        <span className="ml-1 text-sm font-medium text-ds-text-secondary">{value.toFixed(1)}</span>
       )}
     </div>
   );

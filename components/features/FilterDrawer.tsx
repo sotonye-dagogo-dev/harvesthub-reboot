@@ -15,6 +15,7 @@
 import { useState } from "react";
 import { Drawer, Button, Slider, Checkbox, Radio, Divider, InputNumber } from "antd";
 import { Filter } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface FilterDrawerProps {
   open: boolean;
@@ -124,7 +125,7 @@ export function FilterDrawer({ open, onClose, onApplyFilters, initialFilters }: 
             step={1000}
             value={filters.priceRange}
             onChange={(value) => setFilters({ ...filters, priceRange: value as [number, number] })}
-            tooltip={{ formatter: (value) => `₦${value?.toLocaleString()}` }}
+            tooltip={{ formatter: (value) => (value != null ? formatCurrency(value) : "") }}
           />
           <div className="flex items-center gap-2 mt-3">
             <InputNumber
@@ -134,7 +135,8 @@ export function FilterDrawer({ open, onClose, onApplyFilters, initialFilters }: 
               onChange={(value) =>
                 setFilters({ ...filters, priceRange: [value || 0, filters.priceRange[1]] })
               }
-              formatter={(value) => `₦ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+              formatter={(value) => (value != null ? formatCurrency(Number(value)) : "")}
+              parser={(value) => Number(value?.replace(/[^\d.]/g, "") || 0)}
               className="flex-1"
             />
             <span>-</span>
@@ -145,7 +147,8 @@ export function FilterDrawer({ open, onClose, onApplyFilters, initialFilters }: 
               onChange={(value) =>
                 setFilters({ ...filters, priceRange: [filters.priceRange[0], value || 100000] })
               }
-              formatter={(value) => `₦ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+              formatter={(value) => (value != null ? formatCurrency(Number(value)) : "")}
+              parser={(value) => Number(value?.replace(/[^\d.]/g, "") || 0)}
               className="flex-1"
             />
           </div>

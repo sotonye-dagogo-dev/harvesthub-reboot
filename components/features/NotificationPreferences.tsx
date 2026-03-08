@@ -10,8 +10,9 @@
 
 "use client";
 
+import { SectionLoader } from "@/components/ui";
 import { useState, useEffect } from "react";
-import { Card, Switch, Button, message, TimePicker, Spin } from "antd";
+import { Card, Switch, Button, message, TimePicker } from "antd";
 import { Bell, Mail, Smartphone, Clock } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import type { NotificationType } from "@/lib/types";
@@ -159,17 +160,13 @@ export function NotificationPreferences() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Spin size="large" />
-      </div>
-    );
+    return <SectionLoader size="lg" className="py-12" />;
   }
 
   return (
     <div className="space-y-6">
       {/* Notification Types */}
-      <Card title="Notification Types" className="shadow-sm">
+      <Card title="Notification Types" className="shadow-ds-sm">
         <div className="space-y-4">
           {preferences.map((pref) => {
             const info = notificationLabels[pref.type];
@@ -177,8 +174,8 @@ export function NotificationPreferences() {
               <div key={pref.type} className="border-b last:border-b-0 pb-4 last:pb-0">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{info.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{info.description}</p>
+                    <h4 className="font-semibold text-ds-text-primary">{info.title}</h4>
+                    <p className="text-sm text-ds-text-secondary">{info.description}</p>
                   </div>
                   <Switch
                     checked={pref.enabled}
@@ -189,7 +186,7 @@ export function NotificationPreferences() {
                 {pref.enabled && (
                   <div className="flex gap-4 ml-4">
                     <label className="flex items-center gap-2 text-sm">
-                      <Bell size={16} className="text-purple-500" />
+                      <Bell size={16} className="text-ds-brand-primary-light" />
                       <span>In-App</span>
                       <Switch
                         size="small"
@@ -199,7 +196,7 @@ export function NotificationPreferences() {
                     </label>
 
                     <label className="flex items-center gap-2 text-sm">
-                      <Mail size={16} className="text-blue-500" />
+                      <Mail size={16} className="text-ds-status-info" />
                       <span>Email</span>
                       <Switch
                         size="small"
@@ -209,7 +206,7 @@ export function NotificationPreferences() {
                     </label>
 
                     <label className="flex items-center gap-2 text-sm">
-                      <Smartphone size={16} className="text-green-500" />
+                      <Smartphone size={16} className="text-ds-status-success" />
                       <span>Push</span>
                       <Switch
                         size="small"
@@ -226,12 +223,12 @@ export function NotificationPreferences() {
       </Card>
 
       {/* Quiet Hours */}
-      <Card title="Quiet Hours" className="shadow-sm">
+      <Card title="Quiet Hours" className="shadow-ds-sm">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100">Enable Quiet Hours</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h4 className="font-semibold text-ds-text-primary">Enable Quiet Hours</h4>
+              <p className="text-sm text-ds-text-secondary">
                 Mute notifications during specific hours
               </p>
             </div>

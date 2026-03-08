@@ -15,10 +15,10 @@ export default function NotificationPreferencesPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-2xl font-bold text-ds-text-primary">
           Notification Preferences
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-ds-text-secondary mt-1">
           Choose how you want to be notified about important updates
         </p>
       </div>

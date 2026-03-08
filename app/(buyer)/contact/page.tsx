@@ -10,8 +10,8 @@ export default function ContactPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Contact Us</h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+        <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Contact Us</h1>
+        <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
           Have questions? We&apos;re here to help! Reach out to us through any of the channels below.
         </p>
       </div>
@@ -19,52 +19,52 @@ export default function ContactPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Contact Information */}
         <div>
-          <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Get in Touch</h2>
+          <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">Get in Touch</h2>
 
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                <Mail className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
+                <Mail className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-white">Email</h3>
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Email</h3>
                 <a
                   href="mailto:support@harvesthub.ng"
-                  className="text-purple-600 hover:underline dark:text-purple-400"
+                  className="text-ds-text-brand hover:underline"
                 >
                   support@harvesthub.ng
                 </a>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-ds-text-secondary">
                   For general inquiries and support
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                <Phone className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
+                <Phone className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-white">Phone</h3>
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Phone</h3>
                 <a
                   href="tel:+2348012345678"
-                  className="text-purple-600 hover:underline dark:text-purple-400"
+                  className="text-ds-text-brand hover:underline"
                 >
                   +234 801 234 5678
                 </a>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-ds-text-secondary">
                   Monday - Friday, 9am - 5pm WAT
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                <MapPin className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
+                <MapPin className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-white">Address</h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Address</h3>
+                <p className="text-ds-text-secondary">
                   Harvesters International Christian Centre
                   <br />
                   Oregun, Ikeja
@@ -75,12 +75,12 @@ export default function ContactPage() {
             </div>
 
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
+                <Clock className="h-6 w-6 text-ds-text-brand" />
               </div>
               <div>
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-white">Business Hours</h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <h3 className="mb-1 font-semibold text-ds-text-primary">Business Hours</h3>
+                <p className="text-ds-text-secondary">
                   Monday - Friday: 9:00 AM - 6:00 PM
                   <br />
                   Saturday: 10:00 AM - 4:00 PM
@@ -92,9 +92,9 @@ export default function ContactPage() {
           </div>
 
           {/* Campus Locations */}
-          <div className="mt-8 rounded-lg bg-purple-50 p-6 dark:bg-purple-900/20">
-            <h3 className="mb-4 font-semibold text-gray-900 dark:text-white">Our Locations</h3>
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-6 dark:bg-ds-brand-subtle">
+            <h3 className="mb-4 font-semibold text-ds-text-primary">Our Locations</h3>
+            <div className="space-y-2 text-sm text-ds-text-secondary">
               <p>📍 Oregun (Headquarters)</p>
               <p>📍 Lekki</p>
               <p>📍 Victoria Island</p>
@@ -106,20 +106,20 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="rounded-lg bg-white p-8 shadow-sm dark:bg-gray-900">
-          <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Send a Message</h2>
+        <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-sm dark:bg-ds-surface-base">
+          <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">Send a Message</h2>
           <form className="space-y-4">
             <div>
               <label
                 htmlFor="name"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="mb-1 block text-sm font-medium text-ds-text-secondary"
               >
                 Name
               </label>
               <input
                 type="text"
                 id="name"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="Your full name"
               />
             </div>
@@ -127,14 +127,14 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="email"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="mb-1 block text-sm font-medium text-ds-text-secondary"
               >
                 Email
               </label>
               <input
                 type="email"
                 id="email"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="your.email@example.com"
               />
             </div>
@@ -142,14 +142,14 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="subject"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="mb-1 block text-sm font-medium text-ds-text-secondary"
               >
                 Subject
               </label>
               <input
                 type="text"
                 id="subject"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="How can we help?"
               />
             </div>
@@ -157,21 +157,21 @@ export default function ContactPage() {
             <div>
               <label
                 htmlFor="message"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="mb-1 block text-sm font-medium text-ds-text-secondary"
               >
                 Message
               </label>
               <textarea
                 id="message"
                 rows={5}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
                 placeholder="Tell us more about your inquiry..."
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+              className="w-full rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
             >
               Send Message
             </button>

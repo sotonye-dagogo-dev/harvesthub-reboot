@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Generate tokens
-        const { accessToken, refreshToken } = generateTokenPair(user.id, user.email, user.role);
+        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role);
 
         // Set cookies
         await setAuthCookies(accessToken, refreshToken);

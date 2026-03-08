@@ -11,7 +11,7 @@ export default function BuyerLayout({ children }: BuyerLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 bg-gray-50 dark:bg-gray-950">{children}</main>
+      <main className="flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">{children}</main>
       <Footer />
     </div>
   );

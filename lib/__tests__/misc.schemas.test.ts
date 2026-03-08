@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import {
     depositSchema,
     withdrawalSchema,
@@ -145,7 +145,7 @@ describe('Address Validation Schemas', () => {
                 address: '123 Main Street',
                 city: 'Lagos',
                 state: 'Lagos',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
             };
 
             const result = addressSchema.safeParse(validAddress);
@@ -166,7 +166,7 @@ describe('Address Validation Schemas', () => {
                     address: '123 Main Street',
                     city: 'Lagos',
                     state: 'Lagos',
-                    campus: 'OREGUN_HQ',
+                    campus: 'GBAGADA',
                 };
 
                 const result = addressSchema.safeParse(address);
@@ -188,7 +188,7 @@ describe('Address Validation Schemas', () => {
                     address: '123 Main Street',
                     city: 'Lagos',
                     state: 'Lagos',
-                    campus: 'OREGUN_HQ',
+                    campus: 'GBAGADA',
                 };
 
                 const result = addressSchema.safeParse(address);
@@ -203,7 +203,7 @@ describe('Address Validation Schemas', () => {
                 address: '123 Main Street',
                 city: 'Lagos',
                 state: 'Lagos',
-                campus: 'OREGUN_HQ',
+                campus: 'GBAGADA',
                 deliveryInstructions: 'Call when you arrive',
             };
 
@@ -221,7 +221,7 @@ describe('Address Validation Schemas', () => {
                     address: '123 Main Street',
                     city: 'Lagos',
                     state: 'Lagos',
-                    campus: 'OREGUN_HQ',
+                    campus: 'GBAGADA',
                 };
 
                 delete incompleteAddress[field as keyof typeof incompleteAddress];

@@ -2,17 +2,14 @@
 export { ProductCard } from "./ProductCard";
 export type { ProductCardProps } from "./ProductCard";
 
-export { BannerCarousel } from "./BannerCarousel";
-export type { BannerCarouselProps, BannerItem } from "./BannerCarousel";
+export { BannerCarousel, HeroBanner } from "./BannerCarousel";
+export type { BannerCarouselProps, BannerItem, BannerActionItem } from "./BannerCarousel";
 
 export { CategoryNav } from "./CategoryNav";
 export type { CategoryNavProps, Category } from "./CategoryNav";
 
 export { VendorCard } from "./VendorCard";
 export type { VendorCardProps } from "./VendorCard";
-
-export { CartItem } from "./CartItem";
-export type { CartItemProps } from "./CartItem";
 
 export { SearchBar } from "./SearchBar";
 export type { SearchBarProps } from "./SearchBar";
@@ -33,3 +30,5 @@ export { FilterSidebar } from "./FilterSidebar";
 export type { FilterSidebarProps, FilterOptions } from "./FilterSidebar";
 
 export { CartItemComponent } from "./CartItemComponent";
+
+export { TopAdBanner } from "./TopAdBanner";

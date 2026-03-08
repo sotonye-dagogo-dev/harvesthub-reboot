@@ -1,37 +1,40 @@
 "use client";
 
-import {
-  ArrowRightOutlined,
-  ShoppingFilled,
-  ShopOutlined,
-} from "@ant-design/icons";
 import { useState } from "react";
 import { UserType, FormComponentProps } from "@/app/types";
+import { ShoppingBag, Store } from "lucide-react";
 
 interface UserOption {
   name: UserType;
+  title: string;
   description: string;
-  icon: "individual" | "store";
+  icon: "buyer" | "vendor";
+  features: string[];
 }
 
 const options: UserOption[] = [
   {
-    name: "individual",
-    description: "Wish to buy various products.",
-    icon: "individual",
+    name: "buyer",
+    title: "Buyer Account",
+    description: "Shop from trusted vendors and enjoy flexible delivery options",
+    icon: "buyer",
+    features: ["Browse products", "Secure payments", "Church pickup or delivery", "Wallet system"],
   },
   {
-    name: "store",
-    description: "Own a store and wish to sell products.",
-    icon: "store",
+    name: "vendor",
+    title: "Vendor Account",
+    description: "Set up your store and reach thousands of buyers",
+    icon: "vendor",
+    features: [
+      "Manage products",
+      "Track orders",
+      "Analytics dashboard",
+      "Multiple delivery options",
+    ],
   },
 ];
 
-export default function UserSelect({
-  onNext,
-  updateFormData,
-  formData,
-}: FormComponentProps) {
+export default function UserSelect({ onNext, updateFormData, formData }: FormComponentProps) {
   const [selectedType, setSelectedType] = useState<UserType | null>(
     (formData?.userType as UserType) || null
   );
@@ -43,48 +46,76 @@ export default function UserSelect({
   };
 
   return (
-    <div className="w-full flex flex-col justify-between items-center gap-6">
-      <h3 className="text-[24px] leading-[26.4px] text-center">
-        Choose Account Type
-      </h3>
-      <p className="text-sm text-gray-400 text-center mb-4">
-        Select the type of account you want to create
-      </p>
+    <div className="w-full">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Join HarvestHub</h1>
+        <p className="text-ds-text-secondary">Choose how you want to use HarvestHub</p>
+      </div>
 
-      {options.map((option) => (
-        <div
-          key={option.name}
-          className={`capitalize w-full flex justify-between items-center p-6 rounded-xl border ${
-            selectedType === option.name
-              ? "border-primary-100 bg-orange-50"
-              : "border-gray-100 hover:border-blue-500 hover:bg-blue-50"
-          } cursor-pointer transition-colors duration-150`}
-          onClick={() => handleSelect(option.name)}>
-          <div className="flex gap-3 items-center">
-            <div
-              className={`border rounded-full p-5 box-border leading-none transition-colors duration-150 ${
-                selectedType === option.name
-                  ? "border-primary-100 bg-primary-100 text-white"
-                  : "border-blue-500 hover:bg-blue-500 hover:text-white"
-              }`}>
-              {option.icon === "individual" ? (
-                <ShoppingFilled />
-              ) : (
-                <ShopOutlined />
+      {/* Account Type Cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {options.map((option) => {
+          const isSelected = selectedType === option.name;
+          const IconComponent = option.icon === "buyer"? ShoppingBag : Store; return ( <button key={option.name} onClick={() => handleSelect(option.name)} className={`group relative overflow-hidden rounded-ds-lg border-2 p-6 text-left transition-all ${ isSelected ?"border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`} > {/* Icon */} <div className={`mb-4 inline-flex rounded-ds-md p-3 transition-colors ${ isSelected ?"bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white " }`}
+              >
+                <IconComponent className="h-6 w-6" />
+              </div>
+
+              {/* Title */}
+              <h3 className="mb-2 text-xl font-bold text-ds-text-primary">
+                {option.title}
+              </h3>
+
+              {/* Description */}
+              <p className="mb-4 text-sm text-ds-text-secondary">{option.description}</p>
+
+              {/* Features */}
+              <ul className="space-y-2">
+                {option.features.map((feature, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-center gap-2 text-sm text-ds-text-secondary"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-ds-full bg-ds-brand-primary"></span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Selected Indicator */}
+              {isSelected && (
+                <div className="absolute right-4 top-4 rounded-ds-full bg-ds-brand-primary p-1">
+                  <svg
+                    className="h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
               )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <h6 className="font-semibold">{option.name}</h6>
-              <p className="text-xs text-gray-400 normal-case">
-                {option.description}
-              </p>
-            </div>
-          </div>
-          <ArrowRightOutlined
-            className={selectedType === option.name ? "text-primary-100" : ""}
-          />
-        </div>
-      ))}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Additional Info */}
+      <p className="mt-6 text-center text-sm text-ds-text-secondary">
+        Already have an account?{" "}
+        <a
+          href="/login"
+          className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
+        >
+          Sign in here
+        </a>
+      </p>
     </div>
   );
 }

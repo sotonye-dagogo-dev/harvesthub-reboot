@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFormData } from "@/app/providers";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { UserRole, VendorCategory, Campus } from "@/lib/constants";
+import { UserRole, VendorCategory, Campus, Position } from "@/lib/constants";
 import SecurityInfo from "../components/SecurityInfo";
 
 export default function SecurityInfoPage() {
@@ -28,18 +28,19 @@ export default function SecurityInfoPage() {
         firstName: formData.firstName!,
         lastName: formData.lastName!,
         phoneNumber: formData.phoneNumber!,
-        role: formData.userType === "store" ? UserRole.VENDOR : UserRole.BUYER,
+        role: formData.userType === "vendor" ? UserRole.VENDOR : UserRole.BUYER,
         // Vendor-specific fields (using available form data)
-        ...(formData.userType === "store" && {
+        ...(formData.userType === "vendor" && {
           storeName: formData.storeName,
-          storeDescription: formData.bio, // Using bio as storeDescription
-          category: "OTHERS" as VendorCategory, // Default category for now
-          whatsappNumber: formData.phoneNumber!, // Using phoneNumber as whatsappNumber
-          campus: "OREGUN_HQ" as Campus, // Default campus for now
-          isChurchAffiliated: false, // Default value
+          storeDescription: formData.storeDescription || formData.bio,
+          category: (formData.storeCategory || "OTHERS") as VendorCategory,
+          whatsappNumber: formData.phoneNumber!,
+          campus: (formData.campus || "IKEJA") as Campus,
+          position: formData.position ? (formData.position as Position) : undefined,
+          isChurchAffiliated: false,
         }),
         // Buyer-specific fields (minimal for now)
-        ...(formData.userType === "individual" && {
+        ...(formData.userType === "buyer" && {
           dateOfBirth: undefined,
           gender: undefined,
         }),

@@ -10,7 +10,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Space, Tag, Empty } from "antd";
+import { Button, Space, Tag } from "antd";
+import { EmptyState } from "@/components/ui";
 import { Clock, X, Star, StarOff } from "lucide-react";
 
 interface SearchHistoryProps {
@@ -73,7 +74,13 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
   const recentHistory = history.slice(0, maxItems);
 
   if (history.length === 0 && savedSearches.length === 0) {
-    return <Empty description="No search history" className="py-8" />;
+    return (
+      <EmptyState
+        title="No search history"
+        icon={<Clock className="h-10 w-10" />}
+        className="py-8"
+      />
+    );
   }
 
   return (
@@ -81,17 +88,17 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
       {savedSearches.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Saved Searches</h3>
+            <h3 className="font-semibold text-ds-text-primary">Saved Searches</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {savedSearches.map((item) => (
               <Tag
                 key={item.query}
-                icon={<Star size={14} className="text-yellow-500" />}
+                icon={<Star size={14} className="text-ds-status-warning" />}
                 closable
                 onClose={() => handleToggleSaved(item.query)}
                 onClick={() => onSearchClick(item.query)}
-                className="cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                className="cursor-pointer hover:bg-ds-brand-surface"
               >
                 {item.query}
               </Tag>
@@ -103,7 +110,7 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
       {recentHistory.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Searches</h3>
+            <h3 className="font-semibold text-ds-text-primary">Recent Searches</h3>
             <Button type="text" size="small" onClick={handleClearHistory}>
               Clear all
             </Button>
@@ -112,14 +119,14 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
             {recentHistory.map((item) => (
               <div
                 key={item.query}
-                className="flex items-center justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-ds-xs hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised cursor-pointer"
               >
                 <div
                   onClick={() => onSearchClick(item.query)}
                   className="flex items-center gap-2 flex-1"
                 >
-                  <Clock size={16} className="text-gray-400" />
-                  <span className="text-gray-700 dark:text-gray-300">{item.query}</span>
+                  <Clock size={16} className="text-ds-text-placeholder" />
+                  <span className="text-ds-text-secondary">{item.query}</span>
                 </div>
                 <Space>
                   <Button
@@ -127,7 +134,7 @@ export function SearchHistory({ onSearchClick, maxItems = 10 }: SearchHistoryPro
                     size="small"
                     icon={
                       isSaved(item.query) ? (
-                        <Star size={14} className="text-yellow-500" />
+                        <Star size={14} className="text-ds-status-warning" />
                       ) : (
                         <StarOff size={14} />
                       )

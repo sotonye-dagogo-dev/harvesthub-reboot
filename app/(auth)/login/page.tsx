@@ -40,11 +40,11 @@ function LoginForm() {
   };
 
   return (
-    <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
+    <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">
       {/* Logo/Brand */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-purple-600 dark:text-purple-400">HarvestHub</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">Sign in to your account</p>
+        <h1 className="text-3xl font-bold text-ds-text-brand">HarvestHub</h1>
+        <p className="mt-2 text-ds-text-secondary dark:text-ds-text-placeholder">Sign in to your account</p>
       </div>
 
       {/* Error Alert */}
@@ -70,7 +70,7 @@ function LoginForm() {
           ]}
         >
           <Input
-            prefix={<MailOutlined className="text-gray-400" />}
+            prefix={<MailOutlined className="text-ds-text-placeholder" />}
             placeholder="your@email.com"
             autoComplete="email"
           />
@@ -82,7 +82,7 @@ function LoginForm() {
           rules={[{ required: true, message: "Please enter your password" }]}
         >
           <Input.Password
-            prefix={<LockOutlined className="text-gray-400" />}
+            prefix={<LockOutlined className="text-ds-text-placeholder" />}
             placeholder="Enter your password"
             iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
             autoComplete="current-password"
@@ -92,7 +92,7 @@ function LoginForm() {
         <div className="mb-4 flex items-center justify-between">
           <Link
             href="/forgot-password"
-            className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400"
+            className="text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
           >
             Forgot password?
           </Link>
@@ -104,34 +104,34 @@ function LoginForm() {
             htmlType="submit"
             loading={loading}
             block
-            className="h-11 bg-purple-600 hover:bg-purple-700"
+            className="h-11 bg-ds-brand-primary hover:bg-ds-brand-primary-hover"
           >
             Sign In
           </Button>
         </Form.Item>
       </Form>
 
-      <Divider plain className="my-6 text-gray-400">
+      <Divider plain className="my-6 text-ds-text-placeholder">
         Or
       </Divider>
 
       {/* Sign Up Link */}
       <div className="text-center">
-        <span className="text-gray-600 dark:text-gray-300">Don&apos;t have an account? </span>
+        <span className="text-ds-text-secondary dark:text-ds-text-placeholder">Don&apos;t have an account? </span>
         <Link
           href="/signup"
-          className="font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400"
+          className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
         >
           Sign up
         </Link>
       </div>
 
       {/* Demo Credentials */}
-      <div className="mt-8 rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
-        <p className="mb-2 text-sm font-medium text-purple-900 dark:text-purple-200">
+      <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
+        <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">
           Demo Credentials:
         </p>
-        <div className="space-y-1 text-xs text-purple-700 dark:text-purple-300">
+        <div className="space-y-1 text-xs text-ds-palette-purple-700 dark:text-ds-brand-muted">
           <p>
             <strong>Admin:</strong> admin@harvesthub.com / admin123
           </p>
@@ -150,7 +150,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">Loading...</div>
+        <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>
       }
     >
       <LoginForm />

@@ -13,8 +13,8 @@ export type { BadgeProps } from "./Badge";
 export { Rating } from "./Rating";
 export type { RatingProps } from "./Rating";
 
-export { LoadingSpinner, LoadingOverlay, Skeleton, CardSkeleton } from "./Loading";
-export type { LoadingSpinnerProps, LoadingOverlayProps, SkeletonProps, CardSkeletonProps } from "./Loading";
+export { LoadingSpinner, LoadingOverlay, PageLoader, SectionLoader, Skeleton, CardSkeleton } from "./Loading";
+export type { LoadingSpinnerProps, LoadingOverlayProps, PageLoaderProps, SectionLoaderProps, SkeletonProps, CardSkeletonProps } from "./Loading";
 
 export { EmptyState, EmptyProducts, EmptyCart, EmptySearchResults, EmptyOrders } from "./EmptyState";
 export type { EmptyStateProps } from "./EmptyState";
@@ -27,8 +27,20 @@ export type { PhoneInputProps } from "./PhoneInput";
 
 export { ThemeToggle } from "./ThemeToggle";
 
-export { Modal, ConfirmModal } from "./Modal";
-export type { ModalProps, ConfirmModalProps } from "./Modal";
+export { StatusTag, getTagColor, stockLevelColor, booleanColor } from "./StatusTag";
+export type { StatusTagProps, StatusDomain } from "./StatusTag";
+export {
+    ORDER_STATUS_COLORS,
+    PAYMENT_STATUS_COLORS,
+    VENDOR_STATUS_COLORS,
+    USER_ROLE_COLORS,
+    USER_STATUS_COLORS,
+    TRANSACTION_STATUS_COLORS,
+    NOTIFICATION_TYPE_COLORS,
+} from "./StatusTag";
 
-export { Table } from "./Table";
-export type { TableProps, Column } from "./Table";
+export { StatCard } from "./StatCard";
+export type { StatCardProps, StatColorPreset } from "./StatCard";
+
+export { PriceDisplay } from "./PriceDisplay";
+export type { PriceDisplayProps } from "./PriceDisplay";

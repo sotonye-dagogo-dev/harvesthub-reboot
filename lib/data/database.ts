@@ -62,6 +62,8 @@ let addresses: Address[] = [...mockAddresses];
 // For password storage (separate from User type)
 const passwords: Record<string, string> = {
     'user-admin-001': 'admin123',
+    'user-vendor-demo': 'vendor123',
+    'user-buyer-demo': 'buyer123',
     'user-vendor-001': 'vendor123',
     'user-vendor-002': 'vendor123',
     'user-vendor-003': 'vendor123',

@@ -1,18 +1,37 @@
+/**
+ * @file /dashboard/page.tsx
+ * @purpose Role-based dashboard router (client-side redirect hub)
+ *
+ * WHY THIS EXISTS:
+ * The middleware handles authentication at the edge, but role-based dashboard
+ * redirection requires reading the user's role from the auth context, which
+ * is only available client-side via useAuth(). Moving this logic to middleware
+ * would require the middleware to decode the JWT and check the role on every
+ * request to /dashboard — that pattern is supported but adds edge-runtime
+ * complexity.
+ *
+ * PATTERN:
+ * Any link that needs to "go to the right dashboard" can point to /dashboard
+ * and let this page handle the redirect. This keeps routing logic centralized
+ * and avoids hard-coding role-specific paths in nav components.
+ *
+ * ROUTES:
+ *   - BUYER  → / (no separate buyer dashboard)
+ *   - VENDOR → /vendor/analytics
+ *   - ADMIN  → /admin/analytics
+ *   - (unauthed) → /login
+ */
 "use client";
 
+import { PageLoader } from "@/components/ui";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { redirect } from "next/navigation";
-import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!user) {
@@ -26,7 +45,7 @@ export default function DashboardPage() {
 
   // Redirect vendors to vendor analytics
   if (user.role === "VENDOR") {
-    redirect("/vendor-analytics");
+    redirect("/vendor/analytics");
   }
 
   // Redirect admins to admin analytics

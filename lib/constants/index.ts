@@ -50,13 +50,52 @@ export enum PickupService {
 }
 
 export enum Campus {
-    OREGUN_HQ = 'OREGUN_HQ',
-    LEKKI = 'LEKKI',
-    VICTORIA_ISLAND = 'VICTORIA_ISLAND',
+    LONDON = 'LONDON',
+    BIRMINGHAM = 'BIRMINGHAM',
+    GLASGOW = 'GLASGOW',
+    MANCHESTER = 'MANCHESTER',
+    HOUSTON = 'HOUSTON',
+    NORTH_LONDON = 'NORTH_LONDON',
+    KENT = 'KENT',
+    TORONTO = 'TORONTO',
+    GBAGADA = 'GBAGADA',
+    MAGODO = 'MAGODO',
+    IKORODU = 'IKORODU',
+    IBADAN_JERICHO = 'IBADAN_JERICHO',
+    AKOBO = 'AKOBO',
+    APAPA = 'APAPA',
+    SURULERE = 'SURULERE',
+    ABEOKUTA = 'ABEOKUTA',
+    ILUPEJU = 'ILUPEJU',
+    YABA = 'YABA',
+    PORT_HARCOURT = 'PORT_HARCOURT',
+    OLUYOLE = 'OLUYOLE',
+    OGBA = 'OGBA',
+    ANTHONY = 'ANTHONY',
+    ALIMOSHO = 'ALIMOSHO',
     IKEJA = 'IKEJA',
-    FESTAC = 'FESTAC',
+    IKOYI = 'IKOYI',
+    ISOLO = 'ISOLO',
+    IYANA_IPAJA = 'IYANA_IPAJA',
+    ABULE_EGBA = 'ABULE_EGBA',
+    GHANA = 'GHANA',
+    ABUJA = 'ABUJA',
+    LEKKI = 'LEKKI',
+    GLOBE = 'GLOBE',
     AJAH = 'AJAH',
-    OUTSIDE_LAGOS = 'OUTSIDE_LAGOS',
+    ONLINE = 'ONLINE',
+}
+
+export enum Position {
+    HOD = 'HOD',
+    ASST_HOD = 'ASST_HOD',
+    SUB_TEAM_LEADER = 'SUB_TEAM_LEADER',
+    TEAM_LEAD = 'TEAM_LEAD',
+    SMALL_GROUP_LEADER = 'SMALL_GROUP_LEADER',
+    ASST_SMALL_GROUP_LEADER = 'ASST_SMALL_GROUP_LEADER',
+    ZONAL_COORDINATOR = 'ZONAL_COORDINATOR',
+    COMMUNITY_LEADER = 'COMMUNITY_LEADER',
+    DISTRICT_PASTOR = 'DISTRICT_PASTOR',
 }
 
 export enum VendorCategory {
@@ -113,48 +152,56 @@ export enum VendorStatus {
 // ============================================================================
 
 export const CAMPUS_LOCATIONS = [
-    {
-        value: Campus.OREGUN_HQ,
-        label: 'Oregun (Headquarters)',
-        description: 'Main campus in Oregun, Lagos',
-        address: 'Oregun, Lagos State',
-    },
-    {
-        value: Campus.LEKKI,
-        label: 'Lekki',
-        description: 'Lekki Peninsula campus',
-        address: 'Lekki, Lagos State',
-    },
-    {
-        value: Campus.VICTORIA_ISLAND,
-        label: 'Victoria Island',
-        description: 'Victoria Island business district',
-        address: 'Victoria Island, Lagos State',
-    },
-    {
-        value: Campus.IKEJA,
-        label: 'Ikeja',
-        description: 'Ikeja and environs',
-        address: 'Ikeja, Lagos State',
-    },
-    {
-        value: Campus.FESTAC,
-        label: 'Festac',
-        description: 'Festac Town',
-        address: 'Festac Town, Lagos State',
-    },
-    {
-        value: Campus.AJAH,
-        label: 'Ajah',
-        description: 'Ajah and Badore area',
-        address: 'Ajah, Lagos State',
-    },
-    {
-        value: Campus.OUTSIDE_LAGOS,
-        label: 'Outside Lagos',
-        description: 'Other Nigerian states',
-        address: 'Outside Lagos State',
-    },
+    { value: Campus.LONDON, label: 'London' },
+    { value: Campus.BIRMINGHAM, label: 'Birmingham' },
+    { value: Campus.GLASGOW, label: 'Glasgow' },
+    { value: Campus.MANCHESTER, label: 'Manchester' },
+    { value: Campus.HOUSTON, label: 'Houston' },
+    { value: Campus.NORTH_LONDON, label: 'North London' },
+    { value: Campus.KENT, label: 'Kent' },
+    { value: Campus.TORONTO, label: 'Toronto' },
+    { value: Campus.GBAGADA, label: 'Gbagada' },
+    { value: Campus.MAGODO, label: 'Magodo' },
+    { value: Campus.IKORODU, label: 'Ikorodu' },
+    { value: Campus.IBADAN_JERICHO, label: 'Ibadan Jericho' },
+    { value: Campus.AKOBO, label: 'Akobo' },
+    { value: Campus.APAPA, label: 'Apapa' },
+    { value: Campus.SURULERE, label: 'Surulere' },
+    { value: Campus.ABEOKUTA, label: 'Abeokuta' },
+    { value: Campus.ILUPEJU, label: 'Ilupeju' },
+    { value: Campus.YABA, label: 'Yaba' },
+    { value: Campus.PORT_HARCOURT, label: 'Port Harcourt' },
+    { value: Campus.OLUYOLE, label: 'Oluyole' },
+    { value: Campus.OGBA, label: 'Ogba' },
+    { value: Campus.ANTHONY, label: 'Anthony' },
+    { value: Campus.ALIMOSHO, label: 'Alimosho' },
+    { value: Campus.IKEJA, label: 'Ikeja' },
+    { value: Campus.IKOYI, label: 'Ikoyi' },
+    { value: Campus.ISOLO, label: 'Isolo' },
+    { value: Campus.IYANA_IPAJA, label: 'Iyana Ipaja' },
+    { value: Campus.ABULE_EGBA, label: 'Abule Egba' },
+    { value: Campus.GHANA, label: 'Ghana' },
+    { value: Campus.ABUJA, label: 'Abuja' },
+    { value: Campus.LEKKI, label: 'Lekki' },
+    { value: Campus.GLOBE, label: 'Globe' },
+    { value: Campus.AJAH, label: 'Ajah' },
+    { value: Campus.ONLINE, label: 'Online' },
+] as const;
+
+// ============================================================================
+// POSITION OPTIONS
+// ============================================================================
+
+export const POSITION_OPTIONS = [
+    { value: Position.HOD, label: 'HOD' },
+    { value: Position.ASST_HOD, label: 'Ass. HOD' },
+    { value: Position.SUB_TEAM_LEADER, label: 'Sub Team Leader' },
+    { value: Position.TEAM_LEAD, label: 'Team Lead' },
+    { value: Position.SMALL_GROUP_LEADER, label: 'Small Group Leader' },
+    { value: Position.ASST_SMALL_GROUP_LEADER, label: 'Ass. Small Group Leader' },
+    { value: Position.ZONAL_COORDINATOR, label: 'Zonal Coordinator' },
+    { value: Position.COMMUNITY_LEADER, label: 'Community Leader' },
+    { value: Position.DISTRICT_PASTOR, label: 'District Pastor' },
 ] as const;
 
 // ============================================================================
@@ -385,4 +432,83 @@ export const APP_CONFIG = {
     URL: 'https://harvesthub.ng',
     SUPPORT_EMAIL: 'support@harvesthub.ng',
     SUPPORT_PHONE: '+234 800 000 0000',
+} as const;
+
+// ============================================================================
+// BANNER CONFIG
+// ============================================================================
+
+/**
+ * Central configuration for the banner system.
+ *
+ * ROTATION          – how many milliseconds between auto-advances
+ * TRANSITION_MS     – CSS transition duration used in animation classes
+ * DISMISS_STORAGE_KEY – localStorage key tracking dismissed TOP banner IDs
+ * HERO_DISPLAY_INTERVAL – interval for hero carousel auto-play (matches designer spec)
+ * TOP_DISPLAY_INTERVAL  – interval for rotating the small fixed top strip
+ *
+ * THEME_STYLES maps each BannerTheme to a set of Tailwind classes so that
+ * every new theme variant only needs one entry here, keeping components
+ * theme-agnostic and easy to extend.
+ */
+export const BANNER_CONFIG = {
+    /** AUTO-ROTATION */
+    HERO_DISPLAY_INTERVAL: 5000,   // 5 s – hero carousel
+    TOP_DISPLAY_INTERVAL: 5000,    // 5 s – top ad strip rotation
+
+    /** ANIMATION */
+    TRANSITION_MS: 400,
+
+    /** PERSISTENCE */
+    DISMISS_STORAGE_KEY: 'hh_dismissed_top_banners',
+
+    /** DEFAULT LABELS */
+    KNOW_MORE_LABEL: 'Know More',
+    DEFAULT_CTA_LABEL: 'Learn More',
+
+    /** HERO LAYOUT */
+    // Fraction of the hero width given to the display panel on large screens
+    // e.g. "70" → 70% display, 30% action
+    DISPLAY_PANEL_PERCENT: 65,
+    ACTION_PANEL_PERCENT: 35,
+
+    /** Per-theme design tokens (Tailwind class strings) */
+    THEME_STYLES: {
+        BUSINESS: {
+            actionBg: 'bg-ds-brand-primary-hover',
+            actionBgDark: '',
+            actionText: 'text-white',
+            accentBg: 'bg-ds-brand-primary-light',
+            badge: 'bg-ds-brand-primary-light/20 text-ds-palette-purple-100',
+            primaryBtn: 'bg-ds-surface-base text-ds-palette-purple-700 hover:bg-ds-brand-surface',
+            secondaryBtn: 'border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10',
+        },
+        CHURCH: {
+            actionBg: 'bg-ds-status-warning-text',
+            actionBgDark: '',
+            actionText: 'text-white',
+            accentBg: 'bg-ds-status-warning',
+            badge: 'bg-ds-status-warning/20 text-ds-palette-amber-100',
+            primaryBtn: 'bg-ds-surface-base text-ds-status-warning-text hover:bg-ds-status-warning-bg',
+            secondaryBtn: 'border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10',
+        },
+        EVENT: {
+            actionBg: 'bg-rose-700',
+            actionBgDark: 'dark:bg-rose-900',
+            actionText: 'text-white',
+            accentBg: 'bg-rose-500',
+            badge: 'bg-rose-500/20 text-rose-100',
+            primaryBtn: 'bg-ds-surface-base text-rose-700 hover:bg-rose-50',
+            secondaryBtn: 'border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10',
+        },
+        PROMOTION: {
+            actionBg: 'bg-ds-status-success-text',
+            actionBgDark: 'dark:bg-ds-status-success-bg',
+            actionText: 'text-white',
+            accentBg: 'bg-ds-status-success',
+            badge: 'bg-ds-status-success/20 text-ds-palette-green-100',
+            primaryBtn: 'bg-ds-surface-base text-ds-status-success-text hover:bg-ds-status-success-bg',
+            secondaryBtn: 'border border-ds-surface-base/60 text-white hover:bg-ds-surface-base/10',
+        },
+    },
 } as const;

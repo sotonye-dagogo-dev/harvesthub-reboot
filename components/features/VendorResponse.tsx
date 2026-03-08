@@ -76,9 +76,9 @@ export function VendorResponse({
   }
 
   return (
-    <div className="mt-4 ml-8 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border-l-4 border-purple-500">
+    <div className="mt-4 ml-8 p-4 bg-ds-brand-surface rounded-ds-md border-l-4 border-ds-border-focus">
       <div className="flex items-start gap-3">
-        <MessageSquare size={20} className="text-purple-600 dark:text-purple-400 mt-1" />
+        <MessageSquare size={20} className="text-ds-text-brand mt-1" />
 
         <div className="flex-1">
           {!response && isVendor && !isEditing && (
@@ -95,7 +95,7 @@ export function VendorResponse({
           {(response || isEditing) && (
             <>
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-purple-700 dark:text-purple-300">
+                <span className="font-semibold text-ds-palette-purple-700 dark:text-ds-brand-muted">
                   {response?.vendorName || "Vendor"} Response
                 </span>
                 {isVendor && !isEditing && (
@@ -135,11 +135,11 @@ export function VendorResponse({
                 </div>
               ) : (
                 <>
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  <p className="text-ds-text-secondary whitespace-pre-wrap">
                     {response?.text}
                   </p>
                   {response?.createdAt && (
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-ds-text-tertiary mt-2">
                       {formatDistanceToNow(new Date(response.createdAt), { addSuffix: true })}
                     </p>
                   )}

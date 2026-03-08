@@ -6,17 +6,19 @@ import { Card, Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
+import { OrderStatus, DeliveryMethod } from "@/lib/constants";
+import type { Timestamp } from "@/lib/types";
 
 export interface OrderCardProps {
   id: string;
   orderNumber: string;
-  status: "pending" | "confirmed" | "processing" | "ready" | "completed" | "cancelled" | "refunded";
+  status: OrderStatus;
   total: number;
   itemCount: number;
-  deliveryMethod: "pickup" | "delivery";
+  deliveryMethod: DeliveryMethod;
   deliveryInfo?: string;
-  createdAt: Date;
-  estimatedDate?: Date;
+  createdAt: Timestamp;
+  estimatedDate?: Timestamp;
   className?: string;
 }
 
@@ -42,21 +44,34 @@ export function OrderCard({
   estimatedDate,
   className,
 }: OrderCardProps) {
-  const statusDetails = statusConfig[status];
+  // Convert enum status to lowercase for statusConfig lookup
+  const statusKey = status.toLowerCase() as keyof typeof statusConfig;
+  const statusDetails = statusConfig[statusKey];
+
+  // Convert Timestamp to Date for formatting
+  const createdDate = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
+  const estimatedDateObj = estimatedDate
+    ? typeof estimatedDate === "string"
+      ? new Date(estimatedDate)
+      : estimatedDate
+    : undefined;
+
+  // Convert enum delivery method to lowercase
+  const isPickup = deliveryMethod === DeliveryMethod.PICKUP;
 
   return (
     <Link href={`/orders/${id}`}>
-      <Card className={cn("transition-all hover:shadow-lg", className)} hoverable>
+      <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             {/* Order Number and Status */}
             <div className="mb-2 flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Order #{orderNumber}</h3>
+              <h3 className="font-semibold text-ds-text-primary">Order #{orderNumber}</h3>
               <Badge variant={statusDetails.variant}>{statusDetails.label}</Badge>
             </div>
 
             {/* Order Details */}
-            <div className="mb-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mb-3 space-y-1 text-sm text-ds-text-secondary">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 <span>
@@ -65,10 +80,10 @@ export function OrderCard({
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span>{format(createdAt, "MMM d, yyyy")}</span>
+                <span>{format(createdDate, "MMM d, yyyy")}</span>
               </div>
               <div className="flex items-center gap-2">
-                {deliveryMethod === "pickup" ? (
+                {isPickup ? (
                   <>
                     <MapPin className="h-4 w-4" />
                     <span>Pickup: {deliveryInfo || "Church Campus"}</span>
@@ -80,16 +95,16 @@ export function OrderCard({
                   </>
                 )}
               </div>
-              {estimatedDate && (
+              {estimatedDateObj && (
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>Estimated: {format(estimatedDate, "MMM d, yyyy")}</span>
+                  <span>Estimated: {format(estimatedDateObj, "MMM d, yyyy")}</span>
                 </div>
               )}
             </div>
 
             {/* Total */}
-            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-lg font-bold text-ds-text-brand">
               {formatCurrency(total)}
             </div>
           </div>

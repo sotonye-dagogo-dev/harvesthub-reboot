@@ -6,6 +6,7 @@ import { useState, ReactNode, cloneElement, isValidElement, useEffect } from "re
 import StageTracker from "./components/StageTracker";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
+import { Footer } from "@/components/layout";
 
 export type Stage = "selection" | "user-info" | "store-info" | "account-info" | "security-info";
 
@@ -46,9 +47,9 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
 
   const handleNext = (): void => {
     if (currentStage < stages.length - 1) {
-      // Check if user type is "individual" and next stage would be "store-info"
-      if (formData.userType === "individual" && stages[currentStage + 1] === "store-info") {
-        // Skip the store-info stage for individual users
+      // Check if user type is "buyer" and next stage would be "store-info"
+      if (formData.userType === "buyer" && stages[currentStage + 1] === "store-info") {
+        // Skip the store-info stage for buyer users
         setCurrentStage((prev) => prev + 2);
         router.push(`/signup/${stages[currentStage + 2]}`);
       } else {
@@ -62,14 +63,14 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
 
   const handleBack = (): void => {
     if (currentStage > 0) {
-      // Check if user type is "individual" and current stage is "account-info"
+      // Check if user type is "buyer" and current stage is "account-info"
       // and previous stage would be "store-info"
       if (
-        formData.userType === "individual" &&
+        formData.userType === "buyer" &&
         stages[currentStage] === "account-info" &&
         stages[currentStage - 1] === "store-info"
       ) {
-        // Skip back past the store-info stage for individual users
+        // Skip back past the store-info stage for buyer users
         setCurrentStage((prev) => prev - 2);
         router.push(
           `/signup/${stages[currentStage - 2] === "selection" ? "" : stages[currentStage - 2]}`
@@ -101,12 +102,12 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
   });
 
   return (
-    <>
-      <div className="flex h-screen overflow-clip">
-        {/* Left section with orange background */}
-        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-primary-100 p-10 text-white">
+    <div className="flex flex-col min-h-screen">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left section with purple gradient background */}
+        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-800 p-10 text-white overflow-y-auto">
           <div className="splines-bg"></div>
-          <div className="w-full flex flex-col justify-stretch items-center z-[2] pb-16">
+          <div className="w-full flex flex-col justify-stretch items-center z-ds-raised pb-16">
             <div className="flex w-full items-start justify-between">
               <Image
                 src="/dark-bg-harvesters-Logo.jpg"
@@ -122,8 +123,8 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               />
             </div>
             <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
-              <h3 className="text-[40px] leading-[44px]">New account</h3>
-              <p className="text-sm font-thin">Lorem, ipsum dolor sit amet.</p>
+              <h3 className="text-[40px] leading-[44px]">Create Your Account</h3>
+              <p className="text-sm font-light">Join HarvestHub today and start your journey</p>
               <Image
                 src="/Points.svg"
                 alt="Points"
@@ -137,15 +138,15 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
         {/* Right section with sign up form */}
         <div className="overflow-y-auto w-full md:w-2/3 lg:w-1/2 flex flex-col items-center gap-6 p-6 md:p-10">
           <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
-            <h6 className="text-[20px] leading-[22px]">Sign up to</h6>
+            <h6 className="text-[20px] leading-[22px] text-ds-text-primary">Sign up to</h6>
             <Image
               src="/dark-bg-harvesters-Logo.jpg"
               alt="Logo"
               preview={false}
               className="w-20 h-20 self-start"
             />
-            <p className="text-xs font-thin text-gray-400">
-              Join HarvestHub, Shop Smarter, Sell Smarter, Deliver Smarter!
+            <p className="text-xs font-thin text-ds-text-secondary">
+              Join HarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
             </p>
           </div>
 
@@ -153,7 +154,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
             <StageTracker
               currentStage={currentStage}
               stages={stages.filter(
-                (stage) => !(formData.userType === "individual" && stage === "store-info")
+                (stage) => !(formData.userType === "buyer" && stage === "store-info")
               )}
               onBack={handleBack}
               canGoBack={currentStage > 0}
@@ -163,15 +164,19 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               {childrenWithProps}
             </div>
 
-            <p className="text-xs text-start w-full">
+            <p className="text-xs text-start w-full text-ds-text-secondary">
               Already have an account?{" "}
-              <Link href={"/"} className="text-primary-100 underline hover:no-underline">
-                Login.
+              <Link
+                href={"/"}
+                className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium underline hover:no-underline"
+              >
+                Sign in here
               </Link>
             </p>
           </div>
         </div>
       </div>
-    </>
+      <Footer />
+    </div>
   );
 }
