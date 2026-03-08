@@ -790,7 +790,7 @@ export interface AvailabilityRequest {
 // AD TYPES
 // ============================================================================
 
-export type AdStatus = 'PENDING_PAYMENT' | 'PENDING_REVIEW' | 'ACTIVE' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
+export type AdStatus = 'PENDING_PAYMENT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ACTIVE' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
 
 export interface Ad {
     id: ID;

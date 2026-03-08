@@ -39,9 +39,9 @@ export async function PATCH(
 
         switch (action) {
             case 'approve':
-                if (ad.status !== 'PENDING_REVIEW') {
+                if (ad.status !== 'PENDING_APPROVAL') {
                     return NextResponse.json(
-                        { error: 'Only ads pending review can be approved' },
+                        { error: 'Only ads pending approval can be approved' },
                         { status: 400 }
                     );
                 }
@@ -49,9 +49,9 @@ export async function PATCH(
                 break;
 
             case 'reject':
-                if (ad.status !== 'PENDING_REVIEW') {
+                if (ad.status !== 'PENDING_APPROVAL') {
                     return NextResponse.json(
-                        { error: 'Only ads pending review can be rejected' },
+                        { error: 'Only ads pending approval can be rejected' },
                         { status: 400 }
                     );
                 }
@@ -76,7 +76,7 @@ export async function PATCH(
                 }
                 updated = adDb.update(id, {
                     paymentVerified: true,
-                    status: 'PENDING_REVIEW',
+                    status: 'PENDING_APPROVAL',
                 });
                 break;
 

@@ -71,7 +71,7 @@ export const availabilityRequestDb = {
         const index = requests.findIndex((r) => r.id === id);
         if (index === -1) return null;
 
-        const existing = requests[index];
+        const existing = requests[index]!;
         const now = new Date();
         const updated: AvailabilityRequest = {
             ...existing,
