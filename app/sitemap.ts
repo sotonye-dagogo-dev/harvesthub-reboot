@@ -5,7 +5,7 @@ import { APP_CONFIG } from "@/lib/constants";
 
 const BASE_URL = APP_CONFIG.URL;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Static pages
     const staticPages: MetadataRoute.Sitemap = [
         {

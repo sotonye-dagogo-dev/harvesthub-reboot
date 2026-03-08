@@ -97,6 +97,21 @@ export async function POST(request: NextRequest) {
         // Determine target user
         const targetUserId = user.role === UserRole.ADMIN && userId ? userId : user.id;
 
+        // Validate target user exists and has VENDOR role
+        const targetUser = db.users.findById(targetUserId);
+        if (!targetUser) {
+            return NextResponse.json(
+                { error: "Target user not found" },
+                { status: 404 }
+            );
+        }
+        if (targetUser.role !== UserRole.VENDOR) {
+            return NextResponse.json(
+                { error: "Target user must have VENDOR role" },
+                { status: 400 }
+            );
+        }
+
         // Check if vendor already exists for this user
         const existingVendor = db.vendors.findByUserId(targetUserId);
         if (existingVendor) {
