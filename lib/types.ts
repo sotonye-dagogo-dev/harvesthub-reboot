@@ -815,6 +815,28 @@ export interface Ad {
     updatedAt: Timestamp;
 }
 
+// ============================================================================
+// MILESTONE TYPES
+// ============================================================================
+
+export type MilestoneType =
+    | 'FIRST_1000_VENDORS'
+    | 'FIRST_1000_BUYERS'
+    | 'FIRST_PURCHASE'
+    | 'FIRST_SALE'
+    | 'FIRST_REVIEW'
+    | 'VENDOR_100_SALES'
+    | 'CUSTOM';
+
+export interface MilestoneRecord {
+    id: ID;
+    userId: ID;
+    milestoneType: MilestoneType;
+    label: string;
+    achievedAt: string;
+    metadata?: Record<string, unknown>;
+}
+
 export {
     UserRole,
     OrderStatus,
