@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
-import { ListingType } from '@prisma/client';
+import { ListingType } from '@/prisma/generated/client';
 
 export async function POST(req: NextRequest) {
     try {

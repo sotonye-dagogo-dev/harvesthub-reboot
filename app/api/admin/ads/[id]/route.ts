@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { AdStatus } from '@prisma/client';
+import { AdStatus } from '@/prisma/generated/client';
 import { UserRole } from '@/lib/constants';
 
 interface RouteContext {
@@ -13,9 +13,9 @@ interface RouteContext {
 }
 
 const VALID_TRANSITIONS: Record<string, { from: AdStatus[]; to: AdStatus }> = {
-    approve:        { from: [AdStatus.PENDING_APPROVAL], to: AdStatus.ACTIVE },
-    reject:         { from: [AdStatus.PENDING_APPROVAL], to: AdStatus.REJECTED },
-    verify_payment: { from: [AdStatus.PENDING_PAYMENT],  to: AdStatus.PENDING_APPROVAL },
+    approve: { from: [AdStatus.PENDING_APPROVAL], to: AdStatus.ACTIVE },
+    reject: { from: [AdStatus.PENDING_APPROVAL], to: AdStatus.REJECTED },
+    verify_payment: { from: [AdStatus.PENDING_PAYMENT], to: AdStatus.PENDING_APPROVAL },
 };
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
