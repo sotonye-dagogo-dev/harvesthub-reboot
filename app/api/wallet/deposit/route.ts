@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { userWalletKey } from '@/lib/cache/keys';
-import { TransactionType, TransactionStatus } from '@/prisma/generated/client';
+import { TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
 
 export async function POST(req: NextRequest) {
     try {

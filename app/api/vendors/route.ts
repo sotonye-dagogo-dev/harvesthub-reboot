@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet } from '@/lib/cache/redis';
 import { vendorListKey } from '@/lib/cache/keys';
-import { Prisma, VendorStatus, Campus, VendorCategory } from '@/prisma/generated/client';
+import { Prisma, VendorStatus, Campus, VendorCategory } from '../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {

@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { Prisma, ReviewStatus, OrderStatus } from '@/prisma/generated/client';
+import { Prisma, ReviewStatus, OrderStatus } from '../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {

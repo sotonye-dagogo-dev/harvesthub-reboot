@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import type { Prisma } from '@/prisma/generated/client';
+import type { Prisma } from '../../../../prisma/generated/client';
 
 export async function GET(req: NextRequest) {
     try {

@@ -9,7 +9,7 @@ import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/midd
 import { cacheGet, cacheSet, cacheInvalidatePattern } from '@/lib/cache/redis';
 import { productListKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
-import type { Prisma } from '@/prisma/generated/client';
+import type { Prisma } from '../../../prisma/generated/client';
 
 export async function GET(req: NextRequest) {
     try {

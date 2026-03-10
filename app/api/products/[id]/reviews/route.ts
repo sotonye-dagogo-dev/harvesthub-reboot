@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { ReviewStatus } from '@/prisma/generated/client';
+import { ReviewStatus } from '../../../../../prisma/generated/client';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
