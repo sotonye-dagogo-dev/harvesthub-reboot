@@ -1,5 +1,5 @@
 /**
- * HarvestHub Platform Constants
+ * MyHarvestHub Platform Constants
  * All enums, configuration values, and static data used across the application
  */
 
@@ -17,8 +17,9 @@ export enum OrderStatus {
     PENDING = 'PENDING',
     CONFIRMED = 'CONFIRMED',
     PROCESSING = 'PROCESSING',
-    READY = 'READY',
-    COMPLETED = 'COMPLETED',
+    READY_FOR_PICKUP = 'READY_FOR_PICKUP',
+    OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+    DELIVERED = 'DELIVERED',
     CANCELLED = 'CANCELLED',
     REFUNDED = 'REFUNDED',
 }
@@ -34,6 +35,7 @@ export enum PaymentMethod {
     WALLET = 'WALLET',
     CARD = 'CARD',
     BANK_TRANSFER = 'BANK_TRANSFER',
+    BANK_TRANSFER_PROOF = 'BANK_TRANSFER_PROOF',
     USSD = 'USSD',
 }
 
@@ -99,28 +101,94 @@ export enum Position {
 }
 
 export enum VendorCategory {
-    FARM_PRODUCE = 'FARM_PRODUCE',
-    FASHION = 'FASHION',
-    FOOD_BEVERAGES = 'FOOD_BEVERAGES',
-    BEAUTY = 'BEAUTY',
     ELECTRONICS = 'ELECTRONICS',
-    HOME_KITCHEN = 'HOME_KITCHEN',
-    BOOKS = 'BOOKS',
+    COMPUTERS_OFFICE = 'COMPUTERS_OFFICE',
+    HOME_APPLIANCES = 'HOME_APPLIANCES',
+    FURNITURE = 'FURNITURE',
+    HOME_DECOR = 'HOME_DECOR',
+    KITCHEN_DINING = 'KITCHEN_DINING',
+    FASHION = 'FASHION',
+    BEAUTY = 'BEAUTY',
+    BABY_KIDS = 'BABY_KIDS',
+    TOYS_GAMES = 'TOYS_GAMES',
+    AUTOMOTIVE = 'AUTOMOTIVE',
+    MOTORCYCLES = 'MOTORCYCLES',
+    SPARE_PARTS = 'SPARE_PARTS',
+    INDUSTRIAL = 'INDUSTRIAL',
+    AGRICULTURE = 'AGRICULTURE',
+    SECURITY = 'SECURITY',
+    GROCERY_FOOD = 'GROCERY_FOOD',
     SERVICES = 'SERVICES',
-    CRAFTS = 'CRAFTS',
     OTHERS = 'OTHERS',
 }
 
 export enum ProductCategory {
-    FARM_PRODUCE = 'FARM_PRODUCE',
-    FASHION = 'FASHION',
-    FOOD_BEVERAGES = 'FOOD_BEVERAGES',
-    BEAUTY = 'BEAUTY',
-    ELECTRONICS = 'ELECTRONICS',
-    HOME_KITCHEN = 'HOME_KITCHEN',
-    BOOKS = 'BOOKS',
+    // Electronics
+    MOBILE_DEVICES = 'MOBILE_DEVICES',
+    MOBILE_ACCESSORIES = 'MOBILE_ACCESSORIES',
+    AUDIO_WEARABLES = 'AUDIO_WEARABLES',
+    TV_VIDEO = 'TV_VIDEO',
+    CAMERAS = 'CAMERAS',
+    STORAGE_DEVICES = 'STORAGE_DEVICES',
+    NETWORKING = 'NETWORKING',
+    COMPUTER_ACCESSORIES = 'COMPUTER_ACCESSORIES',
+    // Computers & Office
+    COMPUTERS = 'COMPUTERS',
+    DISPLAYS = 'DISPLAYS',
+    PRINTING_SCANNING = 'PRINTING_SCANNING',
+    OFFICE_EQUIPMENT = 'OFFICE_EQUIPMENT',
+    // Home Appliances
+    LARGE_APPLIANCES = 'LARGE_APPLIANCES',
+    KITCHEN_APPLIANCES = 'KITCHEN_APPLIANCES',
+    CLEANING_APPLIANCES = 'CLEANING_APPLIANCES',
+    COOLING = 'COOLING',
+    // Furniture
+    LIVING_ROOM = 'LIVING_ROOM',
+    BEDROOM = 'BEDROOM',
+    DINING = 'DINING',
+    OFFICE_FURNITURE = 'OFFICE_FURNITURE',
+    STORAGE = 'STORAGE',
+    OUTDOOR_FURNITURE = 'OUTDOOR_FURNITURE',
+    KIDS_FURNITURE = 'KIDS_FURNITURE',
+    // Home Decor
+    HOME_DECOR = 'HOME_DECOR',
+    // Kitchen & Dining
+    COOKWARE = 'COOKWARE',
+    DINING_SETS = 'DINING_SETS',
+    KITCHEN_TOOLS = 'KITCHEN_TOOLS',
+    KITCHEN_STORAGE = 'KITCHEN_STORAGE',
+    BEVERAGE = 'BEVERAGE',
+    // Fashion
+    MENS_FASHION = 'MENS_FASHION',
+    WOMENS_FASHION = 'WOMENS_FASHION',
+    // Beauty & Personal Care
+    BEAUTY_PRODUCTS = 'BEAUTY_PRODUCTS',
+    PERSONAL_CARE = 'PERSONAL_CARE',
+    HAIR_WIGS = 'HAIR_WIGS',
+    // Baby & Kids
+    BABY_ESSENTIALS = 'BABY_ESSENTIALS',
+    // Toys & Games
+    TOYS = 'TOYS',
+    // Automotive
+    CAR_ESSENTIALS = 'CAR_ESSENTIALS',
+    CAR_ELECTRONICS = 'CAR_ELECTRONICS',
+    CAR_MAINTENANCE = 'CAR_MAINTENANCE',
+    // Motorcycles
+    MOTORCYCLE_PARTS = 'MOTORCYCLE_PARTS',
+    // Spare Parts
+    SPARE_PARTS = 'SPARE_PARTS',
+    // Industrial & Construction
+    INDUSTRIAL_EQUIPMENT = 'INDUSTRIAL_EQUIPMENT',
+    CONSTRUCTION_TOOLS = 'CONSTRUCTION_TOOLS',
+    SAFETY_EQUIPMENT = 'SAFETY_EQUIPMENT',
+    // Agriculture
+    AGRICULTURE = 'AGRICULTURE',
+    // Security & Surveillance
+    SECURITY_SURVEILLANCE = 'SECURITY_SURVEILLANCE',
+    // Grocery & Food
+    GROCERY = 'GROCERY',
+    // Services & Others
     SERVICES = 'SERVICES',
-    CRAFTS = 'CRAFTS',
     OTHERS = 'OTHERS',
 }
 
@@ -145,6 +213,95 @@ export enum VendorStatus {
     APPROVED = 'APPROVED',
     REJECTED = 'REJECTED',
     SUSPENDED = 'SUSPENDED',
+}
+
+export enum UserStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    BANNED = 'BANNED',
+}
+
+export enum Gender {
+    MALE = 'MALE',
+    FEMALE = 'FEMALE',
+    OTHER = 'OTHER',
+}
+
+export enum BannerPosition {
+    TOP = 'TOP',
+    HERO = 'HERO',
+    SIDEBAR = 'SIDEBAR',
+}
+
+export enum BannerTheme {
+    BUSINESS = 'BUSINESS',
+    CHURCH = 'CHURCH',
+    EVENT = 'EVENT',
+    PROMOTION = 'PROMOTION',
+}
+
+export enum ReviewStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED',
+}
+
+export enum AvailabilityRequestStatus {
+    PENDING = 'PENDING',
+    CONFIRMED = 'CONFIRMED',
+    DECLINED = 'DECLINED',
+    EXPIRED = 'EXPIRED',
+}
+
+export enum AdStatus {
+    PENDING_PAYMENT = 'PENDING_PAYMENT',
+    PENDING_APPROVAL = 'PENDING_APPROVAL',
+    APPROVED = 'APPROVED',
+    ACTIVE = 'ACTIVE',
+    EXPIRED = 'EXPIRED',
+    REJECTED = 'REJECTED',
+}
+
+export enum AdPaymentStatus {
+    PENDING = 'PENDING',
+    VERIFIED = 'VERIFIED',
+    REJECTED = 'REJECTED',
+}
+
+export enum ProofOfTransferStatus {
+    PENDING = 'PENDING',
+    VERIFIED = 'VERIFIED',
+    REJECTED = 'REJECTED',
+}
+
+export enum VoucherType {
+    PERCENTAGE = 'PERCENTAGE',
+    FIXED_AMOUNT = 'FIXED_AMOUNT',
+    FREE_DELIVERY = 'FREE_DELIVERY',
+}
+
+export enum MilestoneType {
+    FIRST_1000_VENDORS = 'FIRST_1000_VENDORS',
+    FIRST_1000_BUYERS = 'FIRST_1000_BUYERS',
+    FIRST_PURCHASE = 'FIRST_PURCHASE',
+    FIRST_SALE = 'FIRST_SALE',
+    FIRST_REVIEW = 'FIRST_REVIEW',
+    VENDOR_100_SALES = 'VENDOR_100_SALES',
+    CUSTOM = 'CUSTOM',
+}
+
+export enum NotificationType {
+    ORDER_CONFIRMED = 'ORDER_CONFIRMED',
+    ORDER_READY = 'ORDER_READY',
+    ORDER_DELIVERED = 'ORDER_DELIVERED',
+    ORDER_CANCELLED = 'ORDER_CANCELLED',
+    PAYMENT_SUCCESS = 'PAYMENT_SUCCESS',
+    PAYMENT_FAILED = 'PAYMENT_FAILED',
+    DELIVERY_UPDATE = 'DELIVERY_UPDATE',
+    VENDOR_MESSAGE = 'VENDOR_MESSAGE',
+    LOW_STOCK = 'LOW_STOCK',
+    NEW_PRODUCT = 'NEW_PRODUCT',
+    PROMOTION = 'PROMOTION',
 }
 
 // ============================================================================
@@ -240,59 +397,145 @@ export const PICKUP_SERVICES = [
 // ============================================================================
 
 export const VENDOR_CATEGORIES = [
-    {
-        value: VendorCategory.FARM_PRODUCE,
-        label: 'Farm Produce',
-        description: 'Fresh farm produce, vegetables, fruits',
-    },
-    {
-        value: VendorCategory.FASHION,
-        label: 'Fashion & Apparel',
-        description: 'Clothing, shoes, accessories',
-    },
-    {
-        value: VendorCategory.FOOD_BEVERAGES,
-        label: 'Food & Beverages',
-        description: 'Packaged food, drinks, snacks',
-    },
-    {
-        value: VendorCategory.BEAUTY,
-        label: 'Beauty & Cosmetics',
-        description: 'Skincare, makeup, hair care',
-    },
-    {
-        value: VendorCategory.ELECTRONICS,
-        label: 'Electronics & Gadgets',
-        description: 'Phones, laptops, accessories',
-    },
-    {
-        value: VendorCategory.HOME_KITCHEN,
-        label: 'Home & Kitchen',
-        description: 'Furniture, utensils, decor',
-    },
-    {
-        value: VendorCategory.BOOKS,
-        label: 'Books & Stationery',
-        description: 'Books, notebooks, office supplies',
-    },
-    {
-        value: VendorCategory.SERVICES,
-        label: 'Services',
-        description: 'Professional services',
-    },
-    {
-        value: VendorCategory.CRAFTS,
-        label: 'Crafts & Handmade',
-        description: 'Handmade items, art, crafts',
-    },
-    {
-        value: VendorCategory.OTHERS,
-        label: 'Others',
-        description: 'Other product categories',
-    },
+    { value: VendorCategory.ELECTRONICS, label: 'Electronics', description: 'Phones, laptops, gadgets, accessories' },
+    { value: VendorCategory.COMPUTERS_OFFICE, label: 'Computers & Office', description: 'Computers, monitors, printers, office equipment' },
+    { value: VendorCategory.HOME_APPLIANCES, label: 'Home Appliances', description: 'Fridges, washing machines, ACs, kitchen appliances' },
+    { value: VendorCategory.FURNITURE, label: 'Furniture', description: 'Living room, bedroom, office, outdoor furniture' },
+    { value: VendorCategory.HOME_DECOR, label: 'Home Decor', description: 'Wall art, curtains, rugs, lamps, decor items' },
+    { value: VendorCategory.KITCHEN_DINING, label: 'Kitchen & Dining', description: 'Cookware, dinnerware, kitchen tools, storage' },
+    { value: VendorCategory.FASHION, label: 'Fashion', description: 'Men\'s & women\'s clothing, shoes, accessories' },
+    { value: VendorCategory.BEAUTY, label: 'Beauty & Personal Care', description: 'Makeup, skincare, hair, grooming' },
+    { value: VendorCategory.BABY_KIDS, label: 'Baby & Kids', description: 'Baby essentials, clothing, strollers, toys' },
+    { value: VendorCategory.TOYS_GAMES, label: 'Toys & Games', description: 'Building blocks, board games, action figures' },
+    { value: VendorCategory.AUTOMOTIVE, label: 'Automotive', description: 'Car essentials, batteries, tires, accessories' },
+    { value: VendorCategory.MOTORCYCLES, label: 'Motorcycles', description: 'Motorcycles, helmets, parts, accessories' },
+    { value: VendorCategory.SPARE_PARTS, label: 'Spare Parts', description: 'Brake pads, filters, spark plugs, parts' },
+    { value: VendorCategory.INDUSTRIAL, label: 'Industrial & Construction', description: 'Equipment, tools, safety gear' },
+    { value: VendorCategory.AGRICULTURE, label: 'Agriculture', description: 'Tractors, farm tools, irrigation, seeders' },
+    { value: VendorCategory.SECURITY, label: 'Security & Surveillance', description: 'CCTV, alarms, access control, fire safety' },
+    { value: VendorCategory.GROCERY_FOOD, label: 'Grocery & Food', description: 'Snacks, beverages, dairy, grains, spices' },
+    { value: VendorCategory.SERVICES, label: 'Services', description: 'Professional & freelance services (grooming, creative, digital, etc.)' },
+    { value: VendorCategory.OTHERS, label: 'Others', description: 'Other product categories' },
 ] as const;
 
 export const PRODUCT_CATEGORIES = VENDOR_CATEGORIES;
+
+/** Subcategories mapped to each vendor category (for product-level filtering) */
+export const CATEGORY_SUBCATEGORIES: Record<VendorCategory, { value: string; label: string }[]> = {
+    [VendorCategory.ELECTRONICS]: [
+        { value: 'MOBILE_DEVICES', label: 'Mobile Devices' },
+        { value: 'MOBILE_ACCESSORIES', label: 'Mobile Accessories' },
+        { value: 'AUDIO_WEARABLES', label: 'Audio & Wearables' },
+        { value: 'TV_VIDEO', label: 'TV & Video' },
+        { value: 'CAMERAS', label: 'Cameras' },
+        { value: 'STORAGE_DEVICES', label: 'Storage Devices' },
+        { value: 'NETWORKING', label: 'Networking' },
+        { value: 'COMPUTER_ACCESSORIES', label: 'Computer Accessories' },
+    ],
+    [VendorCategory.COMPUTERS_OFFICE]: [
+        { value: 'COMPUTERS', label: 'Computers' },
+        { value: 'DISPLAYS', label: 'Displays' },
+        { value: 'PRINTING_SCANNING', label: 'Printing & Scanning' },
+        { value: 'OFFICE_EQUIPMENT', label: 'Office Equipment' },
+    ],
+    [VendorCategory.HOME_APPLIANCES]: [
+        { value: 'LARGE_APPLIANCES', label: 'Large Appliances' },
+        { value: 'KITCHEN_APPLIANCES', label: 'Kitchen Appliances' },
+        { value: 'CLEANING_APPLIANCES', label: 'Cleaning Appliances' },
+        { value: 'COOLING', label: 'Cooling' },
+    ],
+    [VendorCategory.FURNITURE]: [
+        { value: 'LIVING_ROOM', label: 'Living Room' },
+        { value: 'BEDROOM', label: 'Bedroom' },
+        { value: 'DINING', label: 'Dining' },
+        { value: 'OFFICE_FURNITURE', label: 'Office Furniture' },
+        { value: 'STORAGE', label: 'Storage' },
+        { value: 'OUTDOOR_FURNITURE', label: 'Outdoor' },
+        { value: 'KIDS_FURNITURE', label: 'Kids Furniture' },
+    ],
+    [VendorCategory.HOME_DECOR]: [
+        { value: 'HOME_DECOR', label: 'Home Decor' },
+    ],
+    [VendorCategory.KITCHEN_DINING]: [
+        { value: 'COOKWARE', label: 'Cookware' },
+        { value: 'DINING_SETS', label: 'Dining Sets' },
+        { value: 'KITCHEN_TOOLS', label: 'Kitchen Tools' },
+        { value: 'KITCHEN_STORAGE', label: 'Kitchen Storage' },
+        { value: 'BEVERAGE', label: 'Beverage' },
+    ],
+    [VendorCategory.FASHION]: [
+        { value: 'MENS_FASHION', label: "Men's Fashion" },
+        { value: 'WOMENS_FASHION', label: "Women's Fashion" },
+    ],
+    [VendorCategory.BEAUTY]: [
+        { value: 'BEAUTY_PRODUCTS', label: 'Beauty' },
+        { value: 'PERSONAL_CARE', label: 'Personal Care' },
+        { value: 'HAIR_WIGS', label: 'Hair & Wigs' },
+    ],
+    [VendorCategory.BABY_KIDS]: [
+        { value: 'BABY_ESSENTIALS', label: 'Baby Essentials' },
+    ],
+    [VendorCategory.TOYS_GAMES]: [
+        { value: 'TOYS', label: 'Toys & Games' },
+    ],
+    [VendorCategory.AUTOMOTIVE]: [
+        { value: 'CAR_ESSENTIALS', label: 'Car Essentials' },
+        { value: 'CAR_ELECTRONICS', label: 'Car Electronics' },
+        { value: 'CAR_MAINTENANCE', label: 'Car Maintenance' },
+    ],
+    [VendorCategory.MOTORCYCLES]: [
+        { value: 'MOTORCYCLE_PARTS', label: 'Motorcycle Parts & Accessories' },
+    ],
+    [VendorCategory.SPARE_PARTS]: [
+        { value: 'SPARE_PARTS', label: 'Spare Parts' },
+    ],
+    [VendorCategory.INDUSTRIAL]: [
+        { value: 'INDUSTRIAL_EQUIPMENT', label: 'Industrial Equipment' },
+        { value: 'CONSTRUCTION_TOOLS', label: 'Construction Tools' },
+        { value: 'SAFETY_EQUIPMENT', label: 'Safety Equipment' },
+    ],
+    [VendorCategory.AGRICULTURE]: [
+        { value: 'AGRICULTURE', label: 'Agriculture' },
+    ],
+    [VendorCategory.SECURITY]: [
+        { value: 'SECURITY_SURVEILLANCE', label: 'Security & Surveillance' },
+    ],
+    [VendorCategory.GROCERY_FOOD]: [
+        { value: 'GROCERY', label: 'Grocery & Food' },
+    ],
+    [VendorCategory.SERVICES]: [
+        { value: 'SERVICES', label: 'Services' },
+    ],
+    [VendorCategory.OTHERS]: [
+        { value: 'OTHERS', label: 'Others' },
+    ],
+};
+
+/** Flat list of all product subcategory values with labels (for filters and selects) */
+export const PRODUCT_SUBCATEGORIES = Object.values(CATEGORY_SUBCATEGORIES).flat();
+
+/** Lookup map: subcategory value → human-readable label */
+export const PRODUCT_CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+    PRODUCT_SUBCATEGORIES.map(({ value, label }) => [value, label])
+);
+
+/** Lookup map: subcategory value → parent VendorCategory value */
+export const SUBCATEGORY_TO_PARENT: Record<string, VendorCategory> = Object.fromEntries(
+    Object.entries(CATEGORY_SUBCATEGORIES).flatMap(([parent, subs]) =>
+        subs.map((sub) => [sub.value, parent as VendorCategory])
+    )
+);
+
+/**
+ * Given an array of parent (VendorCategory) values, return all matching subcategory values.
+ * Useful for filter logic where users select parent categories but products use subcategories.
+ */
+export function getSubcategoryValues(parentCategories: string[]): string[] {
+    return parentCategories.flatMap((parent) => {
+        const subs = CATEGORY_SUBCATEGORIES[parent as VendorCategory];
+        return subs ? subs.map((s) => s.value) : [parent];
+    });
+}
 
 // ============================================================================
 // DELIVERY ZONES & PRICING
@@ -395,9 +638,10 @@ export const VALIDATION_RULES = {
 export const ORDER_STATUS_FLOW = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
     [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-    [OrderStatus.PROCESSING]: [OrderStatus.READY, OrderStatus.CANCELLED],
-    [OrderStatus.READY]: [OrderStatus.COMPLETED],
-    [OrderStatus.COMPLETED]: [OrderStatus.REFUNDED],
+    [OrderStatus.PROCESSING]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+    [OrderStatus.READY_FOR_PICKUP]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+    [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+    [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
     [OrderStatus.CANCELLED]: [OrderStatus.REFUNDED],
     [OrderStatus.REFUNDED]: [],
 } as const;
@@ -409,7 +653,147 @@ export const ORDER_STATUS_FLOW = {
 export const COMMISSION_RATES = {
     DEFAULT: 0.05, // 5%
     PREMIUM_VENDOR: 0.03, // 3%
-    CHURCH_AFFILIATED: 0.02, // 2%
+} as const;
+
+/** Default commission rates per vendor category (admin-overridable via CommissionConfig) */
+export const CATEGORY_COMMISSION_DEFAULTS: Record<VendorCategory, number> = {
+    [VendorCategory.ELECTRONICS]: 0.05,
+    [VendorCategory.COMPUTERS_OFFICE]: 0.05,
+    [VendorCategory.HOME_APPLIANCES]: 0.05,
+    [VendorCategory.FURNITURE]: 0.04,
+    [VendorCategory.HOME_DECOR]: 0.05,
+    [VendorCategory.KITCHEN_DINING]: 0.05,
+    [VendorCategory.FASHION]: 0.05,
+    [VendorCategory.BEAUTY]: 0.05,
+    [VendorCategory.BABY_KIDS]: 0.04,
+    [VendorCategory.TOYS_GAMES]: 0.05,
+    [VendorCategory.AUTOMOTIVE]: 0.04,
+    [VendorCategory.MOTORCYCLES]: 0.04,
+    [VendorCategory.SPARE_PARTS]: 0.04,
+    [VendorCategory.INDUSTRIAL]: 0.03,
+    [VendorCategory.AGRICULTURE]: 0.03,
+    [VendorCategory.SECURITY]: 0.04,
+    [VendorCategory.GROCERY_FOOD]: 0.05,
+    [VendorCategory.SERVICES]: 0.05,
+    [VendorCategory.OTHERS]: 0.05,
+};
+
+// ============================================================================
+// LISTING TYPES
+// ============================================================================
+
+export enum ListingType {
+    PRODUCT = 'PRODUCT',
+    SERVICE = 'SERVICE',
+}
+
+export const LISTING_TYPES = [
+    { value: ListingType.PRODUCT, label: 'Physical Product', description: 'Tangible goods for sale' },
+    { value: ListingType.SERVICE, label: 'Service', description: 'Service offering with booking' },
+] as const;
+
+// ============================================================================
+// SERVICE ENUMS & CONSTANTS
+// ============================================================================
+
+export enum ServiceCategory {
+    GROOMING = 'GROOMING',
+    BEAUTY_WELLNESS = 'BEAUTY_WELLNESS',
+    CREATIVE = 'CREATIVE',
+    DIGITAL = 'DIGITAL',
+    WRITING_TRANSLATION = 'WRITING_TRANSLATION',
+    TUTORING_COACHING = 'TUTORING_COACHING',
+    HOME_SERVICES = 'HOME_SERVICES',
+    FOOD_CATERING = 'FOOD_CATERING',
+    EVENTS = 'EVENTS',
+    FASHION_TAILORING = 'FASHION_TAILORING',
+    FITNESS = 'FITNESS',
+    CONSULTING = 'CONSULTING',
+    OTHER_SERVICE = 'OTHER_SERVICE',
+}
+
+export const SERVICE_CATEGORIES = [
+    { value: ServiceCategory.GROOMING, label: 'Grooming', description: 'Barbing, hairdressing, shaving' },
+    { value: ServiceCategory.BEAUTY_WELLNESS, label: 'Beauty & Wellness', description: 'Makeup, spa, skincare treatments' },
+    { value: ServiceCategory.CREATIVE, label: 'Creative', description: 'Photography, videography, content creation' },
+    { value: ServiceCategory.DIGITAL, label: 'Digital Services', description: 'Web development, graphic design, social media' },
+    { value: ServiceCategory.WRITING_TRANSLATION, label: 'Writing & Translation', description: 'Copywriting, editing, translation' },
+    { value: ServiceCategory.TUTORING_COACHING, label: 'Tutoring & Coaching', description: 'Academic tutoring, mentoring, life coaching' },
+    { value: ServiceCategory.HOME_SERVICES, label: 'Home Services', description: 'Cleaning, repairs, laundry, plumbing' },
+    { value: ServiceCategory.FOOD_CATERING, label: 'Food & Catering', description: 'Catering, meal prep, baking' },
+    { value: ServiceCategory.EVENTS, label: 'Events', description: 'Event planning, decoration, DJ, MC' },
+    { value: ServiceCategory.FASHION_TAILORING, label: 'Fashion & Tailoring', description: 'Tailoring, alterations, custom clothing' },
+    { value: ServiceCategory.FITNESS, label: 'Fitness & Training', description: 'Personal training, yoga, sports coaching' },
+    { value: ServiceCategory.CONSULTING, label: 'Consulting', description: 'Business, career, financial consulting' },
+    { value: ServiceCategory.OTHER_SERVICE, label: 'Other Services', description: 'Other professional services' },
+] as const;
+
+export enum ServiceRateType {
+    FIXED = 'FIXED',
+    HOURLY = 'HOURLY',
+    PER_SESSION = 'PER_SESSION',
+    STARTING_FROM = 'STARTING_FROM',
+    CUSTOM = 'CUSTOM',
+}
+
+export const SERVICE_RATE_TYPES = [
+    { value: ServiceRateType.FIXED, label: 'Fixed Price', description: 'One-time fixed fee' },
+    { value: ServiceRateType.HOURLY, label: 'Per Hour', description: 'Charged by the hour' },
+    { value: ServiceRateType.PER_SESSION, label: 'Per Session', description: 'Charged per session' },
+    { value: ServiceRateType.STARTING_FROM, label: 'Starting From', description: 'Base price, may vary' },
+    { value: ServiceRateType.CUSTOM, label: 'Custom Quote', description: 'Price on request' },
+] as const;
+
+export enum ServiceLocation {
+    ON_SITE = 'ON_SITE',
+    REMOTE = 'REMOTE',
+    BOTH = 'BOTH',
+}
+
+export const SERVICE_LOCATIONS = [
+    { value: ServiceLocation.ON_SITE, label: 'On-Site', description: 'Service provided at a physical location' },
+    { value: ServiceLocation.REMOTE, label: 'Remote', description: 'Service provided online/remotely' },
+    { value: ServiceLocation.BOTH, label: 'Both', description: 'Available on-site and remotely' },
+] as const;
+
+export enum BookingStatus {
+    PENDING = 'PENDING',
+    CONFIRMED = 'CONFIRMED',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
+    CANCELLED = 'CANCELLED',
+    NO_SHOW = 'NO_SHOW',
+}
+
+export const BOOKING_STATUSES = [
+    { value: BookingStatus.PENDING, label: 'Pending', color: 'gold' },
+    { value: BookingStatus.CONFIRMED, label: 'Confirmed', color: 'blue' },
+    { value: BookingStatus.IN_PROGRESS, label: 'In Progress', color: 'processing' },
+    { value: BookingStatus.COMPLETED, label: 'Completed', color: 'green' },
+    { value: BookingStatus.CANCELLED, label: 'Cancelled', color: 'red' },
+    { value: BookingStatus.NO_SHOW, label: 'No Show', color: 'default' },
+] as const;
+
+/** Sentinel value for services: they have no physical stock. */
+export const SERVICE_UNLIMITED_STOCK = 999999;
+
+// ============================================================================
+// PLATFORM SETTINGS DEFAULTS
+// ============================================================================
+
+export const PLATFORM_DEFAULTS = {
+    /** Commission tiers (percentage as decimal) */
+    COMMISSION_DEFAULT: 0.05,
+    COMMISSION_PREMIUM: 0.03,
+    COMMISSION_CHURCH: 0.02,
+    /** Minimum order amount in NGN */
+    MIN_ORDER_AMOUNT: 500,
+    /** Maximum booking advance days */
+    MAX_BOOKING_ADVANCE_DAYS: 60,
+    /** Whether the platform currently processes payments */
+    PAYMENTS_ENABLED: false,
+    /** Payment notice message shown at checkout */
+    PAYMENT_NOTICE: 'Online payment processing is coming soon. For now, please arrange payment directly with the vendor after placing your order.',
 } as const;
 
 // ============================================================================
@@ -427,11 +811,11 @@ export const FILE_UPLOAD = {
 // ============================================================================
 
 export const APP_CONFIG = {
-    NAME: 'HarvestHub',
-    DESCRIPTION: 'E-Commerce Marketplace for the Harvesters Community',
-    URL: 'https://harvesthub.ng',
-    SUPPORT_EMAIL: 'support@harvesthub.ng',
-    SUPPORT_PHONE: '+234 800 000 0000',
+    NAME: 'MyHarvestHub',
+    DESCRIPTION: 'Faith-Based E-Marketplace for Christian Communities',
+    URL: 'https://myharvesthub.org',
+    SUPPORT_EMAIL: 'support@myharvesthub.org',
+    SUPPORT_PHONE: '+234 701 203 7766',
 } as const;
 
 // ============================================================================
@@ -451,6 +835,56 @@ export const APP_CONFIG = {
  * every new theme variant only needs one entry here, keeping components
  * theme-agnostic and easy to extend.
  */
+export enum BugReportCategory {
+    UI_ISSUE = 'UI_ISSUE',
+    PAYMENT = 'PAYMENT',
+    ORDER = 'ORDER',
+    ACCOUNT = 'ACCOUNT',
+    PERFORMANCE = 'PERFORMANCE',
+    OTHER = 'OTHER',
+}
+
+export enum BugReportPriority {
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH',
+    CRITICAL = 'CRITICAL',
+}
+
+export enum BugReportStatus {
+    OPEN = 'OPEN',
+    IN_PROGRESS = 'IN_PROGRESS',
+    RESOLVED = 'RESOLVED',
+    CLOSED = 'CLOSED',
+}
+
+export const BUG_REPORT_CATEGORIES = [
+    { value: BugReportCategory.UI_ISSUE, label: 'UI / Display Issue' },
+    { value: BugReportCategory.PAYMENT, label: 'Payment Problem' },
+    { value: BugReportCategory.ORDER, label: 'Order Issue' },
+    { value: BugReportCategory.ACCOUNT, label: 'Account Problem' },
+    { value: BugReportCategory.PERFORMANCE, label: 'Performance / Speed' },
+    { value: BugReportCategory.OTHER, label: 'Other' },
+];
+
+export const BUG_REPORT_PRIORITIES = [
+    { value: BugReportPriority.LOW, label: 'Low' },
+    { value: BugReportPriority.MEDIUM, label: 'Medium' },
+    { value: BugReportPriority.HIGH, label: 'High' },
+    { value: BugReportPriority.CRITICAL, label: 'Critical' },
+];
+
+export const BUG_REPORT_STATUSES = [
+    { value: BugReportStatus.OPEN, label: 'Open' },
+    { value: BugReportStatus.IN_PROGRESS, label: 'In Progress' },
+    { value: BugReportStatus.RESOLVED, label: 'Resolved' },
+    { value: BugReportStatus.CLOSED, label: 'Closed' },
+];
+
+// ============================================================================
+// BANNER CONFIGURATION
+// ============================================================================
+
 export const BANNER_CONFIG = {
     /** AUTO-ROTATION */
     HERO_DISPLAY_INTERVAL: 5000,   // 5 s – hero carousel

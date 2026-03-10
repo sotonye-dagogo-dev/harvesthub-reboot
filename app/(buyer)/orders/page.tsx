@@ -46,9 +46,9 @@ export default function OrdersPage() {
       count: userOrders.filter((o) => o.status === "CONFIRMED").length,
     },
     {
-      key: "COMPLETED",
-      label: "Completed",
-      count: userOrders.filter((o) => o.status === "COMPLETED").length,
+      key: "DELIVERED",
+      label: "Delivered",
+      count: userOrders.filter((o) => o.status === "DELIVERED").length,
     },
     {
       key: "CANCELLED",

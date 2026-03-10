@@ -1,96 +1,64 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import type { Notification } from "@/lib/types";
+/**
+ * GET /api/notifications — List user's notifications
+ * POST /api/notifications — Create notification (internal)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-// Mock notifications (will be replaced with database in production)
-const mockNotifications: Notification[] = [];
+export async function GET(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-// GET /api/notifications - Get user's notifications
-export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { searchParams } = new URL(req.url);
+        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+        const unreadOnly = searchParams.get('unreadOnly') === 'true';
+
+        const where = { userId: user.userId, ...(unreadOnly ? { isRead: false } : {}) };
+
+        const [notifications, unreadCount] = await Promise.all([
+            prisma.notification.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+            }),
+            prisma.notification.count({ where: { userId: user.userId, isRead: false } }),
+        ]);
+
+        return NextResponse.json({ success: true, notifications, unreadCount });
+    } catch (error) {
+        console.error('GET /api/notifications error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const unreadOnly = searchParams.get("unreadOnly") === "true";
-
-    // Filter notifications by user
-    let notifications = mockNotifications.filter(n => n.userId === payload.userId);
-
-    // Filter by read status
-    if (unreadOnly) {
-      notifications = notifications.filter(n => !n.isRead);
-    }
-
-    // Sort by date (newest first)
-    notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    // Limit results
-    notifications = notifications.slice(0, limit);
-
-    const unreadCount = mockNotifications.filter(n => n.userId === payload.userId && !n.isRead).length;
-
-    return NextResponse.json({
-      success: true,
-      notifications,
-      unreadCount
-    });
-  } catch (error) {
-    console.error("Get notifications error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch notifications" },
-      { status: 500 }
-    );
-  }
 }
 
-// POST /api/notifications - Create notification (internal use)
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { userId, type, title, message, link } = body;
+export async function POST(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!userId || !type || !title || !message) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const body = await req.json();
+        const { userId, type, title, message, link, metadata } = body;
+
+        if (!userId || !type || !title || !message) {
+            return NextResponse.json({ error: 'userId, type, title, and message are required' }, { status: 400 });
+        }
+
+        const notification = await prisma.notification.create({
+            data: { userId, type, title, message, link, metadata },
+        });
+
+        return NextResponse.json({ success: true, notification }, { status: 201 });
+    } catch (error) {
+        console.error('POST /api/notifications error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const notification: Notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      userId,
-      type,
-      title,
-      message,
-      link,
-      isRead: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    mockNotifications.push(notification);
-
-    return NextResponse.json({
-      success: true,
-      notification
-    }, { status: 201 });
-  } catch (error) {
-    console.error("Create notification error:", error);
-    return NextResponse.json(
-      { error: "Failed to create notification" },
-      { status: 500 }
-    );
-  }
 }

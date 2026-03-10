@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import type { Order } from "@/lib/types";
@@ -37,9 +37,9 @@ const ORDER_STATUS_ICONS: Record<string, React.ReactNode> = {
 const VENDOR_NEXT_STATUSES: Record<string, string[]> = {
   PENDING: ["CONFIRMED", "CANCELLED"],
   CONFIRMED: ["PROCESSING", "CANCELLED"],
-  PROCESSING: ["READY"],
-  READY: ["SHIPPED"],
-  SHIPPED: ["DELIVERED"],
+  PROCESSING: ["READY_FOR_PICKUP", "OUT_FOR_DELIVERY"],
+  READY_FOR_PICKUP: ["DELIVERED"],
+  OUT_FOR_DELIVERY: ["DELIVERED"],
   DELIVERED: [],
   CANCELLED: [],
   REFUNDED: [],

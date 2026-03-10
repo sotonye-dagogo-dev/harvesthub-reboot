@@ -9,7 +9,7 @@ interface OptimizedImageProps extends Omit<ImageProps, "src"> {
 /**
  * OptimizedImage Component
  *
- * Wraps Next.js Image component with HarvestHub-specific defaults:
+ * Wraps Next.js Image component with MyHarvestHub-specific defaults:
  * - Automatic placeholder blur
  * - Fallback image on error
  * - Optimized loading strategy

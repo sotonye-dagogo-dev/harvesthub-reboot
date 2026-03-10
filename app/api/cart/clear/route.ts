@@ -1,50 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+/**
+ * DELETE /api/cart/clear — Clear all cart items
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-// DELETE /api/cart/clear - Clear all items from cart
-export async function DELETE(_request: NextRequest) {
+export async function DELETE(_req: NextRequest) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Buyers only' }, { status: 403 });
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+        if (!buyer) return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        const cart = await prisma.cart.findUnique({ where: { buyerId: buyer.id } });
+        if (!cart) return NextResponse.json({ error: 'Cart not found' }, { status: 404 });
 
-        const user = db.users.findById(payload.userId);
-        if (!user || user.role !== UserRole.BUYER) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        await prisma.$transaction([
+            prisma.cartItem.deleteMany({ where: { cartId: cart.id } }),
+            prisma.cart.update({ where: { id: cart.id }, data: { subtotal: 0 } }),
+        ]);
 
-        const buyer = db.buyers.findByUserId(user.id);
-        if (!buyer) {
-            return NextResponse.json({ error: "Buyer profile not found" }, { status: 404 });
-        }
-
-        const success = db.carts.clear(buyer.id);
-        if (!success) {
-            // Cart doesn't exist - create empty one and return success
-            const cart = db.carts.create(buyer.id);
-            return NextResponse.json({ success: true, cart });
-        }
-
-        const cart = db.carts.findByBuyerId(buyer.id);
-        return NextResponse.json({
-            success: true,
-            message: "Cart cleared successfully",
-            cart,
-        });
+        return NextResponse.json({ success: true, message: 'Cart cleared' });
     } catch (error) {
-        console.error("Clear cart error:", error);
-        return NextResponse.json({ error: "Failed to clear cart" }, { status: 500 });
+        console.error('DELETE /api/cart/clear error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

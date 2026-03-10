@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/generated/client';
 import { withAccelerate } from '@prisma/extension-accelerate';
 
 const globalForPrisma = globalThis as unknown as {
@@ -8,6 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
     return new PrismaClient({
         log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+        accelerateUrl: process.env.DATABASE_URL,
     }).$extends(withAccelerate());
 }
 

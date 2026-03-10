@@ -11,12 +11,13 @@
 | Area                            | Status                     | Notes                                |
 | ------------------------------- | -------------------------- | ------------------------------------ |
 | Pages (buyer/vendor/admin/auth) | 48+ pages built            | Full UI across all roles             |
-| API Routes                      | 48 handlers                | All on in-memory mock data           |
+| API Routes                      | 53+ handlers               | All on in-memory mock data           |
 | Type System                     | ~600 lines                 | Comprehensive, strict mode           |
 | Design System                   | 3-tier tokens              | Light/dark, Tailwind + Ant Design    |
 | Auth                            | JWT + middleware           | Route protection working             |
 | State                           | Zustand + Context          | Cart, favorites, auth, notifications |
-| Build                           | Compiles (47 static pages) | 12 TS errors to fix                  |
+| Build                           | Compiles (47 static pages) | 0 TS errors                          |
+| SEO                             | Sitemap + Robots           | Dynamic sitemap, robots.txt added    |
 | Database                        | None (mock only)           | No Prisma, no PostgreSQL             |
 | Caching                         | None                       | No Redis                             |
 | Images                          | None                       | No Cloudinary                        |
@@ -24,12 +25,12 @@
 | PWA                             | None                       | No manifest, no SW                   |
 | Push Notifications              | None                       | —                                    |
 
-### Existing TS Errors (12)
+### Existing TS Errors (0 — all resolved)
 
-- `Address` missing `streetAddress` (1)
-- `Order` missing `totalAmount` (1)
-- `Vendor` flat access to nested props — `description`, `logoUrl`, `allowsPickup`, `allowsDelivery`, `returnPolicy`, `shippingPolicy` (7)
-- `TopAdBanner` — `theme` possibly undefined (3)
+- ~~`Address` missing `streetAddress` (1)~~ ✅
+- ~~`Order` missing `totalAmount` (1)~~ ✅
+- ~~`Vendor` flat access to nested props — `description`, `logoUrl`, `allowsPickup`, `allowsDelivery`, `returnPolicy`, `shippingPolicy` (7)~~ ✅
+- ~~`TopAdBanner` — `theme` possibly undefined (3)~~ ✅
 
 ---
 
@@ -132,7 +133,7 @@ NEXT_PUBLIC_EMAIL_FROM=noreply@harvesthub.ng
 # Web Push (VAPID keys)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
-VAPID_SUBJECT=mailto:support@harvesthub.ng
+VAPID_SUBJECT=mailto:support@myharvesthub.org
 
 # Bank Account (for transfers)
 NEXT_PUBLIC_BANK_NAME=
@@ -183,29 +184,29 @@ Stream 0 (Tech Debt)            ─── FIRST (blocks everything)
 
 > Prerequisite for everything. Unblocks clean builds.
 
-- [ ] **0.1** Fix 12 TypeScript errors
-  - [ ] Fix `Address.streetAddress` → use `addressLine1`
-  - [ ] Fix `Order.totalAmount` → use `total`
-  - [ ] Fix `Vendor` flat prop access (7 errors) → access via `storeSettings.*` or add convenience aliases
-  - [ ] Fix `TopAdBanner` theme possibly undefined (3 errors) → add null guards
-- [ ] **0.2** Update Campus enum + constants
-  - [ ] Replace 7 Lagos-only campuses with client's 34 campuses: London, Birmingham, Glasgow, Manchester, Houston, North London, Kent, Toronto, Gbagada, Magodo, Ikorodu, Ibadan Jericho, Akobo, Apapa, Surulere, Abeokuta, Ilupeju, Yaba, Port Harcourt, Oluyole, Ogba, Anthony, Alimosho, Ikeja, Ikoyi, Isolo, Iyana Ipaja, Abule Egba, Ghana, Abuja, Lekki, Globe, Ajah, Online
-  - [ ] Update `CAMPUS_LOCATIONS` constant array with all 34 entries
-  - [ ] Update `Campus` enum to match
-- [ ] **0.3** Add Position enum + constants
-  - [ ] Create `Position` enum: `HOD`, `ASST_HOD`, `SUB_TEAM_LEADER`, `TEAM_LEAD`, `SMALL_GROUP_LEADER`, `ASST_SMALL_GROUP_LEADER`, `ZONAL_COORDINATOR`, `COMMUNITY_LEADER`, `DISTRICT_PASTOR`
-  - [ ] Create `POSITION_OPTIONS` constant array with label/value pairs
-  - [ ] Add `position` field to `Vendor` interface in `lib/types.ts`
-- [ ] **0.4** Update vendor registration flow
-  - [ ] Update `StoreInfo.tsx` — add Position selector dropdown
-  - [ ] Update `StoreInfo.tsx` — replace campus dropdown with new 34-campus list
-  - [ ] Update registration Zod schema to include `position` validation
-- [ ] **0.5** Update all campus/position references across codebase
-  - [ ] Mock data — update vendor campus values
-  - [ ] Vendor filter options
-  - [ ] Vendor profile/store-settings pages
-  - [ ] Admin vendor management pages
-- [ ] **0.6** Verify clean build with zero TS errors
+- [x] **0.1** Fix 12 TypeScript errors
+  - [x] Fix `Address.streetAddress` → use `addressLine1`
+  - [x] Fix `Order.totalAmount` → use `total`
+  - [x] Fix `Vendor` flat prop access (7 errors) → access via `storeSettings.*` or add convenience aliases
+  - [x] Fix `TopAdBanner` theme possibly undefined (3 errors) → add null guards
+- [x] **0.2** Update Campus enum + constants
+  - [x] Replace 7 Lagos-only campuses with client's 34 campuses: London, Birmingham, Glasgow, Manchester, Houston, North London, Kent, Toronto, Gbagada, Magodo, Ikorodu, Ibadan Jericho, Akobo, Apapa, Surulere, Abeokuta, Ilupeju, Yaba, Port Harcourt, Oluyole, Ogba, Anthony, Alimosho, Ikeja, Ikoyi, Isolo, Iyana Ipaja, Abule Egba, Ghana, Abuja, Lekki, Globe, Ajah, Online
+  - [x] Update `CAMPUS_LOCATIONS` constant array with all 34 entries
+  - [x] Update `Campus` enum to match
+- [x] **0.3** Add Position enum + constants
+  - [x] Create `Position` enum: `HOD`, `ASST_HOD`, `SUB_TEAM_LEADER`, `TEAM_LEAD`, `SMALL_GROUP_LEADER`, `ASST_SMALL_GROUP_LEADER`, `ZONAL_COORDINATOR`, `COMMUNITY_LEADER`, `DISTRICT_PASTOR`
+  - [x] Create `POSITION_OPTIONS` constant array with label/value pairs
+  - [x] Add `position` field to `Vendor` interface in `lib/types.ts`
+- [x] **0.4** Update vendor registration flow
+  - [x] Update `StoreInfo.tsx` — add Position selector dropdown
+  - [x] Update `StoreInfo.tsx` — replace campus dropdown with new 34-campus list
+  - [x] Update registration Zod schema to include `position` validation
+- [x] **0.5** Update all campus/position references across codebase
+  - [x] Mock data — update vendor campus values
+  - [x] Vendor filter options
+  - [x] Vendor profile/store-settings pages
+  - [x] Admin vendor management pages
+- [x] **0.6** Verify clean build with zero TS errors
 
 ---
 
@@ -683,7 +684,7 @@ myharvesthub/
 
 ## Post-Implementation Checklist
 
-- [ ] All TypeScript strict mode errors resolved (`npx tsc --noEmit` clean)
+- [x] All TypeScript strict mode errors resolved (`npx tsc --noEmit` clean)
 - [ ] All API routes use Prisma transactions for multi-table mutations
 - [ ] All API routes have rate limiting applied
 - [ ] All image uploads go through Cloudinary with safe replacement
@@ -697,7 +698,40 @@ myharvesthub/
 - [ ] Bank transfer flow tested: order → proof upload → admin verify → confirm
 - [ ] Milestone tracking verified: first 1000, custom milestones
 - [ ] Vendor storefront: banner + logo + campus + position displaying correctly
-- [ ] All 34 campuses + 9 positions available in registration + editing
+- [x] All 34 campuses + 9 positions available in registration + editing
 - [ ] Clean production build (`npm run build`) with zero errors
 - [ ] Security: no exposed secrets, no raw SQL, all inputs validated with Zod
 - [ ] Performance: caching on read-heavy routes, pagination on all lists
+
+---
+
+## Completed API Routes & SEO (Added March 2026)
+
+> The following routes were added to fill gaps in the existing mock API layer.
+
+### API Routes Added
+
+- [x] `POST /api/vendors` — Create vendor profile (admin or vendor user)
+- [x] `GET/PUT /api/vendors/[id]/store-settings` — Read and update vendor store settings
+- [x] `GET /api/vendors/[id]/analytics` — Vendor analytics with product/order data
+- [x] `GET/PUT /api/users/[id]/profile` — User profile with role-specific enrichment
+- [x] `PUT /api/users/[id]/password` — Change password (current password verification for non-admin)
+
+### SEO Files Added
+
+- [x] `app/sitemap.ts` — Dynamic sitemap with static pages, active products, and approved vendors
+- [x] `app/robots.ts` — robots.txt disallowing private routes, linking to sitemap
+
+### Existing API Routes (48 handlers, verified complete)
+
+- Auth: login, register, logout, me, refresh, forgot-password, reset-password (7 routes)
+- Products: list, create, get, update, delete, search, trending, featured, new-arrivals, reviews, related (11 routes)
+- Cart: get, add item, update item, remove item, clear (5 routes)
+- Orders: list, create, get, update, delete, status update, cancel (7 routes)
+- Users: list, get, update, delete (4 routes)
+- Vendors: list, get, update, products (4 routes)
+- Wallet: get, balance, transactions, deposit, withdraw (5 routes)
+- Reviews: list, create, get, update, delete, vote, response, flag (8 routes)
+- Banners: list, create, get, update, delete, patch (6 routes)
+- Notifications: list, create, delete, read, preferences, read-all (6 routes)
+- Admin: reviews list, review delete, review flag (3 routes)

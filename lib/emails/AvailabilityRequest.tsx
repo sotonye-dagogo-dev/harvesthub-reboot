@@ -12,10 +12,6 @@ interface AvailabilityRequestProps {
   requestId: string;
 }
 
-function formatNgn(amount: number): string {
-  return `₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 0 })}`;
-}
-
 export function AvailabilityRequest({
   vendorFirstName,
   buyerName,
@@ -24,7 +20,7 @@ export function AvailabilityRequest({
   message,
   requestId,
 }: AvailabilityRequestProps) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://myharvesthub.org";
 
   return (
     <EmailLayout

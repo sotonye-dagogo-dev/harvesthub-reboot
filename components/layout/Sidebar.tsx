@@ -13,6 +13,8 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Bug,
+  Megaphone,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,7 @@ const vendorLinks = [
   { href: "/vendor/orders", label: "Orders", icon: ShoppingBag },
   { href: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/wallet", label: "Wallet", icon: Wallet },
+  { href: "/vendor/marketing-content", label: "Marketing", icon: Megaphone },
   { href: "/vendor/store-settings", label: "Store Settings", icon: Settings },
 ];
 
@@ -37,7 +40,10 @@ const adminLinks = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/banners", label: "Banners", icon: AlertCircle },
+  { href: "/admin/vendor-content", label: "Vendor Content", icon: Megaphone },
+  { href: "/admin/bug-reports", label: "Bug Reports", icon: Bug },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({ type }: SidebarProps) {
@@ -108,9 +114,7 @@ export function Sidebar({ type }: SidebarProps) {
                 href={link.href}
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 text-xs font-medium",
-                  active
-                    ? "text-ds-text-brand"
-                    : "text-ds-text-secondary"
+                  active ? "text-ds-text-brand" : "text-ds-text-secondary"
                 )}
               >
                 <Icon className="h-5 w-5" />

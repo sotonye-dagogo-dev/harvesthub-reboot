@@ -26,8 +26,9 @@ const statusConfig = {
   pending: { label: "Pending", variant: "default" as const },
   confirmed: { label: "Confirmed", variant: "primary" as const },
   processing: { label: "Processing", variant: "warning" as const },
-  ready: { label: "Ready", variant: "success" as const },
-  completed: { label: "Completed", variant: "success" as const },
+  ready_for_pickup: { label: "Ready for Pickup", variant: "success" as const },
+  out_for_delivery: { label: "Out for Delivery", variant: "warning" as const },
+  delivered: { label: "Delivered", variant: "success" as const },
   cancelled: { label: "Cancelled", variant: "danger" as const },
   refunded: { label: "Refunded", variant: "default" as const },
 };

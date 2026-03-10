@@ -1,56 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import type { Notification } from "@/lib/types";
+﻿/**
+ * PUT /api/notifications/[id]/read � Mark notification as read
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// Mock notifications storage (using let for mutability in mock backend)
-// eslint-disable-next-line prefer-const
-let mockNotifications: Notification[] = [];
+export async function PUT(req: NextRequest, context: RouteContext) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-// PUT /api/notifications/[id]/read - Mark notification as read
-export async function PUT(
-  request: NextRequest,
-  { params }: RouteParams
-) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const notification = await prisma.notification.findUnique({ where: { id } });
+        if (!notification) return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+        if (notification.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const updated = await prisma.notification.update({
+            where: { id },
+            data: { isRead: true },
+        });
+
+        return NextResponse.json({ success: true, notification: updated });
+    } catch (error) {
+        console.error('PUT /api/notifications/[id]/read error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const { id } = await params;
-    const notification = mockNotifications.find(n => n.id === id && n.userId === payload.userId);
-
-    if (!notification) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
-    }
-
-    // Mark as read
-    notification.isRead = true;
-    notification.updatedAt = new Date();
-
-    return NextResponse.json({
-      success: true,
-      message: "Notification marked as read"
-    });
-  } catch (error) {
-    console.error("Mark notification as read error:", error);
-    return NextResponse.json(
-      { error: "Failed to mark notification as read" },
-      { status: 500 }
-    );
-  }
 }

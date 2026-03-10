@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | HarvestHub",
-  description: "HarvestHub Cookie Policy - How we use cookies and similar technologies.",
+  title: "Cookie Policy | MyHarvestHub",
+  description: "MyHarvestHub Cookie Policy - How we use cookies and similar technologies.",
 };
 
 export default function CookiePolicyPage() {
@@ -32,7 +32,7 @@ export default function CookiePolicyPage() {
               2. How We Use Cookies
             </h2>
             <p className="mb-4 text-ds-text-secondary">
-              HarvestHub uses cookies for the following purposes:
+              MyHarvestHub uses cookies for the following purposes:
             </p>
 
             <h3 className="mb-2 text-xl font-semibold text-ds-text-primary">
@@ -179,7 +179,7 @@ export default function CookiePolicyPage() {
             </ul>
             <p className="mt-4 text-ds-text-secondary">
               Please note that disabling essential cookies may prevent you from using certain
-              features of HarvestHub, such as logging in or adding items to your cart.
+              features of MyHarvestHub, such as logging in or adding items to your cart.
             </p>
           </section>
 
@@ -204,7 +204,7 @@ export default function CookiePolicyPage() {
             <p className="text-ds-text-secondary">
               We may update this Cookie Policy from time to time. We will notify you of any
               significant changes by posting a notice on our platform. Your continued use of
-              HarvestHub after changes are posted constitutes acceptance of the updated policy.
+              MyHarvestHub after changes are posted constitutes acceptance of the updated policy.
             </p>
           </section>
 
@@ -216,8 +216,8 @@ export default function CookiePolicyPage() {
             <ul className="mt-2 list-disc space-y-2 pl-6 text-ds-text-secondary">
               <li>
                 Email:{" "}
-                <a href="mailto:privacy@harvesthub.com" className="text-ds-text-brand hover:underline">
-                  privacy@harvesthub.com
+                <a href="mailto:privacy@myharvesthub.org" className="text-ds-text-brand hover:underline">
+                  privacy@myharvesthub.org
                 </a>
               </li>
               <li>

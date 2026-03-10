@@ -1,153 +1,95 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { OrderStatus, UserRole } from "@/lib/constants";
+﻿/**
+ * GET    /api/orders/[id] � Order detail
+ * PUT    /api/orders/[id] � Update order (vendor/admin)
+ * DELETE /api/orders/[id] � Delete order (admin only)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-async function getAuthUser(_request: NextRequest) {
-    const { cookies } = await import("next/headers");
-    const { verifyToken } = await import("@/lib/utils/auth");
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-    return db.users.findById(payload.userId);
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/orders/[id] - Get single order
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const user = await getAuthUser(request);
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const { id } = await params;
-        const order = db.orders.findById(id);
-        if (!order) {
-            return NextResponse.json({ error: "Order not found" }, { status: 404 });
-        }
-
-        // Access control: buyers can only see their own orders, vendors their own
-        if (user.role === UserRole.BUYER) {
-            const buyer = db.buyers.findByUserId(user.id);
-            if (!buyer || order.buyerId !== buyer.id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(user.id);
-            if (!vendor || order.vendorId !== vendor.id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        }
-
-        const vendor = db.vendors.findById(order.vendorId);
-        const buyer = db.buyers.findById(order.buyerId);
-        const buyerUser = buyer ? db.users.findById(buyer.userId) : undefined;
-
-        return NextResponse.json({
-            success: true,
-            order: { ...order, vendor, buyerUser },
+        const { id } = await context.params;
+        const order = await prisma.order.findUnique({
+            where: { id },
+            include: {
+                items: true,
+                buyer: { include: { user: { select: { firstName: true, lastName: true, email: true, phoneNumber: true } } } },
+                vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } },
+            },
         });
+        if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+        // Access control
+        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+        const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+        if (user.role !== UserRole.ADMIN && order.buyerId !== buyer?.id && order.vendorId !== vendor?.id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        return NextResponse.json({ success: true, order });
     } catch (error) {
-        console.error("Get order error:", error);
-        return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
+        console.error('GET /api/orders/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/orders/[id] - Update order status (vendor/admin)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const user = await getAuthUser(request);
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        const order = await prisma.order.findUnique({ where: { id } });
+        if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+        const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+        if (user.role !== UserRole.ADMIN && order.vendorId !== vendor?.id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        if (user.role === UserRole.BUYER) {
-            return NextResponse.json(
-                { error: "Buyers cannot update order status" },
-                { status: 403 }
-            );
-        }
+        const body = await req.json();
+        const { notes, deliveryAddress, pickupDetails } = body;
+        const data: Record<string, unknown> = {};
+        if (notes !== undefined) data.notes = notes;
+        if (deliveryAddress !== undefined) data.deliveryAddress = deliveryAddress;
+        if (pickupDetails !== undefined) data.pickupDetails = pickupDetails;
 
-        const { id } = await params;
-        const order = db.orders.findById(id);
-        if (!order) {
-            return NextResponse.json({ error: "Order not found" }, { status: 404 });
-        }
-
-        // Vendors can only update their own orders
-        if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(user.id);
-            if (!vendor || order.vendorId !== vendor.id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        }
-
-        const body = await request.json();
-        const { status, notes } = body;
-
-        if (!status) {
-            return NextResponse.json({ error: "status is required" }, { status: 400 });
-        }
-
-        // Validate status transition
-        const validStatuses = Object.values(OrderStatus);
-        if (!validStatuses.includes(status)) {
-            return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-        }
-
-        const updatedOrder = db.orders.updateStatus(id, status, user.id);
-
-        if (notes && updatedOrder) {
-            // Add note to last status history entry
-            const lastEntry =
-                updatedOrder.statusHistory[updatedOrder.statusHistory.length - 1];
-            if (lastEntry) {
-                lastEntry.notes = notes;
-            }
-        }
-
-        return NextResponse.json({ success: true, order: updatedOrder });
+        const updated = await prisma.order.update({ where: { id }, data });
+        return NextResponse.json({ success: true, order: updated });
     } catch (error) {
-        console.error("Update order error:", error);
-        return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
+        console.error('PUT /api/orders/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/orders/[id] - Delete order (admin only)
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const user = await getAuthUser(request);
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (user.role !== UserRole.ADMIN) {
-            return NextResponse.json(
-                { error: "Only admins can delete orders" },
-                { status: 403 }
-            );
-        }
+        const { id } = await context.params;
+        const order = await prisma.order.findUnique({ where: { id } });
+        if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-        const { id } = await params;
-        const order = db.orders.findById(id);
-        if (!order) {
-            return NextResponse.json({ error: "Order not found" }, { status: 404 });
-        }
-
-        db.orders.delete(id);
-        return NextResponse.json({ success: true, message: "Order deleted" });
+        await prisma.order.delete({ where: { id } });
+        return NextResponse.json({ success: true, message: 'Order deleted' });
     } catch (error) {
-        console.error("Delete order error:", error);
-        return NextResponse.json({ error: "Failed to delete order" }, { status: 500 });
+        console.error('DELETE /api/orders/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

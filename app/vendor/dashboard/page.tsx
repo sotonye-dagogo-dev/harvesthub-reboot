@@ -35,7 +35,7 @@ export default function VendorDashboardPage() {
     }, 0);
 
     // Calculate total sales (completed orders)
-    const completedOrders = vendorOrders.filter((o) => o.status === OrderStatus.COMPLETED);
+    const completedOrders = vendorOrders.filter((o) => o.status === OrderStatus.DELIVERED);
     const totalSales = completedOrders.reduce((sum, order) => {
       const vendorItemsTotal = order.items
         .filter((item) => vendorProducts.some((p) => p.id === item.productId))

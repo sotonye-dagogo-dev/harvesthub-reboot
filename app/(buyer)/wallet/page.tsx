@@ -5,8 +5,9 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
 import { mockWallets, mockTransactions } from "@/lib/data/mockData";
 import { formatCurrency } from "@/lib/utils";
-import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { Input, Modal, message } from "antd";
+import { PLATFORM_DEFAULTS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,21 @@ export default function WalletPage() {
             : "Add funds and track your transactions"}
         </p>
       </div>
+
+      {/* Payment Processing Notice */}
+      {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-4">
+          <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
+          <div>
+            <p className="text-sm font-medium text-ds-status-info-text">
+              Wallet Deposits &amp; Withdrawals Coming Soon
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              Payment processing is not yet active. Deposit and withdrawal functionality will be enabled once our payment partners are integrated.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Wallet Balance Card */}

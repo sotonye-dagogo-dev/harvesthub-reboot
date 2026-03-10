@@ -1,115 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
+/**
+ * GET /api/notifications/preferences — Get notification preferences
+ * PUT /api/notifications/preferences — Update notification preferences
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-interface NotificationPreferences {
-  userId: string;
-  orderConfirmed: boolean;
-  orderReady: boolean;
-  orderDelivered: boolean;
-  orderCancelled: boolean;
-  paymentSuccess: boolean;
-  paymentFailed: boolean;
-  deliveryUpdates: boolean;
-  vendorMessages: boolean;
-  lowStock: boolean;
-  newProducts: boolean;
-  promotions: boolean;
-  emailNotifications: boolean;
-  smsNotifications: boolean;
+export async function GET(_req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        let prefs = await prisma.notificationPreference.findUnique({
+            where: { userId: user.userId },
+        });
+
+        // Create defaults if not found
+        if (!prefs) {
+            prefs = await prisma.notificationPreference.create({
+                data: { userId: user.userId },
+            });
+        }
+
+        return NextResponse.json({ success: true, preferences: prefs });
+    } catch (error) {
+        console.error('GET /api/notifications/preferences error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }
 
-// Mock preferences storage (using let for mutability in mock backend)
-// eslint-disable-next-line prefer-const
-let mockPreferences: NotificationPreferences[] = [];
+export async function PUT(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-// GET /api/notifications/preferences - Get user's notification preferences
-export async function GET() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const body = await req.json();
+        const allowedFields = [
+            'emailNotifications', 'smsNotifications', 'pushNotifications',
+            'orderUpdates', 'promotions', 'vendorMessages',
+        ];
+        const updateData: Record<string, boolean> = {};
+        for (const key of allowedFields) {
+            if (typeof body[key] === 'boolean') updateData[key] = body[key];
+        }
+
+        const prefs = await prisma.notificationPreference.upsert({
+            where: { userId: user.userId },
+            create: { userId: user.userId, ...updateData },
+            update: updateData,
+        });
+
+        return NextResponse.json({ success: true, preferences: prefs });
+    } catch (error) {
+        console.error('PUT /api/notifications/preferences error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    // Find or create preferences
-    let preferences = mockPreferences.find(p => p.userId === payload.userId);
-
-    if (!preferences) {
-      // Create default preferences
-      preferences = {
-        userId: payload.userId,
-        orderConfirmed: true,
-        orderReady: true,
-        orderDelivered: true,
-        orderCancelled: true,
-        paymentSuccess: true,
-        paymentFailed: true,
-        deliveryUpdates: true,
-        vendorMessages: true,
-        lowStock: true,
-        newProducts: false,
-        promotions: false,
-        emailNotifications: true,
-        smsNotifications: false,
-      };
-      mockPreferences.push(preferences);
-    }
-
-    return NextResponse.json({
-      success: true,
-      preferences
-    });
-  } catch (error) {
-    console.error("Get preferences error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch preferences" },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/notifications/preferences - Update notification preferences
-export async function PUT(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const body = await request.json();
-
-    // Find or create preferences
-    const index = mockPreferences.findIndex(p => p.userId === payload.userId);
-
-    if (index !== -1) {
-      mockPreferences[index] = { userId: payload.userId, ...body };
-    } else {
-      mockPreferences.push({ userId: payload.userId, ...body });
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Preferences updated successfully"
-    });
-  } catch (error) {
-    console.error("Update preferences error:", error);
-    return NextResponse.json(
-      { error: "Failed to update preferences" },
-      { status: 500 }
-    );
-  }
 }

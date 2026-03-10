@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -17,8 +17,8 @@ const ALL_STATUSES = [
   "PENDING",
   "CONFIRMED",
   "PROCESSING",
-  "READY",
-  "SHIPPED",
+  "READY_FOR_PICKUP",
+  "OUT_FOR_DELIVERY",
   "DELIVERED",
   "CANCELLED",
   "REFUNDED",

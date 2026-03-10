@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Form, Input, Button, Alert, Divider } from "antd";
+import { Form, Input, Button, Alert, Divider, Checkbox } from "antd";
 import { MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useAuth } from "@/lib/contexts/AuthContext";
+
+const REMEMBER_ME_KEY = "myharvesthub_remember_me";
 
 interface LoginFormData {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 function LoginForm() {
@@ -23,12 +26,28 @@ function LoginForm() {
 
   const redirectTo = searchParams.get("from") || "/";
 
+  // Auto-toggle "Remember Me" from previous preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBER_ME_KEY);
+      if (saved === "true") {
+        form.setFieldsValue({ rememberMe: true });
+      }
+    } catch {
+      // ignore
+    }
+  }, [form]);
+
   const handleLogin = async (values: LoginFormData) => {
     setLoading(true);
     setError(null);
 
     try {
-      await login({ email: values.email, password: values.password });
+      await login({
+        email: values.email,
+        password: values.password,
+        rememberMe: values.rememberMe,
+      });
       router.push(redirectTo);
     } catch (err) {
       const errorMessage =
@@ -43,8 +62,10 @@ function LoginForm() {
     <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">
       {/* Logo/Brand */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-ds-text-brand">HarvestHub</h1>
-        <p className="mt-2 text-ds-text-secondary dark:text-ds-text-placeholder">Sign in to your account</p>
+        <h1 className="text-3xl font-bold text-ds-text-brand">MyHarvestHub</h1>
+        <p className="mt-2 text-ds-text-secondary dark:text-ds-text-placeholder">
+          Sign in to your account
+        </p>
       </div>
 
       {/* Error Alert */}
@@ -90,6 +111,9 @@ function LoginForm() {
         </Form.Item>
 
         <div className="mb-4 flex items-center justify-between">
+          <Form.Item name="rememberMe" valuePropName="checked" noStyle>
+            <Checkbox className="text-ds-text-secondary">Remember me</Checkbox>
+          </Form.Item>
           <Link
             href="/forgot-password"
             className="text-sm text-ds-text-brand hover:text-ds-palette-purple-700"
@@ -117,7 +141,9 @@ function LoginForm() {
 
       {/* Sign Up Link */}
       <div className="text-center">
-        <span className="text-ds-text-secondary dark:text-ds-text-placeholder">Don&apos;t have an account? </span>
+        <span className="text-ds-text-secondary dark:text-ds-text-placeholder">
+          Don&apos;t have an account?{" "}
+        </span>
         <Link
           href="/signup"
           className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
@@ -128,9 +154,7 @@ function LoginForm() {
 
       {/* Demo Credentials */}
       <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
-        <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">
-          Demo Credentials:
-        </p>
+        <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">Demo Credentials:</p>
         <div className="space-y-1 text-xs text-ds-palette-purple-700 dark:text-ds-brand-muted">
           <p>
             <strong>Admin:</strong> admin@harvesthub.com / admin123
@@ -149,9 +173,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense
-      fallback={
-        <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>
-      }
+      fallback={<div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>}
     >
       <LoginForm />
     </Suspense>

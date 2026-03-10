@@ -32,3 +32,8 @@ export type { FilterSidebarProps, FilterOptions } from "./FilterSidebar";
 export { CartItemComponent } from "./CartItemComponent";
 
 export { TopAdBanner } from "./TopAdBanner";
+
+export { ReviewForm } from "./ReviewForm";
+
+export { BookingCalendar } from "./BookingCalendar";
+export type { BookingCalendarProps } from "./BookingCalendar";

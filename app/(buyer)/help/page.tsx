@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Search, Package, CreditCard, MapPin, Shield, HeadphonesIcon } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Help Center | HarvestHub",
-  description: "Find answers to common questions and get help with your HarvestHub experience.",
+  title: "Help Center | MyHarvestHub",
+  description: "Find answers to common questions and get help with your MyHarvestHub experience.",
 };
 
 export default function HelpCenterPage() {
@@ -52,7 +52,7 @@ export default function HelpCenterPage() {
       <div className="mb-12 text-center">
         <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Help Center</h1>
         <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
-          Find answers to your questions and get support for your HarvestHub experience
+          Find answers to your questions and get support for your MyHarvestHub experience
         </p>
       </div>
 

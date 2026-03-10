@@ -1,19 +1,26 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockProducts, mockVendors, mockReviews } from "@/lib/data/mockData";
 import { Button, Rating, Badge } from "@/components/ui";
 import { EmptyState } from "@/components/ui";
-import { ReviewCard, ProductCard } from "@/components/features";
+import { ReviewCard, ProductCard, BookingCalendar } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
-import { ShoppingCart, Store, Package, Truck, ArrowLeft, Heart, Share2 } from "lucide-react";
+import {
+  ShoppingCart, Store, Package, Truck, ArrowLeft, Heart, Share2,
+  CalendarClock, MapPin, Clock, MessageSquare,
+} from "lucide-react";
 import { message } from "antd";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ListingType, SERVICE_UNLIMITED_STOCK,
+  SERVICE_RATE_TYPES, SERVICE_LOCATIONS, SERVICE_CATEGORIES,
+} from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +38,28 @@ export default function ProductDetailPage() {
   const product = mockProducts.find((p) => p.id === productId);
   const vendor = product ? mockVendors.find((v) => v.id === product.vendorId) : null;
   const productReviews = mockReviews.filter((r) => r.productId === productId);
+
+  const isService = product?.listingType === ListingType.SERVICE ||
+    (product?.stock ?? 0) >= SERVICE_UNLIMITED_STOCK;
+
+  const serviceDetails = product?.serviceDetails;
+
+  const serviceLabels = useMemo(() => {
+    if (!serviceDetails) return null;
+    return {
+      category: SERVICE_CATEGORIES.find((c) => c.value === serviceDetails.serviceCategory)?.label ?? serviceDetails.serviceCategory,
+      rateType: SERVICE_RATE_TYPES.find((r) => r.value === serviceDetails.rateType)?.label ?? serviceDetails.rateType,
+      location: SERVICE_LOCATIONS.find((l) => l.value === serviceDetails.location)?.label ?? serviceDetails.location,
+    };
+  }, [serviceDetails]);
+
+  const [selectedBookingDate, setSelectedBookingDate] = useState<string>();
+  const [selectedBookingTime, setSelectedBookingTime] = useState<string>();
+
+  const handleBookingSlotSelect = (date: string, startTime: string) => {
+    setSelectedBookingDate(date);
+    setSelectedBookingTime(startTime);
+  };
 
   const avgRating =
     productReviews.length > 0
@@ -57,7 +86,25 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    if (!requireAuth("add items to your cart")) return;
+    if (!requireAuth(isService ? "book this service" : "add items to your cart")) return;
+
+    if (isService) {
+      // Services just add qty 1 with isService flag
+      addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || "/placeholder-product.jpg",
+        vendorId: product.vendorId,
+        vendorName: vendor.storeName,
+        quantity: 1,
+        stock: product.stock,
+        isService: true,
+      });
+      message.success("Service booking added to cart");
+      return;
+    }
+
     const cartItem = getItem(product.id);
     const totalQuantity = (cartItem?.quantity || 0) + quantity;
 
@@ -155,6 +202,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {product.isFeatured && <Badge>Featured</Badge>}
+                {isService && <Badge variant="info">Service</Badge>}
               </div>
             </div>
 
@@ -199,23 +247,82 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-ds-text-tertiary" />
-                <span
-                  className={
-                    product.stock > 0 ? "text-ds-status-success-text" : "text-ds-status-error-text"
-                  }
-                >
-                  {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
-                </span>
-              </div>
+              {isService && serviceLabels ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-ds-status-info" />
+                    <span className="text-ds-status-info-text">{serviceLabels.category}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-ds-text-tertiary" />
+                    <span className="text-ds-text-secondary">{serviceLabels.location}</span>
+                  </div>
+                  {serviceDetails?.durationMinutes && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-ds-text-tertiary" />
+                      <span className="text-ds-text-secondary">{serviceDetails.durationMinutes} min</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-ds-text-tertiary" />
+                    <span
+                      className={
+                        product.stock > 0 ? "text-ds-status-success-text" : "text-ds-status-error-text"
+                      }
+                    >
+                      {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+                    </span>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-ds-text-tertiary" />
-                <span className="text-ds-text-secondary">Delivery available</span>
-              </div>
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-ds-text-tertiary" />
+                    <span className="text-ds-text-secondary">Delivery available</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+
+          {/* Service Details Card */}
+          {isService && serviceDetails && serviceLabels && (
+            <div className="mb-6 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg/30 p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ds-text-primary">
+                <CalendarClock className="h-4 w-4 text-ds-status-info" />
+                Service Details
+              </h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-ds-text-tertiary">Category</span>
+                  <p className="font-medium text-ds-text-primary">{serviceLabels.category}</p>
+                </div>
+                <div>
+                  <span className="text-ds-text-tertiary">Rate Type</span>
+                  <p className="font-medium text-ds-text-primary">{serviceLabels.rateType}</p>
+                </div>
+                <div>
+                  <span className="text-ds-text-tertiary">Location</span>
+                  <p className="font-medium text-ds-text-primary">{serviceLabels.location}</p>
+                </div>
+                {serviceDetails.durationMinutes && (
+                  <div>
+                    <span className="text-ds-text-tertiary">Duration</span>
+                    <p className="font-medium text-ds-text-primary">{serviceDetails.durationMinutes} minutes</p>
+                  </div>
+                )}
+              </div>
+              {serviceDetails.requiresConsultation && (
+                <div className="mt-3 flex items-center gap-2 rounded-ds-sm bg-ds-surface-base p-2">
+                  <MessageSquare className="h-4 w-4 text-ds-text-brand" />
+                  <span className="text-xs text-ds-text-secondary">
+                    This service requires a consultation before booking. The vendor will reach out to discuss your needs.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Vendor Info */}
           <Link
@@ -233,37 +340,59 @@ export default function ProductDetailPage() {
             </div>
           </Link>
 
-          {/* Add to Cart */}
+          {/* Add to Cart / Book Service */}
           <div className="mb-6 space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-                Quantity
-              </label>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </Button>
-                <span className="w-16 text-center text-lg font-semibold">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
+            {isService ? (
+              <>
+                {/* Booking Calendar */}
+                {serviceDetails?.availableSlots && serviceDetails.availableSlots.length > 0 && (
+                  <BookingCalendar
+                    availableSlots={serviceDetails.availableSlots}
+                    onSelectSlot={handleBookingSlotSelect}
+                    selectedDate={selectedBookingDate}
+                    selectedTime={selectedBookingTime}
+                    durationMinutes={serviceDetails.durationMinutes}
+                  />
+                )}
 
-            <Button fullWidth size="lg" onClick={handleAddToCart} disabled={product.stock === 0}>
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </Button>
+                <Button fullWidth size="lg" onClick={handleAddToCart}>
+                  <CalendarClock className="mr-2 h-5 w-5" />
+                  Book Service
+                </Button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    Quantity
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
+                    </Button>
+                    <span className="w-16 text-center text-lg font-semibold">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      disabled={quantity >= product.stock}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+
+                <Button fullWidth size="lg" onClick={handleAddToCart} disabled={product.stock === 0}>
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Product Description */}

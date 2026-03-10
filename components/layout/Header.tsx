@@ -48,7 +48,7 @@ export function Header() {
               <span className="text-xl font-bold text-white">H</span>
             </div>
             <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
-              HarvestHub
+              MyHarvestHub
             </span>
           </Link>
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -14,28 +14,46 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const CATEGORIES = [
-  "FARM_PRODUCE",
-  "FASHION",
-  "FOOD",
-  "BEAUTY",
   "ELECTRONICS",
-  "HOME",
-  "BOOKS",
+  "COMPUTERS_OFFICE",
+  "HOME_APPLIANCES",
+  "FURNITURE",
+  "HOME_DECOR",
+  "KITCHEN_DINING",
+  "FASHION",
+  "BEAUTY",
+  "BABY_KIDS",
+  "TOYS_GAMES",
+  "AUTOMOTIVE",
+  "MOTORCYCLES",
+  "SPARE_PARTS",
+  "INDUSTRIAL",
+  "AGRICULTURE",
+  "SECURITY",
+  "GROCERY_FOOD",
   "SERVICES",
-  "CRAFTS",
   "OTHERS",
 ] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
-  FARM_PRODUCE: "Farm Produce",
-  FASHION: "Fashion & Apparel",
-  FOOD: "Food & Beverages",
-  BEAUTY: "Beauty & Cosmetics",
-  ELECTRONICS: "Electronics & Gadgets",
-  HOME: "Home & Kitchen",
-  BOOKS: "Books & Stationery",
+  ELECTRONICS: "Electronics",
+  COMPUTERS_OFFICE: "Computers & Office",
+  HOME_APPLIANCES: "Home Appliances",
+  FURNITURE: "Furniture",
+  HOME_DECOR: "Home Decor",
+  KITCHEN_DINING: "Kitchen & Dining",
+  FASHION: "Fashion",
+  BEAUTY: "Beauty & Personal Care",
+  BABY_KIDS: "Baby & Kids",
+  TOYS_GAMES: "Toys & Games",
+  AUTOMOTIVE: "Automotive",
+  MOTORCYCLES: "Motorcycles",
+  SPARE_PARTS: "Spare Parts",
+  INDUSTRIAL: "Industrial & Construction",
+  AGRICULTURE: "Agriculture",
+  SECURITY: "Security & Surveillance",
+  GROCERY_FOOD: "Grocery & Food",
   SERVICES: "Services",
-  CRAFTS: "Crafts & Handmade",
   OTHERS: "Others",
 };
 

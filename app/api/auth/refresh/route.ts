@@ -1,18 +1,15 @@
 /**
  * POST /api/auth/refresh
- * 
  * Refresh access token using refresh token
  */
-
 import { NextResponse } from 'next/server';
-import { getRefreshToken } from '@/lib/utils/cookies';
+import { getRefreshToken, setAccessTokenCookie } from '@/lib/utils/cookies';
 import { verifyRefreshToken, generateAccessToken } from '@/lib/utils/jwt';
-import { setAccessTokenCookie } from '@/lib/utils/cookies';
-import { userDb } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
+import { UserRole } from '@/lib/constants';
 
 export async function POST() {
     try {
-        // Get refresh token from cookie
         const refreshToken = await getRefreshToken();
 
         if (!refreshToken) {
@@ -22,7 +19,6 @@ export async function POST() {
             );
         }
 
-        // Verify refresh token
         const payload = await verifyRefreshToken(refreshToken);
         if (!payload) {
             return NextResponse.json(
@@ -31,8 +27,11 @@ export async function POST() {
             );
         }
 
-        // Verify user still exists and is active
-        const user = userDb.findById(payload.userId);
+        const user = await prisma.user.findUnique({
+            where: { id: payload.userId },
+            select: { id: true, email: true, role: true, isActive: true },
+        });
+
         if (!user || !user.isActive) {
             return NextResponse.json(
                 { error: 'User not found or inactive' },
@@ -40,10 +39,7 @@ export async function POST() {
             );
         }
 
-        // Generate new access token
-        const newAccessToken = await generateAccessToken(user.id, user.email, user.role);
-
-        // Set new access token cookie
+        const newAccessToken = await generateAccessToken(user.id, user.email, user.role as UserRole);
         await setAccessTokenCookie(newAccessToken);
 
         return NextResponse.json(

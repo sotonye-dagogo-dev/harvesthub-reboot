@@ -1,39 +1,31 @@
 /**
  * POST /api/auth/register
- * 
  * Register a new user (buyer or vendor)
  */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { userDb, buyerDb, vendorDb, walletDb } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/utils/password';
 import { generateTokenPair } from '@/lib/utils/jwt';
 import { setAuthCookies } from '@/lib/utils/cookies';
-import { UserRole, VendorStatus } from '@/lib/constants';
+import { sendVerifyEmail } from '@/lib/services/email';
+import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
+import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
     try {
+        const ip = request.headers.get('x-forwarded-for') || 'unknown';
+        const rl = await rateLimitStrict(ip);
+        if (!rl.success) return getRateLimitResponse(rl);
+
         const body = await request.json();
         const {
-            email,
-            password,
-            firstName,
-            lastName,
-            phoneNumber,
-            role,
-            // Buyer-specific fields
-            dateOfBirth,
-            gender,
-            // Vendor-specific fields
-            storeName,
-            storeDescription,
-            category,
-            whatsappNumber,
-            campus,
-            isChurchAffiliated,
+            email, password, firstName, lastName, phoneNumber, role,
+            dateOfBirth, gender,
+            storeName, storeDescription, category, whatsappNumber, campus,
+            position, isChurchAffiliated, verificationDocuments,
         } = body;
 
-        // Validate required fields
         if (!email || !password || !firstName || !lastName || !phoneNumber || !role) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
@@ -41,16 +33,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Validate role
-        if (![UserRole.BUYER, UserRole.VENDOR].includes(role)) {
+        if (!['BUYER', 'VENDOR'].includes(role)) {
             return NextResponse.json(
                 { error: 'Invalid role. Must be BUYER or VENDOR' },
                 { status: 400 }
             );
         }
 
-        // Check if user already exists
-        const existingUser = userDb.findByEmail(email);
+        const existingUser = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() },
+        });
         if (existingUser) {
             return NextResponse.json(
                 { error: 'User with this email already exists' },
@@ -58,108 +50,137 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Hash password
         const passwordHash = await hashPassword(password);
+        const verificationToken = crypto.randomUUID();
+        const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-        // Create user
-        const user = userDb.create(
-            {
-                email,
-                firstName,
-                lastName,
-                phoneNumber,
-                role,
-                emailVerified: false,
-                isActive: true,
-            },
-            passwordHash
-        );
+        // Use a transaction to create user + role profile + wallet atomically
+        const result = await prisma.$transaction(async (tx) => {
+            // Count existing users of this role for registration sequence
+            const roleCount = await tx.user.count({ where: { role } });
 
-        // Create wallet for user
-        const wallet = walletDb.create(user.id);
-
-        // Create role-specific profile
-        if (role === UserRole.BUYER) {
-            buyerDb.create({
-                userId: user.id,
-                dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-                gender: gender || undefined,
-                preferences: {
-                    notifications: {
-                        email: true,
-                        sms: true,
-                        push: true,
-                    },
+            const user = await tx.user.create({
+                data: {
+                    email: email.toLowerCase().trim(),
+                    password: passwordHash,
+                    firstName,
+                    lastName,
+                    phoneNumber,
+                    role,
+                    emailVerified: false,
+                    isActive: true,
+                    emailVerificationToken: verificationToken,
+                    emailVerificationExpiry,
+                    registrationSequence: roleCount + 1,
                 },
             });
-        } else if (role === UserRole.VENDOR) {
-            // Validate vendor-specific fields
-            if (!storeName || !category || !whatsappNumber || !campus) {
-                // Rollback user creation
-                userDb.delete(user.id);
-                walletDb.delete(wallet.id);
 
-                return NextResponse.json(
-                    {
-                        error: 'Missing required vendor fields: storeName, category, whatsappNumber, campus',
+            // Create wallet
+            await tx.wallet.create({
+                data: { userId: user.id },
+            });
+
+            if (role === 'BUYER') {
+                await tx.buyer.create({
+                    data: {
+                        userId: user.id,
+                        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+                        gender: gender || undefined,
+                        preferences: { notifications: { email: true, sms: true, push: true } },
                     },
-                    { status: 400 }
-                );
+                });
+
+                // Auto-assign milestone if first 1000 buyers
+                if (roleCount + 1 <= 1000) {
+                    await tx.userMilestone.create({
+                        data: {
+                            userId: user.id,
+                            milestoneType: 'FIRST_1000_BUYERS',
+                            label: `Early Adopter Buyer #${roleCount + 1}`,
+                            metadata: { sequence: roleCount + 1 },
+                        },
+                    });
+                }
+            } else if (role === 'VENDOR') {
+                if (!storeName || !category || !whatsappNumber || !campus) {
+                    throw new Error('VALIDATION:Missing required vendor fields: storeName, category, whatsappNumber, campus');
+                }
+
+                const commissionRate = CATEGORY_COMMISSION_DEFAULTS[category as VendorCategory] ?? COMMISSION_RATES.DEFAULT;
+
+                await tx.vendor.create({
+                    data: {
+                        userId: user.id,
+                        storeName,
+                        storeDescription: storeDescription || null,
+                        category,
+                        whatsappNumber,
+                        campus,
+                        position: position || undefined,
+                        status: 'PENDING',
+                        isChurchAffiliated: isChurchAffiliated || false,
+                        commissionRate,
+                        businessVerification: verificationDocuments?.length
+                            ? { verificationDocuments }
+                            : undefined,
+                        storeSettings: {
+                            allowsPickup: true,
+                            allowsDelivery: false,
+                            pickupServices: [],
+                            deliveryZones: [],
+                        },
+                    },
+                });
+
+                // Auto-assign milestone if first 1000 vendors
+                if (roleCount + 1 <= 1000) {
+                    await tx.userMilestone.create({
+                        data: {
+                            userId: user.id,
+                            milestoneType: 'FIRST_1000_VENDORS',
+                            label: `Early Adopter Vendor #${roleCount + 1}`,
+                            metadata: { sequence: roleCount + 1 },
+                        },
+                    });
+                }
             }
 
-            vendorDb.create({
-                userId: user.id,
-                storeName,
-                storeDescription: storeDescription || null,
-                category,
-                whatsappNumber,
-                campus,
-                status: VendorStatus.PENDING,
-                isChurchAffiliated: isChurchAffiliated || false,
-                commissionRate: 0.05, // Default 5% commission
-                storeSettings: {
-                    allowsPickup: true,
-                    allowsDelivery: false,
-                    pickupServices: [],
-                    deliveryZones: [],
-                },
-                analytics: {
-                    totalSales: 0,
-                    totalOrders: 0,
-                    totalProducts: 0,
-                    averageRating: 0,
-                    totalReviews: 0,
-                    conversionRate: 0,
-                    lastUpdated: new Date(),
-                },
-            });
-        }
+            return user;
+        });
 
-        // Generate tokens
-        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role);
+        // Send verification email (non-blocking)
+        sendVerifyEmail(result.email, result.firstName, verificationToken).catch((err) =>
+            console.error('Failed to send verification email:', err)
+        );
 
-        // Set cookies
+        const { accessToken, refreshToken } = await generateTokenPair(result.id, result.email, result.role as UserRole);
         await setAuthCookies(accessToken, refreshToken);
 
-        // Return user data (without password)
         return NextResponse.json(
             {
                 message: 'Registration successful',
                 user: {
-                    id: user.id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    phoneNumber: user.phoneNumber,
-                    role: user.role,
-                    profilePicture: user.profilePicture,
-                    emailVerified: user.emailVerified,
-                    isActive: user.isActive,
+                    id: result.id,
+                    email: result.email,
+                    firstName: result.firstName,
+                    lastName: result.lastName,
+                    phoneNumber: result.phoneNumber,
+                    role: result.role,
+                    profilePicture: result.profilePicture,
+                    emailVerified: result.emailVerified,
+                    isActive: result.isActive,
                 },
             },
             { status: 201 }
         );
     } catch (error) {
+        // Handle validation errors thrown from transaction
+        if (error instanceof Error && error.message.startsWith('VALIDATION:')) {
+            return NextResponse.json(
+                { error: error.message.replace('VALIDATION:', '') },
+                { status: 400 }
+            );
+        }
         console.error('Registration error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },

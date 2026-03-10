@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Forgot Password | HarvestHub',
-    description: 'Reset your HarvestHub account password',
+    title: 'Forgot Password | MyHarvestHub',
+    description: 'Reset your MyHarvestHub account password',
 };

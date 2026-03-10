@@ -1,7 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+    log: ['warn', 'error'],
+});
 
 async function main() {
     console.log('🌱 Seeding database...');
@@ -136,6 +138,12 @@ async function main() {
                 status: 'APPROVED',
                 isChurchAffiliated: true,
                 commissionRate: 0.05,
+                businessVerification: {
+                    validId: { url: 'https://res.cloudinary.com/demo/image/upload/sample_id_1.jpg', type: 'NIN', verified: true },
+                    businessRegistration: { url: 'https://res.cloudinary.com/demo/image/upload/sample_cac.jpg', type: 'CAC', verified: true },
+                    submittedAt: '2025-09-01T10:00:00.000Z',
+                    verifiedAt: '2025-09-03T14:00:00.000Z',
+                },
                 storeSettings: {
                     allowsPickup: true,
                     allowsDelivery: true,
@@ -150,7 +158,7 @@ async function main() {
                 userId: vendorUsers[1].id,
                 storeName: "Chioma's Fresh Farms",
                 storeDescription: 'Premium farm produce delivered fresh from our farms.',
-                category: 'FARM_PRODUCE',
+                category: 'AGRICULTURE',
                 whatsappNumber: '+2348023456789',
                 campus: 'LEKKI',
                 position: 'HOD',
@@ -162,6 +170,11 @@ async function main() {
                 totalProducts: 15,
                 averageRating: 4.8,
                 totalReviews: 127,
+                businessVerification: {
+                    validId: { url: 'https://res.cloudinary.com/demo/image/upload/sample_id_2.jpg', type: 'Voters_Card', verified: true },
+                    submittedAt: '2025-08-15T09:00:00.000Z',
+                    verifiedAt: '2025-08-17T11:30:00.000Z',
+                },
                 storeSettings: {
                     allowsPickup: true,
                     allowsDelivery: true,
@@ -188,6 +201,12 @@ async function main() {
                 totalProducts: 28,
                 averageRating: 4.6,
                 totalReviews: 89,
+                businessVerification: {
+                    validId: { url: 'https://res.cloudinary.com/demo/image/upload/sample_id_3.jpg', type: 'Drivers_License', verified: true },
+                    businessRegistration: { url: 'https://res.cloudinary.com/demo/image/upload/sample_bn.jpg', type: 'Business_Name', verified: true },
+                    submittedAt: '2025-07-20T14:00:00.000Z',
+                    verifiedAt: '2025-07-22T09:00:00.000Z',
+                },
                 storeSettings: {
                     allowsPickup: true,
                     allowsDelivery: true,
@@ -214,6 +233,11 @@ async function main() {
                 totalProducts: 42,
                 averageRating: 4.9,
                 totalReviews: 203,
+                businessVerification: {
+                    validId: { url: 'https://res.cloudinary.com/demo/image/upload/sample_id_4.jpg', type: 'International_Passport', verified: true },
+                    submittedAt: '2025-10-05T08:30:00.000Z',
+                    verifiedAt: '2025-10-07T16:00:00.000Z',
+                },
                 storeSettings: {
                     allowsPickup: true,
                     allowsDelivery: true,
@@ -252,7 +276,7 @@ async function main() {
                 userId: vendorUsers[5].id,
                 storeName: "Blessing's Kitchen Supplies",
                 storeDescription: 'Quality kitchen utensils, cookware, and home essentials.',
-                category: 'HOME_KITCHEN',
+                category: 'KITCHEN_DINING',
                 whatsappNumber: '+2348067890123',
                 campus: 'ISOLO',
                 position: 'ZONAL_COORDINATOR',
@@ -349,7 +373,7 @@ async function main() {
                 vendorId: vendors[1].id,
                 name: 'Fresh Organic Tomatoes',
                 description: 'Locally grown organic tomatoes. Freshly harvested from our farm.',
-                category: 'VEGETABLES',
+                category: 'GROCERY',
                 price: 2500,
                 stock: 100,
                 images: ['https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=500'],
@@ -367,7 +391,7 @@ async function main() {
                 vendorId: vendors[1].id,
                 name: 'Farm Fresh Eggs (Crate)',
                 description: 'Free-range eggs from healthy chickens. One full crate of 30 eggs.',
-                category: 'DAIRY',
+                category: 'GROCERY',
                 price: 4500,
                 stock: 50,
                 images: ['https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=500'],
@@ -385,7 +409,7 @@ async function main() {
                 vendorId: vendors[2].id,
                 name: 'Ankara Print Dress',
                 description: 'Beautiful Ankara print dress with modern cut. Available in multiple sizes.',
-                category: 'CLOTHING',
+                category: 'WOMENS_FASHION',
                 price: 15000,
                 compareAtPrice: 18000,
                 discount: 17,
@@ -406,7 +430,7 @@ async function main() {
                 vendorId: vendors[3].id,
                 name: 'Premium Shea Butter',
                 description: 'Pure, unrefined shea butter. Great for skin and hair care.',
-                category: 'SKINCARE',
+                category: 'BEAUTY_PRODUCTS',
                 price: 3500,
                 stock: 200,
                 images: ['https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=500'],
@@ -424,7 +448,7 @@ async function main() {
                 vendorId: vendors[4].id,
                 name: 'Wireless Bluetooth Earbuds',
                 description: 'High-quality wireless earbuds with noise cancellation.',
-                category: 'AUDIO',
+                category: 'AUDIO_WEARABLES',
                 price: 12000,
                 compareAtPrice: 15000,
                 discount: 20,
@@ -445,7 +469,7 @@ async function main() {
                 vendorId: vendors[5].id,
                 name: 'Non-Stick Cooking Pot Set',
                 description: 'Set of 3 non-stick cooking pots. Durable and easy to clean.',
-                category: 'KITCHEN',
+                category: 'COOKWARE',
                 price: 18000,
                 stock: 30,
                 images: ['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500'],

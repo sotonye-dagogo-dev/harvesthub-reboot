@@ -1,35 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import type { Product } from "@/lib/types";
+/**
+ * GET /api/products/trending — Popular products by sales
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet } from '@/lib/cache/redis';
 
-// GET /api/products/trending - Get trending/popular products
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get("limit") || "10");
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Get all products without pagination
-        const productsResult = db.products.findAll({});
-        let products = Array.isArray(productsResult) ? productsResult : productsResult.data;
+        const limit = Math.min(50, parseInt(new URL(req.url).searchParams.get('limit') || '10'));
+        const cacheKey = `cache:products:trending:${limit}`;
+        const cached = await cacheGet<unknown[]>(cacheKey);
+        if (cached) return NextResponse.json({ success: true, products: cached });
 
-        // Get active products
-        products = products.filter((p: Product) => p.isActive);
-
-        // Sort by sales (popularity)
-        products.sort((a: Product, b: Product) => (b.sales || 0) - (a.sales || 0));
-
-        // Limit results
-        products = products.slice(0, limit);
-
-        return NextResponse.json({
-            success: true,
-            products
+        const products = await prisma.product.findMany({
+            where: { isActive: true },
+            include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
+            orderBy: { sales: 'desc' },
+            take: limit,
         });
+
+        await cacheSet(cacheKey, products, 300);
+        return NextResponse.json({ success: true, products });
     } catch (error) {
-        console.error("Get trending products error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch trending products" },
-            { status: 500 }
-        );
+        console.error('GET /api/products/trending error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

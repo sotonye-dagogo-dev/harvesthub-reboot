@@ -1,120 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import type { Product } from "@/lib/types";
+/**
+ * GET /api/products/search — Advanced search with sorting, filters, pagination
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import type { Prisma } from '../../../../prisma/generated/client';
 
-// GET /api/products/search - Advanced product search
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const query = searchParams.get("q") || "";
-        const category = searchParams.get("category");
-        const vendorId = searchParams.get("vendorId");
-        const minPrice = searchParams.get("minPrice");
-        const maxPrice = searchParams.get("maxPrice");
-        const minRating = searchParams.get("minRating");
-        const inStock = searchParams.get("inStock") === "true";
-        const sort = searchParams.get("sort") || "newest";
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "20");
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Get all products without pagination
-        const productsResult = db.products.findAll({});
-        let products = Array.isArray(productsResult) ? productsResult : productsResult.data;
+        const { searchParams } = new URL(req.url);
+        const q = searchParams.get('q');
+        const category = searchParams.get('category');
+        const vendorId = searchParams.get('vendorId');
+        const minPrice = searchParams.get('minPrice');
+        const maxPrice = searchParams.get('maxPrice');
+        const listingType = searchParams.get('listingType');
+        const minRating = searchParams.get('minRating');
+        const inStock = searchParams.get('inStock');
+        const sort = searchParams.get('sort') || 'newest';
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
-        // Filter active products only
-        products = products.filter((p: Product) => p.isActive);
-
-        // Search by query (name, description)
-        if (query) {
-            const lowerQuery = query.toLowerCase();
-            products = products.filter((p: Product) =>
-                p.name.toLowerCase().includes(lowerQuery) ||
-                (p.description && p.description.toLowerCase().includes(lowerQuery))
-            );
+        const where: Prisma.ProductWhereInput = { isActive: true };
+        if (q) {
+            where.OR = [
+                { name: { contains: q, mode: 'insensitive' } },
+                { description: { contains: q, mode: 'insensitive' } },
+                { tags: { has: q.toLowerCase() } },
+            ];
+        }
+        if (category) where.category = category as Prisma.ProductWhereInput['category'];
+        if (vendorId) where.vendorId = vendorId;
+        if (listingType) where.listingType = listingType as Prisma.ProductWhereInput['listingType'];
+        if (minRating) where.averageRating = { gte: parseFloat(minRating) };
+        if (inStock === 'true') where.stock = { gt: 0 };
+        if (minPrice || maxPrice) {
+            where.price = {};
+            if (minPrice) where.price.gte = parseFloat(minPrice);
+            if (maxPrice) where.price.lte = parseFloat(maxPrice);
         }
 
-        // Filter by category
-        if (category) {
-            products = products.filter((p: Product) => p.category === category);
-        }
-
-        // Filter by vendor
-        if (vendorId) {
-            products = products.filter((p: Product) => p.vendorId === vendorId);
-        }
-
-        // Filter by price range
-        if (minPrice) {
-            products = products.filter((p: Product) => p.price >= parseFloat(minPrice));
-        }
-        if (maxPrice) {
-            products = products.filter((p: Product) => p.price <= parseFloat(maxPrice));
-        }
-
-        // Filter by rating
-        if (minRating) {
-            const rating = parseFloat(minRating);
-            products = products.filter((p: Product) => (p.averageRating || 0) >= rating);
-        }
-
-        // Filter by stock
-        if (inStock) {
-            products = products.filter((p: Product) => p.stock > 0);
-        }
-
-        // Sort products
+        let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (sort) {
-            case "price-low":
-                products.sort((a: Product, b: Product) => a.price - b.price);
-                break;
-            case "price-high":
-                products.sort((a: Product, b: Product) => b.price - a.price);
-                break;
-            case "rating":
-                products.sort((a: Product, b: Product) => (b.averageRating || 0) - (a.averageRating || 0));
-                break;
-            case "popular":
-                products.sort((a: Product, b: Product) => (b.sales || 0) - (a.sales || 0));
-                break;
-            case "newest":
-            default:
-                products.sort((a: Product, b: Product) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                break;
+            case 'price-low': orderBy = { price: 'asc' }; break;
+            case 'price-high': orderBy = { price: 'desc' }; break;
+            case 'rating': orderBy = { averageRating: 'desc' }; break;
+            case 'popular': orderBy = { sales: 'desc' }; break;
+            default: orderBy = { createdAt: 'desc' };
         }
 
-        // Pagination
-        const total = products.length;
-        const totalPages = Math.ceil(total / limit);
-        const startIndex = (page - 1) * limit;
-        const paginatedProducts = products.slice(startIndex, startIndex + limit);
+        const [products, total] = await Promise.all([
+            prisma.product.findMany({
+                where,
+                include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
+                orderBy,
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.product.count({ where }),
+        ]);
 
-        // Get available filters (for UI)
-        const availableCategories = [...new Set(products.map((p: Product) => p.category))];
-        const priceRange = {
-            min: products.length > 0 ? Math.min(...products.map((p: Product) => p.price)) : 0,
-            max: products.length > 0 ? Math.max(...products.map((p: Product) => p.price)) : 0,
-        };
+        // Compute available filter facets
+        const allActive = await prisma.product.findMany({
+            where: { isActive: true },
+            select: { category: true, price: true },
+        });
+        const categories = [...new Set(allActive.map(p => p.category))];
+        const prices = allActive.map(p => p.price);
+        const priceRange = { min: prices.length ? Math.min(...prices) : 0, max: prices.length ? Math.max(...prices) : 0 };
 
         return NextResponse.json({
             success: true,
-            products: paginatedProducts,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages,
-                hasMore: page < totalPages,
-            },
-            filters: {
-                categories: availableCategories,
-                priceRange,
-            }
+            products,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasMore: page * limit < total },
+            filters: { categories, priceRange },
         });
     } catch (error) {
-        console.error("Product search error:", error);
-        return NextResponse.json(
-            { error: "Failed to search products" },
-            { status: 500 }
-        );
+        console.error('GET /api/products/search error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -15,12 +15,14 @@ import {
   CreditCard,
   MessageSquare,
   XCircle,
+  Star,
 } from "lucide-react";
 import { StatusTag } from "@/components/ui";
 import { Tag, Steps, message, Modal, Divider } from "antd";
 import Image from "next/image";
 import Link from "next/link";
 import { OrderStatus, DeliveryMethod } from "@/lib/constants";
+import { ReviewForm } from "@/components/features";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -36,8 +38,8 @@ export default function OrderDetailPage() {
       OrderStatus.PENDING,
       OrderStatus.CONFIRMED,
       OrderStatus.PROCESSING,
-      OrderStatus.READY,
-      OrderStatus.COMPLETED,
+      OrderStatus.READY_FOR_PICKUP,
+      OrderStatus.DELIVERED,
     ];
 
     // If cancelled, show cancelled step
@@ -195,6 +197,29 @@ export default function OrderDetailPage() {
                   <h3 className="font-medium text-ds-text-primary">Order Notes</h3>
                   <p className="mt-1 text-sm text-ds-text-secondary">{order.notes}</p>
                 </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Review Products — visible for DELIVERED orders */}
+          {order.status === OrderStatus.DELIVERED && (
+            <Card>
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
+                <Star className="h-5 w-5 text-amber-400" /> Rate Your Products
+              </h2>
+              <p className="mb-4 text-sm text-ds-text-secondary">
+                Your order has been delivered! Let other buyers know about your experience.
+              </p>
+              <div className="divide-y divide-ds-border-subtle">
+                {order.items.map((item) => (
+                  <div key={item.id} className="py-4 first:pt-0 last:pb-0">
+                    <ReviewForm
+                      productId={item.productId}
+                      productName={item.productName}
+                      orderId={order.id}
+                    />
+                  </div>
+                ))}
               </div>
             </Card>
           )}

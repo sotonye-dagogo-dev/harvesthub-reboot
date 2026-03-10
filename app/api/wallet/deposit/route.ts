@@ -1,67 +1,62 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { TransactionType, TransactionStatus } from "@/lib/constants";
+/**
+ * POST /api/wallet/deposit — Instant deposit (card/USSD payment confirmed)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheInvalidate } from '@/lib/cache/redis';
+import { userWalletKey } from '@/lib/cache/keys';
+import { TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
 
-// POST /api/wallet/deposit - Deposit funds to wallet
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const body = await req.json();
+        const { amount, description, paymentReference } = body;
+
+        if (typeof amount !== 'number' || amount < 100) {
+            return NextResponse.json({ error: 'Minimum deposit is ₦100' }, { status: 400 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
+        if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
+        if (!wallet.isActive) return NextResponse.json({ error: 'Wallet is disabled' }, { status: 403 });
 
-        const { amount } = await request.json();
+        const reference = paymentReference || `DEP-${Date.now()}`;
 
-        if (!amount || amount < 100) {
-            return NextResponse.json(
-                { error: "Minimum deposit amount is ₦100" },
-                { status: 400 }
-            );
-        }
+        const result = await prisma.$transaction(async (tx) => {
+            const updated = await tx.wallet.update({
+                where: { id: wallet.id },
+                data: { balance: { increment: amount } },
+            });
 
-        const wallet = await db.wallets.findByUserId(payload.userId);
+            const transaction = await tx.transaction.create({
+                data: {
+                    walletId: wallet.id,
+                    type: TransactionType.DEPOSIT,
+                    amount,
+                    balanceBefore: wallet.balance,
+                    balanceAfter: updated.balance,
+                    status: TransactionStatus.COMPLETED,
+                    reference,
+                    description: description || 'Wallet deposit',
+                },
+            });
 
-        if (!wallet) {
-            return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-        }
-
-        // Create deposit transaction
-        const transaction = await db.transactions.create({
-            walletId: wallet.id,
-            type: TransactionType.DEPOSIT,
-            amount,
-            balanceBefore: wallet.balance,
-            balanceAfter: wallet.balance + amount,
-            status: TransactionStatus.COMPLETED,
-            description: `Wallet deposit`,
-            reference: `DEP-${Date.now()}`,
+            return { wallet: updated, transaction };
         });
 
-        // Update wallet balance
-        await db.wallets.updateBalance(wallet.id, wallet.balance + amount);
+        await cacheInvalidate(userWalletKey(user.userId));
 
-        const updatedWallet = await db.wallets.findById(wallet.id);
-
-        return NextResponse.json({
-            success: true,
-            message: "Deposit successful",
-            transaction,
-            wallet: updatedWallet
-        });
+        return NextResponse.json({ success: true, ...result });
     } catch (error) {
-        console.error("Deposit error:", error);
-        return NextResponse.json(
-            { error: "Failed to process deposit" },
-            { status: 500 }
-        );
+        console.error('POST /api/wallet/deposit error:', error);
+        return NextResponse.json({ error: 'Failed to process deposit' }, { status: 500 });
     }
 }

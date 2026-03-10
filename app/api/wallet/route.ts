@@ -1,35 +1,40 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
+/**
+ * GET /api/wallet — Get current user's wallet
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet } from '@/lib/cache/redis';
+import { userWalletKey } from '@/lib/cache/keys';
 
-// GET /api/wallet - Get user's wallet
-export async function GET() {
+export async function GET(_req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        const cacheKey = userWalletKey(user.userId);
+        const cached = await cacheGet(cacheKey);
+        if (cached) return NextResponse.json({ success: true, wallet: cached });
 
-        const wallet = await db.wallets.findByUserId(payload.userId);
+        const wallet = await prisma.wallet.findUnique({
+            where: { userId: user.userId },
+            include: {
+                transactions: {
+                    take: 5,
+                    orderBy: { createdAt: 'desc' },
+                },
+            },
+        });
+        if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
 
-        if (!wallet) {
-            return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-        }
-
+        await cacheSet(cacheKey, wallet, 120);
         return NextResponse.json({ success: true, wallet });
     } catch (error) {
-        console.error("Get wallet error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch wallet" },
-            { status: 500 }
-        );
+        console.error('GET /api/wallet error:', error);
+        return NextResponse.json({ error: 'Failed to fetch wallet' }, { status: 500 });
     }
 }

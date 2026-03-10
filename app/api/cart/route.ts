@@ -1,60 +1,49 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+/**
+ * GET /api/cart — Get current buyer's cart
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/cart - Get current user's cart
-export async function GET(_request: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Buyers only' }, { status: 403 });
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+        if (!buyer) return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        let cart = await prisma.cart.findUnique({
+            where: { buyerId: buyer.id },
+            include: {
+                items: {
+                    include: { product: { include: { vendor: { select: { id: true, storeName: true, storeLogo: true } } } } },
+                    orderBy: { addedAt: 'desc' },
+                },
+            },
+        });
 
-        const user = db.users.findById(payload.userId);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        if (user.role !== UserRole.BUYER) {
-            return NextResponse.json(
-                { error: "Only buyers have carts" },
-                { status: 403 }
-            );
-        }
-
-        const buyer = db.buyers.findByUserId(user.id);
-        if (!buyer) {
-            return NextResponse.json({ error: "Buyer profile not found" }, { status: 404 });
-        }
-
-        // Get or create cart
-        let cart = db.carts.findByBuyerId(buyer.id);
         if (!cart) {
-            cart = db.carts.create(buyer.id);
+            cart = await prisma.cart.create({
+                data: { buyerId: buyer.id, subtotal: 0 },
+                include: {
+                    items: {
+                        include: { product: { include: { vendor: { select: { id: true, storeName: true, storeLogo: true } } } } },
+                        orderBy: { addedAt: 'desc' },
+                    },
+                },
+            });
         }
 
-        // Enrich cart items with product details
-        const enrichedItems = cart.items.map((item) => {
-            const product = db.products.findById(item.productId);
-            return { ...item, product };
-        });
-
-        return NextResponse.json({
-            success: true,
-            cart: { ...cart, items: enrichedItems },
-        });
+        return NextResponse.json({ success: true, cart });
     } catch (error) {
-        console.error("Get cart error:", error);
-        return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
+        console.error('GET /api/cart error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

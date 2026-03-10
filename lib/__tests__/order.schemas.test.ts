@@ -253,8 +253,8 @@ describe('Order Validation Schemas', () => {
                 OrderStatus.PENDING,
                 OrderStatus.CONFIRMED,
                 OrderStatus.PROCESSING,
-                OrderStatus.READY,
-                OrderStatus.COMPLETED,
+                OrderStatus.READY_FOR_PICKUP,
+                OrderStatus.DELIVERED,
                 OrderStatus.CANCELLED,
                 OrderStatus.REFUNDED,
             ];

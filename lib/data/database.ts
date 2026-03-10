@@ -1,5 +1,5 @@
 /**
- * HarvestHub Mock Database Service
+ * MyHarvestHub Mock Database Service
  * 
  * In-memory database with full CRUD operations
  * Properly typed to match lib/types.ts structure
@@ -284,7 +284,7 @@ export const vendorDb = {
         if (!vendor) return;
 
         const vendorOrders = orders.filter(
-            (o) => o.vendorId === vendorId && o.status === OrderStatus.COMPLETED
+            (o) => o.vendorId === vendorId && o.status === OrderStatus.DELIVERED
         );
         const vendorProducts = products.filter((p) => p.vendorId === vendorId);
         const vendorReviews = reviews.filter((r) =>
@@ -319,6 +319,7 @@ export const productDb = {
     findAll: (filters?: {
         vendorId?: string;
         category?: string;
+        listingType?: string;
         isActive?: boolean;
         isFeatured?: boolean;
         search?: string;
@@ -334,6 +335,9 @@ export const productDb = {
         }
         if (filters?.category) {
             filtered = filtered.filter((p) => p.category === filters.category);
+        }
+        if (filters?.listingType) {
+            filtered = filtered.filter((p) => p.listingType === filters.listingType);
         }
         if (filters?.isActive !== undefined) {
             filtered = filtered.filter((p) => p.isActive === filters.isActive);
@@ -652,7 +656,7 @@ export const orderDb = {
         });
         order.updatedAt = new Date();
 
-        if (status === OrderStatus.COMPLETED) {
+        if (status === OrderStatus.DELIVERED) {
             order.completedAt = new Date();
         }
 

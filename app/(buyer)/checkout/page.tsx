@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import { Radio, message } from "antd";
-import { Store, Wallet, CreditCard, Truck, CheckCircle } from "lucide-react";
+import { Store, Wallet, CreditCard, Truck, CheckCircle, Info, CalendarClock } from "lucide-react";
 import Image from "next/image";
+import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,11 @@ export default function CheckoutPage() {
 
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 : 0;
   const total = totalPrice + deliveryFee;
+
+  const hasServiceItems = useMemo(
+    () => items.some((item) => item.isService),
+    [items]
+  );
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
@@ -59,7 +65,37 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold text-ds-text-primary">Checkout</h1>
+      <h1 className="mb-4 text-3xl font-bold text-ds-text-primary">Checkout</h1>
+
+      {/* Payment Notice */}
+      {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-4">
+          <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
+          <div>
+            <p className="text-sm font-medium text-ds-status-info-text">
+              Payment Processing Coming Soon
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              {PLATFORM_DEFAULTS.PAYMENT_NOTICE}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Service Booking Notice */}
+      {hasServiceItems && (
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-brand-primary/30 bg-ds-brand-primary/5 p-4">
+          <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-text-brand" />
+          <div>
+            <p className="text-sm font-medium text-ds-text-brand">
+              Service Bookings Included
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              Your order includes service bookings. The vendor will confirm your booking and reach out to coordinate scheduling.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
@@ -82,9 +118,16 @@ export default function CheckoutPage() {
                     className="rounded-ds-md object-cover"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-ds-text-primary">{item.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-ds-text-primary">{item.name}</span>
+                      {item.isService && (
+                        <span className="rounded-full bg-ds-status-info-bg px-2 py-0.5 text-[10px] font-medium text-ds-status-info-text">
+                          Service
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-ds-text-secondary">
-                      {item.vendorName} · Qty: {item.quantity}
+                      {item.vendorName} · {item.isService ? "Booking" : `Qty: ${item.quantity}`}
                     </div>
                   </div>
                   <div className="font-semibold text-ds-text-primary">
@@ -255,8 +298,14 @@ export default function CheckoutPage() {
               loading={isPlacingOrder}
             >
               <CheckCircle className="mr-2 h-5 w-5" />
-              Place Order
+              {PLATFORM_DEFAULTS.PAYMENTS_ENABLED ? "Place Order" : "Place Order (Pay Later)"}
             </Button>
+
+            {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+              <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
+                Your order will be placed with payment pending. You&apos;ll be notified when payment processing is available.
+              </p>
+            )}
           </Card>
         </div>
       </div>

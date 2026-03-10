@@ -444,8 +444,7 @@ const products = await prisma.product.findMany({
 - Default country code: +234 (Nigeria)
 - Auto-fill country code for phone/WhatsApp numbers
 - Lagos campus locations:
-  - Oregun (Headquarters)
-  - Lekki
+  - Lekki (Headquarters)
   - Victoria Island
   - Ikeja
   - Festac

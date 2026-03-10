@@ -1,80 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import type { Review } from "@/lib/types";
+/**
+ * GET /api/admin/reviews — List reviews for moderation
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { Prisma, ReviewStatus } from '../../../../prisma/generated/client';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/admin/reviews - Get all reviews for moderation
-export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function GET(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { searchParams } = new URL(req.url);
+        const flagged = searchParams.get('flagged') === 'true';
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+
+        const where: Prisma.ReviewWhereInput = {};
+        if (flagged) {
+            where.status = ReviewStatus.PENDING;
+        }
+
+        const [reviews, total] = await Promise.all([
+            prisma.review.findMany({
+                where,
+                include: {
+                    buyer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+                    product: { select: { id: true, name: true, vendor: { select: { id: true, storeName: true } } } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.review.count({ where }),
+        ]);
+
+        return NextResponse.json({
+            success: true,
+            reviews,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        });
+    } catch (error) {
+        console.error('GET /api/admin/reviews error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    // Check if user is admin
-    if (payload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const flaggedOnly = searchParams.get("flagged") === "true";
-
-    // Mock reviews data - will be replaced with database queries
-    const mockReviews: Review[] = [
-      {
-        id: "review-1",
-        productId: "prod-1",
-        buyerId: "buyer-1",
-        orderId: "order-1",
-        productName: "Sample Product",
-        userName: "John Doe",
-        rating: 5,
-        comment: "Great product!",
-        isFlagged: false,
-        isVerifiedPurchase: true,
-        helpfulCount: 10,
-        notHelpfulCount: 2,
-        createdAt: new Date("2024-01-15"),
-        updatedAt: new Date("2024-01-15"),
-      },
-      {
-        id: "review-2",
-        productId: "prod-2",
-        buyerId: "buyer-2",
-        orderId: "order-2",
-        productName: "Another Product",
-        userName: "Jane Smith",
-        rating: 1,
-        comment: "Terrible experience with inappropriate language",
-        isFlagged: true,
-        isVerifiedPurchase: true,
-        helpfulCount: 0,
-        notHelpfulCount: 15,
-        createdAt: new Date("2024-01-10"),
-        updatedAt: new Date("2024-01-10"),
-      },
-    ];
-
-    const reviews = flaggedOnly
-      ? mockReviews.filter(r => r.isFlagged)
-      : mockReviews;
-
-    return NextResponse.json({
-      success: true,
-      reviews
-    });
-  } catch (error) {
-    console.error("Get admin reviews error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch reviews" },
-      { status: 500 }
-    );
-  }
 }

@@ -1,88 +1,88 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
+/**
+ * GET /api/banners — List banners (public)
+ * POST /api/banners — Create banner (admin only)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
+import { bannerKey } from '@/lib/cache/keys';
+import { Prisma } from '../../../prisma/generated/client';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/banners - Get active banners
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const activeOnly = searchParams.get("active") === "true";
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        let banners = await db.banners.findAll();
+        const { searchParams } = new URL(req.url);
+        const active = searchParams.get('active');
+        const position = searchParams.get('position');
 
-        if (activeOnly) {
+        const cacheKey = bannerKey();
+        const cached = await cacheGet(cacheKey);
+        if (cached) return NextResponse.json(cached);
+
+        const where: Prisma.BannerWhereInput = {};
+        if (active === 'true') {
             const now = new Date();
-            banners = banners.filter((banner) => {
-                const isActive = banner.isActive;
-                const isInDateRange =
-                    (!banner.startDate || new Date(banner.startDate) <= now) &&
-                    (!banner.endDate || new Date(banner.endDate) >= now);
-
-                return isActive && isInDateRange;
-            });
+            where.isActive = true;
+            where.startDate = { lte: now };
+            where.OR = [{ endDate: null }, { endDate: { gte: now } }];
         }
+        if (position) where.position = position as Prisma.EnumBannerPositionFilter;
 
-        // Sort by order/priority
-        banners.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        const banners = await prisma.banner.findMany({
+            where,
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
+        });
 
-        return NextResponse.json({ success: true, banners });
+        const result = { success: true, banners };
+        await cacheSet(cacheKey, result, 300);
+        return NextResponse.json(result);
     } catch (error) {
-        console.error("Get banners error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch banners" },
-            { status: 500 }
-        );
+        console.error('GET /api/banners error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/banners - Create banner (admin only)
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const body = await request.json();
-        const {
-            title,
-            description,
-            imageUrl,
-            linkUrl,
-            startDate,
-            endDate,
-            order,
-            isActive,
-            position,
-        } = body;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const body = await req.json();
+        const { title, subtitle, description, imageUrl, linkUrl, actions, position, theme,
+            accentColor, details, knowMoreLabel, isActive, startDate, endDate,
+            displayOrder, targetAudience } = body;
 
         if (!title || !imageUrl) {
-            return NextResponse.json(
-                { error: "Title and image URL are required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'title and imageUrl are required' }, { status: 400 });
         }
 
-        const banner = await db.banners.create({
-            title,
-            description,
-            imageUrl,
-            linkUrl,
-            position: position || 'HERO',
-            startDate: startDate ? new Date(startDate) : new Date(),
-            endDate: endDate ? new Date(endDate) : null,
-            displayOrder: order || 0,
-            isActive: isActive !== undefined ? isActive : true,
-            clickCount: 0,
-            impressionCount: 0,
-            targetAudience: null,
-            createdBy: 'system',
+        const banner = await prisma.banner.create({
+            data: {
+                title, subtitle, description, imageUrl, linkUrl, actions,
+                position: position || 'HERO', theme: theme || 'BUSINESS',
+                accentColor, details, knowMoreLabel,
+                isActive: isActive ?? true,
+                startDate: startDate ? new Date(startDate) : new Date(),
+                endDate: endDate ? new Date(endDate) : null,
+                displayOrder: displayOrder ?? 0,
+                targetAudience: targetAudience || [],
+                createdBy: user.userId,
+            },
         });
 
-        return NextResponse.json({
-            success: true,
-            message: "Banner created successfully",
-            banner
-        }, { status: 201 });
+        await cacheInvalidate('banners:*');
+        return NextResponse.json({ success: true, banner }, { status: 201 });
     } catch (error) {
-        console.error("Create banner error:", error);
-        return NextResponse.json(
-            { error: "Failed to create banner" },
-            { status: 500 }
-        );
+        console.error('POST /api/banners error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

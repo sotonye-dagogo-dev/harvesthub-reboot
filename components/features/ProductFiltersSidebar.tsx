@@ -15,13 +15,20 @@
 import { useState, useEffect } from "react";
 import { Card, Checkbox, Slider, Rate, Button, Collapse, Badge } from "antd";
 import { Filter } from "lucide-react";
-import { PRODUCT_CATEGORIES, CAMPUS_LOCATIONS } from "@/lib/constants";
+import {
+  PRODUCT_SUBCATEGORIES,
+  CAMPUS_LOCATIONS,
+  LISTING_TYPES,
+  SERVICE_CATEGORIES,
+} from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 
 const { Panel } = Collapse;
 
 export interface ProductFilters {
   categories: string[];
+  listingType: string;
+  serviceCategories: string[];
   priceRange: [number, number];
   minRating: number;
   vendors: string[];
@@ -42,6 +49,8 @@ export function ProductFiltersSidebar({
 }: ProductFiltersProps) {
   const [filters, setFilters] = useState<ProductFilters>({
     categories: [],
+    listingType: "",
+    serviceCategories: [],
     priceRange: [0, 100000],
     minRating: 0,
     vendors: [],
@@ -55,6 +64,8 @@ export function ProductFiltersSidebar({
   useEffect(() => {
     let count = 0;
     if (filters.categories.length > 0) count++;
+    if (filters.listingType) count++;
+    if (filters.serviceCategories.length > 0) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 100000) count++;
     if (filters.minRating > 0) count++;
     if (filters.vendors.length > 0) count++;
@@ -77,6 +88,8 @@ export function ProductFiltersSidebar({
   const clearAllFilters = () => {
     const resetFilters: ProductFilters = {
       categories: [],
+      listingType: "",
+      serviceCategories: [],
       priceRange: [0, 100000],
       minRating: 0,
       vendors: [],
@@ -135,11 +148,61 @@ export function ProductFiltersSidebar({
       }
     >
       <Collapse
-        defaultActiveKey={["categories", "price", "rating"]}
+        defaultActiveKey={["listing-type", "categories", "price", "rating"]}
         bordered={false}
         expandIconPosition="end"
         className="bg-transparent"
       >
+        {/* Listing Type */}
+        <Panel
+          header={<span className="font-semibold">Type {filters.listingType && "(1)"}</span>}
+          key="listing-type"
+        >
+          <div className="space-y-2">
+            {LISTING_TYPES.map((type) => (
+              <Checkbox
+                key={type.value}
+                checked={filters.listingType === type.value}
+                onChange={() =>
+                  updateFilters("listingType", filters.listingType === type.value ? "" : type.value)
+                }
+              >
+                <span className="text-sm">{type.label}</span>
+              </Checkbox>
+            ))}
+          </div>
+        </Panel>
+
+        {/* Service Categories — only shown when listing type is SERVICE */}
+        {filters.listingType === "SERVICE" && (
+          <Panel
+            header={
+              <span className="font-semibold">
+                Service Type{" "}
+                {filters.serviceCategories.length > 0 && `(${filters.serviceCategories.length})`}
+              </span>
+            }
+            key="service-categories"
+          >
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {SERVICE_CATEGORIES.map((cat) => (
+                <Checkbox
+                  key={cat.value}
+                  checked={filters.serviceCategories.includes(cat.value)}
+                  onChange={() => {
+                    const newCats = filters.serviceCategories.includes(cat.value)
+                      ? filters.serviceCategories.filter((c) => c !== cat.value)
+                      : [...filters.serviceCategories, cat.value];
+                    updateFilters("serviceCategories", newCats);
+                  }}
+                >
+                  <span className="text-sm">{cat.label}</span>
+                </Checkbox>
+              ))}
+            </div>
+          </Panel>
+        )}
+
         {/* Categories */}
         <Panel
           header={
@@ -149,8 +212,8 @@ export function ProductFiltersSidebar({
           }
           key="categories"
         >
-          <div className="space-y-2">
-            {PRODUCT_CATEGORIES.map((category) => (
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {PRODUCT_SUBCATEGORIES.map((category) => (
               <Checkbox
                 key={category.value}
                 checked={filters.categories.includes(category.value)}

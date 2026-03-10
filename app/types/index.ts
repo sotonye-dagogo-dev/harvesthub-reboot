@@ -1,7 +1,7 @@
 // Common types for signup process
 
 export type UserType = 'buyer' | 'vendor';
-export type Stage = 'selection' | 'user-info' | 'store-info' | 'account-info' | 'security-info';
+export type Stage = 'selection' | 'user-info' | 'store-info' | 'verification-docs' | 'account-info' | 'security-info';
 export type StoreType = 'retail' | 'wholesale' | 'manufacturing' | 'service';
 
 export interface UserFormData {
@@ -17,12 +17,18 @@ export interface UserFormData {
     position?: string;
     storeDescription?: string;
     businessAddress?: string;
+    serviceCategory?: string;
+    serviceLocation?: string;
     username?: string;
     bio?: string;
     profilePicture?: {
         filename: string;
         url: string;
     } | null;
+    verificationDocuments?: {
+        filename: string;
+        url: string;
+    }[];
     password?: string;
     agreement?: boolean;
 }

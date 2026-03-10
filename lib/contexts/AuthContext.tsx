@@ -9,6 +9,32 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { UserRole } from "@/lib/constants";
 
+// localStorage key for cached user data
+const CACHED_USER_KEY = "myharvesthub_user";
+const REMEMBER_ME_KEY = "myharvesthub_remember_me";
+
+function getCachedUser(): AuthUser | null {
+  try {
+    const data = typeof window !== "undefined" ? localStorage.getItem(CACHED_USER_KEY) : null;
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUser(user: AuthUser | null): void {
+  try {
+    if (typeof window === "undefined") return;
+    if (user) {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(CACHED_USER_KEY);
+    }
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
 // Auth User interface (frontend representation)
 export interface AuthUser {
   id: string;
@@ -55,7 +81,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials & { rememberMe?: boolean }) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -69,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch current user
+  // Fetch current user — network-resilient with localStorage fallback
   const fetchUser = useCallback(async () => {
     try {
       const response = await fetch("/api/auth/me");
@@ -77,12 +103,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-      } else {
+        setCachedUser(data.user);
+      } else if (response.status === 401) {
+        // Explicitly unauthorized — clear cached data
         setUser(null);
+        setCachedUser(null);
+      } else {
+        // Other errors (500, etc.) — use cached data if available
+        const cached = getCachedUser();
+        if (cached) {
+          setUser(cached);
+        } else {
+          setUser(null);
+        }
       }
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
-      setUser(null);
+    } catch {
+      // Network error (offline) — preserve cached auth state
+      const cached = getCachedUser();
+      if (cached) {
+        setUser(cached);
+      }
+      // If no cached user, leave user as-is (null from initial state)
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUser]);
 
   // Login function
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials & { rememberMe?: boolean }) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
@@ -110,6 +151,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const data = await response.json();
     setUser(data.user);
+    setCachedUser(data.user);
+
+    // Persist "remember me" preference
+    try {
+      if (credentials.rememberMe) {
+        localStorage.setItem(REMEMBER_ME_KEY, "true");
+      } else {
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
+    } catch {
+      // ignore
+    }
   };
 
   // Register function
@@ -141,6 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error);
     } finally {
       setUser(null);
+      setCachedUser(null);
     }
   };
 

@@ -1,20 +1,24 @@
 /**
  * POST /api/auth/login
- * 
  * Authenticate user and return tokens
  */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { userDb } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
+import { verifyPassword } from '@/lib/utils/password';
 import { generateTokenPair } from '@/lib/utils/jwt';
 import { setAuthCookies } from '@/lib/utils/cookies';
+import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { email, password } = body;
+        const ip = request.headers.get('x-forwarded-for') || 'unknown';
+        const rl = await rateLimitStrict(ip);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Validate required fields
+        const body = await request.json();
+        const { email, password, rememberMe } = body;
+
         if (!email || !password) {
             return NextResponse.json(
                 { error: 'Email and password are required' },
@@ -22,8 +26,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find user by email
-        const user = userDb.findByEmail(email);
+        const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() },
+        });
+
         if (!user) {
             return NextResponse.json(
                 { error: 'Invalid email or password' },
@@ -31,7 +37,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if user is active
         if (!user.isActive) {
             return NextResponse.json(
                 { error: 'Account is inactive. Please contact support.' },
@@ -39,8 +44,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Verify password
-        const isValidPassword = userDb.verifyPassword(user.id, password);
+        const isValidPassword = await verifyPassword(password, user.password);
         if (!isValidPassword) {
             return NextResponse.json(
                 { error: 'Invalid email or password' },
@@ -48,13 +52,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Generate tokens
-        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role);
+        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role as UserRole);
+        await setAuthCookies(accessToken, refreshToken, !!rememberMe);
 
-        // Set cookies
-        await setAuthCookies(accessToken, refreshToken);
-
-        // Return user data (without password)
         return NextResponse.json(
             {
                 message: 'Login successful',

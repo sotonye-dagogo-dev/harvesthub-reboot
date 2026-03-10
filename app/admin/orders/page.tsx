@@ -65,7 +65,7 @@ export default function AdminOrdersPage() {
     total: mockOrders.length,
     pending: mockOrders.filter((o) => o.status === "PENDING").length,
     processing: mockOrders.filter((o) => o.status === "PROCESSING").length,
-    completed: mockOrders.filter((o) => o.status === "COMPLETED").length,
+    completed: mockOrders.filter((o) => o.status === "DELIVERED").length,
     totalRevenue: mockOrders.reduce((sum, o) => sum + o.total, 0),
   };
 
@@ -125,8 +125,9 @@ export default function AdminOrdersPage() {
                 { label: "Pending", value: "PENDING" },
                 { label: "Confirmed", value: "CONFIRMED" },
                 { label: "Processing", value: "PROCESSING" },
-                { label: "Ready", value: "READY" },
-                { label: "Completed", value: "COMPLETED" },
+                { label: "Ready for Pickup", value: "READY_FOR_PICKUP" },
+                { label: "Out for Delivery", value: "OUT_FOR_DELIVERY" },
+                { label: "Delivered", value: "DELIVERED" },
                 { label: "Cancelled", value: "CANCELLED" },
                 { label: "Refunded", value: "REFUNDED" },
               ]}

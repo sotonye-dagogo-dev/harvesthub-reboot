@@ -28,7 +28,7 @@ function ensureConfigured(): void {
 // Upload presets / folder structure
 // ============================================================================
 
-type ImageCategory = 'products' | 'vendors' | 'banners' | 'profiles' | 'proofs';
+type ImageCategory = 'products' | 'vendors' | 'banners' | 'profiles' | 'proofs' | 'bugs';
 
 function folderFor(category: ImageCategory, subId?: string): string {
     const base = `${ROOT_FOLDER}/${category}`;

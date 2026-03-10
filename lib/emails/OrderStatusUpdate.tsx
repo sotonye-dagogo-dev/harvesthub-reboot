@@ -3,7 +3,7 @@ import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
 import { sendEmail } from "@/lib/services/email";
 
-type StatusType = "CONFIRMED" | "PROCESSING" | "READY" | "COMPLETED" | "CANCELLED" | "REFUNDED";
+type StatusType = "CONFIRMED" | "PROCESSING" | "READY_FOR_PICKUP" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "REFUNDED";
 
 interface OrderStatusUpdateProps {
   firstName: string;
@@ -29,14 +29,20 @@ const STATUS_CONFIG: Record<
     color: "#f59e0b",
     bg: "#fef3c7",
   },
-  READY: {
-    label: "Ready",
-    description: "Your order is ready for pickup / delivery!",
+  READY_FOR_PICKUP: {
+    label: "Ready for Pickup",
+    description: "Your order is ready for pickup!",
     color: "#22c55e",
     bg: "#dcfce7",
   },
-  COMPLETED: {
-    label: "Completed",
+  OUT_FOR_DELIVERY: {
+    label: "Out for Delivery",
+    description: "Your order is on its way to you!",
+    color: "#22c55e",
+    bg: "#dcfce7",
+  },
+  DELIVERED: {
+    label: "Delivered",
     description: "Your order has been delivered / picked up. Enjoy!",
     color: "#22c55e",
     bg: "#dcfce7",

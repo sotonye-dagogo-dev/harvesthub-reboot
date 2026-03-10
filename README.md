@@ -78,6 +78,7 @@ harvesthub-app/
 ## 🎨 Theme
 
 HarvestHub uses a neon purple color scheme:
+
 - **Primary**: #9333ea (purple-600)
 - **Light**: #a855f7 (purple-500)
 - **Dark**: #7e22ce (purple-700)
@@ -97,6 +98,7 @@ Comprehensive documentation is available in the `.github` directory:
 ## 🇳🇬 Nigerian Market Features
 
 ### Lagos Campus Locations
+
 - Oregun (Headquarters)
 - Lekki
 - Victoria Island
@@ -106,12 +108,14 @@ Comprehensive documentation is available in the `.github` directory:
 - Outside Lagos (Other States)
 
 ### Pickup Services
+
 - Sunday Service (First): 7:00 AM - 9:30 AM
 - Sunday Service (Second): 9:30 AM - 12:00 PM
 - Midweek Service: Wednesday 6:00 PM - 8:00 PM
 - Special Events
 
 ### Currency
+
 - Nigerian Naira (₦, NGN)
 - Format: ₦1,234.56
 
@@ -140,7 +144,7 @@ Private - All rights reserved.
 
 ## 👥 Team
 
-Harvesters International Christian Centre Technology Team
+MyHarvestHub Team
 
 ---
 
