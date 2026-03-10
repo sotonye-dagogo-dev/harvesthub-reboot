@@ -1,191 +1,79 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { voucherDb, redemptionDb } from "@/lib/data/vouchers";
+/**
+ * POST /api/vouchers/validate — Validate voucher code (buyer)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-// POST /api/vouchers/validate - Buyer validates voucher code
-export async function POST(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function POST(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+        const { code, orderTotal, vendorId: _vendorId, categoryId: _categoryId } = await req.json();
+        if (!code) return NextResponse.json({ error: 'Voucher code is required' }, { status: 400 });
 
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
+        const voucher = await prisma.voucher.findUnique({ where: { code: code.toUpperCase() } });
+        if (!voucher) return NextResponse.json({ error: 'Invalid voucher code' }, { status: 404 });
 
-    const body = await request.json();
-    const { code, orderAmount, vendorId, categories } = body;
+        // Check active
+        if (!voucher.isActive) return NextResponse.json({ error: 'Voucher is inactive' }, { status: 400 });
 
-    if (!code || typeof code !== "string") {
-      return NextResponse.json(
-        { valid: false, discount: 0, message: "Voucher code is required" },
-        { status: 400 }
-      );
-    }
+        // Check dates
+        const now = new Date();
+        if (voucher.validFrom && now < voucher.validFrom) {
+            return NextResponse.json({ error: 'Voucher is not yet active' }, { status: 400 });
+        }
+        if (voucher.validTo && now > voucher.validTo) {
+            return NextResponse.json({ error: 'Voucher has expired' }, { status: 400 });
+        }
 
-    if (!orderAmount || typeof orderAmount !== "number" || orderAmount <= 0) {
-      return NextResponse.json(
-        { valid: false, discount: 0, message: "Valid order amount is required" },
-        { status: 400 }
-      );
-    }
+        // Check usage limits
+        if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit) {
+            return NextResponse.json({ error: 'Voucher usage limit reached' }, { status: 400 });
+        }
 
-    const voucher = voucherDb.findByCode(code);
+        // Check per-user limit
+        if (voucher.perUserLimit) {
+            const userRedemptions = await prisma.voucherRedemption.count({
+                where: { voucherId: voucher.id, userId: user.userId },
+            });
+            if (userRedemptions >= voucher.perUserLimit) {
+                return NextResponse.json({ error: 'You have already used this voucher the maximum number of times' }, { status: 400 });
+            }
+        }
 
-    if (!voucher) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "Invalid voucher code",
-      });
-    }
+        // Check minimum order
+        if (voucher.minOrderAmount && orderTotal && orderTotal < Number(voucher.minOrderAmount)) {
+            return NextResponse.json({
+                error: `Minimum order amount is ₦${voucher.minOrderAmount}`,
+            }, { status: 400 });
+        }
 
-    // Check active
-    if (!voucher.isActive) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "This voucher is no longer active",
-      });
-    }
+        // Calculate discount
+        let discount = 0;
+        if (voucher.type === 'PERCENTAGE') {
+            discount = (orderTotal ?? 0) * (Number(voucher.value) / 100);
+            if (voucher.maxDiscount) discount = Math.min(discount, Number(voucher.maxDiscount));
+        } else {
+            discount = Number(voucher.value);
+        }
 
-    // Check dates
-    const now = new Date();
-    if (now < new Date(voucher.validFrom)) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "This voucher is not yet valid",
-      });
-    }
-
-    if (now > new Date(voucher.validTo)) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "This voucher has expired",
-      });
-    }
-
-    // Check global usage limit
-    if (voucher.usageLimit !== undefined && voucher.usedCount >= voucher.usageLimit) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "This voucher has reached its usage limit",
-      });
-    }
-
-    // Check per-user limit
-    const userRedemptions = redemptionDb.findByVoucherAndUser(
-      voucher.id,
-      payload.userId
-    );
-    if (userRedemptions.length >= voucher.perUserLimit) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "You have already used this voucher the maximum number of times",
-      });
-    }
-
-    // Check minimum order amount
-    if (orderAmount < voucher.minOrderAmount) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: `Minimum order amount is ₦${voucher.minOrderAmount.toLocaleString()}`,
-      });
-    }
-
-    // Check applicable vendors
-    if (
-      voucher.applicableVendors.length > 0 &&
-      vendorId &&
-      !voucher.applicableVendors.includes(vendorId)
-    ) {
-      return NextResponse.json({
-        valid: false,
-        discount: 0,
-        message: "This voucher is not valid for the selected vendor",
-      });
-    }
-
-    // Check applicable categories
-    if (
-      voucher.applicableCategories.length > 0 &&
-      categories &&
-      Array.isArray(categories)
-    ) {
-      const hasApplicable = categories.some((c: string) =>
-        voucher.applicableCategories.includes(c)
-      );
-      if (!hasApplicable) {
         return NextResponse.json({
-          valid: false,
-          discount: 0,
-          message: "This voucher is not valid for the selected categories",
+            success: true,
+            voucher: {
+                id: voucher.id,
+                code: voucher.code,
+                type: voucher.type,
+                value: voucher.value,
+                discount,
+            },
         });
-      }
+    } catch (error) {
+        console.error('POST /api/vouchers/validate error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    // Calculate discount
-    const discount = calculateDiscount(voucher.type, voucher.value, orderAmount, voucher.maxDiscount);
-
-    return NextResponse.json({
-      valid: true,
-      discount,
-      voucherType: voucher.type,
-      message:
-        voucher.type === "FREE_DELIVERY"
-          ? "Free delivery applied!"
-          : `₦${discount.toLocaleString()} discount applied`,
-    });
-  } catch (error) {
-    console.error("Validate voucher error:", error);
-    return NextResponse.json(
-      { valid: false, discount: 0, message: "Failed to validate voucher" },
-      { status: 500 }
-    );
-  }
-}
-
-function calculateDiscount(
-  type: string,
-  value: number,
-  orderAmount: number,
-  maxDiscount?: number
-): number {
-  let discount = 0;
-
-  switch (type) {
-    case "PERCENTAGE":
-      discount = Math.round((orderAmount * value) / 100);
-      break;
-    case "FIXED_AMOUNT":
-      discount = value;
-      break;
-    case "FREE_DELIVERY":
-      discount = 0;
-      break;
-    default:
-      discount = 0;
-  }
-
-  // Cap at order amount
-  if (discount > orderAmount) {
-    discount = orderAmount;
-  }
-
-  // Cap at max discount if set
-  if (maxDiscount && discount > maxDiscount) {
-    discount = maxDiscount;
-  }
-
-  return discount;
 }

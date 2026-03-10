@@ -10,7 +10,7 @@ import { Input, Select, Table, Modal, message, Tag } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
-import { ProductCategory } from "@/lib/constants";
+import { ProductCategory, PRODUCT_CATEGORY_LABELS } from "@/lib/constants";
 
 export default function AdminProductsPage() {
   const { user } = useAuth();
@@ -83,7 +83,9 @@ export default function AdminProductsPage() {
           </div>
           <div>
             <p className="font-medium text-ds-text-primary">{record.name}</p>
-            <p className="text-xs text-ds-text-tertiary">{record.category?.replace(/_/g, " ")}</p>
+            <p className="text-xs text-ds-text-tertiary">
+              {PRODUCT_CATEGORY_LABELS[record.category] ?? record.category?.replace(/_/g, " ")}
+            </p>
           </div>
         </div>
       ),
@@ -221,7 +223,7 @@ export default function AdminProductsPage() {
               { value: "ALL", label: "All Categories" },
               ...Object.values(ProductCategory).map((cat) => ({
                 value: cat,
-                label: cat.replace(/_/g, " "),
+                label: PRODUCT_CATEGORY_LABELS[cat] ?? cat.replace(/_/g, " "),
               })),
             ]}
           />

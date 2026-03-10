@@ -1,91 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
-import { milestoneDb } from "@/lib/data/milestones";
+﻿/**
+ * GET    /api/admin/milestones/[id] � Get milestone detail
+ * DELETE /api/admin/milestones/[id] � Delete milestone
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/admin/milestones/[id] - Get single milestone detail (admin only)
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteContext { params: Promise<{ id: string }>; }
+
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await (await import("next/headers")).cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const { verifyToken } = await import("@/lib/utils/auth");
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const { id } = await params;
-        const milestone = milestoneDb.findById(id);
-
-        if (!milestone) {
-            return NextResponse.json(
-                { error: "Milestone not found" },
-                { status: 404 }
-            );
-        }
+        const { id } = await context.params;
+        const milestone = await prisma.userMilestone.findUnique({
+            where: { id },
+            include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+        });
+        if (!milestone) return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
 
         return NextResponse.json({ success: true, milestone });
     } catch (error) {
-        console.error("Get milestone error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch milestone" },
-            { status: 500 }
-        );
+        console.error('GET /api/admin/milestones/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/admin/milestones/[id] - Remove a milestone (admin only)
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await (await import("next/headers")).cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const { id } = await context.params;
+        const milestone = await prisma.userMilestone.findUnique({ where: { id } });
+        if (!milestone) return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
 
-        const { verifyToken } = await import("@/lib/utils/auth");
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const { id } = await params;
-        const milestone = milestoneDb.findById(id);
-
-        if (!milestone) {
-            return NextResponse.json(
-                { error: "Milestone not found" },
-                { status: 404 }
-            );
-        }
-
-        const deleted = milestoneDb.delete(id);
-        if (!deleted) {
-            return NextResponse.json(
-                { error: "Failed to delete milestone" },
-                { status: 500 }
-            );
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: "Milestone deleted successfully",
-        });
+        await prisma.userMilestone.delete({ where: { id } });
+        return NextResponse.json({ success: true, message: 'Milestone deleted' });
     } catch (error) {
-        console.error("Delete milestone error:", error);
-        return NextResponse.json(
-            { error: "Failed to delete milestone" },
-            { status: 500 }
-        );
+        console.error('DELETE /api/admin/milestones/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

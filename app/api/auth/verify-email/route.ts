@@ -1,7 +1,10 @@
+/**
+ * POST /api/auth/verify-email
+ * Verify email with token
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
 
-// POST /api/auth/verify-email - Verify email with token
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -14,11 +17,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Find user with this verification token
-        const allUsers = db.users.findAll();
-        const user = allUsers.find(
-            (u) => u.emailVerificationToken === token
-        );
+        const user = await prisma.user.findUnique({
+            where: { emailVerificationToken: token },
+        });
 
         if (!user) {
             return NextResponse.json(
@@ -27,22 +28,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Check token expiry
-        if (
-            user.emailVerificationExpiry &&
-            new Date(user.emailVerificationExpiry) < new Date()
-        ) {
+        if (user.emailVerificationExpiry && user.emailVerificationExpiry < new Date()) {
             return NextResponse.json(
                 { success: false, error: 'Verification token has expired. Please request a new one.' },
                 { status: 400 }
             );
         }
 
-        // Mark email as verified and clear verification fields
-        db.users.update(user.id, {
-            emailVerified: true,
-            emailVerificationToken: null,
-            emailVerificationExpiry: null,
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                emailVerified: true,
+                emailVerificationToken: null,
+                emailVerificationExpiry: null,
+            },
         });
 
         return NextResponse.json({

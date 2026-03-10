@@ -1,118 +1,98 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { bugReportDb } from "@/lib/data/bugReports";
-import { uploadImage } from "@/lib/utils/cloudinary";
-import type { BugReportCategoryValue, BugReportPriorityValue, BugReportStatusValue } from "@/lib/types";
+/**
+ * GET  /api/bug-reports — List bug reports (admin) + stats
+ * POST /api/bug-reports — Create bug report (auth optional)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-const VALID_CATEGORIES: BugReportCategoryValue[] = ['UI_ISSUE', 'PAYMENT', 'ORDER', 'ACCOUNT', 'PERFORMANCE', 'OTHER'];
-const VALID_PRIORITIES: BugReportPriorityValue[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-const VALID_STATUSES: BugReportStatusValue[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
-
-// GET /api/bug-reports — List bug reports (admin only)
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
-        }
+        const url = new URL(req.url);
+        const page = Math.max(parseInt(url.searchParams.get('page') ?? '1', 10), 1);
+        const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') ?? '20', 10), 1), 50);
+        const status = url.searchParams.get('status');
+        const severity = url.searchParams.get('severity');
 
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
-        }
+        const where: Record<string, unknown> = {};
+        if (status) where.status = status;
+        if (severity) where.severity = severity;
 
-        const { searchParams } = new URL(request.url);
-        const status = searchParams.get("status") as BugReportStatusValue | null;
-        const category = searchParams.get("category") as BugReportCategoryValue | null;
-        const priority = searchParams.get("priority") as BugReportPriorityValue | null;
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "20");
+        const [reports, total, stats] = await Promise.all([
+            prisma.bugReport.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.bugReport.count({ where }),
+            prisma.bugReport.groupBy({
+                by: ['status'],
+                _count: { id: true },
+            }),
+        ]);
 
-        const filters: {
-            status?: BugReportStatusValue;
-            category?: BugReportCategoryValue;
-            priority?: BugReportPriorityValue;
-        } = {};
-
-        if (status && VALID_STATUSES.includes(status)) filters.status = status;
-        if (category && VALID_CATEGORIES.includes(category)) filters.category = category;
-        if (priority && VALID_PRIORITIES.includes(priority)) filters.priority = priority;
-
-        const allReports = bugReportDb.getAll(filters);
-        const total = allReports.length;
-        const totalPages = Math.ceil(total / limit);
-        const startIndex = (page - 1) * limit;
-        const reports = allReports.slice(startIndex, startIndex + limit);
-        const stats = bugReportDb.getStats();
+        // Manually join reporter info for reports that have userId
+        const userIds = reports.map((r) => r.userId).filter((id): id is string => !!id);
+        const users = userIds.length > 0
+            ? await prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: { id: true, firstName: true, lastName: true, email: true },
+            })
+            : [];
+        const userMap = new Map(users.map((u) => [u.id, u]));
 
         return NextResponse.json({
             success: true,
-            reports,
-            stats,
-            pagination: { page, limit, total, totalPages },
+            reports: reports.map((r) => ({
+                ...r,
+                reporter: r.userId ? userMap.get(r.userId) ?? null : null,
+            })),
+            stats: (stats as Array<{ status: string; _count: { id: number } }>).reduce<Record<string, number>>((acc, s) => ({ ...acc, [s.status]: s._count.id }), {}),
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
-    } catch {
-        return NextResponse.json({ success: false, error: "Failed to fetch bug reports" }, { status: 500 });
+    } catch (error) {
+        console.error('GET /api/bug-reports error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/bug-reports — Submit a bug report (auth optional)
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const body = await request.json();
-        const { category, priority, subject, details, email, screenshot } = body;
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Validate required fields
-        if (!category || !VALID_CATEGORIES.includes(category)) {
-            return NextResponse.json({ success: false, error: "Valid category is required" }, { status: 400 });
-        }
-        if (!priority || !VALID_PRIORITIES.includes(priority)) {
-            return NextResponse.json({ success: false, error: "Valid priority is required" }, { status: 400 });
-        }
-        if (!subject || typeof subject !== "string" || subject.trim().length < 5) {
-            return NextResponse.json({ success: false, error: "Subject must be at least 5 characters" }, { status: 400 });
-        }
-        if (!details || typeof details !== "string" || details.trim().length < 20) {
-            return NextResponse.json({ success: false, error: "Details must be at least 20 characters" }, { status: 400 });
-        }
-        if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return NextResponse.json({ success: false, error: "Valid email is required" }, { status: 400 });
+        const user = await getCurrentUser();
+        const { title, description, category, severity, screenshot, metadata } = await req.json();
+
+        if (!title || !description) {
+            return NextResponse.json({ error: 'Title and description are required' }, { status: 400 });
         }
 
-        // Check if user is authenticated (optional)
-        let userId: string | null = null;
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
-        if (token) {
-            const payload = await verifyToken(token);
-            if (payload) userId = payload.userId;
-        }
-
-        // Handle screenshot upload if provided
-        let screenshotUrl: string | null = null;
-        let screenshotPublicId: string | null = null;
-        if (screenshot && typeof screenshot === "string") {
-            const uploadResult = await uploadImage(screenshot, "bugs");
-            screenshotUrl = uploadResult.url;
-            screenshotPublicId = uploadResult.publicId;
-        }
-
-        const report = bugReportDb.create({
-            category,
-            priority,
-            subject: subject.trim(),
-            details: details.trim(),
-            email: email.trim().toLowerCase(),
-            userId,
-            screenshotUrl,
-            screenshotPublicId,
+        const report = await prisma.bugReport.create({
+            data: {
+                title,
+                description,
+                category: category ?? 'OTHER',
+                severity: severity ?? 'MEDIUM',
+                screenshot: screenshot ?? null,
+                metadata: metadata ?? {},
+                status: 'OPEN',
+                userId: user?.userId ?? null,
+            },
         });
 
         return NextResponse.json({ success: true, report }, { status: 201 });
-    } catch {
-        return NextResponse.json({ success: false, error: "Failed to submit bug report" }, { status: 500 });
+    } catch (error) {
+        console.error('POST /api/bug-reports error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

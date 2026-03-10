@@ -1,31 +1,34 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { deleteSubscription } from "@/lib/data/pushSubscriptions";
+/**
+ * POST /api/push/unsubscribe — Remove push subscription
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-// POST /api/push/unsubscribe - Remove push subscription for the authenticated user
-export async function POST() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function POST(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { endpoint } = await req.json();
+        if (!endpoint) {
+            return NextResponse.json({ error: 'endpoint is required' }, { status: 400 });
+        }
+
+        const existing = await prisma.pushSubscription.findFirst({
+            where: { endpoint, userId: user.userId },
+        });
+        if (!existing) {
+            return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+        }
+
+        await prisma.pushSubscription.delete({ where: { id: existing.id } });
+        return NextResponse.json({ success: true, message: 'Unsubscribed' });
+    } catch (error) {
+        console.error('POST /api/push/unsubscribe error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    deleteSubscription(payload.userId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Push unsubscribe error:", error);
-    return NextResponse.json(
-      { error: "Failed to remove push subscription" },
-      { status: 500 }
-    );
-  }
 }

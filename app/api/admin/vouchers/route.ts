@@ -1,193 +1,132 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { voucherDb } from "@/lib/data/vouchers";
-import type { VoucherRecord } from "@/lib/data/vouchers";
+/**
+ * GET  /api/admin/vouchers — List vouchers
+ * POST /api/admin/vouchers — Create single or bulk vouchers
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { VoucherType } from '@prisma/client';
+import { UserRole } from '@/lib/constants';
+import crypto from 'crypto';
 
-// GET /api/admin/vouchers - List all vouchers (admin only)
-export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function GET(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { searchParams } = new URL(req.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+        const isActive = searchParams.get('isActive');
+        const type = searchParams.get('type') as VoucherType | null;
+        const search = searchParams.get('search');
+
+        const where: Record<string, unknown> = {};
+        if (isActive !== null) where.isActive = isActive === 'true';
+        if (type && Object.values(VoucherType).includes(type)) where.type = type;
+        if (search) where.code = { contains: search, mode: 'insensitive' };
+
+        const [vouchers, total] = await Promise.all([
+            prisma.voucher.findMany({
+                where,
+                include: { _count: { select: { redemptions: true } } },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.voucher.count({ where }),
+        ]);
+
+        return NextResponse.json({
+            vouchers,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        });
+    } catch (error) {
+        console.error('GET /api/admin/vouchers error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    if (payload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const isActive = searchParams.get("isActive");
-    const type = searchParams.get("type") as VoucherRecord["type"] | null;
-
-    const vouchers = voucherDb.findAll({
-      isActive: isActive !== null ? isActive === "true" : undefined,
-      type: type || undefined,
-    });
-
-    return NextResponse.json({
-      success: true,
-      vouchers,
-      total: vouchers.length,
-    });
-  } catch (error) {
-    console.error("Admin list vouchers error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch vouchers" },
-      { status: 500 }
-    );
-  }
 }
 
-// POST /api/admin/vouchers - Create new voucher(s) (admin only)
-export async function POST(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    if (payload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const {
-      code,
-      type,
-      value,
-      minOrderAmount,
-      maxDiscount,
-      usageLimit,
-      perUserLimit,
-      validFrom,
-      validTo,
-      applicableCategories,
-      applicableVendors,
-      // Bulk generation fields
-      count,
-      prefix,
-    } = body;
-
-    // Validate required fields
-    if (!type || !["PERCENTAGE", "FIXED_AMOUNT", "FREE_DELIVERY"].includes(type)) {
-      return NextResponse.json(
-        { error: "Type must be PERCENTAGE, FIXED_AMOUNT, or FREE_DELIVERY" },
-        { status: 400 }
-      );
-    }
-
-    if (type !== "FREE_DELIVERY" && (!value || typeof value !== "number" || value <= 0)) {
-      return NextResponse.json(
-        { error: "Value must be a positive number" },
-        { status: 400 }
-      );
-    }
-
-    if (!validFrom || !validTo) {
-      return NextResponse.json(
-        { error: "validFrom and validTo are required" },
-        { status: 400 }
-      );
-    }
-
-    if (new Date(validTo) <= new Date(validFrom)) {
-      return NextResponse.json(
-        { error: "validTo must be after validFrom" },
-        { status: 400 }
-      );
-    }
-
-    if (type === "PERCENTAGE" && value > 100) {
-      return NextResponse.json(
-        { error: "Percentage value cannot exceed 100" },
-        { status: 400 }
-      );
-    }
-
-    const baseData = {
-      type: type as VoucherRecord["type"],
-      value: type === "FREE_DELIVERY" ? 0 : value,
-      minOrderAmount: minOrderAmount || 0,
-      maxDiscount: maxDiscount || undefined,
-      usageLimit: usageLimit || undefined,
-      perUserLimit: perUserLimit || 1,
-      validFrom: new Date(validFrom).toISOString(),
-      validTo: new Date(validTo).toISOString(),
-      isActive: true,
-      applicableCategories: applicableCategories || [],
-      applicableVendors: applicableVendors || [],
-      createdBy: payload.userId,
-    };
-
-    // Bulk generation
-    if (count && typeof count === "number" && count > 1) {
-      if (count > 500) {
-        return NextResponse.json(
-          { error: "Maximum bulk generation is 500 vouchers" },
-          { status: 400 }
-        );
-      }
-
-      const vouchers = voucherDb.bulkCreate(baseData, count, prefix || "HH");
-
-      return NextResponse.json({
-        success: true,
-        message: `${count} vouchers created`,
-        vouchers,
-        total: vouchers.length,
-      });
-    }
-
-    // Single voucher creation
-    if (code) {
-      const existing = voucherDb.findByCode(code);
-      if (existing) {
-        return NextResponse.json(
-          { error: "Voucher code already exists" },
-          { status: 409 }
-        );
-      }
-    }
-
-    const voucher = voucherDb.create({
-      ...baseData,
-      code: code?.toUpperCase() || generateCode(prefix),
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Voucher created",
-      voucher,
-    });
-  } catch (error) {
-    console.error("Admin create voucher error:", error);
-    return NextResponse.json(
-      { error: "Failed to create voucher" },
-      { status: 500 }
-    );
-  }
+function generateVoucherCode(prefix: string = ''): string {
+    const random = crypto.randomBytes(4).toString('hex').toUpperCase();
+    return prefix ? `${prefix}-${random}` : random;
 }
 
-function generateCode(prefix?: string): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return prefix ? `${prefix}-${code}` : code;
+export async function POST(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const body = await req.json();
+        const { bulk, count, prefix, ...voucherData } = body;
+
+        // Validate required fields
+        if (!voucherData.type || !voucherData.value || !voucherData.validFrom || !voucherData.validTo) {
+            return NextResponse.json({ error: 'Missing required fields: type, value, validFrom, validTo' }, { status: 400 });
+        }
+        if (!Object.values(VoucherType).includes(voucherData.type)) {
+            return NextResponse.json({ error: 'Invalid voucher type' }, { status: 400 });
+        }
+        if (voucherData.value <= 0) {
+            return NextResponse.json({ error: 'Value must be positive' }, { status: 400 });
+        }
+        if (new Date(voucherData.validTo) <= new Date(voucherData.validFrom)) {
+            return NextResponse.json({ error: 'validTo must be after validFrom' }, { status: 400 });
+        }
+
+        const baseData = {
+            type: voucherData.type as VoucherType,
+            value: voucherData.value,
+            minOrderAmount: voucherData.minOrderAmount ?? 0,
+            maxDiscount: voucherData.maxDiscount ?? null,
+            usageLimit: voucherData.usageLimit ?? null,
+            perUserLimit: voucherData.perUserLimit ?? 1,
+            validFrom: new Date(voucherData.validFrom),
+            validTo: new Date(voucherData.validTo),
+            isActive: voucherData.isActive ?? true,
+            applicableCategories: voucherData.applicableCategories ?? [],
+            applicableVendors: voucherData.applicableVendors ?? [],
+            createdBy: user.userId,
+        };
+
+        if (bulk) {
+            const amount = Math.min(500, Math.max(1, parseInt(count) || 10));
+            const codes: string[] = [];
+
+            // Generate unique codes
+            for (let i = 0; i < amount; i++) {
+                codes.push(generateVoucherCode(prefix || ''));
+            }
+
+            const created = await prisma.voucher.createMany({
+                data: codes.map((code) => ({ ...baseData, code })),
+                skipDuplicates: true,
+            });
+
+            return NextResponse.json(
+                { success: true, message: `Created ${created.count} vouchers`, count: created.count },
+                { status: 201 }
+            );
+        }
+
+        // Single voucher
+        const code = voucherData.code || generateVoucherCode(prefix || '');
+        const existing = await prisma.voucher.findUnique({ where: { code } });
+        if (existing) return NextResponse.json({ error: 'Voucher code already exists' }, { status: 409 });
+
+        const voucher = await prisma.voucher.create({ data: { ...baseData, code } });
+        return NextResponse.json({ success: true, voucher }, { status: 201 });
+    } catch (error) {
+        console.error('POST /api/admin/vouchers error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }

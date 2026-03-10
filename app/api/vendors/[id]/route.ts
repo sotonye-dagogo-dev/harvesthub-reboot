@@ -1,129 +1,83 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole, VendorStatus } from "@/lib/constants";
+﻿/**
+ * GET /api/vendors/[id] � Vendor detail (public)
+ * PUT /api/vendors/[id] � Update vendor (owner/admin)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet } from '@/lib/cache/redis';
+import { vendorKey } from '@/lib/cache/keys';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/vendors/[id] - Get vendor by ID (public for approved vendors)
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteContext { params: Promise<{ id: string }>; }
+
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const { id } = await params;
-        const vendor = db.vendors.findById(id);
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
+        const { id } = await context.params;
+        const cacheK = vendorKey(id);
+        const cached = await cacheGet(cacheK);
+        if (cached) return NextResponse.json({ success: true, vendor: cached });
 
-        // Non-admin users can only see approved vendors
-        // (Admins/vendors can see their own regardless of status)
-        let isAdmin = false;
-        try {
-            const { cookies } = await import("next/headers");
-            const { verifyToken } = await import("@/lib/utils/auth");
-            const cookieStore = await cookies();
-            const token = cookieStore.get("accessToken")?.value;
-            if (token) {
-                const payload = await verifyToken(token);
-                if (payload) {
-                    const user = db.users.findById(payload.userId);
-                    isAdmin = user?.role === UserRole.ADMIN;
-                    // Vendor can see own profile
-                    if (user?.role === UserRole.VENDOR) {
-                        const ownVendor = db.vendors.findByUserId(user.id);
-                        isAdmin = ownVendor?.id === id;
-                    }
-                }
-            }
-        } catch {
-            // Continue as unauthenticated
-        }
-
-        if (!isAdmin && vendor.status !== VendorStatus.APPROVED) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
-
-        const products = db.products.findByVendor(id).filter((p) => p.isActive);
-        const reviews = products.flatMap((p) => db.reviews.findAll({ productId: p.id }));
-        const avgRating =
-            reviews.length > 0
-                ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-                : 0;
-
-        return NextResponse.json({
-            success: true,
-            vendor: {
-                ...vendor,
-                productCount: products.length,
-                reviewCount: reviews.length,
-                averageRating: Math.round(avgRating * 10) / 10,
+        const vendor = await prisma.vendor.findUnique({
+            where: { id },
+            include: {
+                user: { select: { firstName: true, lastName: true, email: true, profilePicture: true } },
+                products: { where: { isActive: true }, take: 8, orderBy: { createdAt: 'desc' } },
             },
         });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+
+        const ratingAgg = await prisma.review.aggregate({
+            where: { product: { vendorId: id } },
+            _avg: { rating: true },
+            _count: true,
+        });
+
+        const result = {
+            ...vendor,
+            averageRating: ratingAgg._avg?.rating ?? 0,
+            totalReviews: ratingAgg._count,
+        };
+
+        await cacheSet(cacheK, result, 300);
+        return NextResponse.json({ success: true, vendor: result });
     } catch (error) {
-        console.error("Get vendor error:", error);
-        return NextResponse.json({ error: "Failed to fetch vendor" }, { status: 500 });
+        console.error('GET /api/vendors/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/vendors/[id] - Update vendor profile (own vendor or admin)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { id } = await context.params;
+        const vendor = await prisma.vendor.findUnique({ where: { id } });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (user.role !== UserRole.ADMIN && vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        const body = await req.json();
+        const allowedFields = ['storeName', 'storeDescription', 'storeLogo', 'storeBanner', 'campus',
+            'categories', 'businessPhone', 'whatsappNumber', 'address', 'isActive', 'isVerified', 'status',
+            'businessVerification'];
+        const data: Record<string, unknown> = {};
+        for (const key of allowedFields) {
+            if (body[key] !== undefined) data[key] = body[key];
         }
 
-        const user = db.users.findById(payload.userId);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const { id } = await params;
-        const vendor = db.vendors.findById(id);
-
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
-
-        // Authorization: only own vendor or admin
-        if (user.role === UserRole.VENDOR) {
-            const ownVendor = db.vendors.findByUserId(user.id);
-            if (!ownVendor || ownVendor.id !== id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (user.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const body = await request.json();
-
-        // Admins can update status; vendors cannot
-        if (user.role !== UserRole.ADMIN) {
-            delete body.status;
-            delete body.commissionRate;
-        }
-
-        const updated = db.vendors.update(id, body);
-        if (!updated) {
-            return NextResponse.json({ error: "Failed to update vendor" }, { status: 500 });
-        }
-
+        const updated = await prisma.vendor.update({ where: { id }, data });
         return NextResponse.json({ success: true, vendor: updated });
     } catch (error) {
-        console.error("Update vendor error:", error);
-        return NextResponse.json({ error: "Failed to update vendor" }, { status: 500 });
+        console.error('PUT /api/vendors/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

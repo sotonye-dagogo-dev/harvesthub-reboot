@@ -485,7 +485,7 @@ export const mockVendors: Vendor[] = [
         storeName: "Chioma's Fresh Farms",
         storeDescription:
             'Premium farm produce delivered fresh from our farms. We specialize in organic vegetables, fresh fruits, and farm-fresh eggs.',
-        category: VendorCategory.FARM_PRODUCE,
+        category: VendorCategory.AGRICULTURE,
         whatsappNumber: '+2348023456789',
         campus: Campus.LEKKI,
         position: Position.HOD,
@@ -623,7 +623,7 @@ export const mockVendors: Vendor[] = [
         storeName: "Blessing's Kitchen Supplies",
         storeDescription:
             'Quality kitchen utensils, cookware, and home essentials. Everything you need for a well-equipped kitchen.',
-        category: VendorCategory.HOME_KITCHEN,
+        category: VendorCategory.KITCHEN_DINING,
         whatsappNumber: '+2348067890123',
         campus: Campus.ISOLO,
         position: Position.ZONAL_COORDINATOR,
@@ -656,7 +656,7 @@ export const mockVendors: Vendor[] = [
         userId: 'user-vendor-006',
         storeName: "Grace's Glow Studio",
         storeDescription:
-            'Professional grooming, hairdressing, and beauty services. Walk-ins welcome, bookings preferred. Serving the Harvesters community with excellence.',
+            'Professional grooming, hairdressing, and beauty services. Walk-ins welcome, bookings preferred. Serving the community with excellence.',
         category: VendorCategory.SERVICES,
         whatsappNumber: '+2348098765432',
         campus: Campus.LEKKI,
@@ -695,7 +695,7 @@ export const mockProducts: Product[] = [
         name: 'Fresh Organic Tomatoes',
         description:
             'Juicy, vine-ripened organic tomatoes harvested fresh from our farms. Perfect for salads, stews, and sauces.',
-        category: ProductCategory.FARM_PRODUCE,
+        category: ProductCategory.AGRICULTURE,
         listingType: ListingType.PRODUCT,
         price: 2500,
         compareAtPrice: 3000,
@@ -722,7 +722,7 @@ export const mockProducts: Product[] = [
         name: 'Farm Fresh Eggs',
         description:
             'Free-range chicken eggs from healthy, well-fed chickens. Rich in protein and nutrients.',
-        category: ProductCategory.FARM_PRODUCE,
+        category: ProductCategory.AGRICULTURE,
         listingType: ListingType.PRODUCT,
         price: 1800,
         stock: 200,
@@ -747,7 +747,7 @@ export const mockProducts: Product[] = [
         name: 'Fresh Spinach Bundle',
         description:
             'Crispy, fresh spinach leaves rich in iron and vitamins. Great for soups, salads, and smoothies.',
-        category: ProductCategory.FARM_PRODUCE,
+        category: ProductCategory.AGRICULTURE,
         listingType: ListingType.PRODUCT,
         price: 1200,
         stock: 80,
@@ -771,7 +771,7 @@ export const mockProducts: Product[] = [
         name: "Men's Ankara Shirt",
         description:
             'Stylish African print shirt for men. Made from quality ankara fabric with modern tailoring.',
-        category: ProductCategory.FASHION,
+        category: ProductCategory.MENS_FASHION,
         listingType: ListingType.PRODUCT,
         price: 8500,
         compareAtPrice: 12000,
@@ -810,7 +810,7 @@ export const mockProducts: Product[] = [
         name: "Women's Ankara Dress",
         description:
             'Elegant African print dress with modern cut. Perfect for events, church, and special occasions.',
-        category: ProductCategory.FASHION,
+        category: ProductCategory.MENS_FASHION,
         listingType: ListingType.PRODUCT,
         price: 12000,
         compareAtPrice: 15000,
@@ -851,7 +851,7 @@ export const mockProducts: Product[] = [
         name: 'Natural Glow Face Cream',
         description:
             'Premium face cream with natural ingredients for glowing, youthful skin. Suitable for all skin types.',
-        category: ProductCategory.BEAUTY,
+        category: ProductCategory.BEAUTY_PRODUCTS,
         listingType: ListingType.PRODUCT,
         price: 5500,
         compareAtPrice: 7000,
@@ -878,7 +878,7 @@ export const mockProducts: Product[] = [
         name: 'Matte Lipstick Set',
         description:
             'Set of 5 long-lasting matte lipsticks in trending shades. Smooth application, vibrant colors.',
-        category: ProductCategory.BEAUTY,
+        category: ProductCategory.BEAUTY_PRODUCTS,
         listingType: ListingType.PRODUCT,
         price: 8000,
         compareAtPrice: 10000,
@@ -907,7 +907,7 @@ export const mockProducts: Product[] = [
         name: 'Wireless Bluetooth Earbuds',
         description:
             'High-quality wireless earbuds with noise cancellation. Crystal clear sound, 24-hour battery life.',
-        category: ProductCategory.ELECTRONICS,
+        category: ProductCategory.MOBILE_DEVICES,
         listingType: ListingType.PRODUCT,
         price: 15000,
         compareAtPrice: 20000,
@@ -941,7 +941,7 @@ export const mockProducts: Product[] = [
         name: 'Fast Charging Power Bank',
         description:
             '20,000mAh power bank with dual USB ports. Fast charging support for all devices.',
-        category: ProductCategory.ELECTRONICS,
+        category: ProductCategory.MOBILE_DEVICES,
         listingType: ListingType.PRODUCT,
         price: 12000,
         stock: 45,
@@ -965,7 +965,7 @@ export const mockProducts: Product[] = [
         name: 'Non-Stick Cookware Set',
         description:
             '5-piece non-stick cookware set with glass lids. Includes frying pans, sauce pan, and casserole.',
-        category: ProductCategory.HOME_KITCHEN,
+        category: ProductCategory.KITCHEN_TOOLS,
         listingType: ListingType.PRODUCT,
         price: 18000,
         compareAtPrice: 25000,
@@ -992,7 +992,7 @@ export const mockProducts: Product[] = [
         name: 'Glass Storage Containers',
         description:
             'Set of 10 glass food storage containers with airtight lids. Microwave and dishwasher safe.',
-        category: ProductCategory.HOME_KITCHEN,
+        category: ProductCategory.KITCHEN_TOOLS,
         listingType: ListingType.PRODUCT,
         price: 8500,
         stock: 35,
@@ -1770,7 +1770,7 @@ export const mockBanners: Banner[] = [
     // Church programme – annual convention
     {
         id: 'banner-001',
-        title: 'Harvesters Annual Convention 2026',
+        title: 'Annual Faith Convention 2026',
         subtitle: 'Encounter. Transform. Multiply.',
         description:
             'Join thousands of believers for three days of worship, teaching, and supernatural encounters.',
@@ -1782,7 +1782,7 @@ export const mockBanners: Banner[] = [
         ],
         theme: 'CHURCH',
         accentColor: '#b45309',
-        details: 'March 14–16, 2026 · Harvesters Oregun HQ · 7 AM & 4 PM daily',
+        details: 'March 14–16, 2026 · Lekki, Lagos · 7 AM & 4 PM daily',
         knowMoreLabel: 'Know More',
         position: 'HERO',
         isActive: true,
@@ -1806,7 +1806,7 @@ export const mockBanners: Banner[] = [
         linkUrl: '/products?category=farm-produce',
         actions: [
             { label: 'Shop Now', href: '/products?category=farm-produce', variant: 'primary' },
-            { label: 'Browse Vendors', href: '/vendors?category=FARM_PRODUCE', variant: 'secondary' },
+            { label: 'Browse Vendors', href: '/vendors?category=AGRICULTURE', variant: 'secondary' },
         ],
         theme: 'PROMOTION',
         accentColor: '#047857',

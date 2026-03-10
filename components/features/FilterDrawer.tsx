@@ -35,15 +35,24 @@ interface ProductFilters {
 }
 
 const CATEGORIES = [
-  "Farm Produce",
-  "Fashion & Apparel",
-  "Food & Beverages",
-  "Beauty & Cosmetics",
-  "Electronics & Gadgets",
-  "Home & Kitchen",
-  "Books & Stationery",
+  "Electronics",
+  "Computers & Office",
+  "Home Appliances",
+  "Furniture",
+  "Home Decor",
+  "Kitchen & Dining",
+  "Fashion",
+  "Beauty & Personal Care",
+  "Baby & Kids",
+  "Toys & Games",
+  "Automotive",
+  "Motorcycles",
+  "Spare Parts",
+  "Industrial & Construction",
+  "Agriculture",
+  "Security & Surveillance",
+  "Grocery & Food",
   "Services",
-  "Crafts & Handmade",
   "Others",
 ];
 

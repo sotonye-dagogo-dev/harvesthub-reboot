@@ -125,9 +125,7 @@ export default function FAQsPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">
-          Frequently Asked Questions
-        </h1>
+        <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Frequently Asked Questions</h1>
         <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
           Quick answers to common questions about using MyHarvestHub
         </p>
@@ -136,9 +134,7 @@ export default function FAQsPage() {
       <div className="mx-auto max-w-4xl space-y-12">
         {faqs.map((section) => (
           <div key={section.category}>
-            <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">
-              {section.category}
-            </h2>
+            <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">{section.category}</h2>
             <div className="space-y-4">
               {section.questions.map((faq, index) => (
                 <details
@@ -160,25 +156,22 @@ export default function FAQsPage() {
       {/* Contact Numbers */}
       <div className="mx-auto mt-12 max-w-4xl rounded-ds-md border border-ds-border-base bg-ds-surface-raised p-6 dark:bg-ds-surface-sunken">
         <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Need More Help?</h2>
-        <p className="mb-4 text-sm text-ds-text-secondary">
-          Reach out to our team directly:
-        </p>
+        <p className="mb-4 text-sm text-ds-text-secondary">Reach out to our team directly:</p>
         <div className="grid gap-2 sm:grid-cols-2">
           <p className="text-sm text-ds-text-secondary">
-            <span className="font-medium text-ds-text-primary">Olaiton:</span>{" "}
-            <a href="tel:+2347088789113" className="text-ds-text-brand hover:underline">+234 708 878 9113</a>
+            <span className="font-medium text-ds-text-primary">Phone/WhatsApp:</span>{" "}
+            <a href="tel:+2347012037766" className="text-ds-text-brand hover:underline">
+              +234 701 203 7766
+            </a>
           </p>
           <p className="text-sm text-ds-text-secondary">
-            <span className="font-medium text-ds-text-primary">James:</span>{" "}
-            <a href="tel:+2348089609875" className="text-ds-text-brand hover:underline">+234 808 960 9875</a>
-          </p>
-          <p className="text-sm text-ds-text-secondary">
-            <span className="font-medium text-ds-text-primary">Niyi:</span>{" "}
-            <a href="tel:+2348062291994" className="text-ds-text-brand hover:underline">+234 806 229 1994</a>
-          </p>
-          <p className="text-sm text-ds-text-secondary">
-            <span className="font-medium text-ds-text-primary">Ose:</span>{" "}
-            <a href="tel:+2348096944444" className="text-ds-text-brand hover:underline">+234 809 694 4444</a>
+            <span className="font-medium text-ds-text-primary">Email:</span>{" "}
+            <a
+              href="mailto:support@myharvesthub.org"
+              className="text-ds-text-brand hover:underline"
+            >
+              support@myharvesthub.org
+            </a>
           </p>
         </div>
       </div>

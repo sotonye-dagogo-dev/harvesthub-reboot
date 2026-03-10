@@ -1,95 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { bugReportDb } from "@/lib/data/bugReports";
-import type { BugReportStatusValue } from "@/lib/types";
+﻿/**
+ * GET   /api/bug-reports/[id] � Bug report detail (admin)
+ * PATCH /api/bug-reports/[id] � Update status/notes (admin)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-const VALID_STATUSES: BugReportStatusValue[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/bug-reports/[id] — Get a single bug report (admin only)
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
-        }
+        const { id } = await context.params;
+        const report = await prisma.bugReport.findUnique({
+            where: { id },
+        });
+        if (!report) return NextResponse.json({ error: 'Report not found' }, { status: 404 });
 
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
-        }
+        // Manually join reporter info
+        const reporter = report.userId
+            ? await prisma.user.findUnique({
+                where: { id: report.userId },
+                select: { firstName: true, lastName: true, email: true },
+            })
+            : null;
 
-        const { id } = await params;
-        const report = bugReportDb.getById(id);
-
-        if (!report) {
-            return NextResponse.json({ success: false, error: "Bug report not found" }, { status: 404 });
-        }
-
-        return NextResponse.json({ success: true, report });
-    } catch {
-        return NextResponse.json({ success: false, error: "Failed to fetch bug report" }, { status: 500 });
+        return NextResponse.json({ success: true, report: { ...report, reporter } });
+    } catch (error) {
+        console.error('GET /api/bug-reports/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PATCH /api/bug-reports/[id] — Update bug report status/notes (admin only)
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
-        }
+        const { id } = await context.params;
+        const report = await prisma.bugReport.findUnique({ where: { id } });
+        if (!report) return NextResponse.json({ error: 'Report not found' }, { status: 404 });
 
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
-        }
+        const body = await req.json();
+        const data: Record<string, unknown> = {};
+        if (body.status !== undefined) data.status = body.status;
+        if (body.metadata !== undefined) data.metadata = body.metadata;
 
-        const { id } = await params;
-        const body = await request.json();
-        const { status, adminNotes } = body;
-
-        const existing = bugReportDb.getById(id);
-        if (!existing) {
-            return NextResponse.json({ success: false, error: "Bug report not found" }, { status: 404 });
-        }
-
-        const updateData: Record<string, unknown> = {};
-
-        if (status) {
-            if (!VALID_STATUSES.includes(status)) {
-                return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
-            }
-            updateData.status = status;
-
-            if (status === 'RESOLVED' || status === 'CLOSED') {
-                updateData.resolvedBy = payload.userId;
-                updateData.resolvedAt = new Date().toISOString();
-            }
-        }
-
-        if (adminNotes !== undefined) {
-            updateData.adminNotes = typeof adminNotes === "string" ? adminNotes.trim() : null;
-        }
-
-        const updated = bugReportDb.update(id, updateData);
-
-        if (!updated) {
-            return NextResponse.json({ success: false, error: "Failed to update bug report" }, { status: 500 });
-        }
-
+        const updated = await prisma.bugReport.update({ where: { id }, data });
         return NextResponse.json({ success: true, report: updated });
-    } catch {
-        return NextResponse.json({ success: false, error: "Failed to update bug report" }, { status: 500 });
+    } catch (error) {
+        console.error('PATCH /api/bug-reports/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

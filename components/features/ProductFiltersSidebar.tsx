@@ -15,7 +15,12 @@
 import { useState, useEffect } from "react";
 import { Card, Checkbox, Slider, Rate, Button, Collapse, Badge } from "antd";
 import { Filter } from "lucide-react";
-import { PRODUCT_CATEGORIES, CAMPUS_LOCATIONS, LISTING_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
+import {
+  PRODUCT_SUBCATEGORIES,
+  CAMPUS_LOCATIONS,
+  LISTING_TYPES,
+  SERVICE_CATEGORIES,
+} from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 
 const { Panel } = Collapse;
@@ -150,11 +155,7 @@ export function ProductFiltersSidebar({
       >
         {/* Listing Type */}
         <Panel
-          header={
-            <span className="font-semibold">
-              Type {filters.listingType && "(1)"}
-            </span>
-          }
+          header={<span className="font-semibold">Type {filters.listingType && "(1)"}</span>}
           key="listing-type"
         >
           <div className="space-y-2">
@@ -177,7 +178,8 @@ export function ProductFiltersSidebar({
           <Panel
             header={
               <span className="font-semibold">
-                Service Type {filters.serviceCategories.length > 0 && `(${filters.serviceCategories.length})`}
+                Service Type{" "}
+                {filters.serviceCategories.length > 0 && `(${filters.serviceCategories.length})`}
               </span>
             }
             key="service-categories"
@@ -210,8 +212,8 @@ export function ProductFiltersSidebar({
           }
           key="categories"
         >
-          <div className="space-y-2">
-            {PRODUCT_CATEGORIES.map((category) => (
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {PRODUCT_SUBCATEGORIES.map((category) => (
               <Checkbox
                 key={category.value}
                 checked={filters.categories.includes(category.value)}

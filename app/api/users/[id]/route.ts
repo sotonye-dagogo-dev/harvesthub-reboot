@@ -1,147 +1,102 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+﻿/**
+ * GET    /api/users/[id] � Get user profile
+ * PUT    /api/users/[id] � Update user
+ * DELETE /api/users/[id] � Delete user (admin/self)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
+import { userProfileKey } from '@/lib/cache/keys';
+import { UserRole } from '@/lib/constants';
 
-async function getAuthUser(_request: NextRequest) {
-    const { cookies } = await import("next/headers");
-    const { verifyToken } = await import("@/lib/utils/auth");
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-    return db.users.findById(payload.userId);
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/users/[id] - Get user by ID (own user or admin)
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        if (user.role !== UserRole.ADMIN && user.userId !== id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
+        const cacheK = userProfileKey(id);
+        const cached = await cacheGet(cacheK);
+        if (cached) return NextResponse.json({ success: true, user: cached });
 
-        // Users can only see their own profile; admins can see all
-        if (authUser.role !== UserRole.ADMIN && authUser.id !== id) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
+        const found = await prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true, firstName: true, lastName: true, email: true,
+                phoneNumber: true, profilePicture: true, role: true, emailVerified: true,
+                createdAt: true, updatedAt: true,
+                buyer: { select: { id: true } },
+                vendor: { select: { id: true, storeName: true } },
+            },
+        });
+        if (!found) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        const user = db.users.findById(id);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        // Remove password from response
-        const { password: _pw, ...safeUser } = user;
-
-        // Enrich with role-specific data
-        let roleData = {};
-        if (user.role === UserRole.BUYER) {
-            const buyer = db.buyers.findByUserId(id);
-            roleData = { buyer };
-        } else if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(id);
-            roleData = { vendor };
-        }
-
-        return NextResponse.json({ success: true, user: { ...safeUser, ...roleData } });
+        await cacheSet(cacheK, found, 300);
+        return NextResponse.json({ success: true, user: found });
     } catch (error) {
-        console.error("Get user error:", error);
-        return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+        console.error('GET /api/users/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/users/[id] - Update user profile (own user or admin)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        if (user.role !== UserRole.ADMIN && user.userId !== id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
-
-        if (authUser.role !== UserRole.ADMIN && authUser.id !== id) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const body = await req.json();
+        const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'profilePicture'];
+        if (user.role === UserRole.ADMIN) {
+            allowedFields.push('role', 'emailVerified');
+        }
+        const data: Record<string, unknown> = {};
+        for (const key of allowedFields) {
+            if (body[key] !== undefined) data[key] = body[key];
         }
 
-        const user = db.users.findById(id);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const body = await request.json();
-
-        // Non-admins cannot change roles or active status
-        if (authUser.role !== UserRole.ADMIN) {
-            delete body.role;
-            delete body.isActive;
-            delete body.emailVerified;
-        }
-
-        // Never allow password change via this endpoint
-        delete body.password;
-        delete body.resetToken;
-        delete body.resetTokenExpiry;
-
-        const updated = db.users.update(id, body);
-        if (!updated) {
-            return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
-        }
-
-        const { password: _pw, ...safeUser } = updated;
-        return NextResponse.json({ success: true, user: safeUser });
+        const updated = await prisma.user.update({ where: { id }, data });
+        await cacheInvalidate(userProfileKey(id));
+        return NextResponse.json({ success: true, user: updated });
     } catch (error) {
-        console.error("Update user error:", error);
-        return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+        console.error('PUT /api/users/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/users/[id] - Delete user (admin only)
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        if (user.role !== UserRole.ADMIN && user.userId !== id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        if (authUser.role !== UserRole.ADMIN) {
-            return NextResponse.json(
-                { error: "Only admins can delete users" },
-                { status: 403 }
-            );
-        }
-
-        const { id } = await params;
-
-        // Prevent self-deletion
-        if (authUser.id === id) {
-            return NextResponse.json(
-                { error: "You cannot delete your own account" },
-                { status: 409 }
-            );
-        }
-
-        const user = db.users.findById(id);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        db.users.delete(id);
-        return NextResponse.json({ success: true, message: "User deleted successfully" });
+        await prisma.user.delete({ where: { id } });
+        await cacheInvalidate(userProfileKey(id));
+        return NextResponse.json({ success: true, message: 'User deleted' });
     } catch (error) {
-        console.error("Delete user error:", error);
-        return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+        console.error('DELETE /api/users/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

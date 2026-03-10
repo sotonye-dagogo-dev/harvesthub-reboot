@@ -55,7 +55,7 @@ export const mockProduct = {
   name: "Test Product",
   description: "Test product description",
   price: 1000,
-  category: "FARM_PRODUCE" as const,
+  category: "ELECTRONICS" as const,
   images: [],
   vendorId: "vendor-test-1",
   stock: 100,

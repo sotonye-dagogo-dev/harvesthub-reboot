@@ -1,85 +1,68 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
-import type { Order } from "@/lib/types";
+﻿/**
+ * GET /api/vendors/[id]/analytics � Vendor dashboard analytics
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-async function getAuthUser(_request: NextRequest) {
-    const { cookies } = await import("next/headers");
-    const { verifyToken } = await import("@/lib/utils/auth");
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-    return db.users.findById(payload.userId);
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/vendors/[id]/analytics - Get vendor analytics
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        const vendor = await prisma.vendor.findUnique({ where: { id } });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (user.role !== UserRole.ADMIN && vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
-        const vendor = db.vendors.findById(id);
+        const url = new URL(req.url);
+        const daysStr = url.searchParams.get('days') ?? '30';
+        const days = Math.min(Math.max(parseInt(daysStr, 10) || 30, 1), 365);
+        const since = new Date(Date.now() - days * 86400000);
 
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
+        const [totalProducts, activeProducts, totalOrders, revenueAgg, ratingAgg, recentOrders] = await Promise.all([
+            prisma.product.count({ where: { vendorId: id } }),
+            prisma.product.count({ where: { vendorId: id, isActive: true } }),
+            prisma.order.count({ where: { vendorId: id, createdAt: { gte: since } } }),
+            prisma.order.aggregate({
+                where: { vendorId: id, status: { in: ['DELIVERED'] }, createdAt: { gte: since } },
+                _sum: { total: true },
+            }),
+            prisma.review.aggregate({
+                where: { product: { vendorId: id } },
+                _avg: { rating: true },
+                _count: true,
+            }),
+            prisma.order.findMany({
+                where: { vendorId: id },
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, orderNumber: true, total: true, status: true, createdAt: true },
+            }),
+        ]);
 
-        // Authorization: only own vendor or admin
-        if (authUser.role === UserRole.VENDOR) {
-            const ownVendor = db.vendors.findByUserId(authUser.id);
-            if (!ownVendor || ownVendor.id !== id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (authUser.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
+        const analytics = {
+            totalProducts,
+            activeProducts,
+            totalOrders,
+            revenue: (revenueAgg._sum as { total?: number | null })?.total ?? 0,
+            averageRating: ratingAgg._avg?.rating ?? 0,
+            totalReviews: ratingAgg._count,
+            recentOrders,
+            period: { days, since: since.toISOString() },
+        };
 
-        // Refresh analytics before returning
-        db.vendors.updateAnalytics(id);
-
-        // Reload vendor to get updated analytics
-        const updatedVendor = db.vendors.findById(id);
-        if (!updatedVendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
-
-        // Get additional analytics data
-        const products = db.products.findByVendor(id);
-        const activeProducts = products.filter((p) => p.isActive);
-        const outOfStockProducts = products.filter((p) => p.stock === 0);
-
-        const ordersResult = db.orders.findAll({ vendorId: id });
-        const ordersList = Array.isArray(ordersResult) ? ordersResult : ordersResult.data;
-        const recentOrders = ordersList
-            .sort((a: Order, b: Order) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 5);
-
-        return NextResponse.json({
-            success: true,
-            analytics: {
-                ...updatedVendor.analytics,
-                activeProducts: activeProducts.length,
-                outOfStockProducts: outOfStockProducts.length,
-                totalListedProducts: products.length,
-                recentOrders: recentOrders.map((order: Order) => ({
-                    id: order.id,
-                    orderNumber: order.orderNumber,
-                    status: order.status,
-                    total: order.total,
-                    createdAt: order.createdAt,
-                })),
-            },
-        });
+        return NextResponse.json({ success: true, analytics });
     } catch (error) {
-        console.error("Get vendor analytics error:", error);
-        return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
+        console.error('GET /api/vendors/[id]/analytics error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

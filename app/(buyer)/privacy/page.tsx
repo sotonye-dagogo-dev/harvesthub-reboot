@@ -11,19 +11,15 @@ export default function PrivacyPolicyPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Privacy Policy</h1>
-        <p className="mb-8 text-sm text-ds-text-secondary">
-          Last updated: February 1, 2026
-        </p>
+        <p className="mb-8 text-sm text-ds-text-secondary">Last updated: February 1, 2026</p>
 
         <div className="prose dark:prose-invert max-w-none">
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              1. Introduction
-            </h2>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">1. Introduction</h2>
             <p className="text-ds-text-secondary">
-              MyHarvestHub (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This
-              Privacy Policy explains how we collect, use, disclose, and safeguard your information
-              when you use our e-commerce marketplace platform.
+              MyHarvestHub (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to
+              protecting your privacy. This Privacy Policy explains how we collect, use, disclose,
+              and safeguard your information when you use our e-commerce marketplace platform.
             </p>
           </section>
 
@@ -68,12 +64,8 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              4. Information Sharing
-            </h2>
-            <p className="mb-4 text-ds-text-secondary">
-              We may share your information with:
-            </p>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">4. Information Sharing</h2>
+            <p className="mb-4 text-ds-text-secondary">We may share your information with:</p>
             <ul className="list-disc space-y-2 pl-6 text-ds-text-secondary">
               <li>
                 <strong>Vendors:</strong> To fulfill orders (name, delivery address, phone number)
@@ -94,9 +86,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              5. Data Security
-            </h2>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">5. Data Security</h2>
             <p className="text-ds-text-secondary">
               We implement industry-standard security measures to protect your data, including:
             </p>
@@ -110,9 +100,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              6. Your Rights
-            </h2>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">6. Your Rights</h2>
             <p className="mb-4 text-ds-text-secondary">You have the right to:</p>
             <ul className="list-disc space-y-2 pl-6 text-ds-text-secondary">
               <li>Access your personal data</li>
@@ -139,9 +127,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              8. Data Retention
-            </h2>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">8. Data Retention</h2>
             <p className="text-ds-text-secondary">
               We retain your data for as long as necessary to provide services, comply with legal
               obligations, resolve disputes, and enforce our agreements. Inactive accounts may be
@@ -172,16 +158,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">
-              11. Contact Us
-            </h2>
+            <h2 className="mb-4 text-2xl font-bold text-ds-text-primary">11. Contact Us</h2>
             <p className="mb-4 text-ds-text-secondary">
               For questions about this Privacy Policy, contact us:
             </p>
             <ul className="space-y-1 text-ds-text-secondary">
               <li>Email: privacy@myharvesthub.org</li>
-              <li>Phone: +234 801 234 5678</li>
-              <li>Address: Harvesters International Christian Centre, Oregun, Lagos, Nigeria</li>
+              <li>Phone: +234 701 203 7766</li>
+              <li>Address: Lekki, Lagos, Nigeria</li>
             </ul>
           </section>
         </div>

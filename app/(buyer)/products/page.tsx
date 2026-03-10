@@ -8,6 +8,7 @@ import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
+import { getSubcategoryValues, VENDOR_CATEGORIES } from "@/lib/constants";
 export const dynamic = "force-dynamic";
 
 export default function ProductsPage() {
@@ -44,9 +45,10 @@ export default function ProductsPage() {
     );
   }
 
-  // Category filter
+  // Category filter — map parent categories to their subcategory values
   if (filters.categories && filters.categories.length > 0) {
-    filteredProducts = filteredProducts.filter((p) => filters.categories!.includes(p.category));
+    const subcatValues = getSubcategoryValues(filters.categories);
+    filteredProducts = filteredProducts.filter((p) => subcatValues.includes(p.category));
   }
 
   // Listing type filter
@@ -93,14 +95,11 @@ export default function ProductsPage() {
     currentPage * itemsPerPage
   );
 
-  const categories = [
-    { id: "FARM_PRODUCE", name: "Farm Produce", slug: "farm-produce" },
-    { id: "FASHION_APPAREL", name: "Fashion & Apparel", slug: "fashion" },
-    { id: "FOOD_BEVERAGES", name: "Food & Beverages", slug: "food" },
-    { id: "BEAUTY_COSMETICS", name: "Beauty & Cosmetics", slug: "beauty" },
-    { id: "ELECTRONICS", name: "Electronics", slug: "electronics" },
-    { id: "HOME_KITCHEN", name: "Home & Kitchen", slug: "home" },
-  ];
+  const categories = VENDOR_CATEGORIES.map((cat) => ({
+    id: cat.value,
+    name: cat.label,
+    slug: cat.value.toLowerCase().replace(/_/g, "-"),
+  }));
 
   const vendorsWithProducts = mockVendors.map((v) => ({
     id: v.id,

@@ -1,51 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
+﻿/**
+ * DELETE /api/admin/reviews/[id] � Delete review with rating recalc (admin)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// DELETE /api/admin/reviews/[id] - Delete a review (admin only)
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function DELETE(req: NextRequest, context: RouteContext) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+
+        await prisma.review.delete({ where: { id } });
+        return NextResponse.json({ success: true, message: 'Review deleted' });
+    } catch (error) {
+        console.error('DELETE /api/admin/reviews/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    // Check if user is admin
-    if (payload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { id } = await params;
-
-    // In production, delete from database
-    // For now, just return success (TODO: implement delete logic with id)
-    console.log("Deleting review:", id);
-
-    return NextResponse.json({
-      success: true,
-      message: "Review deleted successfully"
-    });
-  } catch (error) {
-    console.error("Delete review error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete review" },
-      { status: 500 }
-    );
-  }
 }

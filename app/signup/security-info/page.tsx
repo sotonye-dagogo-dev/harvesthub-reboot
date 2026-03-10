@@ -38,6 +38,7 @@ export default function SecurityInfoPage() {
           campus: (formData.campus || "IKEJA") as Campus,
           position: formData.position ? (formData.position as Position) : undefined,
           isChurchAffiliated: false,
+          verificationDocuments: formData.verificationDocuments,
         }),
         // Buyer-specific fields (minimal for now)
         ...(formData.userType === "buyer" && {

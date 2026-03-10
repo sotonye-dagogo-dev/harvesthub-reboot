@@ -1,143 +1,80 @@
+﻿/**
+ * GET   /api/availability-requests/[id] � Request detail
+ * PATCH /api/availability-requests/[id] � Vendor confirm/decline
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
-import { availabilityRequestDb } from '@/lib/data/availabilityRequestStore';
 
-// GET /api/availability-requests/[id] - Get single availability request
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteContext { params: Promise<{ id: string }>; }
+
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const { id } = await params;
-        const availabilityRequest = availabilityRequestDb.findById(id);
+        const { id } = await context.params;
+        const request = await prisma.productAvailabilityRequest.findUnique({
+            where: { id },
+            include: {
+                buyer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+                vendor: { select: { id: true, storeName: true } },
+            },
+        });
+        if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 });
 
-        if (!availabilityRequest) {
-            return NextResponse.json({ error: 'Availability request not found' }, { status: 404 });
-        }
-
-        const user = db.users.findById(currentUser.userId);
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-
-        // Authorization: only the buyer, the vendor, or an admin can view
-        if (user.role === UserRole.BUYER) {
-            const buyer = db.buyers.findByUserId(user.id);
-            if (!buyer || buyer.id !== availabilityRequest.buyerId) {
-                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            }
-        } else if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(user.id);
-            if (!vendor || vendor.id !== availabilityRequest.vendorId) {
-                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            }
-        } else if (user.role !== UserRole.ADMIN) {
+        // Access control
+        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+        const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+        if (user.role !== UserRole.ADMIN && request.buyerId !== buyer?.id && request.vendorId !== vendor?.id) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // Enrich with names
-        const vendor = db.vendors.findById(availabilityRequest.vendorId);
-        const buyer = db.buyers.findById(availabilityRequest.buyerId);
-        const buyerUser = buyer ? db.users.findById(buyer.userId) : undefined;
-
-        return NextResponse.json({
-            success: true,
-            request: {
-                ...availabilityRequest,
-                vendorName: vendor?.storeName ?? 'Unknown Store',
-                buyerName: buyerUser
-                    ? `${buyerUser.firstName} ${buyerUser.lastName}`
-                    : 'Unknown Buyer',
-            },
-        });
+        return NextResponse.json({ success: true, request });
     } catch (error) {
-        console.error('Get availability request error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch availability request' },
-            { status: 500 }
-        );
+        console.error('GET /api/availability-requests/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PATCH /api/availability-requests/[id] - Vendor confirms or declines
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, context: RouteContext) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const user = db.users.findById(currentUser.userId);
-        if (!user || user.role !== UserRole.VENDOR) {
-            return NextResponse.json(
-                { error: 'Only vendors can respond to availability requests' },
-                { status: 403 }
-            );
-        }
+        const { id } = await context.params;
+        const request = await prisma.productAvailabilityRequest.findUnique({ where: { id } });
+        if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 });
 
-        const vendor = db.vendors.findByUserId(user.id);
-        if (!vendor) {
-            return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
-        }
-
-        const { id } = await params;
-        const availabilityRequest = availabilityRequestDb.findById(id);
-
-        if (!availabilityRequest) {
-            return NextResponse.json({ error: 'Availability request not found' }, { status: 404 });
-        }
-
-        // Only the addressed vendor can respond
-        if (availabilityRequest.vendorId !== vendor.id) {
+        // Only vendor who received the request can respond
+        const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+        if (!vendor || request.vendorId !== vendor.id) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // Cannot respond to already-resolved or expired requests
-        if (availabilityRequest.status !== 'PENDING') {
-            return NextResponse.json(
-                { error: 'This request has already been responded to' },
-                { status: 400 }
-            );
+        if (request.status !== 'PENDING') {
+            return NextResponse.json({ error: 'Request has already been responded to' }, { status: 400 });
         }
 
-        if (new Date(availabilityRequest.expiresAt) < new Date()) {
-            return NextResponse.json(
-                { error: 'This request has expired' },
-                { status: 400 }
-            );
-        }
-
-        const body = await request.json();
-        const { status, vendorResponse } = body;
-
+        const { status, vendorResponse } = await req.json();
         if (!status || !['CONFIRMED', 'DECLINED'].includes(status)) {
-            return NextResponse.json(
-                { error: 'Status must be CONFIRMED or DECLINED' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Status must be CONFIRMED or DECLINED' }, { status: 400 });
         }
 
-        const updated = availabilityRequestDb.updateStatus(id, status, vendorResponse);
-
-        return NextResponse.json({
-            success: true,
-            request: updated,
+        const updated = await prisma.productAvailabilityRequest.update({
+            where: { id },
+            data: { status, vendorResponse: vendorResponse ?? null },
         });
+
+        return NextResponse.json({ success: true, request: updated });
     } catch (error) {
-        console.error('Update availability request error:', error);
-        return NextResponse.json(
-            { error: 'Failed to update availability request' },
-            { status: 500 }
-        );
+        console.error('PATCH /api/availability-requests/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

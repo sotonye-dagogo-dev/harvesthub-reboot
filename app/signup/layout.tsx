@@ -8,9 +8,22 @@ import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { Footer } from "@/components/layout";
 
-export type Stage = "selection" | "user-info" | "store-info" | "account-info" | "security-info";
+export type Stage =
+  | "selection"
+  | "user-info"
+  | "store-info"
+  | "verification-docs"
+  | "account-info"
+  | "security-info";
 
-const stages: Stage[] = ["selection", "user-info", "store-info", "account-info", "security-info"];
+const stages: Stage[] = [
+  "selection",
+  "user-info",
+  "store-info",
+  "verification-docs",
+  "account-info",
+  "security-info",
+];
 
 interface SignupLayoutProps {
   children: ReactNode;
@@ -48,10 +61,18 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
   const handleNext = (): void => {
     if (currentStage < stages.length - 1) {
       // Check if user type is "buyer" and next stage would be "store-info"
-      if (formData.userType === "buyer" && stages[currentStage + 1] === "store-info") {
-        // Skip the store-info stage for buyer users
-        setCurrentStage((prev) => prev + 2);
-        router.push(`/signup/${stages[currentStage + 2]}`);
+      if (
+        formData.userType === "buyer" &&
+        (stages[currentStage + 1] === "store-info" ||
+          stages[currentStage + 1] === "verification-docs")
+      ) {
+        // Skip vendor-only stages for buyer users
+        const skipCount = stages
+          .slice(currentStage + 1)
+          .findIndex((s) => s !== "store-info" && s !== "verification-docs");
+        const nextIndex = currentStage + 1 + skipCount;
+        setCurrentStage(nextIndex);
+        router.push(`/signup/${stages[nextIndex]}`);
       } else {
         setCurrentStage((prev) => prev + 1);
         router.push(`/signup/${stages[currentStage + 1]}`);
@@ -68,13 +89,16 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
       if (
         formData.userType === "buyer" &&
         stages[currentStage] === "account-info" &&
-        stages[currentStage - 1] === "store-info"
+        (stages[currentStage - 1] === "store-info" ||
+          stages[currentStage - 1] === "verification-docs")
       ) {
-        // Skip back past the store-info stage for buyer users
-        setCurrentStage((prev) => prev - 2);
-        router.push(
-          `/signup/${stages[currentStage - 2] === "selection" ? "" : stages[currentStage - 2]}`
+        // Skip back past vendor-only stages for buyer users
+        const prevStages = stages.slice(0, currentStage);
+        const prevIndex = prevStages.findLastIndex(
+          (s) => s !== "store-info" && s !== "verification-docs"
         );
+        setCurrentStage(prevIndex);
+        router.push(`/signup/${stages[prevIndex] === "selection" ? "" : stages[prevIndex]}`);
       } else {
         setCurrentStage((prev) => prev - 1);
         router.push(
@@ -110,7 +134,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
           <div className="w-full flex flex-col justify-stretch items-center z-ds-raised pb-16">
             <div className="flex w-full items-start justify-between">
               <Image
-                src="/dark-bg-harvesters-Logo.jpg"
+                src="/myharvesthublogo.png"
                 alt="MyHarvestHub Logo"
                 preview={false}
                 className="w-20 h-20 self-start"
@@ -140,7 +164,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
           <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
             <h6 className="text-[20px] leading-[22px] text-ds-text-primary">Sign up to</h6>
             <Image
-              src="/dark-bg-harvesters-Logo.jpg"
+              src="/myharvesthublogo.png"
               alt="Logo"
               preview={false}
               className="w-20 h-20 self-start"
@@ -154,7 +178,11 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
             <StageTracker
               currentStage={currentStage}
               stages={stages.filter(
-                (stage) => !(formData.userType === "buyer" && stage === "store-info")
+                (stage) =>
+                  !(
+                    formData.userType === "buyer" &&
+                    (stage === "store-info" || stage === "verification-docs")
+                  )
               )}
               onBack={handleBack}
               canGoBack={currentStage > 0}

@@ -1,0 +1,2 @@
+#npx prisma generate
+#  Get-Content .env.prod | Where-Object { $_ -match '^[^#\s].*=.*' } | ForEach-Object { $k,$v = $_ -split '=',2; [System.Environment]::SetEnvironmentVariable($k.Trim(), $v.Trim(), 'Process') }; $env:DATABASE_URL = $env:DIRECT_DATABASE_URL; npx prisma migrate deploy

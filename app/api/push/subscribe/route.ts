@@ -1,41 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { setSubscription } from "@/lib/data/pushSubscriptions";
+/**
+ * POST /api/push/subscribe — Store push subscription
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-// POST /api/push/subscribe - Store push subscription for the authenticated user
-export async function POST(request: NextRequest) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+export async function POST(req: NextRequest) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { endpoint, keys } = await req.json();
+        if (!endpoint || !keys) {
+            return NextResponse.json({ error: 'endpoint and keys are required' }, { status: 400 });
+        }
+
+        // Upsert by endpoint to avoid duplicates
+        const existing = await prisma.pushSubscription.findFirst({
+            where: { endpoint, userId: user.userId },
+        });
+
+        let subscription;
+        if (existing) {
+            subscription = await prisma.pushSubscription.update({
+                where: { id: existing.id },
+                data: { keys, userId: user.userId },
+            });
+        } else {
+            subscription = await prisma.pushSubscription.create({
+                data: { endpoint, keys, userId: user.userId },
+            });
+        }
+
+        return NextResponse.json({ success: true, subscription }, { status: 201 });
+    } catch (error) {
+        console.error('POST /api/push/subscribe error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { endpoint, keys } = body;
-
-    if (!endpoint || !keys?.p256dh || !keys?.auth) {
-      return NextResponse.json(
-        { error: "Missing required subscription fields (endpoint, keys.p256dh, keys.auth)" },
-        { status: 400 }
-      );
-    }
-
-    setSubscription(payload.userId, { endpoint, keys });
-
-    return NextResponse.json({ success: true }, { status: 201 });
-  } catch (error) {
-    console.error("Push subscribe error:", error);
-    return NextResponse.json(
-      { error: "Failed to store push subscription" },
-      { status: 500 }
-    );
-  }
 }

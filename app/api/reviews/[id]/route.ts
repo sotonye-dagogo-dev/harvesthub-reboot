@@ -1,157 +1,90 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
+﻿/**
+ * GET    /api/reviews/[id] � Single review detail
+ * PUT    /api/reviews/[id] � Update own review
+ * DELETE /api/reviews/[id] � Delete own review (or admin)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-interface RouteParams {
-    params: Promise<{
-        id: string;
-    }>;
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/reviews/[id] - Get review by ID
-export async function GET(
-    request: NextRequest,
-    { params }: RouteParams
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const { id } = await params;
-        const review = await db.reviews.findById(id);
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!review) {
-            return NextResponse.json({ error: "Review not found" }, { status: 404 });
-        }
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({
+            where: { id },
+            include: {
+                buyer: { include: { user: { select: { firstName: true, lastName: true, profilePicture: true } } } },
+                product: { select: { id: true, name: true, images: true } },
+                votes: true,
+            },
+        });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
 
         return NextResponse.json({ success: true, review });
     } catch (error) {
-        console.error("Get review error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch review" },
-            { status: 500 }
-        );
+        console.error('GET /api/reviews/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/reviews/[id] - Update review
-export async function PUT(
-    request: NextRequest,
-    { params }: RouteParams
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id }, include: { buyer: true } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+
+        if (review.buyer.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        const { rating, comment, images } = await req.json();
+        const data: Record<string, unknown> = {};
+        if (rating !== undefined) {
+            if (rating < 1 || rating > 5) return NextResponse.json({ error: 'Rating must be 1-5' }, { status: 400 });
+            data.rating = rating;
         }
+        if (comment !== undefined) data.comment = comment;
+        if (images !== undefined) data.images = images;
 
-        const { id } = await params;
-        const review = await db.reviews.findById(id);
-
-        if (!review) {
-            return NextResponse.json({ error: "Review not found" }, { status: 404 });
-        }
-
-        // Get buyer to check ownership
-        const buyer = await db.buyers.findByUserId(payload.userId);
-        if (!buyer) {
-            return NextResponse.json({ error: "Buyer profile not found" }, { status: 404 });
-        }
-
-        // Only the review author can update
-        if (review.buyerId !== buyer.id) {
-            return NextResponse.json(
-                { error: "You can only update your own reviews" },
-                { status: 403 }
-            );
-        }
-
-        const { rating, comment, images } = await request.json();
-
-        if (rating && (rating < 1 || rating > 5)) {
-            return NextResponse.json(
-                { error: "Rating must be between 1 and 5" },
-                { status: 400 }
-            );
-        }
-
-        const updatedReview = await db.reviews.update(id, {
-            rating: rating || review.rating,
-            comment: comment !== undefined ? comment : review.comment,
-            images: images || review.images,
-            updatedAt: new Date(),
-        });
-
-        return NextResponse.json({
-            success: true,
-            message: "Review updated successfully",
-            review: updatedReview
-        });
+        const updated = await prisma.review.update({ where: { id }, data });
+        return NextResponse.json({ success: true, review: updated });
     } catch (error) {
-        console.error("Update review error:", error);
-        return NextResponse.json(
-            { error: "Failed to update review" },
-            { status: 500 }
-        );
+        console.error('PUT /api/reviews/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/reviews/[id] - Delete review
-export async function DELETE(
-    request: NextRequest,
-    { params }: RouteParams
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id }, include: { buyer: true } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+
+        if (user.role !== UserRole.ADMIN && review.buyer.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const { id } = await params;
-        const review = await db.reviews.findById(id);
-
-        if (!review) {
-            return NextResponse.json({ error: "Review not found" }, { status: 404 });
-        }
-
-        // Get buyer to check ownership
-        const buyer = await db.buyers.findByUserId(payload.userId);
-
-        // Only the review author or admin can delete
-        if (buyer && review.buyerId !== buyer.id && payload.role !== "ADMIN") {
-            return NextResponse.json(
-                { error: "You can only delete your own reviews" },
-                { status: 403 }
-            );
-        }
-
-        if (!buyer && payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Buyer profile not found" }, { status: 404 });
-        }
-
-        await db.reviews.delete(id);
-
-        return NextResponse.json({
-            success: true,
-            message: "Review deleted successfully"
-        });
+        await prisma.review.delete({ where: { id } });
+        return NextResponse.json({ success: true, message: 'Review deleted' });
     } catch (error) {
-        console.error("Delete review error:", error);
-        return NextResponse.json(
-            { error: "Failed to delete review" },
-            { status: 500 }
-        );
+        console.error('DELETE /api/reviews/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

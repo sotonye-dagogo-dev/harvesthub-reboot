@@ -559,6 +559,10 @@ export interface UserFormData {
         filename: string;
         url: string;
     } | null;
+    verificationDocuments?: {
+        filename: string;
+        url: string;
+    }[];
     password?: string;
     agreement?: boolean;
 }
@@ -721,6 +725,45 @@ export interface PlatformSettings {
     paymentNotice: string;
     updatedAt: Timestamp;
     updatedBy?: ID | null;
+}
+
+// ============================================================================
+// VENDOR MARKETING CONTENT TYPES
+// ============================================================================
+
+export type VendorContentType = 'IMAGE' | 'VIDEO' | 'TEXT' | 'PROMO_BANNER';
+export type VendorContentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED';
+
+export interface VendorContent {
+    id: ID;
+    vendorId: ID;
+    type: VendorContentType;
+    title: string;
+    description?: string | null;
+    mediaUrl?: string | null;
+    mediaPublicId?: string | null;
+    textContent?: string | null;
+    status: VendorContentStatus;
+    rejectionReason?: string | null;
+    usageRights: boolean;
+    targetPlatform?: string | null;
+    validFrom?: Timestamp | null;
+    validTo?: Timestamp | null;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+    vendor?: Vendor;
+}
+
+export interface VendorContentFormData {
+    type: VendorContentType;
+    title: string;
+    description?: string;
+    mediaUrl?: string;
+    textContent?: string;
+    usageRights: boolean;
+    targetPlatform?: string;
+    validFrom?: string;
+    validTo?: string;
 }
 
 // ============================================================================

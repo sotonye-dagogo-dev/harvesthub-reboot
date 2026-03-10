@@ -10,8 +10,7 @@ import {
     getPaymentProofFolder,
 } from '@/lib/services/cloudinary';
 import { UserRole } from '@/lib/constants';
-
-// TODO: Apply rateLimitByUser from lib/middleware/rate-limit.ts to this endpoint
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
 type FolderType =
     | 'product'
@@ -92,6 +91,9 @@ export async function POST(request: NextRequest) {
                 { status: 401 }
             );
         }
+
+        const rl = await rateLimitByUser(payload.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
         // ── Parse multipart form data ────────────────────────────────
         const formData = await request.formData();

@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../prisma/generated/client"
 }
 
 datasource db {
@@ -39,45 +40,94 @@ enum VendorStatus {
 }
 
 enum VendorCategory {
-  FARM_PRODUCE
-  FASHION
-  FOOD_BEVERAGES
-  BEAUTY
   ELECTRONICS
-  HOME_KITCHEN
-  BOOKS
+  COMPUTERS_OFFICE
+  HOME_APPLIANCES
+  FURNITURE
+  HOME_DECOR
+  KITCHEN_DINING
+  FASHION
+  BEAUTY
+  BABY_KIDS
+  TOYS_GAMES
+  AUTOMOTIVE
+  MOTORCYCLES
+  SPARE_PARTS
+  INDUSTRIAL
+  AGRICULTURE
+  SECURITY
+  GROCERY_FOOD
   SERVICES
-  CRAFTS
   OTHERS
 }
 
 enum ProductCategory {
-  FRUITS
-  VEGETABLES
-  GRAINS
-  DAIRY
-  MEAT
-  SEAFOOD
-  BEVERAGES
-  SNACKS
-  SPICES
-  ORGANIC
-  CLOTHING
-  SHOES
-  ACCESSORIES
-  SKINCARE
-  MAKEUP
-  HAIRCARE
-  FRAGRANCE
-  PHONES
-  LAPTOPS
-  AUDIO
-  KITCHEN
-  FURNITURE
-  DECOR
-  STATIONERY
-  TEXTBOOKS
-  FICTION
+  // Electronics
+  MOBILE_DEVICES
+  MOBILE_ACCESSORIES
+  AUDIO_WEARABLES
+  TV_VIDEO
+  CAMERAS
+  STORAGE_DEVICES
+  NETWORKING
+  COMPUTER_ACCESSORIES
+  // Computers & Office
+  COMPUTERS
+  DISPLAYS
+  PRINTING_SCANNING
+  OFFICE_EQUIPMENT
+  // Home Appliances
+  LARGE_APPLIANCES
+  KITCHEN_APPLIANCES
+  CLEANING_APPLIANCES
+  COOLING
+  // Furniture
+  LIVING_ROOM
+  BEDROOM
+  DINING
+  OFFICE_FURNITURE
+  STORAGE
+  OUTDOOR_FURNITURE
+  KIDS_FURNITURE
+  // Home Decor
+  HOME_DECOR
+  // Kitchen & Dining
+  COOKWARE
+  DINING_SETS
+  KITCHEN_TOOLS
+  KITCHEN_STORAGE
+  BEVERAGE
+  // Fashion
+  MENS_FASHION
+  WOMENS_FASHION
+  // Beauty & Personal Care
+  BEAUTY_PRODUCTS
+  PERSONAL_CARE
+  HAIR_WIGS
+  // Baby & Kids
+  BABY_ESSENTIALS
+  // Toys & Games
+  TOYS
+  // Automotive
+  CAR_ESSENTIALS
+  CAR_ELECTRONICS
+  CAR_MAINTENANCE
+  // Motorcycles
+  MOTORCYCLE_PARTS
+  // Spare Parts
+  SPARE_PARTS
+  // Industrial & Construction
+  INDUSTRIAL_EQUIPMENT
+  CONSTRUCTION_TOOLS
+  SAFETY_EQUIPMENT
+  // Agriculture
+  AGRICULTURE
+  // Security & Surveillance
+  SECURITY_SURVEILLANCE
+  // Grocery & Food
+  GROCERY
+  // Services & Others
+  SERVICES
   OTHERS
 }
 
@@ -261,6 +311,65 @@ enum NotificationType {
   PROMOTION
 }
 
+enum ListingType {
+  PRODUCT
+  SERVICE
+}
+
+enum ServiceCategory {
+  GROOMING
+  BEAUTY_WELLNESS
+  CREATIVE
+  DIGITAL
+  WRITING_TRANSLATION
+  TUTORING_COACHING
+  HOME_SERVICES
+  FOOD_CATERING
+  EVENTS
+  FASHION_TAILORING
+  FITNESS
+  CONSULTING
+  OTHER_SERVICE
+}
+
+enum ServiceRateType {
+  FIXED
+  HOURLY
+  PER_SESSION
+  STARTING_FROM
+  CUSTOM
+}
+
+enum ServiceLocation {
+  ON_SITE
+  REMOTE
+  BOTH
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum VendorContentType {
+  IMAGE
+  VIDEO
+  TEXT
+  PROMO_BANNER
+}
+
+enum VendorContentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  EXPIRED
+}
+
 // ============================================================================
 // MODELS
 // ============================================================================
@@ -287,7 +396,7 @@ model User {
   emailVerificationExpiry DateTime?
 
   // Tracks user registration order for milestone features (e.g., first 1000 vendors/buyers)
-  registrationSequence Int?    @unique
+  registrationSequence Int? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -330,6 +439,7 @@ model Buyer {
   orders               Order[]
   reviews              Review[]
   availabilityRequests ProductAvailabilityRequest[]
+  bookings             Booking[]
 
   @@index([userId])
   @@map("buyers")
@@ -370,6 +480,8 @@ model Vendor {
   products             Product[]
   orders               Order[]
   availabilityRequests ProductAvailabilityRequest[]
+  bookings             Booking[]
+  vendorContent        VendorContent[]
 
   @@index([userId])
   @@index([campus])
@@ -399,6 +511,10 @@ model Product {
   averageRating  Float           @default(0)
   totalReviews   Int             @default(0)
 
+  // Service vendor support
+  listingType    ListingType @default(PRODUCT)
+  serviceDetails Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -407,12 +523,14 @@ model Product {
   reviews    Review[]
   orderItems OrderItem[]
   cartItems  CartItem[]
+  bookings   Booking[]
 
   @@index([vendorId])
   @@index([category])
   @@index([isActive, isFeatured])
   @@index([name])
   @@index([price])
+  @@index([listingType])
   @@map("products")
 }
 
@@ -592,13 +710,16 @@ model Review {
   notHelpfulCount    Int          @default(0)
   isFlagged          Boolean      @default(false)
   status             ReviewStatus @default(PENDING)
+  vendorResponse     String?
+  vendorRespondedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  buyer   Buyer   @relation(fields: [buyerId], references: [id])
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyer   Buyer        @relation(fields: [buyerId], references: [id])
+  votes   ReviewVote[]
 
   @@unique([productId, buyerId, orderId])
   @@index([productId])
@@ -638,6 +759,17 @@ model Banner {
   @@index([isActive, startDate, endDate])
   @@index([position])
   @@map("banners")
+}
+
+// ── Commission Configuration (per-category defaults, admin-managed) ──
+model CommissionConfig {
+  id        String         @id @default(cuid())
+  category  VendorCategory @unique
+  rate      Float
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("commission_configs")
 }
 
 model Notification {
@@ -863,4 +995,95 @@ model UserMilestone {
   @@index([userId])
   @@index([milestoneType])
   @@map("user_milestones")
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  productId  String
+  buyerId    String
+  vendorId   String
+  date       DateTime
+  startTime  String
+  endTime    String?
+  status     BookingStatus @default(PENDING)
+  notes      String?
+  totalPrice Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyer   Buyer   @relation(fields: [buyerId], references: [id])
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@index([productId])
+  @@index([buyerId])
+  @@index([vendorId])
+  @@index([date])
+  @@index([status])
+  @@map("bookings")
+}
+
+model ReviewVote {
+  id       String  @id @default(cuid())
+  reviewId String
+  userId   String
+  helpful  Boolean
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("review_votes")
+}
+
+model BugReport {
+  id          String  @id @default(cuid())
+  userId      String?
+  title       String
+  description String
+  category    String
+  severity    String  @default("medium")
+  status      String  @default("open")
+  screenshot  String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([severity])
+  @@map("bug_reports")
+}
+
+model VendorContent {
+  id              String              @id @default(cuid())
+  vendorId        String
+  type            VendorContentType
+  title           String
+  description     String?
+  mediaUrl        String?
+  mediaPublicId   String?
+  textContent     String?
+  status          VendorContentStatus @default(PENDING)
+  rejectionReason String?
+  usageRights     Boolean             @default(true)
+  targetPlatform  String?
+  validFrom       DateTime?
+  validTo         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([type])
+  @@map("vendor_content")
 }

@@ -1,173 +1,125 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole, VendorStatus, PickupService } from "@/lib/constants";
+/**
+ * GET /api/vendors — Public vendor list
+ * POST /api/vendors — Create vendor profile (admin/vendor)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet } from '@/lib/cache/redis';
+import { vendorListKey } from '@/lib/cache/keys';
+import { Prisma, VendorStatus, Campus, VendorCategory } from '@/prisma/generated/client';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/vendors - Get vendor list (public)
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const status = searchParams.get("status") as VendorStatus | null;
-        const campus = searchParams.get("campus") || undefined;
-        const category = searchParams.get("category") || undefined;
-        const search = searchParams.get("search") || undefined;
-        const page = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1;
-        const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 20;
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const filters = {
-            status: status || VendorStatus.APPROVED, // Public only sees approved vendors
-            campus,
-            category,
-        };
+        const { searchParams } = new URL(req.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+        const status = (searchParams.get('status') as VendorStatus) || VendorStatus.APPROVED;
+        const campus = searchParams.get('campus');
+        const category = searchParams.get('category');
+        const search = searchParams.get('search');
 
-        let vendors = db.vendors.findAll(filters);
+        const cacheKey = vendorListKey(JSON.stringify({ page, limit, status, campus, category, search }));
+        const cached = await cacheGet(cacheKey);
+        if (cached) return NextResponse.json(cached);
 
-        // Search by store name or description
+        const where: Prisma.VendorWhereInput = { status };
+        if (campus) where.campus = campus as Campus;
+        if (category) where.category = category as VendorCategory;
         if (search) {
-            const q = search.toLowerCase();
-            vendors = vendors.filter(
-                (v) =>
-                    v.storeName.toLowerCase().includes(q) ||
-                    v.storeDescription?.toLowerCase().includes(q)
-            );
+            where.OR = [
+                { storeName: { contains: search, mode: 'insensitive' } },
+                { storeDescription: { contains: search, mode: 'insensitive' } },
+            ];
         }
 
-        // Enrich with product counts
-        const enriched = vendors.map((vendor) => {
-            const products = db.products.findByVendor(vendor.id).filter((p) => p.isActive);
-            return { ...vendor, productCount: products.length };
-        });
+        const [vendors, total] = await Promise.all([
+            prisma.vendor.findMany({
+                where,
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true, email: true } },
+                    _count: { select: { products: true } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.vendor.count({ where }),
+        ]);
 
-        // Pagination
-        const total = enriched.length;
-        const totalPages = Math.ceil(total / limit);
-        const data = enriched.slice((page - 1) * limit, page * limit);
-
-        return NextResponse.json({
+        const result = {
             success: true,
-            vendors: data,
-            pagination: { total, page, limit, totalPages },
-        });
+            vendors: vendors.map((v) => ({
+                ...v,
+                productCount: (v as unknown as { _count: { products: number } })._count.products,
+                _count: undefined,
+            })),
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+        };
+
+        await cacheSet(cacheKey, result, 300);
+        return NextResponse.json(result);
     } catch (error) {
-        console.error("Get vendors error:", error);
-        return NextResponse.json({ error: "Failed to fetch vendors" }, { status: 500 });
+        console.error('GET /api/vendors error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/vendors - Create a new vendor (admin only, or during registration)
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
-
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const user = db.users.findById(payload.userId);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        // Only admins can create vendor profiles for other users
-        // Vendors can only be created for users with VENDOR role
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         if (user.role !== UserRole.ADMIN && user.role !== UserRole.VENDOR) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const body = await request.json();
-        const {
-            userId,
-            storeName,
-            storeDescription,
-            category,
-            whatsappNumber,
-            campus,
-            position,
-            isChurchAffiliated,
-        } = body;
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Determine target user
-        const targetUserId = user.role === UserRole.ADMIN && userId ? userId : user.id;
+        const body = await req.json();
+        const { userId, storeName, storeDescription, category, campus } = body;
 
-        // Validate target user exists and has VENDOR role
-        const targetUser = db.users.findById(targetUserId);
-        if (!targetUser) {
-            return NextResponse.json(
-                { error: "Target user not found" },
-                { status: 404 }
-            );
-        }
+        const targetUserId = userId || user.userId;
+
+        const targetUser = await prisma.user.findUnique({ where: { id: targetUserId } });
+        if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
         if (targetUser.role !== UserRole.VENDOR) {
-            return NextResponse.json(
-                { error: "Target user must have VENDOR role" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Target user must have VENDOR role' }, { status: 400 });
         }
 
-        // Check if vendor already exists for this user
-        const existingVendor = db.vendors.findByUserId(targetUserId);
-        if (existingVendor) {
-            return NextResponse.json(
-                { error: "Vendor profile already exists for this user" },
-                { status: 409 }
-            );
-        }
+        const existing = await prisma.vendor.findUnique({ where: { userId: targetUserId } });
+        if (existing) return NextResponse.json({ error: 'Vendor profile already exists' }, { status: 409 });
 
-        if (!storeName || !category || !whatsappNumber || !campus) {
-            return NextResponse.json(
-                { error: "storeName, category, whatsappNumber, and campus are required" },
-                { status: 400 }
-            );
-        }
+        if (!storeName) return NextResponse.json({ error: 'storeName is required' }, { status: 400 });
 
-        const newVendor = db.vendors.create({
-            userId: targetUserId,
-            storeName,
-            storeDescription: storeDescription || null,
-            category,
-            whatsappNumber,
-            campus,
-            position: position || null,
-            status: VendorStatus.PENDING,
-            isChurchAffiliated: isChurchAffiliated ?? false,
-            commissionRate: 0.05,
-            storeLogo: null,
-            storeBanner: null,
-            businessVerification: null,
-            storeSettings: {
-                allowsPickup: true,
-                allowsDelivery: false,
-                pickupServices: [PickupService.SUNDAY_FIRST],
-                deliveryZones: [],
-                businessHours: null,
-                policies: {
-                    returnPolicy: null,
-                    shippingPolicy: null,
-                    privacyPolicy: null,
+        const vendor = await prisma.vendor.create({
+            data: {
+                userId: targetUserId,
+                storeName,
+                storeDescription: storeDescription || '',
+                category: (category || 'Others') as VendorCategory,
+                campus: (campus || 'LEKKI') as Campus,
+                whatsappNumber: '',
+                status: VendorStatus.PENDING,
+                commissionRate: 5,
+                storeSettings: {
+                    allowsPickup: true,
+                    allowsDelivery: false,
+                    pickupServices: [],
+                    deliveryZones: [],
                 },
             },
-            analytics: {
-                totalSales: 0,
-                totalOrders: 0,
-                totalProducts: 0,
-                averageRating: 0,
-                totalReviews: 0,
-                conversionRate: 0,
-                lastUpdated: new Date(),
-            },
+            include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
         });
 
-        return NextResponse.json({ success: true, vendor: newVendor }, { status: 201 });
+        return NextResponse.json({ success: true, vendor }, { status: 201 });
     } catch (error) {
-        console.error("Create vendor error:", error);
-        return NextResponse.json({ error: "Failed to create vendor" }, { status: 500 });
+        console.error('POST /api/vendors error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

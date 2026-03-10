@@ -1,160 +1,104 @@
-import { NextRequest, NextResponse } from "next/server";
-import { milestoneDb } from "@/lib/data/milestones";
-import type { MilestoneType } from "@/lib/types";
+/**
+ * GET /api/admin/milestones — List milestones (paginated)
+ * POST /api/admin/milestones — Create milestone(s)
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { Prisma, MilestoneType } from '@/prisma/generated/client';
+import { UserRole } from '@/lib/constants';
 
-const VALID_MILESTONE_TYPES: MilestoneType[] = [
-    "FIRST_1000_VENDORS",
-    "FIRST_1000_BUYERS",
-    "FIRST_PURCHASE",
-    "FIRST_SALE",
-    "FIRST_REVIEW",
-    "VENDOR_100_SALES",
-    "CUSTOM",
-];
-
-// GET /api/admin/milestones - List all milestones (admin only)
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const cookieStore = await (await import("next/headers")).cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { searchParams } = new URL(req.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+        const milestoneType = searchParams.get('milestoneType') as MilestoneType | null;
+        const userId = searchParams.get('userId');
+
+        const where: Prisma.UserMilestoneWhereInput = {};
+        if (milestoneType && Object.values(MilestoneType).includes(milestoneType)) {
+            where.milestoneType = milestoneType;
         }
+        if (userId) where.userId = userId;
 
-        const { verifyToken } = await import("@/lib/utils/auth");
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const { searchParams } = new URL(request.url);
-        const milestoneType = searchParams.get("milestoneType") as MilestoneType | null;
-        const userId = searchParams.get("userId");
-        const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-        const limit = Math.min(
-            100,
-            Math.max(1, parseInt(searchParams.get("limit") || "20", 10))
-        );
-
-        const filters: { milestoneType?: MilestoneType; userId?: string } = {};
-        if (milestoneType && VALID_MILESTONE_TYPES.includes(milestoneType)) {
-            filters.milestoneType = milestoneType;
-        }
-        if (userId) {
-            filters.userId = userId;
-        }
-
-        const allMilestones = milestoneDb.findAll(filters);
-        const total = allMilestones.length;
-        const totalPages = Math.ceil(total / limit);
-        const startIndex = (page - 1) * limit;
-        const data = allMilestones.slice(startIndex, startIndex + limit);
+        const [milestones, total] = await Promise.all([
+            prisma.userMilestone.findMany({
+                where,
+                include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+                orderBy: { achievedAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.userMilestone.count({ where }),
+        ]);
 
         return NextResponse.json({
             success: true,
-            milestones: data,
-            pagination: {
-                page,
-                pageSize: limit,
-                total,
-                totalPages,
-                hasMore: page < totalPages,
-            },
+            milestones,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
     } catch (error) {
-        console.error("List milestones error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch milestones" },
-            { status: 500 }
-        );
+        console.error('GET /api/admin/milestones error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/admin/milestones - Create milestone(s) for user(s) (admin only, supports batch)
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const cookieStore = await (await import("next/headers")).cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const { verifyToken } = await import("@/lib/utils/auth");
-        const payload = await verifyToken(token);
-        if (!payload || payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const body = await request.json();
-        const { userId, userIds, milestoneType, label, metadata } = body;
+        const body = await req.json();
+        const { userIds, userId, milestoneType, label, metadata } = body;
 
         if (!milestoneType || !label) {
-            return NextResponse.json(
-                { error: "milestoneType and label are required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'milestoneType and label are required' }, { status: 400 });
         }
 
-        if (!VALID_MILESTONE_TYPES.includes(milestoneType)) {
-            return NextResponse.json(
-                {
-                    error: `Invalid milestoneType. Must be one of: ${VALID_MILESTONE_TYPES.join(", ")}`,
-                },
-                { status: 400 }
-            );
-        }
-
-        // Support batch: userIds array or single userId
-        const targetUserIds: string[] = userIds
-            ? Array.isArray(userIds)
-                ? userIds
-                : [userIds]
-            : userId
-              ? [userId]
-              : [];
-
+        const targetUserIds: string[] = userIds || (userId ? [userId] : []);
         if (targetUserIds.length === 0) {
-            return NextResponse.json(
-                { error: "userId or userIds is required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'userId or userIds is required' }, { status: 400 });
         }
 
-        const created: ReturnType<typeof milestoneDb.create>[] = [];
-        const skipped: { userId: string; reason: string }[] = [];
+        const created: unknown[] = [];
+        const skipped: string[] = [];
 
         for (const uid of targetUserIds) {
-            const existing = milestoneDb.findByUserAndType(uid, milestoneType);
+            // Deduplicate
+            const existing = await prisma.userMilestone.findFirst({
+                where: { userId: uid, milestoneType },
+            });
             if (existing) {
-                skipped.push({ userId: uid, reason: "Milestone already exists" });
+                skipped.push(uid);
                 continue;
             }
-
-            const milestone = milestoneDb.create({
-                userId: uid,
-                milestoneType,
-                label,
-                metadata,
+            const milestone = await prisma.userMilestone.create({
+                data: { userId: uid, milestoneType, label, metadata },
             });
             created.push(milestone);
         }
 
-        return NextResponse.json(
-            {
-                success: true,
-                created,
-                skipped,
-                message: `Created ${created.length} milestone(s), skipped ${skipped.length}`,
-            },
-            { status: 201 }
-        );
+        return NextResponse.json({
+            success: true,
+            created: created.length,
+            skipped: skipped.length,
+            milestones: created,
+        }, { status: 201 });
     } catch (error) {
-        console.error("Create milestone error:", error);
-        return NextResponse.json(
-            { error: "Failed to create milestone" },
-            { status: 500 }
-        );
+        console.error('POST /api/admin/milestones error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

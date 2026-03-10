@@ -1,85 +1,74 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { db } from "@/lib/data/database";
-import { proofOfTransferDb } from "@/lib/data/proofOfTransfers";
-import { TransactionType, TransactionStatus } from "@/lib/constants";
+/**
+ * POST /api/wallet/deposit-request — Bank transfer deposit with proof
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { TransactionType, TransactionStatus } from '@prisma/client';
 
-// POST /api/wallet/deposit-request - Create wallet deposit request via bank transfer
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const rl = await rateLimitByUser(user.userId);
+    if (!rl.success) return getRateLimitResponse(rl);
+
+    const body = await req.json();
+    const { amount, imageUrl, imagePublicId, bankReference } = body;
+
+    if (typeof amount !== 'number' || amount < 100) {
+      return NextResponse.json({ error: 'Minimum deposit is ₦100' }, { status: 400 });
+    }
+    if (!imageUrl) {
+      return NextResponse.json({ error: 'Proof of transfer image is required' }, { status: 400 });
     }
 
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
+    const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
+    if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
+    if (!wallet.isActive) return NextResponse.json({ error: 'Wallet is disabled' }, { status: 403 });
 
-    const body = await request.json();
-    const { amount, bankReference, proofImageUrl, proofImagePublicId, orderId } = body;
+    const reference = `DEPBANK-${Date.now()}`;
 
-    if (!amount || typeof amount !== "number" || amount < 100) {
-      return NextResponse.json(
-        { error: "Minimum deposit amount is ₦100" },
-        { status: 400 }
-      );
-    }
+    const result = await prisma.$transaction(async (tx) => {
+      // Create pending transaction (admin must verify)
+      const transaction = await tx.transaction.create({
+        data: {
+          walletId: wallet.id,
+          type: TransactionType.DEPOSIT,
+          amount,
+          balanceBefore: wallet.balance,
+          balanceAfter: wallet.balance, // unchanged until verified
+          status: TransactionStatus.PENDING,
+          reference,
+          description: 'Bank transfer deposit (pending verification)',
+          metadata: { bankReference, imageUrl, imagePublicId },
+        },
+      });
 
-    if (!proofImageUrl) {
-      return NextResponse.json(
-        { error: "Proof of transfer image is required" },
-        { status: 400 }
-      );
-    }
+      // Create proof-of-transfer record
+      const proof = await tx.proofOfTransfer.create({
+        data: {
+          userId: user.userId,
+          imageUrl,
+          imagePublicId,
+          bankReference,
+          amount,
+        },
+      });
 
-    const wallet = db.wallets.findByUserId(payload.userId);
-    if (!wallet) {
-      return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-    }
-
-    // Create proof-of-transfer record
-    const proof = proofOfTransferDb.create({
-      userId: payload.userId,
-      orderId: orderId || undefined,
-      imageUrl: proofImageUrl,
-      imagePublicId: proofImagePublicId || undefined,
-      bankReference: bankReference || undefined,
-      amount,
-      status: "PENDING",
-    });
-
-    // Create a pending deposit transaction
-    const transaction = db.transactions.create({
-      walletId: wallet.id,
-      type: TransactionType.DEPOSIT,
-      amount,
-      balanceBefore: wallet.balance,
-      balanceAfter: wallet.balance,
-      status: TransactionStatus.PENDING,
-      description: "Bank transfer deposit (pending verification)",
-      reference: `BT-${Date.now()}`,
-      metadata: {
-        proofOfTransferId: proof.id,
-        bankReference: bankReference || null,
-      },
+      return { transaction, proof };
     });
 
     return NextResponse.json({
       success: true,
-      message: "Deposit request submitted. Awaiting admin verification.",
-      proof,
-      transaction,
+      message: 'Deposit request submitted. It will be credited once verified by admin.',
+      transaction: result.transaction,
+      proof: result.proof,
     });
   } catch (error) {
-    console.error("Deposit request error:", error);
-    return NextResponse.json(
-      { error: "Failed to create deposit request" },
-      { status: 500 }
-    );
+    console.error('POST /api/wallet/deposit-request error:', error);
+    return NextResponse.json({ error: 'Failed to submit deposit request' }, { status: 500 });
   }
 }

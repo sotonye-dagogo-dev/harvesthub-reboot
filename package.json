@@ -17,7 +17,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate & prisma migrate deploy"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",

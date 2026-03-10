@@ -1,61 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import type { Product } from "@/lib/types";
+﻿/**
+ * GET /api/products/[id]/related � Related products
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-interface RouteParams {
-    params: Promise<{
-        id: string;
-    }>;
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/products/[id]/related - Get related products
-export async function GET(
-    request: NextRequest,
-    { params }: RouteParams
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const { id } = await params;
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get("limit") || "6");
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const product = await db.products.findById(id);
+        const { id } = await context.params;
+        const product = await prisma.product.findUnique({ where: { id }, select: { category: true, vendorId: true, tags: true } });
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
-        if (!product) {
-            return NextResponse.json({ error: "Product not found" }, { status: 404 });
-        }
-
-        // Get all products without pagination
-        const productsResult = db.products.findAll({});
-        let products = Array.isArray(productsResult) ? productsResult : productsResult.data;
-
-        // Get active products in same category, excluding current product
-        products = products.filter((p: Product) =>
-            p.isActive &&
-            p.id !== id &&
-            (p.category === product.category || p.vendorId === product.vendorId)
-        );
-
-        // Prioritize same category, then same vendor
-        products.sort((a: Product, b: Product) => {
-            if (a.category === product.category && b.category !== product.category) return -1;
-            if (a.category !== product.category && b.category === product.category) return 1;
-            if (a.vendorId === product.vendorId && b.vendorId !== product.vendorId) return -1;
-            if (a.vendorId !== product.vendorId && b.vendorId === product.vendorId) return 1;
-            return 0;
+        const related = await prisma.product.findMany({
+            where: {
+                id: { not: id },
+                isActive: true,
+                OR: [
+                    { category: product.category },
+                    { vendorId: product.vendorId },
+                    { tags: { hasSome: product.tags } },
+                ],
+            },
+            select: { id: true, name: true, price: true, compareAtPrice: true, discount: true, mainImage: true, averageRating: true, totalReviews: true, vendorId: true, category: true, listingType: true },
+            orderBy: { sales: 'desc' },
+            take: 12,
         });
 
-        // Limit results
-        products = products.slice(0, limit);
-
-        return NextResponse.json({
-            success: true,
-            products
-        });
+        return NextResponse.json({ success: true, products: related });
     } catch (error) {
-        console.error("Get related products error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch related products" },
-            { status: 500 }
-        );
+        console.error('GET /api/products/[id]/related error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

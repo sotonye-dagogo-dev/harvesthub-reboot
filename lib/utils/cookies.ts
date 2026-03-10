@@ -42,10 +42,20 @@ export async function setRefreshTokenCookie(token: string): Promise<void> {
 
 /**
  * Set both access and refresh token cookies
+ * When rememberMe is true, extends cookie lifetime
  */
-export async function setAuthCookies(accessToken: string, refreshToken: string): Promise<void> {
-    await setAccessTokenCookie(accessToken);
-    await setRefreshTokenCookie(refreshToken);
+export async function setAuthCookies(accessToken: string, refreshToken: string, rememberMe = false): Promise<void> {
+    const cookieStore = await cookies();
+
+    cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: rememberMe ? 8 * 60 * 60 : 15 * 60, // 8h if remembered, 15m otherwise
+    });
+
+    cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60, // 30d if remembered, 7d otherwise
+    });
 }
 
 /**

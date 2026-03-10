@@ -1,32 +1,45 @@
-import { NextResponse } from 'next/server';
-import { adDb } from '@/lib/data/adStore';
+/**
+ * GET /api/ads/active — Public: return active ads for display rotation
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { AdStatus } from '@prisma/client';
 
-// GET /api/ads/active - Public route: returns active ads for display rotation
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const activeAds = adDb.findActive();
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        // Increment impressions for returned ads
-        for (const ad of activeAds) {
-            adDb.update(ad.id, { impressions: ad.impressions + 1 });
+        const now = new Date();
+
+        const activeAds = await prisma.advertisement.findMany({
+            where: {
+                status: AdStatus.ACTIVE,
+                startDate: { lte: now },
+                endDate: { gte: now },
+            },
+            select: {
+                id: true,
+                title: true,
+                subtitle: true,
+                ctaText: true,
+                ctaLink: true,
+                imageUrl: true,
+            },
+        });
+
+        // Batch increment impressions for returned ads
+        if (activeAds.length > 0) {
+            await prisma.advertisement.updateMany({
+                where: { id: { in: activeAds.map((a) => a.id) } },
+                data: { impressions: { increment: 1 } },
+            });
         }
 
-        // Return only the public-facing fields
-        const publicAds = activeAds.map((ad) => ({
-            id: ad.id,
-            title: ad.title,
-            subtitle: ad.subtitle,
-            ctaText: ad.ctaText,
-            ctaLink: ad.ctaLink,
-            imageUrl: ad.imageUrl,
-        }));
-
-        return NextResponse.json({ success: true, ads: publicAds });
+        return NextResponse.json({ success: true, ads: activeAds });
     } catch (error) {
-        console.error('Get active ads error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch active ads' },
-            { status: 500 }
-        );
+        console.error('GET /api/ads/active error:', error);
+        return NextResponse.json({ error: 'Failed to fetch active ads' }, { status: 500 });
     }
 }

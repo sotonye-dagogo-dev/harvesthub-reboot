@@ -1,49 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
+﻿/**
+ * POST /api/reviews/[id]/flag � Flag a review for moderation
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// Mock flagged reviews storage (using let for mutability in mock backend)
-// eslint-disable-next-line prefer-const
-let mockFlaggedReviews: Set<string> = new Set();
+export async function POST(req: NextRequest, context: RouteContext) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-// POST /api/reviews/[id]/flag - Flag a review for moderation
-export async function POST(
-  request: NextRequest,
-  { params }: RouteParams
-) {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { reason } = await req.json();
+        if (!reason) return NextResponse.json({ error: 'Reason is required' }, { status: 400 });
+
+        const updated = await prisma.review.update({
+            where: { id },
+            data: { isFlagged: true, status: 'PENDING' },
+        });
+
+        return NextResponse.json({ success: true, review: updated });
+    } catch (error) {
+        console.error('POST /api/reviews/[id]/flag error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const { id } = await params;
-
-    // Add to flagged reviews
-    mockFlaggedReviews.add(id);
-
-    return NextResponse.json({
-      success: true,
-      message: "Review flagged for moderation"
-    });
-  } catch (error) {
-    console.error("Flag review error:", error);
-    return NextResponse.json(
-      { error: "Failed to flag review" },
-      { status: 500 }
-    );
-  }
 }

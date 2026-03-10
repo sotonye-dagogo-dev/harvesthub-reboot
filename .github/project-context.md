@@ -4,7 +4,7 @@
 
 HarvestHub is a comprehensive e-commerce marketplace designed to connect buyers and vendors through a secure, modern digital platform. Built specifically for the Nigerian market with a focus on Lagos-based vendors and church community integration, HarvestHub provides a trusted ecosystem where vendors can establish digital storefronts, manage products, and fulfill orders while buyers enjoy a seamless shopping experience with flexible delivery and pickup options.
 
-The platform emphasizes community trust, integrated wallet functionality for smooth transactions, and church-affiliated vendor support through pickup options at church services. HarvestHub aims to empower small businesses and vendors within the Harvesters International Christian Centre community and beyond, creating economic opportunities while maintaining high standards of service and security.
+The platform emphasizes community trust, integrated wallet functionality for smooth transactions, and church-affiliated vendor support through pickup options at church services. HarvestHub aims to empower small businesses and vendors within the Christian community and beyond, creating economic opportunities while maintaining high standards of service and security.
 
 ## Core Features
 

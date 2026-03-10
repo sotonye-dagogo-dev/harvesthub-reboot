@@ -23,15 +23,24 @@ export function formatPosition(position: Position): string {
  */
 export function formatVendorCategory(category: VendorCategory): string {
     const categoryMap: Record<VendorCategory, string> = {
-        FARM_PRODUCE: "Farm Produce",
-        FASHION: "Fashion & Apparel",
-        FOOD_BEVERAGES: "Food & Beverages",
-        BEAUTY: "Beauty & Cosmetics",
-        ELECTRONICS: "Electronics & Gadgets",
-        HOME_KITCHEN: "Home & Kitchen",
-        BOOKS: "Books & Stationery",
+        ELECTRONICS: "Electronics",
+        COMPUTERS_OFFICE: "Computers & Office",
+        HOME_APPLIANCES: "Home Appliances",
+        FURNITURE: "Furniture",
+        HOME_DECOR: "Home Decor",
+        KITCHEN_DINING: "Kitchen & Dining",
+        FASHION: "Fashion",
+        BEAUTY: "Beauty & Personal Care",
+        BABY_KIDS: "Baby & Kids",
+        TOYS_GAMES: "Toys & Games",
+        AUTOMOTIVE: "Automotive",
+        MOTORCYCLES: "Motorcycles",
+        SPARE_PARTS: "Spare Parts",
+        INDUSTRIAL: "Industrial & Construction",
+        AGRICULTURE: "Agriculture",
+        SECURITY: "Security & Surveillance",
+        GROCERY_FOOD: "Grocery & Food",
         SERVICES: "Services",
-        CRAFTS: "Crafts & Handmade",
         OTHERS: "Others",
     };
     return categoryMap[category] || category;

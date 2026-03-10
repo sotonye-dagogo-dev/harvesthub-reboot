@@ -1,6 +1,16 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Mail, MapPin, Phone, Heart, ShieldCheck, Users, Sparkles, HandCoins, Gift } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  Heart,
+  ShieldCheck,
+  Users,
+  Sparkles,
+  HandCoins,
+  Gift,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -30,9 +40,8 @@ export default function AboutPage() {
             <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">Our Mission</h2>
             <p className="text-ds-text-secondary">
               By reducing vendor commissions, leveraging corporate advertising, and offering
-              innovative incentives like coupon vouchers, MyHarvestHub.org aims to empower
-              Christian vendors, increase buyer engagement, and build stronger faith-based
-              communities.
+              innovative incentives like coupon vouchers, MyHarvestHub.org aims to empower Christian
+              vendors, increase buyer engagement, and build stronger faith-based communities.
             </p>
           </section>
 
@@ -120,12 +129,12 @@ export default function AboutPage() {
             <div className="space-y-3 text-ds-text-secondary">
               <p className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-ds-text-brand" />
-                Oregun, Ikeja, Lagos, Nigeria
+                Lekki, Lagos, Nigeria
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-5 w-5 text-ds-text-brand" />
-                <a href="tel:+2348012345678" className="hover:text-ds-text-brand">
-                  +234 801 234 5678
+                <a href="tel:+2347012037766" className="hover:text-ds-text-brand">
+                  +234 701 203 7766
                 </a>
               </p>
               <p className="flex items-center gap-2">

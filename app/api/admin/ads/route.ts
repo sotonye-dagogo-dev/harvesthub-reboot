@@ -1,37 +1,42 @@
+/**
+ * GET /api/admin/ads — List all advertisements
+ */
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { Prisma, AdStatus } from '@/prisma/generated/client';
 import { UserRole } from '@/lib/constants';
-import { adDb } from '@/lib/data/adStore';
-import type { AdStatus } from '@/lib/types';
 
-// GET /api/admin/ads - List all ads with filters (admin only)
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-        if (currentUser.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const { searchParams } = new URL(request.url);
+        const { searchParams } = new URL(req.url);
         const status = searchParams.get('status') as AdStatus | null;
-        const userId = searchParams.get('userId') || undefined;
+        const userId = searchParams.get('userId');
 
-        const filters: { status?: AdStatus; userId?: string } = {};
-        if (status) filters.status = status;
-        if (userId) filters.userId = userId;
+        const where: Prisma.AdvertisementWhereInput = {};
+        if (status && Object.values(AdStatus).includes(status)) where.status = status;
+        if (userId) where.advertiserId = userId;
 
-        const ads = adDb.findAll(filters);
+        const ads = await prisma.advertisement.findMany({
+            where,
+            include: {
+                advertiser: { select: { id: true, firstName: true, lastName: true, email: true } },
+                payments: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
 
         return NextResponse.json({ success: true, ads });
     } catch (error) {
-        console.error('Admin get ads error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch ads' },
-            { status: 500 }
-        );
+        console.error('GET /api/admin/ads error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

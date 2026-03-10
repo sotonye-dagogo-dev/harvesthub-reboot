@@ -1,129 +1,98 @@
+/**
+ * GET  /api/availability-requests — List requests (role-filtered)
+ * POST /api/availability-requests — Create request (buyer only)
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
-import { availabilityRequestDb } from '@/lib/data/availabilityRequestStore';
 
-// GET /api/availability-requests - List availability requests for the authenticated user
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const user = db.users.findById(currentUser.userId);
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
+        const url = new URL(req.url);
+        const page = Math.max(parseInt(url.searchParams.get('page') ?? '1', 10), 1);
+        const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') ?? '20', 10), 1), 50);
+        const status = url.searchParams.get('status');
 
-        let requests;
+        const where: Record<string, unknown> = {};
 
         if (user.role === UserRole.BUYER) {
-            const buyer = db.buyers.findByUserId(user.id);
-            if (!buyer) {
-                return NextResponse.json({ success: true, requests: [] });
-            }
-            requests = availabilityRequestDb.findByBuyerId(buyer.id);
+            const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+            if (!buyer) return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
+            where.buyerId = buyer.id;
         } else if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(user.id);
-            if (!vendor) {
-                return NextResponse.json({ success: true, requests: [] });
-            }
-            requests = availabilityRequestDb.findByVendorId(vendor.id);
-        } else if (user.role === UserRole.ADMIN) {
-            requests = availabilityRequestDb.findAll();
-        } else {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+            if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
+            where.vendorId = vendor.id;
         }
+        // Admin sees all
 
-        // Enrich with vendor/buyer info
-        const enrichedRequests = requests.map((req) => {
-            const vendor = db.vendors.findById(req.vendorId);
-            const buyer = db.buyers.findById(req.buyerId);
-            const buyerUser = buyer ? db.users.findById(buyer.userId) : undefined;
-            return {
-                ...req,
-                vendorName: vendor?.storeName ?? 'Unknown Store',
-                buyerName: buyerUser
-                    ? `${buyerUser.firstName} ${buyerUser.lastName}`
-                    : 'Unknown Buyer',
-            };
+        if (status) where.status = status;
+
+        const [requests, total] = await Promise.all([
+            prisma.productAvailabilityRequest.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+                include: {
+                    buyer: { include: { user: { select: { firstName: true, lastName: true } } } },
+                    vendor: { select: { id: true, storeName: true } },
+                },
+            }),
+            prisma.productAvailabilityRequest.count({ where }),
+        ]);
+
+        return NextResponse.json({
+            success: true,
+            requests,
+            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
-
-        return NextResponse.json({ success: true, requests: enrichedRequests });
     } catch (error) {
-        console.error('Get availability requests error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch availability requests' },
-            { status: 500 }
-        );
+        console.error('GET /api/availability-requests error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/availability-requests - Create availability request (buyer only)
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Only buyers can create requests' }, { status: 403 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const user = db.users.findById(currentUser.userId);
-        if (!user || user.role !== UserRole.BUYER) {
-            return NextResponse.json(
-                { error: 'Only buyers can create availability requests' },
-                { status: 403 }
-            );
-        }
+        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
+        if (!buyer) return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
 
-        const buyer = db.buyers.findByUserId(user.id);
-        if (!buyer) {
-            return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
-        }
-
-        const body = await request.json();
-        const { vendorId, items, buyerNote } = body;
-
+        const { vendorId, items, buyerNote, expiresAt } = await req.json();
         if (!vendorId || !items || !Array.isArray(items) || items.length === 0) {
-            return NextResponse.json(
-                { error: 'vendorId and items are required' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'vendorId and items array are required' }, { status: 400 });
         }
 
-        // Validate vendor exists
-        const vendor = db.vendors.findById(vendorId);
-        if (!vendor) {
-            return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
-        }
+        const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
 
-        // Validate each item has required fields
-        for (const item of items) {
-            if (!item.productId || !item.quantity || !item.productName) {
-                return NextResponse.json(
-                    { error: 'Each item must have productId, quantity, and productName' },
-                    { status: 400 }
-                );
-            }
-        }
-
-        const availabilityRequest = availabilityRequestDb.create({
-            buyerId: buyer.id,
-            vendorId,
-            items,
-            buyerNote: buyerNote ?? null,
+        const request = await prisma.productAvailabilityRequest.create({
+            data: {
+                buyerId: buyer.id,
+                vendorId,
+                items,
+                buyerNote: buyerNote ?? null,
+                status: 'PENDING',
+                expiresAt: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 7 * 86400000),
+            },
         });
 
-        return NextResponse.json(
-            { success: true, request: availabilityRequest },
-            { status: 201 }
-        );
+        return NextResponse.json({ success: true, request }, { status: 201 });
     } catch (error) {
-        console.error('Create availability request error:', error);
-        return NextResponse.json(
-            { error: 'Failed to create availability request' },
-            { status: 500 }
-        );
+        console.error('POST /api/availability-requests error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

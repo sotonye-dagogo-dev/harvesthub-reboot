@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Card, Button } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
-import { PLATFORM_DEFAULTS, COMMISSION_RATES } from "@/lib/constants";
-import { Settings, Percent, CreditCard, Calendar, Info } from "lucide-react";
-import { Input, Switch, message } from "antd";
+import { PLATFORM_DEFAULTS, COMMISSION_RATES, VENDOR_CATEGORIES, CATEGORY_COMMISSION_DEFAULTS } from "@/lib/constants";
+import { Settings, Percent, CreditCard, Calendar, Info, Tag } from "lucide-react";
+import { Input, Switch, message, Tabs } from "antd";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,12 @@ interface CommissionTier {
   label: string;
   rate: number;
   description: string;
+}
+
+interface CategoryRate {
+  category: string;
+  label: string;
+  rate: number;
 }
 
 const initialTiers: CommissionTier[] = [
@@ -29,16 +35,17 @@ const initialTiers: CommissionTier[] = [
     rate: COMMISSION_RATES.PREMIUM_VENDOR * 100,
     description: "Reduced rate for verified premium vendors",
   },
-  {
-    id: "church",
-    label: "Church Affiliated",
-    rate: COMMISSION_RATES.CHURCH_AFFILIATED * 100,
-    description: "Special rate for church-affiliated vendors",
-  },
 ];
+
+const initialCategoryRates: CategoryRate[] = VENDOR_CATEGORIES.map((vc) => ({
+  category: vc.value,
+  label: vc.label,
+  rate: (CATEGORY_COMMISSION_DEFAULTS[vc.value] ?? COMMISSION_RATES.DEFAULT) * 100,
+}));
 
 export default function AdminSettingsPage() {
   const [tiers, setTiers] = useState<CommissionTier[]>(initialTiers);
+  const [categoryRates, setCategoryRates] = useState<CategoryRate[]>(initialCategoryRates);
   const [paymentsEnabled, setPaymentsEnabled] = useState<boolean>(PLATFORM_DEFAULTS.PAYMENTS_ENABLED);
   const [minOrderAmount, setMinOrderAmount] = useState<number>(PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT);
   const [maxBookingDays, setMaxBookingDays] = useState<number>(PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS);
@@ -48,6 +55,12 @@ export default function AdminSettingsPage() {
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
     setTiers((prev) => prev.map((t) => (t.id === tierId ? { ...t, rate: numValue } : t)));
+  };
+
+  const handleCategoryRateChange = (category: string, value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
+    setCategoryRates((prev) => prev.map((cr) => (cr.category === category ? { ...cr, rate: numValue } : cr)));
   };
 
   const handleSave = async () => {
@@ -74,51 +87,99 @@ export default function AdminSettingsPage() {
         </Button>
       </div>
 
-      {/* Commission Tiers */}
+      {/* Commission Rates */}
       <Card>
         <div className="mb-4 flex items-center gap-2">
           <Percent className="h-5 w-5 text-ds-text-brand" />
           <h2 className="text-lg font-semibold text-ds-text-primary">Commission Rates</h2>
         </div>
         <p className="mb-4 text-sm text-ds-text-secondary">
-          Set the platform commission rate for each vendor tier. Commissions are deducted from
+          Set the platform commission rate for each vendor tier and category. Commissions are deducted from
           vendor earnings on each sale.
         </p>
 
-        <div className="space-y-4">
-          {tiers.map((tier) => (
-            <div
-              key={tier.id}
-              className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex-1">
-                <div className="font-medium text-ds-text-primary">{tier.label}</div>
-                <div className="text-xs text-ds-text-secondary">{tier.description}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.5}
-                  value={tier.rate}
-                  onChange={(e) => handleTierRateChange(tier.id, e.target.value)}
-                  className="!w-24"
-                  suffix="%"
-                />
-                <span className="text-xs text-ds-text-tertiary">
-                  ({formatCurrency(1000)} sale → {formatCurrency(1000 * (tier.rate / 100))}{" "}
-                  commission)
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <Tabs
+          defaultActiveKey="tiers"
+          items={[
+            {
+              key: "tiers",
+              label: "Vendor Tiers",
+              children: (
+                <div className="space-y-4">
+                  {tiers.map((tier) => (
+                    <div
+                      key={tier.id}
+                      className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-ds-text-primary">{tier.label}</div>
+                        <div className="text-xs text-ds-text-secondary">{tier.description}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={tier.rate}
+                          onChange={(e) => handleTierRateChange(tier.id, e.target.value)}
+                          className="!w-24"
+                          suffix="%"
+                        />
+                        <span className="text-xs text-ds-text-tertiary">
+                          ({formatCurrency(1000)} sale → {formatCurrency(1000 * (tier.rate / 100))}{" "}
+                          commission)
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ),
+            },
+            {
+              key: "categories",
+              label: "Category Defaults",
+              children: (
+                <div className="space-y-3">
+                  <p className="text-xs text-ds-text-secondary">
+                    Default commission rate applied to new vendors in each category. Individual vendor rates can still be overridden.
+                  </p>
+                  {categoryRates.map((cr) => (
+                    <div
+                      key={cr.category}
+                      className="flex items-center justify-between rounded-ds-md border border-ds-border-base px-4 py-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-ds-text-tertiary" />
+                        <span className="text-sm font-medium text-ds-text-primary">{cr.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={cr.rate}
+                          onChange={(e) => handleCategoryRateChange(cr.category, e.target.value)}
+                          className="!w-24"
+                          suffix="%"
+                        />
+                        <span className="text-xs text-ds-text-tertiary">
+                          ({formatCurrency(1000)} → {formatCurrency(1000 * (cr.rate / 100))})
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ),
+            },
+          ]}
+        />
 
         <div className="mt-4 flex items-start gap-2 rounded-ds-sm bg-ds-surface-sunken p-3">
           <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-ds-text-tertiary" />
           <p className="text-xs text-ds-text-tertiary">
-            Commission rates are applied when a vendor is assigned to a tier. Changes here will
+            Vendor tier rates take precedence over category defaults. Changes here will
             affect future transactions but not past ones.
           </p>
         </div>

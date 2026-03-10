@@ -1,176 +1,90 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+﻿/**
+ * GET    /api/reviews/[id]/response � Get vendor response
+ * POST   /api/reviews/[id]/response � Add vendor response
+ * DELETE /api/reviews/[id]/response � Delete vendor response
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
-// In-memory store for vendor responses (mock only - replace with DB in production)
-const vendorResponses: Record<
-    string,
-    { text: string; vendorName: string; vendorId: string; createdAt: Date; updatedAt: Date }
-> = {};
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/reviews/[id]/response - Get vendor response for a review
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const { id } = await params;
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const review = db.reviews.findById(id);
-        if (!review) {
-            return NextResponse.json({ error: "Review not found" }, { status: 404 });
-        }
-
-        const response = vendorResponses[id] ?? null;
-
-        return NextResponse.json({
-            success: true,
-            response,
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({
+            where: { id },
+            select: { id: true, vendorResponse: true, vendorRespondedAt: true },
         });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+
+        return NextResponse.json({ success: true, response: review.vendorResponse, respondedAt: review.vendorRespondedAt });
     } catch (error) {
-        console.error("Get vendor response error:", error);
-        return NextResponse.json({ error: "Failed to fetch response" }, { status: 500 });
+        console.error('GET /api/reviews/[id]/response error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// POST /api/reviews/[id]/response - Add or update vendor response
-export async function POST(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest, context: RouteContext) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id }, include: { product: { select: { vendorId: true, vendor: { select: { userId: true } } } } } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        // Only the vendor who was reviewed can respond
+        if (review.product.vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+        const { response } = await req.json();
+        if (!response || typeof response !== 'string') {
+            return NextResponse.json({ error: 'Response text is required' }, { status: 400 });
         }
 
-        const user = db.users.findById(payload.userId);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        if (user.role !== UserRole.VENDOR) {
-            return NextResponse.json(
-                { error: "Only vendors can respond to reviews" },
-                { status: 403 }
-            );
-        }
-
-        const vendor = db.vendors.findByUserId(user.id);
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor profile not found" }, { status: 404 });
-        }
-
-        const { id } = await params;
-        const review = db.reviews.findById(id);
-        if (!review) {
-            return NextResponse.json({ error: "Review not found" }, { status: 404 });
-        }
-
-        // Verify the review is for one of this vendor's products
-        const product = db.products.findById(review.productId);
-        if (!product || product.vendorId !== vendor.id) {
-            return NextResponse.json(
-                { error: "You can only respond to reviews on your own products" },
-                { status: 403 }
-            );
-        }
-
-        const body = await request.json();
-        const { response: responseText } = body;
-
-        if (!responseText || typeof responseText !== "string" || !responseText.trim()) {
-            return NextResponse.json(
-                { error: "Response text is required" },
-                { status: 400 }
-            );
-        }
-
-        const isUpdate = Boolean(vendorResponses[id]);
-        const now = new Date();
-
-        vendorResponses[id] = {
-            text: responseText.trim(),
-            vendorName: vendor.storeName,
-            vendorId: vendor.id,
-            createdAt: isUpdate ? vendorResponses[id]!.createdAt : now,
-            updatedAt: now,
-        };
-
-        return NextResponse.json({
-            success: true,
-            message: isUpdate
-                ? "Response updated successfully"
-                : "Response added successfully",
-            response: vendorResponses[id],
+        const updated = await prisma.review.update({
+            where: { id },
+            data: { vendorResponse: response, vendorRespondedAt: new Date() },
         });
+
+        return NextResponse.json({ success: true, review: updated });
     } catch (error) {
-        console.error("Vendor response error:", error);
-        return NextResponse.json({ error: "Failed to save response" }, { status: 500 });
+        console.error('POST /api/reviews/[id]/response error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/reviews/[id]/response - Delete vendor response
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const review = await prisma.review.findUnique({ where: { id }, include: { product: { select: { vendorId: true, vendor: { select: { userId: true } } } } } });
+        if (!review) return NextResponse.json({ error: 'Review not found' }, { status: 404 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (review.product.vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const user = db.users.findById(payload.userId);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const { id } = await params;
-
-        const existingResponse = vendorResponses[id];
-        if (!existingResponse) {
-            return NextResponse.json({ error: "Response not found" }, { status: 404 });
-        }
-
-        // Only the vendor who created the response or admin can delete it
-        if (user.role === UserRole.VENDOR) {
-            const vendor = db.vendors.findByUserId(user.id);
-            if (!vendor || existingResponse.vendorId !== vendor.id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (user.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        delete vendorResponses[id];
-
-        return NextResponse.json({
-            success: true,
-            message: "Response deleted successfully",
+        const updated = await prisma.review.update({
+            where: { id },
+            data: { vendorResponse: null, vendorRespondedAt: null },
         });
+
+        return NextResponse.json({ success: true, review: updated });
     } catch (error) {
-        console.error("Delete vendor response error:", error);
-        return NextResponse.json({ error: "Failed to delete response" }, { status: 500 });
+        console.error('DELETE /api/reviews/[id]/response error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

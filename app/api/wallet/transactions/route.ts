@@ -1,82 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/utils/auth";
-import { TransactionType, TransactionStatus } from "@/lib/constants";
+/**
+ * GET /api/wallet/transactions — List wallet transactions with filters
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { Prisma, TransactionType, TransactionStatus } from '@/prisma/generated/client';
 
-// GET /api/wallet/transactions - Get user's transaction history
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        const { searchParams } = new URL(req.url);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+        const type = searchParams.get('type') as TransactionType | null;
+        const status = searchParams.get('status') as TransactionStatus | null;
 
-        const wallet = await db.wallets.findByUserId(payload.userId);
+        const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
+        if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
 
-        if (!wallet) {
-            return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-        }
+        const where: Prisma.TransactionWhereInput = { walletId: wallet.id };
+        if (type && Object.values(TransactionType).includes(type)) where.type = type;
+        if (status && Object.values(TransactionStatus).includes(status)) where.status = status;
 
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "20");
-        const type = searchParams.get("type") as TransactionType | null;
-        const status = searchParams.get("status") as TransactionStatus | null;
+        const [transactions, total] = await Promise.all([
+            prisma.transaction.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.transaction.count({ where }),
+        ]);
 
-        // Use findAll with proper filters
-        const result = db.transactions.findAll({
-            walletId: wallet.id,
-            type: type || undefined,
-            status: status || undefined,
-            page,
-            limit,
+        return NextResponse.json({
+            success: true,
+            transactions,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
         });
-
-        // Check if result is paginated or array
-        const filtered = Array.isArray(result) ? result : result.data;
-
-        // Handle pagination
-        if (Array.isArray(result)) {
-            const total = filtered.length;
-            const totalPages = Math.ceil(total / limit);
-
-            return NextResponse.json({
-                success: true,
-                transactions: filtered,
-                pagination: {
-                    page,
-                    limit,
-                    total,
-                    totalPages,
-                    hasMore: page < totalPages,
-                }
-            });
-        } else {
-            return NextResponse.json({
-                success: true,
-                transactions: result.data,
-                pagination: {
-                    page: result.page,
-                    limit: result.limit,
-                    total: result.total,
-                    totalPages: result.totalPages,
-                    hasMore: result.page < result.totalPages,
-                }
-            });
-        }
     } catch (error) {
-        console.error("Get transactions error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch transactions" },
-            { status: 500 }
-        );
+        console.error('GET /api/wallet/transactions error:', error);
+        return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
     }
 }

@@ -17,7 +17,7 @@ export default function StoreInfoPage() {
   }, [formData, router]);
 
   const handleNext = () => {
-    router.push("/signup/account-info");
+    router.push("/signup/verification-docs");
   };
 
   return <StoreInfo onNext={handleNext} updateFormData={updateFormData} formData={formData} />;

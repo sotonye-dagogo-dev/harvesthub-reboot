@@ -1,53 +1,34 @@
-import { NextRequest, NextResponse } from "next/server";
-import { milestoneDb } from "@/lib/data/milestones";
-import { db } from "@/lib/data/database";
+﻿/**
+ * GET /api/users/[id]/milestones � User milestones
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/users/[id]/milestones - Get milestones for a specific user
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteContext { params: Promise<{ id: string }>; }
+
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const cookieStore = await (await import("next/headers")).cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { id } = await context.params;
+        if (user.role !== UserRole.ADMIN && user.userId !== id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { verifyToken } = await import("@/lib/utils/auth");
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const { id } = await params;
-
-        // Users can view their own milestones; admins can view anyone's
-        if (payload.userId !== id && payload.role !== "ADMIN") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const user = db.users.findById(id);
-        if (!user) {
-            return NextResponse.json(
-                { error: "User not found" },
-                { status: 404 }
-            );
-        }
-
-        const milestones = milestoneDb.findByUserId(id);
-
-        return NextResponse.json({
-            success: true,
-            milestones,
-            total: milestones.length,
+        const milestones = await prisma.userMilestone.findMany({
+            where: { userId: id },
+            orderBy: { achievedAt: 'desc' },
         });
+
+        return NextResponse.json({ success: true, milestones });
     } catch (error) {
-        console.error("Get user milestones error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch milestones" },
-            { status: 500 }
-        );
+        console.error('GET /api/users/[id]/milestones error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

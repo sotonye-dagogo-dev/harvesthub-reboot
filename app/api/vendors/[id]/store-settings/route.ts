@@ -1,146 +1,66 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+﻿/**
+ * GET /api/vendors/[id]/store-settings � Get store settings
+ * PUT /api/vendors/[id]/store-settings � Update store settings
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { UserRole } from '@/lib/constants';
 
-async function getAuthUser(_request: NextRequest) {
-    const { cookies } = await import("next/headers");
-    const { verifyToken } = await import("@/lib/utils/auth");
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-    return db.users.findById(payload.userId);
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// GET /api/vendors/[id]/store-settings - Get vendor store settings
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        const vendor = await prisma.vendor.findUnique({ where: { id } });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (user.role !== UserRole.ADMIN && vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
-        const vendor = db.vendors.findById(id);
-
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-        }
-
-        // Authorization: only own vendor or admin
-        if (authUser.role === UserRole.VENDOR) {
-            const ownVendor = db.vendors.findByUserId(authUser.id);
-            if (!ownVendor || ownVendor.id !== id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (authUser.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        return NextResponse.json({
-            success: true,
-            storeSettings: vendor.storeSettings,
-            storeName: vendor.storeName,
-            storeDescription: vendor.storeDescription,
-            storeLogo: vendor.storeLogo,
-            storeBanner: vendor.storeBanner,
-            category: vendor.category,
-            campus: vendor.campus,
-            position: vendor.position,
-            whatsappNumber: vendor.whatsappNumber,
-            isChurchAffiliated: vendor.isChurchAffiliated,
-        });
+        return NextResponse.json({ success: true, settings: vendor });
     } catch (error) {
-        console.error("Get store settings error:", error);
-        return NextResponse.json({ error: "Failed to fetch store settings" }, { status: 500 });
+        console.error('GET /api/vendors/[id]/store-settings error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/vendors/[id]/store-settings - Update vendor store settings
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        const vendor = await prisma.vendor.findUnique({ where: { id } });
+        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (user.role !== UserRole.ADMIN && vendor.userId !== user.userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
-        const vendor = db.vendors.findById(id);
-
-        if (!vendor) {
-            return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
+        const body = await req.json();
+        const allowedFields = [
+            'storeName', 'storeDescription', 'storeLogo', 'storeBanner',
+            'campus', 'categories', 'businessPhone', 'whatsappNumber',
+            'address', 'deliveryOptions', 'pickupOptions', 'operatingHours',
+            'socialLinks', 'returnPolicy', 'shippingPolicy',
+        ];
+        const data: Record<string, unknown> = {};
+        for (const key of allowedFields) {
+            if (body[key] !== undefined) data[key] = body[key];
         }
 
-        // Authorization: only own vendor or admin
-        if (authUser.role === UserRole.VENDOR) {
-            const ownVendor = db.vendors.findByUserId(authUser.id);
-            if (!ownVendor || ownVendor.id !== id) {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } else if (authUser.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const body = await request.json();
-
-        // Build update object
-        const updateData: Record<string, unknown> = {};
-
-        // Update store-level fields
-        if (body.storeName !== undefined) updateData.storeName = body.storeName;
-        if (body.storeDescription !== undefined) updateData.storeDescription = body.storeDescription;
-        if (body.storeLogo !== undefined) updateData.storeLogo = body.storeLogo;
-        if (body.storeBanner !== undefined) updateData.storeBanner = body.storeBanner;
-        if (body.category !== undefined) updateData.category = body.category;
-        if (body.campus !== undefined) updateData.campus = body.campus;
-        if (body.position !== undefined) updateData.position = body.position;
-        if (body.whatsappNumber !== undefined) updateData.whatsappNumber = body.whatsappNumber;
-        if (body.isChurchAffiliated !== undefined) updateData.isChurchAffiliated = body.isChurchAffiliated;
-
-        // Update nested storeSettings
-        if (body.storeSettings) {
-            updateData.storeSettings = {
-                ...vendor.storeSettings,
-                ...body.storeSettings,
-                policies: body.storeSettings.policies
-                    ? { ...vendor.storeSettings.policies, ...body.storeSettings.policies }
-                    : vendor.storeSettings.policies,
-            };
-        }
-
-        // Non-admin vendors cannot update status or commission
-        if (authUser.role !== UserRole.ADMIN) {
-            delete updateData.status;
-            delete updateData.commissionRate;
-        }
-
-        const updated = db.vendors.update(id, updateData);
-        if (!updated) {
-            return NextResponse.json({ error: "Failed to update store settings" }, { status: 500 });
-        }
-
-        return NextResponse.json({
-            success: true,
-            storeSettings: updated.storeSettings,
-            storeName: updated.storeName,
-            storeDescription: updated.storeDescription,
-            storeLogo: updated.storeLogo,
-            storeBanner: updated.storeBanner,
-            category: updated.category,
-            campus: updated.campus,
-            position: updated.position,
-            whatsappNumber: updated.whatsappNumber,
-            isChurchAffiliated: updated.isChurchAffiliated,
-        });
+        const updated = await prisma.vendor.update({ where: { id }, data });
+        return NextResponse.json({ success: true, settings: updated });
     } catch (error) {
-        console.error("Update store settings error:", error);
-        return NextResponse.json({ error: "Failed to update store settings" }, { status: 500 });
+        console.error('PUT /api/vendors/[id]/store-settings error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -1,12 +1,19 @@
+/**
+ * POST /api/auth/resend-verification
+ * Resend email verification link
+ */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/data/database';
-import { sendVerifyEmail } from '@/lib/services/email';
+import { prisma } from '@/lib/db/prisma';
+import { sendEmail } from '@/lib/services/email';
+import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { VerifyEmail } from '@/lib/emails/VerifyEmail';
 
-// Rate limiting: 3 requests per hour per email (to be enforced in Stream 2)
-
-// POST /api/auth/resend-verification - Resend verification email
 export async function POST(req: NextRequest) {
     try {
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const rl = await rateLimitStrict(`resend-verify:${ip}`);
+        if (!rl.success) return getRateLimitResponse(rl);
+
         const body = await req.json();
         const { email } = body;
 
@@ -17,38 +24,36 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Always return success to prevent user enumeration
         const successResponse = {
             success: true,
-            message: 'If an account with that email exists and is not yet verified, we sent a verification email.',
+            message: 'If an account with that email exists, we sent a verification link.',
         };
 
-        const user = db.users.findByEmail(email);
-
-        // If user doesn't exist, return success anyway (security)
-        if (!user) {
-            return NextResponse.json(successResponse);
-        }
-
-        // If already verified, no need to resend
-        if (user.emailVerified) {
-            return NextResponse.json(successResponse);
-        }
-
-        // Generate new verification token
-        const verificationToken = crypto.randomUUID();
-        const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-        // Store token on user record
-        db.users.update(user.id, {
-            emailVerificationToken: verificationToken,
-            emailVerificationExpiry,
+        const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() },
         });
 
-        // Send verification email
-        await sendVerifyEmail(user.email, user.firstName, verificationToken);
+        if (!user || user.emailVerified) {
+            return NextResponse.json(successResponse);
+        }
 
-        console.log(`[EMAIL] Verification email resent to ${user.email}`);
+        const verificationToken = crypto.randomUUID();
+        const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                emailVerificationToken: verificationToken,
+                emailVerificationExpiry: verificationExpiry,
+            },
+        });
+
+        const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+        sendEmail({
+            to: user.email,
+            subject: 'Verify Your Email — MyHarvestHub',
+            react: VerifyEmail({ firstName: user.firstName, verificationUrl }),
+        }).catch((err) => console.error('Failed to send verification email:', err));
 
         return NextResponse.json(successResponse);
     } catch (error) {

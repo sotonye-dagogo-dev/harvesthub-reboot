@@ -133,7 +133,7 @@ NEXT_PUBLIC_EMAIL_FROM=noreply@harvesthub.ng
 # Web Push (VAPID keys)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
-VAPID_SUBJECT=mailto:support@harvesthub.ng
+VAPID_SUBJECT=mailto:support@myharvesthub.org
 
 # Bank Account (for transfers)
 NEXT_PUBLIC_BANK_NAME=

@@ -12,7 +12,8 @@ export default function ContactPage() {
       <div className="mb-12 text-center">
         <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">Contact Us</h1>
         <p className="mx-auto max-w-2xl text-lg text-ds-text-secondary">
-          Have questions? We&apos;re here to help! Reach out to us through any of the channels below.
+          Have questions? We&apos;re here to help! Reach out to us through any of the channels
+          below.
         </p>
       </div>
 
@@ -46,11 +47,8 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="mb-1 font-semibold text-ds-text-primary">Phone</h3>
-                <a
-                  href="tel:+2348012345678"
-                  className="text-ds-text-brand hover:underline"
-                >
-                  +234 801 234 5678
+                <a href="tel:+2347012037766" className="text-ds-text-brand hover:underline">
+                  +234 701 203 7766
                 </a>
                 <p className="mt-1 text-sm text-ds-text-secondary">
                   Monday - Friday, 9am - 5pm WAT
@@ -64,13 +62,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="mb-1 font-semibold text-ds-text-primary">Address</h3>
-                <p className="text-ds-text-secondary">
-                  Harvesters International Christian Centre
-                  <br />
-                  Oregun, Ikeja
-                  <br />
-                  Lagos, Nigeria
-                </p>
+                <p className="text-ds-text-secondary">Lekki, Lagos, Nigeria</p>
               </div>
             </div>
 
@@ -95,7 +87,7 @@ export default function ContactPage() {
           <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-6 dark:bg-ds-brand-subtle">
             <h3 className="mb-4 font-semibold text-ds-text-primary">Our Locations</h3>
             <div className="space-y-2 text-sm text-ds-text-secondary">
-              <p>📍 Oregun (Headquarters)</p>
+              <p>📍 Lekki (Headquarters)</p>
               <p>📍 Lekki</p>
               <p>📍 Victoria Island</p>
               <p>📍 Ikeja</p>

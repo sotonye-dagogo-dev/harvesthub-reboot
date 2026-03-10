@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import {
   Package,
   ShoppingBag,
   Star,
+  FileText,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -140,6 +141,43 @@ export default function AdminVendorDetailPage() {
               )}
             </Descriptions>
           </Card>
+
+          
+          {/* Verification Documents */}
+          {vendor.businessVerification && (
+            <Card>
+              <h2 className="mb-4 text-base font-semibold text-ds-text-primary">Verification Documents</h2>
+              {(() => {
+                const bv = vendor.businessVerification as { verificationDocuments?: { filename: string; url: string }[] };
+                const docs = bv?.verificationDocuments;
+                if (!docs || docs.length === 0) {
+                  return <p className="text-sm text-ds-text-tertiary">No documents uploaded</p>;
+                }
+                return (
+                  <div className="space-y-3">
+                    {docs.map((doc, idx) => (
+                      <div key={idx} className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-ds-text-brand" />
+                          <div>
+                            <p className="text-sm font-medium text-ds-text-primary">{doc.filename}</p>
+                          </div>
+                        </div>
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-ds-text-brand hover:underline"
+                        >
+                          View
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </Card>
+          )}
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">

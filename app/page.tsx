@@ -70,12 +70,12 @@ export default function HomePage() {
 
   // Categories for navigation
   const categories = [
-    { id: "1", name: "Farm Produce", slug: "farm-produce" },
-    { id: "2", name: "Fashion & Apparel", slug: "fashion" },
-    { id: "3", name: "Food & Beverages", slug: "food" },
-    { id: "4", name: "Beauty & Cosmetics", slug: "beauty" },
-    { id: "5", name: "Electronics", slug: "electronics" },
-    { id: "6", name: "Home & Kitchen", slug: "home" },
+    { id: "1", name: "Electronics", slug: "electronics" },
+    { id: "2", name: "Fashion", slug: "fashion" },
+    { id: "3", name: "Grocery & Food", slug: "grocery-food" },
+    { id: "4", name: "Beauty & Personal Care", slug: "beauty" },
+    { id: "5", name: "Home Appliances", slug: "home-appliances" },
+    { id: "6", name: "Kitchen & Dining", slug: "kitchen-dining" },
   ];
 
   const { addItem } = useCart();

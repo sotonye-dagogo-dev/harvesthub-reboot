@@ -1,136 +1,95 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
+﻿/**
+ * GET    /api/products/[id] � Product detail
+ * PUT    /api/products/[id] � Update product (vendor owner or admin)
+ * DELETE /api/products/[id] � Delete product
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
+import { productKey } from '@/lib/cache/keys';
+import { UserRole } from '@/lib/constants';
 
-// GET /api/products/[id] - Get product by ID
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteContext { params: Promise<{ id: string }>; }
+
+export async function GET(req: NextRequest, context: RouteContext) {
     try {
-        const { id } = await params;
-        const product = db.products.findById(id);
+        const rl = await rateLimitByIP(req);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        if (!product) {
-            return NextResponse.json({ error: "Product not found" }, { status: 404 });
-        }
+        const { id } = await context.params;
+        const cacheK = productKey(id);
+        const cached = await cacheGet(cacheK);
+        if (cached) return NextResponse.json(cached);
 
-        // Increment views
-        db.products.incrementViews(id);
-
-        // Get vendor info
-        const vendor = db.vendors.findById(product.vendorId);
-
-        // Get reviews
-        const reviews = db.reviews.findAll({ productId: id });
-
-        return NextResponse.json({
-            success: true,
-            product: { ...product, vendor, reviews },
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true, averageRating: true } },
+                reviews: { where: { status: 'APPROVED' }, include: { buyer: { include: { user: { select: { firstName: true, lastName: true } } } }, votes: true }, orderBy: { createdAt: 'desc' }, take: 10 },
+            },
         });
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+
+        await prisma.product.update({ where: { id }, data: { views: { increment: 1 } } });
+
+        const data = { success: true, product };
+        await cacheSet(cacheK, data, 600);
+        return NextResponse.json(data);
     } catch (error) {
-        console.error("Get product error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch product" },
-            { status: 500 }
-        );
+        console.error('GET /api/products/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// PUT /api/products/[id] - Update product (vendor owner only)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const product = await prisma.product.findUnique({ where: { id }, include: { vendor: true } });
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (product.vendor.userId !== user.userId && user.role !== UserRole.ADMIN) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
+        const body = await req.json();
+        const { vendorId: _vendorId, id: _id, createdAt: _createdAt, updatedAt: _updatedAt, vendor: _vendor, reviews: _reviews, orderItems: _orderItems, cartItems: _cartItems, bookings: _bookings, ...updateData } = body;
+        const updated = await prisma.product.update({ where: { id }, data: updateData });
 
-        const { id } = await params;
-        const product = db.products.findById(id);
-
-        if (!product) {
-            return NextResponse.json({ error: "Product not found" }, { status: 404 });
-        }
-
-        // Verify ownership
-        const vendor = db.vendors.findByUserId(payload.userId);
-        if (!vendor || vendor.id !== product.vendorId) {
-            const user = db.users.findById(payload.userId);
-            if (!user || user.role !== "ADMIN") {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        }
-
-        const body = await request.json();
-        const updated = db.products.update(id, body);
-
+        await cacheInvalidate(productKey(id));
         return NextResponse.json({ success: true, product: updated });
     } catch (error) {
-        console.error("Update product error:", error);
-        return NextResponse.json(
-            { error: "Failed to update product" },
-            { status: 500 }
-        );
+        console.error('PUT /api/products/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
 
-// DELETE /api/products/[id] - Delete product
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
-        const { cookies } = await import("next/headers");
-        const { verifyToken } = await import("@/lib/utils/auth");
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("accessToken")?.value;
+        const { id } = await context.params;
+        const product = await prisma.product.findUnique({ where: { id }, include: { vendor: true } });
+        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
-        if (!token) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (product.vendor.userId !== user.userId && user.role !== UserRole.ADMIN) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const { id } = await params;
-        const product = db.products.findById(id);
-
-        if (!product) {
-            return NextResponse.json({ error: "Product not found" }, { status: 404 });
-        }
-
-        // Verify ownership or admin
-        const vendor = db.vendors.findByUserId(payload.userId);
-        if (!vendor || vendor.id !== product.vendorId) {
-            const user = db.users.findById(payload.userId);
-            if (!user || user.role !== "ADMIN") {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        }
-
-        db.products.delete(id);
-
-        return NextResponse.json({ success: true, message: "Product deleted" });
+        await prisma.product.delete({ where: { id } });
+        await cacheInvalidate(productKey(id));
+        return NextResponse.json({ success: true, message: 'Product deleted' });
     } catch (error) {
-        console.error("Delete product error:", error);
-        return NextResponse.json(
-            { error: "Failed to delete product" },
-            { status: 500 }
-        );
+        console.error('DELETE /api/products/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

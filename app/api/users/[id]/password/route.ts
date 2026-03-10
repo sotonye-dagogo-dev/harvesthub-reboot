@@ -1,80 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/data/database";
-import { UserRole } from "@/lib/constants";
+﻿/**
+ * PUT /api/users/[id]/password � Change password
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import bcrypt from 'bcryptjs';
 
-async function getAuthUser(_request: NextRequest) {
-    const { cookies } = await import("next/headers");
-    const { verifyToken } = await import("@/lib/utils/auth");
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-    if (!token) return null;
-    const payload = await verifyToken(token);
-    if (!payload) return null;
-    return db.users.findById(payload.userId);
-}
+interface RouteContext { params: Promise<{ id: string }>; }
 
-// PUT /api/users/[id]/password - Change user password
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, context: RouteContext) {
     try {
-        const authUser = await getAuthUser(request);
-        if (!authUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const rl = await rateLimitStrict(`password:${user.userId}`);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        if (user.userId !== id) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = await params;
-
-        // Only the user themselves or an admin can change the password
-        if (authUser.role !== UserRole.ADMIN && authUser.id !== id) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const { currentPassword, newPassword } = await req.json();
+        if (!currentPassword || !newPassword) {
+            return NextResponse.json({ error: 'Current and new passwords are required' }, { status: 400 });
+        }
+        if (newPassword.length < 8) {
+            return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
         }
 
-        const user = db.users.findById(id);
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
+        const found = await prisma.user.findUnique({ where: { id } });
+        if (!found) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        const body = await request.json();
-        const { currentPassword, newPassword } = body;
+        const valid = await bcrypt.compare(currentPassword, found.password);
+        if (!valid) return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
 
-        if (!newPassword || newPassword.length < 8) {
-            return NextResponse.json(
-                { error: "New password must be at least 8 characters" },
-                { status: 400 }
-            );
-        }
+        const hashed = await bcrypt.hash(newPassword, 12);
+        await prisma.user.update({ where: { id }, data: { password: hashed } });
 
-        // Non-admin users must provide their current password
-        if (authUser.role !== UserRole.ADMIN) {
-            if (!currentPassword) {
-                return NextResponse.json(
-                    { error: "Current password is required" },
-                    { status: 400 }
-                );
-            }
-
-            const isValid = db.users.verifyPassword(id, currentPassword);
-            if (!isValid) {
-                return NextResponse.json(
-                    { error: "Current password is incorrect" },
-                    { status: 400 }
-                );
-            }
-        }
-
-        const updated = db.users.updatePassword(id, newPassword);
-        if (!updated) {
-            return NextResponse.json({ error: "Failed to update password" }, { status: 500 });
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: "Password updated successfully",
-        });
+        return NextResponse.json({ success: true, message: 'Password updated' });
     } catch (error) {
-        console.error("Change password error:", error);
-        return NextResponse.json({ error: "Failed to change password" }, { status: 500 });
+        console.error('PUT /api/users/[id]/password error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

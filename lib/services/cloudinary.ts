@@ -76,6 +76,10 @@ export function getPaymentProofFolder(userId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/payments/${userId}`;
 }
 
+export function getVendorContentFolder(vendorId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/vendor-content/${vendorId}`;
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -152,7 +156,7 @@ export async function uploadImage(
     // Validate file size after upload (Cloudinary returns bytes)
     if (result.bytes > maxSizeMB * BYTES_PER_MB) {
         // Remove the oversized upload
-        await cloudinary.uploader.destroy(result.public_id).catch(() => {});
+        await cloudinary.uploader.destroy(result.public_id).catch(() => { });
         throw new Error(
             `File size (${(result.bytes / BYTES_PER_MB).toFixed(1)}MB) exceeds the ${maxSizeMB}MB limit.`
         );

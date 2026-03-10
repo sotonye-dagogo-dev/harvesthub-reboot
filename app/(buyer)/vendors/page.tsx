@@ -6,6 +6,8 @@ import { VendorCard } from "@/components/features";
 import { Input, Select } from "antd";
 import { EmptyState } from "@/components/ui";
 import { Search } from "lucide-react";
+import { formatVendorCategory } from "@/lib/utils/format";
+import type { VendorCategory } from "@/lib/types";
 
 export default function VendorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,7 +99,7 @@ export default function VendorsPage() {
                 allowClear
                 options={[
                   ...categories.map((cat) => ({
-                    label: cat.replace(/_/g, " "),
+                    label: formatVendorCategory(cat),
                     value: cat,
                   })),
                 ]}
@@ -137,7 +139,7 @@ export default function VendorsPage() {
               )}
               {selectedCategory && (
                 <span className="inline-flex items-center rounded-ds-full bg-ds-brand-subtle px-3 py-1 text-sm text-ds-palette-purple-800">
-                  {selectedCategory.replace(/_/g, " ")}
+                  {formatVendorCategory(selectedCategory as VendorCategory)}
                 </span>
               )}
               {selectedCampus && (
