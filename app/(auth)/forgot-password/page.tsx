@@ -56,9 +56,9 @@ export default function ForgotPasswordPage() {
             <div className="mx-auto h-12 w-12 rounded-ds-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
               <MailOutlined className="text-2xl text-ds-status-success-text" />
             </div>
-            <Title level={3} className="mb-2">
+            <h2 className="text-lg sm:text-xl font-bold mb-2 text-ds-text-primary">
               Check Your Email
-            </Title>
+            </h2>
             <Text className="text-ds-text-secondary">
               We&apos;ve sent password reset instructions to your email address.
             </Text>
@@ -71,9 +71,7 @@ export default function ForgotPasswordPage() {
               description={
                 <div>
                   <p className="mb-2">Your reset token (use this for testing):</p>
-                  <code className="bg-ds-surface-sunken px-2 py-1 rounded-ds-xs">
-                    {resetToken}
-                  </code>
+                  <code className="bg-ds-surface-sunken px-2 py-1 rounded-ds-xs">{resetToken}</code>
                   <p className="mt-2">
                     <Link
                       href={`/reset-password?token=${resetToken}&email=${form.getFieldValue("email")}`}
