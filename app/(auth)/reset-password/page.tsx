@@ -84,9 +84,9 @@ function ResetPasswordForm() {
             <div className="mx-auto h-12 w-12 rounded-ds-full bg-ds-status-success-bg dark:bg-ds-status-success-bg flex items-center justify-center mb-4">
               <CheckCircleOutlined className="text-2xl text-ds-status-success-text" />
             </div>
-            <Title level={3} className="mb-2">
+            <h2 className="text-lg sm:text-xl font-bold mb-2 text-ds-text-primary">
               Password Reset Successful
-            </Title>
+            </h2>
             <Text className="text-ds-text-secondary mb-6 block">
               Your password has been reset successfully. You can now log in with your new password.
             </Text>
