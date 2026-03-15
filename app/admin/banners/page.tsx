@@ -6,6 +6,7 @@ import { Card, Button, EmptyState } from "@/components/ui";
 import { mockBanners } from "@/lib/data/mockData";
 import type { Banner } from "@/lib/types";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -231,10 +232,16 @@ export default function AdminBannersPage() {
 
           <Form.Item
             name="imageUrl"
-            label="Image URL"
-            rules={[{ required: true, message: "Please enter image URL" }]}
+            label="Image"
+            rules={[{ required: true, message: "Please upload an image" }]}
           >
-            <Input placeholder="https://example.com/banner.jpg" />
+            <ImageUpload
+              folderType="banner"
+              onUploaded={(res) => {
+                form.setFieldValue("imageUrl", res.url);
+                form.setFieldsValue({ imageUrl: res.url });
+              }}
+            />
           </Form.Item>
 
           <Form.Item name="linkUrl" label="Link URL">

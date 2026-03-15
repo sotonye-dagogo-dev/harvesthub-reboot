@@ -7,6 +7,7 @@ import { antdTheme as customAntdTheme, antdDarkTheme } from "@/lib/theme/antd-th
 import type { UserFormData } from "@/lib/types";
 import { AuthProvider } from "@/lib/contexts/AuthContext";
 import { NotificationProvider } from "@/lib/contexts/NotificationContext";
+import ToastProvider from "@/lib/contexts/ToastContext";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -112,7 +113,9 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
         <AntdThemeProvider>
           <AuthProvider>
             <NotificationProvider>
-              <FormDataProvider>{children}</FormDataProvider>
+              <ToastProvider>
+                <FormDataProvider>{children}</FormDataProvider>
+              </ToastProvider>
             </NotificationProvider>
           </AuthProvider>
         </AntdThemeProvider>
