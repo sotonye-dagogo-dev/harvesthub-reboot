@@ -30,13 +30,24 @@ export const metadata: Metadata = {
     locale: "en_NG",
     url: "https://myharvesthub.org",
     title: "MyHarvestHub | Faith-Based E-Marketplace",
-    description: "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
+    description:
+      "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
     siteName: "MyHarvestHub",
+    images: [
+      {
+        url: "/myharvesthublogo.png",
+        width: 1200,
+        height: 630,
+        alt: "MyHarvestHub",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MyHarvestHub | Faith-Based E-Marketplace",
-    description: "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
+    description:
+      "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
+    images: ["/myharvesthublogo.png"],
   },
   robots: {
     index: true,
@@ -56,6 +67,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/icons/icon-48x48.png" />
         <meta name="theme-color" content="#9333ea" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

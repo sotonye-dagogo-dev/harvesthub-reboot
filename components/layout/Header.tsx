@@ -13,6 +13,7 @@ import {
   Package,
   Heart,
 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, ThemeToggle } from "@/components/ui";
@@ -44,8 +45,13 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-ds-md bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-700">
-              <span className="text-xl font-bold text-white">H</span>
+            <div className="relative h-10 w-10 flex-shrink-0">
+              <Image
+                src="/myharvesthublogo.png"
+                alt="MyHarvestHub"
+                fill
+                className="object-contain"
+              />
             </div>
             <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
               MyHarvestHub

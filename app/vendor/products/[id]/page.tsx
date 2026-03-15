@@ -5,9 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Product } from "@/lib/types";
-import { Form, Input, InputNumber, Select, Switch, message } from "antd";
+import { Form, Input, InputNumber, Select, Switch } from "antd";
+import { useToast } from "@/lib/contexts/ToastContext";
 import { Button, Card, PageLoader } from "@/components/ui";
 import { ArrowLeft, Package, Upload as UploadIcon } from "lucide-react";
+import ImageUpload from "@/components/ui/imageupload";
 import { formatCurrency } from "@/lib/utils";
 
 const { TextArea } = Input;
@@ -62,11 +64,14 @@ export default function VendorProductDetailPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const [form] = Form.useForm();
+  const toast = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [mainImage, setMainImage] = useState<string | null>(null);
 
   const isNew = id === "new";
 
@@ -93,9 +98,13 @@ export default function VendorProductDetailPage() {
         isFeatured: data.product.isFeatured,
         allowsPickup: data.product.allowsPickup,
         allowsDelivery: data.product.allowsDelivery,
+        images: data.product.images || [],
+        mainImage: data.product.mainImage || null,
       });
+      setImages(data.product.images || []);
+      setMainImage(data.product.mainImage || null);
     } catch {
-      message.error("Failed to load product");
+      toast.error("Failed to load product");
       router.push("/vendor/products");
     } finally {
       setLoading(false);
@@ -127,14 +136,14 @@ export default function VendorProductDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
-      message.success(isNew ? "Product created successfully!" : "Product updated successfully!");
+      toast.success(isNew ? "Product created successfully!" : "Product updated successfully!");
       if (isNew) {
         router.push(`/vendor/products/${data.product.id}`);
       } else {
         setProduct(data.product);
       }
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to save product");
+      toast.error(err instanceof Error ? err.message : "Failed to save product");
     } finally {
       setSaving(false);
     }
@@ -147,10 +156,10 @@ export default function VendorProductDetailPage() {
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
-      message.success("Product deleted");
+      toast.success("Product deleted");
       router.push("/vendor/products");
     } catch {
-      message.error("Failed to delete product");
+      toast.error("Failed to delete product");
     } finally {
       setDeleting(false);
     }
@@ -345,26 +354,71 @@ export default function VendorProductDetailPage() {
         {/* Images (placeholder — Cloudinary in production) */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Product Images</h2>
-          <div className="rounded-ds-md border-2 border-dashed border-ds-border-base p-8 text-center">
-            <UploadIcon className="mx-auto h-8 w-8 text-ds-text-placeholder" />
-            <p className="mt-2 text-sm text-ds-text-tertiary">
-              Image upload via Cloudinary available in production
-            </p>
-            {product?.images && product.images.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                {(product.images as string[]).map((img: string, i: number) => (
-                  <div key={i} className="relative h-20 w-20 rounded-ds-md overflow-hidden">
-                    <Image
-                      src={img}
-                      alt={`Product ${i + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-ds-text-secondary mb-2">
+                Main Image
+              </label>
+              <div className="mb-2">
+                {mainImage ? (
+                  <div className="relative h-40 w-40 rounded-ds-md overflow-hidden">
+                    <Image src={mainImage} alt="Main image" fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-40 w-40 rounded-ds-md border border-ds-border-base bg-ds-surface-base flex items-center justify-center text-ds-text-placeholder">
+                    No main image
+                  </div>
+                )}
+              </div>
+              <ImageUpload
+                folderType="product"
+                vendorId={user?.id}
+                onUploaded={(res) => {
+                  setMainImage(res.url);
+                  form.setFieldsValue({ mainImage: res.url });
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ds-text-secondary mb-2">
+                Additional Images
+              </label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative h-20 w-20 rounded-ds-md overflow-hidden">
+                    <Image src={img} alt={`Image ${idx + 1}`} fill className="object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = images.filter((_, i) => i !== idx);
+                        setImages(next);
+                        form.setFieldsValue({ images: next });
+                      }}
+                      className="absolute right-1 top-1 rounded bg-black/40 p-1 text-white text-xs"
+                      aria-label={`Remove image ${idx + 1}`}
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
               </div>
-            )}
+              <ImageUpload
+                folderType="product"
+                vendorId={user?.id}
+                onUploaded={(res) => {
+                  const next = [...images, res.url];
+                  setImages(next);
+                  form.setFieldsValue({ images: next });
+                }}
+              />
+            </div>
+            <Form.Item name="mainImage" hidden>
+              <Input />
+            </Form.Item>
+            <Form.Item name="images" hidden>
+              <Input />
+            </Form.Item>
           </div>
         </Card>
 

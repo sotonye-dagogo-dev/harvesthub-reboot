@@ -6,7 +6,8 @@ import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/u
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import type { Product } from "@/lib/types";
 import { Package, Search, Eye, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
-import { Input, Select, Table, Modal, message, Tag } from "antd";
+import { Input, Select, Table, Modal, Tag } from "antd";
+import { useToast } from "@/lib/contexts/ToastContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
@@ -15,6 +16,7 @@ import { ProductCategory, PRODUCT_CATEGORY_LABELS } from "@/lib/constants";
 export default function AdminProductsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -54,7 +56,7 @@ export default function AdminProductsPage() {
     mockVendors.find((v) => v.id === vendorId)?.storeName || "Unknown";
 
   const handleToggle = (product: Product) => {
-    message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
+    toast.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
   const handleDelete = (_productId: string) => {
@@ -63,7 +65,7 @@ export default function AdminProductsPage() {
       content: "Are you sure you want to remove this product from the platform?",
       okText: "Delete",
       okType: "danger",
-      onOk: () => message.success("Product removed"),
+      onOk: () => toast.success("Product removed"),
     });
   };
 

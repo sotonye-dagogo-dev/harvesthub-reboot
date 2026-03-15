@@ -3,7 +3,7 @@
  * POST /api/products — Create product (vendor only)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { db } from '@/lib/data/database';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet, cacheInvalidatePattern } from '@/lib/cache/redis';
@@ -55,16 +55,12 @@ export async function GET(req: NextRequest) {
             if (maxPrice) where.price.lte = parseFloat(maxPrice);
         }
 
-        const [products, total] = await Promise.all([
-            prisma.product.findMany({
-                where,
-                include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
-                orderBy: { createdAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit,
-            }),
-            prisma.product.count({ where }),
-        ]);
+        // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters
+        const productsResult = await db.products.findAll({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;
+
+        // Normalize result: mock adapter returns pagination object when page/limit provided
+        const products = Array.isArray(productsResult) ? productsResult : productsResult.data;
+        const total = db.products.count ? await db.products.count({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined }) : (Array.isArray(productsResult) ? productsResult.length : productsResult.total ?? products.length);
 
         await cacheSet(cacheKey, { products, total }, 300);
 
@@ -97,37 +93,42 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields: name, description, category, price, mainImage' }, { status: 400 });
         }
 
-        // For vendors, find their vendor profile
+        // For vendors, find their vendor profile via unified data layer
         let vendorId = body.vendorId;
         if (user.role === UserRole.VENDOR) {
-            const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+            const vendor = await db.vendors.findByUserId(user.userId as string);
             if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
             vendorId = vendor.id;
         }
 
-        const product = await prisma.product.create({
-            data: {
-                vendorId,
-                name,
-                description,
-                category,
-                price: parseFloat(price),
-                compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
-                discount: discount ? parseFloat(discount) : 0,
-                stock: stock !== undefined ? parseInt(stock) : 0,
-                images: images || [],
-                mainImage,
-                variants: variants || null,
-                tags: tags || [],
-                isFeatured: isFeatured || false,
-                listingType: listingType || 'PRODUCT',
-                serviceDetails: serviceDetails || null,
-            },
-            include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
+        const product = await db.products.create({
+            vendorId,
+            name,
+            description,
+            category,
+            price: parseFloat(price),
+            compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
+            discount: discount ? parseFloat(discount) : 0,
+            stock: stock !== undefined ? parseInt(stock) : 0,
+            images: images || [],
+            mainImage,
+            variants: variants || null,
+            tags: tags || [],
+            isFeatured: isFeatured || false,
+            listingType: listingType || 'PRODUCT',
+            serviceDetails: serviceDetails || null,
         });
 
-        // Increment vendor product count
-        await prisma.vendor.update({ where: { id: vendorId }, data: { totalProducts: { increment: 1 } } });
+        // Increment vendor product count (use vendor object if available)
+        try {
+            const vendor = await db.vendors.findById(vendorId as string);
+            if (vendor) {
+                await db.vendors.update(vendorId as string, { totalProducts: (vendor.totalProducts || 0) + 1 } as any);
+            }
+        } catch (e) {
+            // non-fatal: continue
+            console.warn('Could not increment vendor product count', e);
+        }
 
         // Invalidate product list caches
         await cacheInvalidatePattern('cache:products:*');

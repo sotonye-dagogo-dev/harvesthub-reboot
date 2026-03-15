@@ -36,7 +36,7 @@ export function checkAndAwardMilestone(
  */
 export function getRegistrationCount(role: string): number {
     const allUsers = db.users.findAll();
-    return allUsers.filter((u) => u.role === role).length;
+    return allUsers.filter((u: any) => u.role === role).length;
 }
 
 /**

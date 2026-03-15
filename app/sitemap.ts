@@ -55,8 +55,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Dynamic product pages
     const productsResult = db.products.findAll({});
     const allProducts = Array.isArray(productsResult) ? productsResult : productsResult.data;
-    const activeProducts = allProducts.filter((p) => p.isActive);
-    const productPages: MetadataRoute.Sitemap = activeProducts.map((product) => ({
+    const activeProducts = allProducts.filter((p: any) => p.isActive);
+    const productPages: MetadataRoute.Sitemap = activeProducts.map((product: any) => ({
         url: `${BASE_URL}/products/${product.id}`,
         lastModified: new Date(product.updatedAt),
         changeFrequency: "weekly" as const,
@@ -65,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic vendor pages (approved only)
     const vendors = db.vendors.findAll({ status: VendorStatus.APPROVED });
-    const vendorPages: MetadataRoute.Sitemap = vendors.map((vendor) => ({
+    const vendorPages: MetadataRoute.Sitemap = vendors.map((vendor: any) => ({
         url: `${BASE_URL}/vendors/${vendor.id}`,
         lastModified: new Date(vendor.updatedAt),
         changeFrequency: "weekly" as const,

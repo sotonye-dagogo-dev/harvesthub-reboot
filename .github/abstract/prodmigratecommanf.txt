@@ -1,2 +1,8 @@
 #npx prisma generate
 #  Get-Content .env.prod | Where-Object { $_ -match '^[^#\s].*=.*' } | ForEach-Object { $k,$v = $_ -split '=',2; [System.Environment]::SetEnvironmentVariable($k.Trim(), $v.Trim(), 'Process') }; $env:DATABASE_URL = $env:DIRECT_DATABASE_URL; npx prisma migrate deploy
+
+there are some issues
+The phone number input in auth forms, let the country code be a selector that places that code automatically before the 10 digit number the user enters
+Basically redesign the auth flow with our design system
+# together api key key_CYw9Vqiv4LZRACJC3wqKU
+# groq api key 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
