@@ -6,11 +6,13 @@ import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination, Button } from "@/components/ui";
 import { Package, Download } from "lucide-react";
 import { mockOrders, mockUsers } from "@/lib/data/mockData";
+import { getOrdersClient } from "@/lib/data/clientDataFetchers";
 import { formatCurrency } from "@/lib/utils";
 
 export default function AdminOrdersPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState(() => [...mockOrders]);
   const [filters, setFilters] = useState<{
     status?: string[];
     dateRange?: { from: Date; to: Date };
@@ -19,8 +21,22 @@ export default function AdminOrdersPage() {
   const itemsPerPage = 15;
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 500);
+    let mounted = true;
+    async function load() {
+      try {
+        const res = await getOrdersClient();
+        if (!mounted) return;
+        if (Array.isArray(res)) setOrders(res as any[]);
+      } catch (e) {
+        // keep mock fallback
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (!user || user.role !== "ADMIN") {
@@ -36,7 +52,7 @@ export default function AdminOrdersPage() {
   }
 
   // Get all orders (admin sees everything)
-  let filteredOrders = [...mockOrders];
+  let filteredOrders = [...orders];
 
   // Apply filters
   if (filters.status && filters.status.length > 0) {
@@ -62,11 +78,11 @@ export default function AdminOrdersPage() {
 
   // Calculate stats
   const stats = {
-    total: mockOrders.length,
-    pending: mockOrders.filter((o) => o.status === "PENDING").length,
-    processing: mockOrders.filter((o) => o.status === "PROCESSING").length,
-    completed: mockOrders.filter((o) => o.status === "DELIVERED").length,
-    totalRevenue: mockOrders.reduce((sum, o) => sum + o.total, 0),
+    total: orders.length,
+    pending: orders.filter((o) => o.status === "PENDING").length,
+    processing: orders.filter((o) => o.status === "PROCESSING").length,
+    completed: orders.filter((o) => o.status === "DELIVERED").length,
+    totalRevenue: orders.reduce((sum, o) => sum + o.total, 0),
   };
 
   if (isLoading) {
@@ -152,7 +168,8 @@ export default function AdminOrdersPage() {
               <>
                 <div className="space-y-4">
                   {paginatedOrders.map((order) => {
-                    const buyer = mockUsers.find((u) => u.id === order.buyerId);
+                    const buyer =
+                      (order.buyer as any) || mockUsers.find((u) => u.id === order.buyerId);
                     return (
                       <OrderCard
                         key={order.id}

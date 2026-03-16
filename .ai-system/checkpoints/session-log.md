@@ -110,3 +110,29 @@ Start migrating mock backend to Prisma; add a Prisma adapter for user operations
 **Notes / Blockers:**
 
 - Build succeeded but some generated Prisma artifacts are large; proceed with careful adapter replacement to avoid regressions.
+
+## Session 4 — 2026-03-16
+
+**Goal:**
+Finalize email integration alignment: add frontend verify page, make email service resilient when `RESEND_API_KEY` is missing, and ensure API routes send emails non-blocking and point users to the frontend verify flow.
+
+**Completed:**
+
+- Added frontend `app/verify-email/page.tsx` that reads `?token`, posts to `/api/auth/verify-email`, and exposes a resend form.
+- Updated `lib/emails/VerifyEmail.tsx` to link to the frontend `/verify-email` route.
+- Hardened `lib/services/email.ts` to avoid throwing when `RESEND_API_KEY` is absent and return graceful error results.
+- Updated `app/api/auth/resend-verification/route.ts` and `app/api/auth/forgot-password/route.ts` to pass JSX elements to `sendEmail` and import React so JSX works in server routes.
+
+**Files Modified:**
+- lib/emails/VerifyEmail.tsx — verification link now points to frontend
+- lib/services/email.ts — resilient Resend initialization and send behavior
+- app/api/auth/resend-verification/route.ts — use JSX for email react prop
+- app/api/auth/forgot-password/route.ts — use JSX for email react prop
+- app/verify-email/page.tsx — new client verify page
+
+**Next Task:**
+- Audit remaining email send sites to confirm non-blocking behavior and run a TypeScript check + basic smoke test of the verify flow locally.
+
+**Notes / Blockers:**
+- `RESEND_API_KEY` is present in current `.env` but service gracefully handles its absence for local dev.
+- No blocking changes expected; build and smoke test pending.

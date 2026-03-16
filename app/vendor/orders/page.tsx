@@ -14,7 +14,7 @@ import {
 export default function VendorOrdersPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [vendor, setVendor] = useState<any | null>(null);
+  const [_vendor, setVendor] = useState<any | null>(null);
   const [vendorOrders, setVendorOrders] = useState<any[]>([]);
   const [filters, setFilters] = useState<{
     status?: string[];

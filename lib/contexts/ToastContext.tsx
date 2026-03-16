@@ -12,13 +12,13 @@ interface ToastContextType {
     type?: ToastSeverity;
     message: ReactNode;
     description?: ReactNode;
-    duration?: number | null;
+    duration?: number | undefined;
     placement?: "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | "top" | "bottom";
   }) => void;
-  success: (msg: ReactNode, desc?: ReactNode, duration?: number | null) => void;
-  error: (msg: ReactNode, desc?: ReactNode, duration?: number | null) => void;
-  info: (msg: ReactNode, desc?: ReactNode, duration?: number | null) => void;
-  warning: (msg: ReactNode, desc?: ReactNode, duration?: number | null) => void;
+  success: (msg: ReactNode, desc?: ReactNode, duration?: number | undefined) => void;
+  error: (msg: ReactNode, desc?: ReactNode, duration?: number | undefined) => void;
+  info: (msg: ReactNode, desc?: ReactNode, duration?: number | undefined) => void;
+  warning: (msg: ReactNode, desc?: ReactNode, duration?: number | undefined) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -42,20 +42,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     } as any);
   };
 
-  const success = (m: ReactNode, d?: ReactNode, dur?: number | null) => {
-    msg.success(m, dur);
+  const success = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
+    msg.success(m, dur as number | undefined);
     if (d) notify({ type: "success", message: m, description: d, duration: dur });
   };
-  const error = (m: ReactNode, d?: ReactNode, dur?: number | null) => {
-    msg.error(m, dur);
+  const error = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
+    msg.error(m, dur as number | undefined);
     if (d) notify({ type: "error", message: m, description: d, duration: dur });
   };
-  const info = (m: ReactNode, d?: ReactNode, dur?: number | null) => {
-    msg.info(m, dur);
+  const info = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
+    msg.info(m, dur as number | undefined);
     if (d) notify({ type: "info", message: m, description: d, duration: dur });
   };
-  const warning = (m: ReactNode, d?: ReactNode, dur?: number | null) => {
-    msg.warning(m, dur);
+  const warning = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
+    msg.warning(m, dur as number | undefined);
     if (d) notify({ type: "warning", message: m, description: d, duration: dur });
   };
 

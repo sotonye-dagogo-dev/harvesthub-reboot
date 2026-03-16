@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.RESEND_API_KEY?.toString();
+let resend: Resend | null = null;
+try {
+  if (RESEND_API_KEY) resend = new Resend(RESEND_API_KEY);
+} catch (err) {
+  console.error('[Email Service] Failed to initialize Resend client:', err);
+  resend = null;
+}
 
 const EMAIL_FROM = process.env.NEXT_PUBLIC_EMAIL_FROM || 'noreply@harvesthub.ng';
 const APP_NAME = 'HarvestHub';
@@ -27,6 +34,12 @@ export async function sendEmail({
   tags,
 }: SendEmailOptions): Promise<SendEmailResult> {
   try {
+    if (!resend) {
+      const msg = '[Email Service] RESEND_API_KEY not configured — skipping send in non-production.';
+      console.warn(msg);
+      return { success: false, error: 'Resend API key not configured' };
+    }
+
     const { data, error } = await resend.emails.send({
       from: `${APP_NAME} <${EMAIL_FROM}>`,
       to: Array.isArray(to) ? to : [to],

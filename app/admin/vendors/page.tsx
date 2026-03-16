@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
-import { mockVendors, mockUsers, mockProducts } from "@/lib/data/mockData";
-import type { Vendor } from "@/lib/types";
+import {
+  mockVendors as _mockVendorsFallback,
+  mockUsers as _mockUsersFallback,
+  mockProducts as _mockProductsFallback,
+} from "@/lib/data/mockData";
+import { getProductsClient } from "@/lib/data/clientDataFetchers";
+import type { Vendor, User, Product } from "@/lib/types";
 import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
 import { StatusTag } from "@/components/ui";
 import { Input, Select, Table, Modal, message, Tag, Tooltip } from "antd";
@@ -17,7 +22,48 @@ export default function AdminVendorsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [vendors, setVendors] = useState<Vendor[]>([...mockVendors]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    async function loadVendors() {
+      try {
+        const [vendorsRes, usersRes, productsRes] = await Promise.all([
+          (async () => {
+            const r = await fetch("/api/vendors");
+            return r.ok ? (await r.json()).data : null;
+          })(),
+          (async () => {
+            const r = await fetch("/api/users");
+            return r.ok ? (await r.json()).data : null;
+          })(),
+          getProductsClient(),
+        ]);
+        if (!mounted) return;
+        if (Array.isArray(vendorsRes)) setVendors(vendorsRes);
+        setAllUsers(Array.isArray(usersRes) ? usersRes : []);
+        setAllProducts(Array.isArray(productsRes) ? productsRes : []);
+      } catch (e) {
+        if (process.env.NODE_ENV === "production") {
+          if (!mounted) return;
+          setVendors([]);
+          setAllUsers([]);
+          setAllProducts([]);
+        } else {
+          const m = await import("@/lib/data/mockData");
+          if (!mounted) return;
+          setVendors(m.mockVendors ?? _mockVendorsFallback ?? []);
+          setAllUsers(m.mockUsers ?? _mockUsersFallback ?? []);
+          setAllProducts(m.mockProducts ?? _mockProductsFallback ?? []);
+        }
+      }
+    }
+    loadVendors();
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const filteredVendors = useMemo(() => {
@@ -27,7 +73,8 @@ export default function AdminVendorsPage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.storeName.toLowerCase().includes(query) || v.storeDescription?.toLowerCase().includes(query)
+          v.storeName.toLowerCase().includes(query) ||
+          v.storeDescription?.toLowerCase().includes(query)
       );
     }
 
@@ -84,7 +131,8 @@ export default function AdminVendorsPage() {
   const handleReject = (vendorId: string) => {
     Modal.confirm({
       title: "Reject Vendor",
-      content: "Are you sure you want to reject this vendor application? The vendor will be notified.",
+      content:
+        "Are you sure you want to reject this vendor application? The vendor will be notified.",
       okText: "Reject",
       okType: "danger",
       onOk: async () => {
@@ -120,10 +168,10 @@ export default function AdminVendorsPage() {
     });
   };
 
-  const getVendorUser = (vendor: Vendor) => mockUsers.find((u) => u.id === vendor.userId);
+  const getVendorUser = (vendor: Vendor) => allUsers.find((u) => u.id === vendor.userId);
 
   const getVendorProductCount = (vendorId: string) =>
-    mockProducts.filter((p) => p.vendorId === vendorId).length;
+    allProducts.filter((p) => p.vendorId === vendorId).length;
 
   const columns = [
     {
@@ -226,7 +274,7 @@ export default function AdminVendorsPage() {
               </Tooltip>
             </>
           )}
-                {record.status === VendorStatus.APPROVED && (
+          {record.status === VendorStatus.APPROVED && (
             <Tooltip title="Suspend">
               <Button
                 variant="ghost"

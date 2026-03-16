@@ -4,71 +4,131 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, StatCard } from "@/components/ui";
 import type { StatColorPreset } from "@/components/ui";
 import { Package, ShoppingBag, TrendingUp, DollarSign, LucideIcon } from "lucide-react";
-import { mockProducts, mockOrders, mockVendors } from "@/lib/data/mockData";
-import { useMemo } from "react";
+import {
+  mockProducts as _mockProductsFallback,
+  mockOrders as _mockOrdersFallback,
+  mockVendors as _mockVendorsFallback,
+} from "@/lib/data/mockData";
+import { useEffect, useState } from "react";
+import {
+  getProductsClient,
+  getOrdersClient,
+  getVendorsClient,
+} from "@/lib/data/clientDataFetchers";
+import type { Product, Order, Vendor } from "@/lib/types";
 import { OrderStatus } from "@/lib/constants";
 
 export default function VendorDashboardPage() {
   const { user } = useAuth();
 
-  // Calculate vendor stats from mock data
-  const stats = useMemo(() => {
-    if (!user) return [];
+  const [stats, setStats] = useState<
+    { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[]
+  >([]);
+  const [_mockProducts, setMockProducts] = useState<Product[]>([]);
+  const [_mockOrders, setMockOrders] = useState<Order[]>([]);
+  const [_mockVendors, setMockVendors] = useState<Vendor[]>([]);
 
-    // Resolve vendor record from user ID
-    const vendor = mockVendors.find((v) => v.userId === user.id);
-    // Get vendor's products using vendor.id (not user.id)
-    const vendorProducts = mockProducts.filter((p) => p.vendorId === vendor?.id);
-    const productCount = vendorProducts.length;
+  useEffect(() => {
+    let mounted = true;
 
-    // Get orders containing vendor's products
-    const vendorOrders = mockOrders.filter((order) =>
-      order.items.some((item) => vendorProducts.some((p) => p.id === item.productId))
-    );
+    async function load() {
+      if (!user) return;
+      try {
+        const [vendorsRaw, productsRaw, ordersRaw] = await Promise.all([
+          getVendorsClient(),
+          getProductsClient({}),
+          getOrdersClient(),
+        ]);
 
-    // Calculate total revenue from vendor's products in orders
-    const totalRevenue = vendorOrders.reduce((sum, order) => {
-      const vendorItemsTotal = order.items
-        .filter((item) => vendorProducts.some((p) => p.id === item.productId))
-        .reduce((itemSum, item) => itemSum + item.subtotal, 0);
-      return sum + vendorItemsTotal;
-    }, 0);
+        if (!mounted) return;
 
-    // Calculate total sales (completed orders)
-    const completedOrders = vendorOrders.filter((o) => o.status === OrderStatus.DELIVERED);
-    const totalSales = completedOrders.reduce((sum, order) => {
-      const vendorItemsTotal = order.items
-        .filter((item) => vendorProducts.some((p) => p.id === item.productId))
-        .reduce((itemSum, item) => itemSum + item.subtotal, 0);
-      return sum + vendorItemsTotal;
-    }, 0);
+        const vendorsList = Array.isArray(vendorsRaw) ? vendorsRaw : [];
+        const productsList = Array.isArray(productsRaw) ? productsRaw : [];
+        const ordersList = Array.isArray(ordersRaw) ? ordersRaw : [];
 
-    return [
-      {
-        title: "Total Sales",
-        value: `\u20a6${totalSales.toLocaleString()}`,
-        icon: DollarSign,
-        colorPreset: "brand" as StatColorPreset,
-      },
-      {
-        title: "Orders",
-        value: vendorOrders.length.toString(),
-        icon: ShoppingBag,
-        colorPreset: "success" as StatColorPreset,
-      },
-      {
-        title: "Products",
-        value: productCount.toString(),
-        icon: Package,
-        colorPreset: "info" as StatColorPreset,
-      },
-      {
-        title: "Revenue",
-        value: `\u20a6${totalRevenue.toLocaleString()}`,
-        icon: TrendingUp,
-        colorPreset: "warning" as StatColorPreset,
-      },
-    ] satisfies { title: string; value: string; icon: LucideIcon; colorPreset: StatColorPreset }[];
+        const vendor = vendorsList.find((v) => v.userId === user.id);
+        const vendorProducts = vendor ? productsList.filter((p: any) => p.vendorId === vendor.id) : [];
+        const vendorOrders = vendor
+          ? ordersList.filter((order: any) =>
+              Array.isArray(order.items) && order.items.some((it: any) => vendorProducts.some((p: any) => p.id === it.productId))
+            )
+          : [];
+
+        const totalRevenue = vendorOrders.reduce((sum: number, order: any) => {
+          const vendorItemsTotal = (order.items || [])
+            .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
+            .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
+          return sum + vendorItemsTotal;
+        }, 0);
+
+        const completedOrders = vendorOrders.filter((o: any) => o.status === OrderStatus.DELIVERED);
+        const totalSales = completedOrders.reduce((sum: number, order: any) => {
+          const vendorItemsTotal = (order.items || [])
+            .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
+            .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
+          return sum + vendorItemsTotal;
+        }, 0);
+
+        setMockVendors(vendorsList.length ? vendorsList : _mockVendorsFallback ?? []);
+        setMockProducts(productsList.length ? productsList : _mockProductsFallback ?? []);
+        setMockOrders(ordersList.length ? ordersList : _mockOrdersFallback ?? []);
+
+        setStats([
+          { title: "Total Sales", value: `\u20a6${totalSales.toLocaleString()}`, icon: DollarSign, colorPreset: "brand" },
+          { title: "Orders", value: vendorOrders.length.toString(), icon: ShoppingBag, colorPreset: "success" },
+          { title: "Products", value: vendorProducts.length.toString(), icon: Package, colorPreset: "info" },
+          { title: "Revenue", value: `\u20a6${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "warning" },
+        ]);
+      } catch (e) {
+        if (process.env.NODE_ENV === "production") {
+          if (!mounted) return;
+          setMockVendors([]);
+          setMockProducts([]);
+          setMockOrders([]);
+          setStats([
+            { title: "Total Sales", value: `₦0`, icon: DollarSign, colorPreset: "brand" },
+            { title: "Orders", value: "0", icon: ShoppingBag, colorPreset: "success" },
+            { title: "Products", value: "0", icon: Package, colorPreset: "info" },
+            { title: "Revenue", value: `₦0`, icon: TrendingUp, colorPreset: "warning" },
+          ]);
+        } else {
+          // development fallback using mock data
+          const vendor = _mockVendorsFallback.find((v) => v.userId === user.id);
+          const vendorProducts = vendor ? _mockProductsFallback.filter((p) => p.vendorId === vendor.id) : [];
+          const vendorOrders = _mockOrdersFallback.filter((order: any) =>
+            Array.isArray(order.items) && order.items.some((it: any) => vendorProducts.some((p: any) => p.id === it.productId))
+          );
+          const totalRevenue = vendorOrders.reduce((sum: number, order: any) => {
+            const vendorItemsTotal = (order.items || [])
+              .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
+              .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
+            return sum + vendorItemsTotal;
+          }, 0);
+          const completedOrders = vendorOrders.filter((o: any) => o.status === OrderStatus.DELIVERED);
+          const totalSales = completedOrders.reduce((sum: number, order: any) => {
+            const vendorItemsTotal = (order.items || [])
+              .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
+              .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
+            return sum + vendorItemsTotal;
+          }, 0);
+          if (!mounted) return;
+          setMockVendors(_mockVendorsFallback ?? []);
+          setMockProducts(_mockProductsFallback ?? []);
+          setMockOrders(_mockOrdersFallback ?? []);
+          setStats([
+            { title: "Total Sales", value: `\u20a6${totalSales.toLocaleString()}`, icon: DollarSign, colorPreset: "brand" },
+            { title: "Orders", value: vendorOrders.length.toString(), icon: ShoppingBag, colorPreset: "success" },
+            { title: "Products", value: vendorProducts.length.toString(), icon: Package, colorPreset: "info" },
+            { title: "Revenue", value: `\u20a6${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "warning" },
+          ]);
+        }
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
 import { mockUsers } from "@/lib/data/mockData";
@@ -18,8 +18,28 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
+  const [users, setUsers] = useState<User[]>([...mockUsers]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadUsers() {
+      try {
+        const res = await fetch("/api/users");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (mounted && Array.isArray(json.data)) setUsers(json.data);
+      } catch (e) {
+        // keep mock fallback
+      }
+    }
+    loadUsers();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filteredUsers = useMemo(() => {
-    let filtered = [...mockUsers];
+    let filtered = [...users];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -45,16 +65,16 @@ export default function AdminUsersPage() {
     return filtered.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [searchQuery, roleFilter, statusFilter]);
+  }, [searchQuery, roleFilter, statusFilter, users]);
 
   const roleCounts = useMemo(
     () => ({
-      total: mockUsers.length,
-      admins: mockUsers.filter((u) => u.role === UserRole.ADMIN).length,
-      vendors: mockUsers.filter((u) => u.role === UserRole.VENDOR).length,
-      buyers: mockUsers.filter((u) => u.role === UserRole.BUYER).length,
+      total: users.length,
+      admins: users.filter((u) => u.role === UserRole.ADMIN).length,
+      vendors: users.filter((u) => u.role === UserRole.VENDOR).length,
+      buyers: users.filter((u) => u.role === UserRole.BUYER).length,
     }),
-    []
+    [users]
   );
 
   if (user?.role !== "ADMIN") {
@@ -115,7 +135,11 @@ export default function AdminUsersPage() {
       dataIndex: "emailVerified",
       key: "verified",
       render: (verified: boolean) =>
-        verified ? <StatusTag domain="user" status="ACTIVE" label="Verified" /> : <StatusTag domain="user" status="INACTIVE" label="Pending" color="orange" />,
+        verified ? (
+          <StatusTag domain="user" status="ACTIVE" label="Verified" />
+        ) : (
+          <StatusTag domain="user" status="INACTIVE" label="Pending" color="orange" />
+        ),
     },
     {
       title: "Status",

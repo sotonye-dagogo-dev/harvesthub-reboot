@@ -3,13 +3,13 @@
  * POST /api/banners — Create banner (admin only)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+// prisma client not needed here; db adapter is used
 import { db } from '@/lib/data/database';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
 import { bannerKey } from '@/lib/cache/keys';
-import { Prisma } from '../../../prisma/generated/client';
+// Prisma types not required in this route
 import { UserRole } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {

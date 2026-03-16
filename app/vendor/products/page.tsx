@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
 import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
@@ -19,14 +19,13 @@ export default function VendorProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
 
   // Resolve vendor record from user ID, then filter products by vendor.id
-  const [vendor, setVendor] = useState<any | null>(null);
+  const [_vendor, setVendor] = useState<any | null>(null);
   const [vendorProducts, setVendorProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
-      setIsLoading(true);
+      // loading state intentionally omitted; UI shows placeholder based on vendorProducts length
       const vendors = await getVendorsClient();
       const found = vendors.find((v: any) => v.user?.id === user?.id);
       if (!mounted) return;
@@ -48,8 +47,6 @@ export default function VendorProductsPage() {
       } else {
         setVendorProducts([]);
       }
-
-      setIsLoading(false);
     }
 
     load();

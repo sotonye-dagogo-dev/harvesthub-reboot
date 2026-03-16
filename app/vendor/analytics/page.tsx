@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, StatCard } from "@/components/ui";
 import type { StatColorPreset } from "@/components/ui";
 import { mockProducts, mockOrders, mockReviews, mockVendors } from "@/lib/data/mockData";
+import {
+  getProductsClient,
+  getOrdersClient,
+  getVendorsClient,
+  getReviewsByProductIdClient,
+} from "@/lib/data/clientDataFetchers";
 import { TrendingUp, Package, Star, Eye, ShoppingBag, LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
@@ -15,58 +21,144 @@ export default function VendorAnalyticsPage() {
   const router = useRouter();
 
   // Resolve vendor record from user ID, then use vendor.id for data filtering
-  const vendor = user?.role === "VENDOR" ? mockVendors.find((v) => v.userId === user?.id) : null;
-  const vendorId = vendor?.id ?? null;
+  const [analytics, setAnalytics] = useState<any | null>(null);
 
-  const analytics = useMemo(() => {
-    if (!vendorId) return null;
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      if (!user || user.role !== "VENDOR") return;
+      try {
+        const [vendors, products, orders] = await Promise.all([
+          getVendorsClient(),
+          getProductsClient({}),
+          getOrdersClient(),
+        ]);
+        if (!mounted) return;
+        const vendorsList = Array.isArray(vendors) ? vendors : mockVendors;
+        const productsList = Array.isArray(products) ? products : mockProducts;
+        const ordersList = Array.isArray(orders) ? orders : mockOrders;
 
-    const vendorProducts = mockProducts.filter((p) => p.vendorId === vendorId);
-    const vendorOrders = mockOrders.filter((o) =>
-      o.items.some((item) => vendorProducts.find((p) => p.id === item.productId))
-    );
-    const vendorReviews = mockReviews.filter((r) =>
-      vendorProducts.find((p) => p.id === r.productId)
-    );
+        const vendor = vendorsList.find((v: any) => v.userId === user.id) ?? null;
+        const vendorId = vendor?.id ?? null;
+        if (!vendorId) {
+          setAnalytics(null);
+          return;
+        }
 
-    const totalRevenue = vendorOrders
-      .filter((o) => o.status === OrderStatus.DELIVERED)
-      .reduce((sum, order) => {
-        const vendorItemsTotal = order.items
-          .filter((item) => vendorProducts.find((p) => p.id === item.productId))
-          .reduce((itemSum, item) => itemSum + item.price * item.quantity, 0);
-        return sum + vendorItemsTotal;
-      }, 0);
+        const vendorProducts = productsList.filter((p: any) => p.vendorId === vendorId);
+        const vendorOrders = ordersList.filter((o: any) =>
+          o.items.some((item: any) => vendorProducts.find((p: any) => p.id === item.productId))
+        );
 
-    const totalViews = vendorProducts.reduce((sum, p) => sum + (p.views || 0), 0);
-    const totalSales = vendorProducts.reduce((sum, p) => sum + (p.sales || 0), 0);
-    const avgRating =
-      vendorReviews.length > 0
-        ? vendorReviews.reduce((sum, r) => sum + r.rating, 0) / vendorReviews.length
-        : 0;
+        // Fetch reviews for vendor products (batch)
+        const reviewsLists = await Promise.all(
+          vendorProducts.map((p: any) => getReviewsByProductIdClient(p.id))
+        );
+        const vendorReviews = reviewsLists.flat();
 
-    // Top products by sales
-    const topProducts = [...vendorProducts]
-      .sort((a, b) => (b.sales || 0) - (a.sales || 0))
-      .slice(0, 5);
+        const totalRevenue = vendorOrders
+          .filter((o: any) => o.status === OrderStatus.DELIVERED)
+          .reduce((sum: number, order: any) => {
+            const vendorItemsTotal = order.items
+              .filter((item: any) => vendorProducts.find((p: any) => p.id === item.productId))
+              .reduce((itemSum: number, item: any) => itemSum + item.price * item.quantity, 0);
+            return sum + vendorItemsTotal;
+          }, 0);
 
-    // Recent reviews
-    const recentReviews = [...vendorReviews]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
+        const totalViews = vendorProducts.reduce((sum: number, p: any) => sum + (p.views || 0), 0);
+        const totalSales = vendorProducts.reduce((sum: number, p: any) => sum + (p.sales || 0), 0);
+        const avgRating =
+          vendorReviews.length > 0
+            ? vendorReviews.reduce((sum: number, r: any) => sum + r.rating, 0) /
+              vendorReviews.length
+            : 0;
 
-    return {
-      totalRevenue,
-      totalViews,
-      totalSales,
-      avgRating,
-      totalProducts: vendorProducts.length,
-      totalOrders: vendorOrders.length,
-      totalReviews: vendorReviews.length,
-      topProducts,
-      recentReviews,
+        const topProducts = [...vendorProducts]
+          .sort((a: any, b: any) => (b.sales || 0) - (a.sales || 0))
+          .slice(0, 5);
+
+        const recentReviews = [...vendorReviews]
+          .sort(
+            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          .slice(0, 5);
+
+        if (!mounted) return;
+        setAnalytics({
+          totalRevenue,
+          totalViews,
+          totalSales,
+          avgRating,
+          totalProducts: vendorProducts.length,
+          totalOrders: vendorOrders.length,
+          totalReviews: vendorReviews.length,
+          topProducts,
+          recentReviews,
+          vendorProducts,
+        });
+      } catch (e) {
+        // fallback to mock calculations
+        const vendor = mockVendors.find((v: any) => v.userId === user?.id) ?? null;
+        const vendorId = vendor?.id ?? null;
+        if (!vendorId) {
+          setAnalytics(null);
+          return;
+        }
+        const vendorProducts = mockProducts.filter((p: any) => p.vendorId === vendorId);
+        const vendorOrders = mockOrders.filter((o: any) =>
+          o.items.some((item: any) => vendorProducts.find((p: any) => p.id === item.productId))
+        );
+        const vendorReviews = mockReviews.filter((r: any) =>
+          vendorProducts.find((p: any) => p.id === r.productId)
+        );
+
+        const totalRevenue = vendorOrders
+          .filter((o: any) => o.status === OrderStatus.DELIVERED)
+          .reduce((sum: number, order: any) => {
+            const vendorItemsTotal = order.items
+              .filter((item: any) => vendorProducts.find((p: any) => p.id === item.productId))
+              .reduce((itemSum: number, item: any) => itemSum + item.price * item.quantity, 0);
+            return sum + vendorItemsTotal;
+          }, 0);
+
+        const totalViews = vendorProducts.reduce((sum: number, p: any) => sum + (p.views || 0), 0);
+        const totalSales = vendorProducts.reduce((sum: number, p: any) => sum + (p.sales || 0), 0);
+        const avgRating =
+          vendorReviews.length > 0
+            ? vendorReviews.reduce((sum: number, r: any) => sum + r.rating, 0) /
+              vendorReviews.length
+            : 0;
+
+        const topProducts = [...vendorProducts]
+          .sort((a: any, b: any) => (b.sales || 0) - (a.sales || 0))
+          .slice(0, 5);
+
+        const recentReviews = [...vendorReviews]
+          .sort(
+            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          .slice(0, 5);
+
+        if (!mounted) return;
+        setAnalytics({
+          totalRevenue,
+          totalViews,
+          totalSales,
+          avgRating,
+          totalProducts: vendorProducts.length,
+          totalOrders: vendorOrders.length,
+          totalReviews: vendorReviews.length,
+          topProducts,
+          recentReviews,
+          vendorProducts,
+        });
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
     };
-  }, [vendorId]);
+  }, [user]);
 
   // Redirect if not vendor
   if (user?.role !== "VENDOR") {
@@ -143,7 +235,7 @@ export default function VendorAnalyticsPage() {
         <Card>
           <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Top Products</h2>
           <div className="space-y-3">
-            {analytics.topProducts.map((product) => (
+            {analytics.topProducts.map((product: any) => (
               <div
                 key={product.id}
                 className="flex items-center justify-between border-b border-ds-border-base pb-3 last:border-0"
@@ -172,7 +264,7 @@ export default function VendorAnalyticsPage() {
         <Card>
           <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Recent Reviews</h2>
           <div className="space-y-3">
-            {analytics.recentReviews.map((review) => {
+            {analytics.recentReviews.map((review: any) => {
               const product = mockProducts.find((p) => p.id === review.productId);
               return (
                 <div key={review.id} className="border-b border-ds-border-base pb-3 last:border-0">

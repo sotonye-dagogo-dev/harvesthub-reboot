@@ -8,8 +8,8 @@ import type { Product } from "@/lib/types";
 import { Form, Input, InputNumber, Select, Switch } from "antd";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { Button, Card, PageLoader } from "@/components/ui";
-import { ArrowLeft, Package, Upload as UploadIcon } from "lucide-react";
-import ImageUpload from "@/components/ui/imageupload";
+import { ArrowLeft, Package } from "lucide-react";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { formatCurrency } from "@/lib/utils";
 
 const { TextArea } = Input;
@@ -109,7 +109,7 @@ export default function VendorProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, isNew, form, router]);
+  }, [id, isNew, form, router, toast]);
 
   useEffect(() => {
     if (authLoading) return;

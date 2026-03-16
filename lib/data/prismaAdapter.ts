@@ -202,9 +202,11 @@ export const orderDb = {
     },
 };
 
-export default {
+const prismaAdapter = {
     userDb,
     productDb,
     bannerDb,
     orderDb,
 };
+
+export default prismaAdapter;

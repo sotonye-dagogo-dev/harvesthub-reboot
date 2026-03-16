@@ -52,25 +52,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ];
 
-    // Dynamic product pages
-    const productsResult = db.products.findAll({});
-    const allProducts = Array.isArray(productsResult) ? productsResult : productsResult.data;
-    const activeProducts = allProducts.filter((p: any) => p.isActive);
-    const productPages: MetadataRoute.Sitemap = activeProducts.map((product: any) => ({
-        url: `${BASE_URL}/products/${product.id}`,
-        lastModified: new Date(product.updatedAt),
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-    }));
+    // Dynamic product pages (guarded against DB/network failures)
+    let productPages: MetadataRoute.Sitemap = [];
+    try {
+        const productsResult = await db.products.findAll({});
+        const allProducts = Array.isArray(productsResult) ? productsResult : productsResult?.data ?? [];
+        const activeProducts = (allProducts || []).filter((p: any) => p?.isActive);
+        productPages = activeProducts.map((product: any) => ({
+            url: `${BASE_URL}/products/${product.id}`,
+            lastModified: product?.updatedAt ? new Date(product.updatedAt) : new Date(),
+            changeFrequency: "weekly" as const,
+            priority: 0.7,
+        }));
+    } catch (err) {
+        // If DB is unreachable during build, log and continue with static pages only
+        // This keeps the build from failing due to transient network/DB issues.
+        // Errors will appear in server logs but won't block the sitemap generation.
+        // eslint-disable-next-line no-console
+        console.error('Sitemap: failed to load products for sitemap:', err);
+        productPages = [];
+    }
 
-    // Dynamic vendor pages (approved only)
-    const vendors = db.vendors.findAll({ status: VendorStatus.APPROVED });
-    const vendorPages: MetadataRoute.Sitemap = vendors.map((vendor: any) => ({
-        url: `${BASE_URL}/vendors/${vendor.id}`,
-        lastModified: new Date(vendor.updatedAt),
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-    }));
+    // Dynamic vendor pages (approved only) — guarded
+    let vendorPages: MetadataRoute.Sitemap = [];
+    try {
+        const vendorsResult = await db.vendors.findAll({ status: VendorStatus.APPROVED });
+        const vendorsList = Array.isArray(vendorsResult) ? vendorsResult : vendorsResult?.data ?? [];
+        vendorPages = (vendorsList || []).map((vendor: any) => ({
+            url: `${BASE_URL}/vendors/${vendor.id}`,
+            lastModified: vendor?.updatedAt ? new Date(vendor.updatedAt) : new Date(),
+            changeFrequency: "weekly" as const,
+            priority: 0.6,
+        }));
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Sitemap: failed to load vendors for sitemap:', err);
+        vendorPages = [];
+    }
 
     return [...staticPages, ...productPages, ...vendorPages];
 }

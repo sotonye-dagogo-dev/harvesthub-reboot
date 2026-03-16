@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
 import { mockWallets, mockTransactions } from "@/lib/data/mockData";
@@ -20,11 +20,42 @@ export default function WalletPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  // Get user wallet
-  const userWallet = mockWallets.find((w) => w.userId === user?.id);
-  const userTransactions = mockTransactions
-    .filter((t) => t.walletId === userWallet?.id)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  // Wallet state (fetch from API when available)
+  const [userWallet, setUserWallet] = useState(() =>
+    mockWallets.find((w) => w.userId === user?.id)
+  );
+  const [userTransactions, setUserTransactions] = useState(() =>
+    mockTransactions
+      .filter((t) => t.walletId === userWallet?.id)
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadWallet() {
+      try {
+        const res = await fetch("/api/wallet");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted && data?.wallet) {
+          setUserWallet(data.wallet);
+          const tx = (data.wallet.transactions || [])
+            .slice()
+            .sort(
+              (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+          setUserTransactions(tx);
+        }
+      } catch (e) {
+        // keep mock fallback
+      }
+    }
+
+    loadWallet();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
 
   // Pagination
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
@@ -111,7 +142,8 @@ export default function WalletPage() {
               Wallet Deposits &amp; Withdrawals Coming Soon
             </p>
             <p className="mt-1 text-xs text-ds-text-secondary">
-              Payment processing is not yet active. Deposit and withdrawal functionality will be enabled once our payment partners are integrated.
+              Payment processing is not yet active. Deposit and withdrawal functionality will be
+              enabled once our payment partners are integrated.
             </p>
           </div>
         </div>
@@ -153,9 +185,7 @@ export default function WalletPage() {
         {/* Transaction History */}
         <div className="lg:col-span-2">
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-              Transaction History
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Transaction History</h2>
 
             {paginatedTransactions.length === 0 ? (
               <EmptyState
@@ -170,7 +200,10 @@ export default function WalletPage() {
                       key={transaction.id}
                       className="flex items-center justify-between border-b border-ds-border-base pb-3 last:border-0"
                     >
-                      <div className="flex items-center gap-3"> <div className={`flex h-10 w-10 items-center justify-center rounded-ds-full ${ transaction.type ==="DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg" }`}
+                      <div className="flex items-center gap-3">
+                        {" "}
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-ds-full ${transaction.type === "DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg"}`}
                         >
                           {transaction.type === "DEPOSIT" ? (
                             <ArrowDownCircle className="h-5 w-5 text-ds-status-success-text" />
@@ -194,9 +227,13 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div
-                          className={`font-semibold ${ transaction.type === "DEPOSIT" ? "text-ds-status-success-text" : "text-ds-status-error-text" }`}
+                          className={`font-semibold ${transaction.type === "DEPOSIT" ? "text-ds-status-success-text" : "text-ds-status-error-text"}`}
                         >
-                          {transaction.type === "DEPOSIT" ? "+" : "-"} {formatCurrency(transaction.amount)} </div> <div className={`text-xs ${ transaction.status ==="COMPLETED" ? "text-ds-status-success-text" : transaction.status === "PENDING" ? "text-ds-status-warning-text" : "text-ds-status-error-text" }`}
+                          {transaction.type === "DEPOSIT" ? "+" : "-"}{" "}
+                          {formatCurrency(transaction.amount)}{" "}
+                        </div>{" "}
+                        <div
+                          className={`text-xs ${transaction.status === "COMPLETED" ? "text-ds-status-success-text" : transaction.status === "PENDING" ? "text-ds-status-warning-text" : "text-ds-status-error-text"}`}
                         >
                           {transaction.status}
                         </div>
@@ -241,9 +278,7 @@ export default function WalletPage() {
             max={1000000}
             size="large"
           />
-          <div className="mt-2 text-sm text-ds-text-secondary">
-            Min: ₦100 • Max: ₦1,000,000
-          </div>
+          <div className="mt-2 text-sm text-ds-text-secondary">Min: ₦100 • Max: ₦1,000,000</div>
         </div>
       </Modal>
 

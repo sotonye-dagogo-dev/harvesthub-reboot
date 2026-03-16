@@ -77,3 +77,20 @@ Started the migration of the in-memory mock data layer to Prisma. Added an initi
 **Next Sprint Focus:**
 
 - Implement Prisma adapters for `productDb`, `bannerDb`, and `orderDb`, then swap API routes incrementally.
+
+## 2026-03-16 — Email integration and verify flow
+
+**Summary:**
+Aligned frontend and backend email verification flow, added a client `/verify-email` page, and hardened the email service for local/dev environments when the `RESEND_API_KEY` is not configured.
+
+**Completed:**
+- Added `app/verify-email/page.tsx` (client) that posts to `/api/auth/verify-email` and allows resending verification links.
+- Updated verification email template to point to `/verify-email?token=` instead of the API route.
+- Made `lib/services/email.ts` resilient to a missing `RESEND_API_KEY` to avoid startup failures in dev.
+- Ensured server routes use JSX elements when calling `sendEmail` and that email sends are non-blocking (`.catch` used where appropriate).
+
+**Key Changes:**
+- Verification UX now lands on the frontend for a better user experience and consistent client-server behavior.
+
+**Next Sprint Focus:**
+- Audit remaining email usages, run build and smoke tests, and continue Prisma adapter expansion.
