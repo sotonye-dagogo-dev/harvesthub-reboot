@@ -43,6 +43,10 @@ import {
     mockAddresses,
 } from './mockData';
 
+import prismaAdapter from './prismaAdapter';
+
+const usePrisma = process.env.USE_PRISMA === 'true' || process.env.NODE_ENV === 'production';
+
 // ===================================
 // DATABASE STATE
 // ===================================
@@ -113,7 +117,7 @@ function paginate<T>(items: T[], page: number = 1, limit: number = 20): {
 // USER OPERATIONS
 // ===================================
 
-export const userDb = {
+const mockUserDb = {
     findAll: () => users,
 
     findById: (id: string): User | undefined => {
@@ -173,7 +177,7 @@ export const userDb = {
 // BUYER OPERATIONS
 // ===================================
 
-export const buyerDb = {
+const mockBuyerDb = {
     findAll: () => buyers,
 
     findById: (id: string): Buyer | undefined => {
@@ -217,7 +221,7 @@ export const buyerDb = {
 // VENDOR OPERATIONS
 // ===================================
 
-export const vendorDb = {
+const mockVendorDb = {
     findAll: (filters?: { status?: VendorStatus; campus?: string; category?: string }) => {
         let filtered = vendors;
 
@@ -315,7 +319,7 @@ export const vendorDb = {
 // PRODUCT OPERATIONS
 // ===================================
 
-export const productDb = {
+const mockProductDb = {
     findAll: (filters?: {
         vendorId?: string;
         category?: string;
@@ -414,6 +418,21 @@ export const productDb = {
         products.splice(index, 1);
         return true;
     },
+    count: (filters?: {
+        vendorId?: string;
+        category?: string;
+        listingType?: string;
+        isActive?: boolean;
+        isFeatured?: boolean;
+        search?: string;
+        minPrice?: number;
+        maxPrice?: number;
+    }): number => {
+        const result = mockProductDb.findAll({ ...(filters || {}), page: undefined, limit: undefined }) as any;
+        if (Array.isArray(result)) return result.length;
+        if (result && result.data) return result.total ?? result.data.length;
+        return 0;
+    },
 
     incrementViews: (id: string): void => {
         const product = products.find((p) => p.id === id);
@@ -443,7 +462,7 @@ export const productDb = {
 // CART OPERATIONS
 // ===================================
 
-export const cartDb = {
+const mockCartDb = {
     findAll: () => carts,
 
     findById: (id: string): Cart | undefined => {
@@ -478,7 +497,7 @@ export const cartDb = {
     ): Cart | null => {
         let cart = carts.find((c) => c.buyerId === buyerId);
         if (!cart) {
-            cart = cartDb.create(buyerId);
+            cart = mockCartDb.create(buyerId);
         }
 
         const product = products.find((p) => p.id === productId);
@@ -579,7 +598,7 @@ export const cartDb = {
 // ORDER OPERATIONS
 // ===================================
 
-export const orderDb = {
+const mockOrderDb = {
     findAll: (filters?: {
         buyerId?: string;
         vendorId?: string;
@@ -695,7 +714,7 @@ export const orderDb = {
 // WALLET OPERATIONS
 // ===================================
 
-export const walletDb = {
+const mockWalletDb = {
     findAll: () => wallets,
 
     findById: (id: string): Wallet | undefined => {
@@ -766,7 +785,7 @@ export const walletDb = {
 // TRANSACTION OPERATIONS
 // ===================================
 
-export const transactionDb = {
+const mockTransactionDb = {
     findAll: (filters?: {
         walletId?: string;
         type?: string;
@@ -830,7 +849,7 @@ export const transactionDb = {
 // REVIEW OPERATIONS
 // ===================================
 
-export const reviewDb = {
+const mockReviewDb = {
     findAll: (filters?: { productId?: string; buyerId?: string; rating?: number }) => {
         let filtered = reviews;
 
@@ -913,7 +932,7 @@ export const reviewDb = {
 // BANNER OPERATIONS
 // ===================================
 
-export const bannerDb = {
+const mockBannerDb = {
     findAll: (isActive?: boolean) => {
         let filtered = banners;
 
@@ -977,7 +996,7 @@ export const bannerDb = {
 // ADDRESS OPERATIONS
 // ===================================
 
-export const addressDb = {
+const mockAddressDb = {
     findAll: (userId?: string) => {
         if (userId) {
             return addresses.filter((a) => a.userId === userId);
@@ -1081,6 +1100,18 @@ export const dbStats = {
 // ===================================
 // UNIFIED DATABASE EXPORT
 // ===================================
+
+export const userDb = usePrisma ? prismaAdapter.userDb : mockUserDb as any;
+export const buyerDb = mockBuyerDb as any;
+export const vendorDb = mockVendorDb as any;
+export const productDb = usePrisma ? prismaAdapter.productDb : mockProductDb as any;
+export const cartDb = mockCartDb as any;
+export const orderDb = usePrisma ? prismaAdapter.orderDb : mockOrderDb as any;
+export const walletDb = mockWalletDb as any;
+export const transactionDb = mockTransactionDb as any;
+export const reviewDb = mockReviewDb as any;
+export const bannerDb = usePrisma ? prismaAdapter.bannerDb : mockBannerDb as any;
+export const addressDb = mockAddressDb as any;
 
 export const db = {
     users: userDb,

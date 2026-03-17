@@ -1,15 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card } from "@/components/ui";
 import {
   mockUsers,
-  mockVendors,
-  mockProducts,
-  mockOrders,
-  mockTransactions,
+  mockVendors as _mockVendorsFallback,
+  mockProducts as _mockProductsFallback,
+  mockOrders as _mockOrdersFallback,
+  mockTransactions as _mockTransactionsFallback,
 } from "@/lib/data/mockData";
+import {
+  getProductsClient,
+  getVendorsClient,
+  getOrdersClient,
+} from "@/lib/data/clientDataFetchers";
+import type { Product, Vendor, Order, Transaction } from "@/lib/types";
 import {
   Users,
   ShoppingBag,
@@ -30,6 +36,47 @@ import { StatusTag } from "@/components/ui";
 export default function AdminAnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
+
+  const [mockProducts, setMockProducts] = useState<Product[]>([]);
+  const [mockVendors, setMockVendors] = useState<Vendor[]>([]);
+  const [mockOrders, setMockOrders] = useState<Order[]>([]);
+  const [mockTransactions, setMockTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const [p, v, o] = await Promise.all([
+          getProductsClient(),
+          getVendorsClient(),
+          getOrdersClient(),
+        ]);
+        if (!mounted) return;
+        setMockProducts(Array.isArray(p) ? p : []);
+        setMockVendors(Array.isArray(v) ? v : []);
+        setMockOrders(Array.isArray(o) ? o : []);
+      } catch (e) {
+        if (process.env.NODE_ENV === "production") {
+          if (!mounted) return;
+          setMockProducts([]);
+          setMockVendors([]);
+          setMockOrders([]);
+          setMockTransactions([]);
+        } else {
+          const m = await import("@/lib/data/mockData");
+          if (!mounted) return;
+          setMockProducts(m.mockProducts ?? _mockProductsFallback ?? []);
+          setMockVendors(m.mockVendors ?? _mockVendorsFallback ?? []);
+          setMockOrders(m.mockOrders ?? _mockOrdersFallback ?? []);
+          setMockTransactions(m.mockTransactions ?? _mockTransactionsFallback ?? []);
+        }
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const totalRevenue = mockOrders
@@ -96,7 +143,7 @@ export default function AdminAnalyticsPage() {
       highestDiscount,
       discountedActiveProducts,
     };
-  }, []);
+  }, [mockProducts, mockOrders, mockVendors, mockTransactions]);
 
   // Order status distribution
   const orderStatusData = useMemo(() => {
@@ -109,7 +156,7 @@ export default function AdminAnalyticsPage() {
       count,
       percentage: ((count / mockOrders.length) * 100).toFixed(1),
     }));
-  }, []);
+  }, [mockOrders]);
 
   // Top vendors by products
   const topVendors = useMemo(() => {
@@ -125,12 +172,12 @@ export default function AdminAnalyticsPage() {
       }))
       .sort((a, b) => b.productCount - a.productCount)
       .slice(0, 5);
-  }, []);
+  }, [mockVendors, mockProducts]);
 
   // Top products by sales
   const topProducts = useMemo(() => {
     return [...mockProducts].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
-  }, []);
+  }, [mockProducts]);
 
   // Top discounted products
   const topDiscountedProducts = useMemo(() => {
@@ -138,7 +185,7 @@ export default function AdminAnalyticsPage() {
       .filter((p) => p.discount && p.discount > 0 && p.isActive)
       .sort((a, b) => (b.discount || 0) - (a.discount || 0))
       .slice(0, 5);
-  }, []);
+  }, [mockProducts]);
 
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");

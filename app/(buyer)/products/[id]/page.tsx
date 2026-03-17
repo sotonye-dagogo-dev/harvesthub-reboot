@@ -1,8 +1,12 @@
 ﻿"use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockProducts, mockVendors, mockReviews } from "@/lib/data/mockData";
+import {
+  getProductByIdClient,
+  getVendorsClient,
+  getReviewsByProductIdClient,
+} from "@/lib/data/clientDataFetchers";
 import { Button, Rating, Badge } from "@/components/ui";
 import { EmptyState } from "@/components/ui";
 import { ReviewCard, ProductCard, BookingCalendar } from "@/components/features";
@@ -11,16 +15,30 @@ import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import {
-  ShoppingCart, Store, Package, Truck, ArrowLeft, Heart, Share2,
-  CalendarClock, MapPin, Clock, MessageSquare,
+  ShoppingCart,
+  Store,
+  Package,
+  Truck,
+  ArrowLeft,
+  Heart,
+  Share2,
+  CalendarClock,
+  MapPin,
+  Clock,
+  MessageSquare,
 } from "lucide-react";
 import { message } from "antd";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ListingType, SERVICE_UNLIMITED_STOCK,
-  SERVICE_RATE_TYPES, SERVICE_LOCATIONS, SERVICE_CATEGORIES,
+  ListingType,
+  SERVICE_UNLIMITED_STOCK,
+  SERVICE_RATE_TYPES,
+  SERVICE_LOCATIONS,
+  SERVICE_CATEGORIES,
 } from "@/lib/constants";
+import { mockProducts, mockVendors, mockReviews } from "@/lib/data/mockData";
+import type { Product, Vendor, Review } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +53,53 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
-  const product = mockProducts.find((p) => p.id === productId);
-  const vendor = product ? mockVendors.find((v) => v.id === product.vendorId) : null;
-  const productReviews = mockReviews.filter((r) => r.productId === productId);
+  const [product, setProduct] = useState<Product | undefined>(() => undefined);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [productReviews, setProductReviews] = useState<Review[]>([]);
 
-  const isService = product?.listingType === ListingType.SERVICE ||
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const [p, reviews, vendors] = await Promise.all([
+          getProductByIdClient(productId),
+          getReviewsByProductIdClient(productId),
+          getVendorsClient(),
+        ]);
+        if (!mounted) return;
+        if (p) setProduct(p as any);
+        if (Array.isArray(reviews)) setProductReviews(reviews as any[]);
+        if (Array.isArray(vendors)) {
+          const found = (vendors as any[]).find((v) => v.id === (p?.vendorId || product?.vendorId));
+          if (found) setVendor(found);
+        }
+      } catch (e) {
+        // Development fallback to mock data (do not use mocks in production)
+        if (process.env.NODE_ENV !== "production") {
+          try {
+            const m = await import("@/lib/data/mockData");
+            const p = (m.mockProducts ?? []).find((x: Product) => x.id === productId);
+            const reviews = (m.mockReviews ?? []).filter((r: Review) => r.productId === productId);
+            const vendors = m.mockVendors ?? [];
+            if (!mounted) return;
+            if (p) setProduct(p);
+            if (reviews) setProductReviews(reviews);
+            const found = vendors.find((v: Vendor) => v.id === (p?.vendorId || product?.vendorId));
+            if (found) setVendor(found);
+          } catch (err) {
+            // silent
+          }
+        }
+      }
+    }
+    if (productId) load();
+    return () => {
+      mounted = false;
+    };
+  }, [productId, product?.vendorId]);
+
+  const isService =
+    product?.listingType === ListingType.SERVICE ||
     (product?.stock ?? 0) >= SERVICE_UNLIMITED_STOCK;
 
   const serviceDetails = product?.serviceDetails;
@@ -47,9 +107,15 @@ export default function ProductDetailPage() {
   const serviceLabels = useMemo(() => {
     if (!serviceDetails) return null;
     return {
-      category: SERVICE_CATEGORIES.find((c) => c.value === serviceDetails.serviceCategory)?.label ?? serviceDetails.serviceCategory,
-      rateType: SERVICE_RATE_TYPES.find((r) => r.value === serviceDetails.rateType)?.label ?? serviceDetails.rateType,
-      location: SERVICE_LOCATIONS.find((l) => l.value === serviceDetails.location)?.label ?? serviceDetails.location,
+      category:
+        SERVICE_CATEGORIES.find((c) => c.value === serviceDetails.serviceCategory)?.label ??
+        serviceDetails.serviceCategory,
+      rateType:
+        SERVICE_RATE_TYPES.find((r) => r.value === serviceDetails.rateType)?.label ??
+        serviceDetails.rateType,
+      location:
+        SERVICE_LOCATIONS.find((l) => l.value === serviceDetails.location)?.label ??
+        serviceDetails.location,
     };
   }, [serviceDetails]);
 
@@ -260,7 +326,9 @@ export default function ProductDetailPage() {
                   {serviceDetails?.durationMinutes && (
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-ds-text-tertiary" />
-                      <span className="text-ds-text-secondary">{serviceDetails.durationMinutes} min</span>
+                      <span className="text-ds-text-secondary">
+                        {serviceDetails.durationMinutes} min
+                      </span>
                     </div>
                   )}
                 </>
@@ -270,7 +338,9 @@ export default function ProductDetailPage() {
                     <Package className="h-4 w-4 text-ds-text-tertiary" />
                     <span
                       className={
-                        product.stock > 0 ? "text-ds-status-success-text" : "text-ds-status-error-text"
+                        product.stock > 0
+                          ? "text-ds-status-success-text"
+                          : "text-ds-status-error-text"
                       }
                     >
                       {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
@@ -309,7 +379,9 @@ export default function ProductDetailPage() {
                 {serviceDetails.durationMinutes && (
                   <div>
                     <span className="text-ds-text-tertiary">Duration</span>
-                    <p className="font-medium text-ds-text-primary">{serviceDetails.durationMinutes} minutes</p>
+                    <p className="font-medium text-ds-text-primary">
+                      {serviceDetails.durationMinutes} minutes
+                    </p>
                   </div>
                 )}
               </div>
@@ -317,7 +389,8 @@ export default function ProductDetailPage() {
                 <div className="mt-3 flex items-center gap-2 rounded-ds-sm bg-ds-surface-base p-2">
                   <MessageSquare className="h-4 w-4 text-ds-text-brand" />
                   <span className="text-xs text-ds-text-secondary">
-                    This service requires a consultation before booking. The vendor will reach out to discuss your needs.
+                    This service requires a consultation before booking. The vendor will reach out
+                    to discuss your needs.
                   </span>
                 </div>
               )}
@@ -387,7 +460,12 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <Button fullWidth size="lg" onClick={handleAddToCart} disabled={product.stock === 0}>
+                <Button
+                  fullWidth
+                  size="lg"
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                >
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
                 </Button>

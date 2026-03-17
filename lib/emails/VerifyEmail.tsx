@@ -38,7 +38,7 @@ export function VerifyEmail({ firstName, verificationUrl }: VerifyEmailProps) {
 
 export async function sendVerifyEmail(to: string, firstName: string, verificationToken: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
-  const verificationUrl = `${appUrl}/api/auth/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
 
   return sendEmail({
     to,

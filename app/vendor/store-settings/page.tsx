@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button } from "@/components/ui";
-import { Upload, Camera, Store, MapPin, Clock, Truck, Phone, Mail, Percent, Info } from "lucide-react";
+import {
+  Upload,
+  Camera,
+  Store,
+  MapPin,
+  Clock,
+  Truck,
+  Phone,
+  Mail,
+  Percent,
+  Info,
+} from "lucide-react";
 import { Switch, Select, TimePicker, message, Input as AntInput } from "antd";
-import { mockVendors } from "@/lib/data/mockData";
+import { mockVendors as _mockVendorsFallback } from "@/lib/data/mockData";
+import { getVendorsClient } from "@/lib/data/clientDataFetchers";
+import type { Vendor } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
@@ -16,25 +29,89 @@ export default function VendorStoreSettingsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const vendor = mockVendors.find((v) => v.userId === user?.id);
+  const [vendor, setVendor] = useState<Vendor | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const vendors = await getVendorsClient();
+        if (!mounted) return;
+        const list = Array.isArray(vendors) ? vendors : [];
+        setVendor(list.find((v: any) => v.userId === user?.id));
+      } catch (e) {
+        if (process.env.NODE_ENV === "production") {
+          if (!mounted) return;
+          setVendor(undefined);
+        } else {
+          const m = await import("@/lib/data/mockData");
+          if (!mounted) return;
+          setVendor(
+            (m.mockVendors ?? _mockVendorsFallback ?? []).find((v: any) => v.userId === user?.id)
+          );
+        }
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
 
   const [formData, setFormData] = useState({
-    storeName: vendor?.storeName || "",
-    description: vendor?.storeDescription || "",
-    category: vendor?.category || "",
-    campus: vendor?.campus || "",
+    storeName: "",
+    description: "",
+    category: "",
+    campus: "",
     email: user?.email || "",
     phone: user?.phoneNumber || "",
-    whatsapp: vendor?.whatsappNumber || "",
+    whatsapp: "",
     address: "",
-    allowsPickup: vendor?.storeSettings?.allowsPickup ?? false,
-    allowsDelivery: vendor?.storeSettings?.allowsDelivery ?? false,
+    allowsPickup: false,
+    allowsDelivery: false,
     businessHoursStart: "09:00",
     businessHoursEnd: "18:00",
     processingTime: "1-2 days",
-    returnPolicy: vendor?.storeSettings?.policies?.returnPolicy || "",
-    shippingPolicy: vendor?.storeSettings?.policies?.shippingPolicy || "",
+    returnPolicy: "",
+    shippingPolicy: "",
   });
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadVendor() {
+      try {
+        // Fetch vendors and find the vendor for current user
+        const res = await fetch("/api/vendors?limit=50");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!mounted) return;
+        const found = Array.isArray(json.vendors)
+          ? json.vendors.find((v: any) => v.userId === user?.id)
+          : null;
+        if (found) {
+          setVendor(found);
+          setFormData((prev) => ({
+            ...prev,
+            storeName: found.storeName || prev.storeName,
+            description: found.storeDescription || prev.description,
+            category: found.category || prev.category,
+            campus: found.campus || prev.campus,
+            whatsapp: found.whatsappNumber || prev.whatsapp,
+            allowsPickup: found.storeSettings?.allowsPickup ?? prev.allowsPickup,
+            allowsDelivery: found.storeSettings?.allowsDelivery ?? prev.allowsDelivery,
+            returnPolicy: found.storeSettings?.policies?.returnPolicy || prev.returnPolicy,
+            shippingPolicy: found.storeSettings?.policies?.shippingPolicy || prev.shippingPolicy,
+          }));
+        }
+      } catch (e) {
+        // keep mock fallback
+      }
+    }
+    loadVendor();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
 
   // Redirect if not vendor
   if (user?.role !== "VENDOR") {
@@ -88,7 +165,8 @@ export default function VendorStoreSettingsPage() {
         <div className="mt-3 flex items-start gap-2 rounded-ds-sm bg-ds-surface-sunken p-3">
           <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-ds-text-tertiary" />
           <p className="text-xs text-ds-text-tertiary">
-            Commission is automatically deducted from your earnings on each sale. Contact the admin team for questions about your commission tier.
+            Commission is automatically deducted from your earnings on each sale. Contact the admin
+            team for questions about your commission tier.
           </p>
         </div>
       </Card>

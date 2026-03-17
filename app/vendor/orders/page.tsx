@@ -5,11 +5,17 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination } from "@/components/ui";
 import { Package } from "lucide-react";
-import { mockOrders, mockProducts, mockUsers, mockVendors } from "@/lib/data/mockData";
+import {
+  getOrdersClient,
+  getProductsClient,
+  getVendorsClient,
+} from "@/lib/data/clientDataFetchers";
 
 export default function VendorOrdersPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [_vendor, setVendor] = useState<any | null>(null);
+  const [vendorOrders, setVendorOrders] = useState<any[]>([]);
   const [filters, setFilters] = useState<{
     status?: string[];
     dateRange?: { from: Date; to: Date };
@@ -18,9 +24,38 @@ export default function VendorOrdersPage() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 500);
-  }, []);
+    let mounted = true;
+    async function load() {
+      setIsLoading(true);
+      const vendors = await getVendorsClient();
+      const found = vendors.find((v: any) => v.user?.id === user?.id);
+      if (!mounted) return;
+      setVendor(found ?? null);
+
+      const orders = await getOrdersClient();
+      const products = await getProductsClient({ limit: 500 });
+      if (!mounted) return;
+
+      const vendorOrdersList = orders.filter((order: any) =>
+        order.items.some((item: any) => {
+          const product = products.find((p: any) => p.id === item.productId);
+          return product?.vendorId === found?.id;
+        })
+      );
+
+      setVendorOrders(
+        vendorOrdersList.sort(
+          (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
+      setIsLoading(false);
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
 
   if (!user || user.role !== "VENDOR") {
     return (
@@ -34,16 +69,7 @@ export default function VendorOrdersPage() {
     );
   }
 
-  // Resolve vendor record from user ID
-  const vendor = mockVendors.find((v) => v.userId === user.id);
-
-  // Get orders for vendor's products using vendor.id
-  const vendorOrders = mockOrders.filter((order) =>
-    order.items.some((item) => {
-      const product = mockProducts.find((p) => p.id === item.productId);
-      return product?.vendorId === vendor?.id;
-    })
-  );
+  // Resolve vendor record from user ID; vendorOrders are loaded via effect
 
   // Apply filters
   let filteredOrders = [...vendorOrders];
@@ -78,9 +104,7 @@ export default function VendorOrdersPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-ds-text-primary">My Orders</h1>
-          <p className="mt-2 text-ds-text-secondary">
-            Manage and track your incoming orders
-          </p>
+          <p className="mt-2 text-ds-text-secondary">Manage and track your incoming orders</p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -121,7 +145,7 @@ export default function VendorOrdersPage() {
               <>
                 <div className="space-y-4">
                   {paginatedOrders.map((order) => {
-                    const buyer = mockUsers.find((u) => u.id === order.buyerId);
+                    const buyer = order.buyer ?? null;
                     return (
                       <OrderCard
                         key={order.id}
@@ -131,7 +155,11 @@ export default function VendorOrdersPage() {
                         total={order.total}
                         itemCount={order.items.length}
                         deliveryMethod={order.deliveryMethod}
-                        deliveryInfo={buyer ? `${buyer.firstName} ${buyer.lastName}` : "Unknown"}
+                        deliveryInfo={
+                          buyer
+                            ? `${buyer.user?.firstName ?? ""} ${buyer.user?.lastName ?? ""}`.trim()
+                            : "Unknown"
+                        }
                         createdAt={order.createdAt}
                       />
                     );

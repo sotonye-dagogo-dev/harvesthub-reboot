@@ -20,9 +20,9 @@ export async function getBannersClient() {
         const res = await fetch('/api/banners?active=true');
 
         const data = await res.json();
-        return data.data || mockBanners;
+        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockBanners);
     } catch {
-        return mockBanners;
+        return process.env.NODE_ENV === 'production' ? [] : mockBanners;
     }
 }
 
@@ -47,9 +47,9 @@ export async function getProductsClient(filters?: {
         const res = await fetch(`/api/products?${params.toString()}`);
 
         const data = await res.json();
-        return data.data || mockProducts;
+        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockProducts);
     } catch {
-        return mockProducts;
+        return process.env.NODE_ENV === 'production' ? [] : mockProducts;
     }
 }
 
@@ -58,9 +58,12 @@ export async function getFeaturedProductsClient(limit = 8) {
         const res = await fetch(`/api/products?isFeatured=true&limit=${limit}`);
 
         const data = await res.json();
-        return (data.data || mockProducts).slice(0, limit);
+        const list = data.data || (process.env.NODE_ENV === 'production' ? [] : mockProducts);
+        return list.slice(0, limit);
     } catch {
-        return mockProducts.filter((p) => p.isFeatured && p.isActive).slice(0, limit);
+        return process.env.NODE_ENV === 'production'
+            ? []
+            : mockProducts.filter((p) => p.isFeatured && p.isActive).slice(0, limit);
     }
 }
 
@@ -70,9 +73,9 @@ export async function getProductByIdClient(id: string) {
 
         if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || mockProducts.find((p) => p.id === id);
+        return data.data || (process.env.NODE_ENV === 'production' ? null : mockProducts.find((p) => p.id === id));
     } catch {
-        return mockProducts.find((p) => p.id === id);
+        return process.env.NODE_ENV === 'production' ? null : mockProducts.find((p) => p.id === id);
     }
 }
 
@@ -83,9 +86,9 @@ export async function getVendorsClient(limit = 20) {
         const res = await fetch(`/api/vendors?status=APPROVED&limit=${limit}`);
 
         const data = await res.json();
-        return data.data || mockVendors;
+        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockVendors);
     } catch {
-        return mockVendors;
+        return process.env.NODE_ENV === 'production' ? [] : mockVendors;
     }
 }
 
@@ -95,9 +98,9 @@ export async function getVendorByIdClient(id: string) {
 
         if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || mockVendors.find((v) => v.id === id);
+        return data.data || (process.env.NODE_ENV === 'production' ? null : mockVendors.find((v) => v.id === id));
     } catch {
-        return mockVendors.find((v) => v.id === id);
+        return process.env.NODE_ENV === 'production' ? null : mockVendors.find((v) => v.id === id);
     }
 }
 
@@ -110,9 +113,9 @@ export async function getOrdersClient() {
         });
 
         const data = await res.json();
-        return data.data || mockOrders;
+        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockOrders);
     } catch {
-        return mockOrders;
+        return process.env.NODE_ENV === 'production' ? [] : mockOrders;
     }
 }
 
@@ -124,9 +127,9 @@ export async function getOrderByIdClient(id: string) {
 
         if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || mockOrders.find((o) => o.id === id);
+        return data.data || (process.env.NODE_ENV === 'production' ? null : mockOrders.find((o) => o.id === id));
     } catch {
-        return mockOrders.find((o) => o.id === id);
+        return process.env.NODE_ENV === 'production' ? null : mockOrders.find((o) => o.id === id);
     }
 }
 
@@ -137,8 +140,8 @@ export async function getReviewsByProductIdClient(productId: string) {
         const res = await fetch(`/api/reviews?productId=${productId}`);
 
         const data = await res.json();
-        return data.data || mockReviews.filter((r) => r.productId === productId);
+        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockReviews.filter((r) => r.productId === productId));
     } catch {
-        return mockReviews.filter((r) => r.productId === productId);
+        return process.env.NODE_ENV === 'production' ? [] : mockReviews.filter((r) => r.productId === productId);
     }
 }

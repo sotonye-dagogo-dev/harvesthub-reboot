@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
-import { mockProducts, mockVendors } from "@/lib/data/mockData";
+// Development-only mock fallback is loaded dynamically when needed
+import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
+import type { Product, Vendor } from "@/lib/types";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
@@ -14,11 +17,53 @@ export default function FavouritesPage() {
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
 
-  const favoriteProducts = mockProducts.filter((p) => favoriteIds.includes(p.id));
+  const [products, setProducts] = useState<Product[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [vendorsFallback, setVendorsFallback] = useState<Vendor[] | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const [p, v] = await Promise.all([getProductsClient(), getVendorsClient()]);
+        if (!mounted) return;
+        setProducts(Array.isArray(p) ? p : []);
+        setVendors(Array.isArray(v) ? v : []);
+      } catch (e) {
+        if (process.env.NODE_ENV === "production") {
+          // In production don't render mock data — show empty lists so UI shows empty states
+          if (!mounted) return;
+          setProducts([]);
+          setVendors([]);
+        } else {
+          // dynamic fallback to mock data in development only
+          try {
+            const m = await import("@/lib/data/mockData");
+            if (!mounted) return;
+            setProducts(m.mockProducts ?? []);
+            setVendors(m.mockVendors ?? []);
+            setVendorsFallback(m.mockVendors ?? []);
+          } catch (err) {
+            if (!mounted) return;
+            setProducts([]);
+            setVendors([]);
+          }
+        }
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const favoriteProducts = products.filter((p: any) => favoriteIds.includes(p.id));
 
   const handleAddToCart = (product: (typeof favoriteProducts)[number]) => {
     if (!requireAuth("add items to your cart")) return;
-    const vendor = mockVendors.find((v) => v.id === product.vendorId);
+    const vendor =
+      vendors.find((v) => v.id === product.vendorId) ||
+      vendorsFallback?.find((v: any) => v.id === product.vendorId);
     addItem({
       productId: product.id,
       name: product.name,
@@ -58,11 +103,14 @@ export default function FavouritesPage() {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {favoriteProducts.map((product) => {
-              const vendor = mockVendors.find((v) => v.id === product.vendorId);
+            {favoriteProducts.map((product: any) => {
+              const vendor =
+                vendors.find((v: any) => v.id === product.vendorId) ||
+                vendorsFallback?.find((v: any) => v.id === product.vendorId);
               const avgRating =
                 product.reviews && product.reviews.length > 0
-                  ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+                  ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) /
+                    product.reviews.length
                   : 0;
 
               return (

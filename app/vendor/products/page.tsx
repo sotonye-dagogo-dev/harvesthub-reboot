@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
-import { mockProducts, mockVendors } from "@/lib/data/mockData";
+import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 import type { Product } from "@/lib/types";
 import { Package, Plus, Trash2, Eye, Search, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
 import { Input, Select, Table, Modal, message, Tag } from "antd";
@@ -19,26 +19,41 @@ export default function VendorProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
 
   // Resolve vendor record from user ID, then filter products by vendor.id
-  const vendor = useMemo(() => mockVendors.find((v) => v.userId === user?.id), [user?.id]);
+  const [_vendor, setVendor] = useState<any | null>(null);
+  const [vendorProducts, setVendorProducts] = useState<any[]>([]);
 
-  const vendorProducts = useMemo(() => {
-    let filtered = mockProducts.filter((p) => p.vendorId === vendor?.id);
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      // loading state intentionally omitted; UI shows placeholder based on vendorProducts length
+      const vendors = await getVendorsClient();
+      const found = vendors.find((v: any) => v.user?.id === user?.id);
+      if (!mounted) return;
+      setVendor(found ?? null);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
-      );
+      if (found) {
+        const prods = await getProductsClient({
+          limit: 200,
+          search: searchQuery,
+          category: categoryFilter !== "ALL" ? categoryFilter : undefined,
+        });
+        if (!mounted) return;
+        const filtered = prods.filter((p: any) => p.vendorId === found.id);
+        setVendorProducts(
+          filtered.sort(
+            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        );
+      } else {
+        setVendorProducts([]);
+      }
     }
 
-    if (categoryFilter !== "ALL") {
-      filtered = filtered.filter((p) => p.category === categoryFilter);
-    }
-
-    return filtered.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [vendor?.id, searchQuery, categoryFilter]);
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id, searchQuery, categoryFilter]);
 
   // Redirect if not vendor
   if (user?.role !== "VENDOR") {

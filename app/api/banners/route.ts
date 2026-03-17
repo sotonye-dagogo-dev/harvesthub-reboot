@@ -3,12 +3,13 @@
  * POST /api/banners — Create banner (admin only)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+// prisma client not needed here; db adapter is used
+import { db } from '@/lib/data/database';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
 import { bannerKey } from '@/lib/cache/keys';
-import { Prisma } from '../../../prisma/generated/client';
+// Prisma types not required in this route
 import { UserRole } from '@/lib/constants';
 
 export async function GET(req: NextRequest) {
@@ -24,19 +25,11 @@ export async function GET(req: NextRequest) {
         const cached = await cacheGet(cacheKey);
         if (cached) return NextResponse.json(cached);
 
-        const where: Prisma.BannerWhereInput = {};
-        if (active === 'true') {
-            const now = new Date();
-            where.isActive = true;
-            where.startDate = { lte: now };
-            where.OR = [{ endDate: null }, { endDate: { gte: now } }];
-        }
-        if (position) where.position = position as Prisma.EnumBannerPositionFilter;
+        const filters: any = {};
+        if (active === 'true') filters.isActive = true;
+        if (position) filters.position = position;
 
-        const banners = await prisma.banner.findMany({
-            where,
-            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
-        });
+        const banners = await db.banners.findAll(filters as any);
 
         const result = { success: true, banners };
         await cacheSet(cacheKey, result, 300);
@@ -65,19 +58,25 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'title and imageUrl are required' }, { status: 400 });
         }
 
-        const banner = await prisma.banner.create({
-            data: {
-                title, subtitle, description, imageUrl, linkUrl, actions,
-                position: position || 'HERO', theme: theme || 'BUSINESS',
-                accentColor, details, knowMoreLabel,
-                isActive: isActive ?? true,
-                startDate: startDate ? new Date(startDate) : new Date(),
-                endDate: endDate ? new Date(endDate) : null,
-                displayOrder: displayOrder ?? 0,
-                targetAudience: targetAudience || [],
-                createdBy: user.userId,
-            },
-        });
+        const banner = await db.banners.create({
+            title,
+            subtitle,
+            description,
+            imageUrl,
+            linkUrl,
+            actions,
+            position: position || 'HERO',
+            theme: theme || 'BUSINESS',
+            accentColor,
+            details,
+            knowMoreLabel,
+            isActive: isActive ?? true,
+            startDate: startDate ? new Date(startDate) : new Date(),
+            endDate: endDate ? new Date(endDate) : null,
+            displayOrder: displayOrder ?? 0,
+            targetAudience: targetAudience || [],
+            createdBy: user.userId,
+        } as any);
 
         await cacheInvalidate('banners:*');
         return NextResponse.json({ success: true, banner }, { status: 201 });

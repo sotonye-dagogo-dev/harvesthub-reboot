@@ -1,8 +1,9 @@
 ﻿"use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockOrders, mockVendors } from "@/lib/data/mockData";
+import { getOrderByIdClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 import { Card, Button, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -29,7 +30,29 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const orderId = params.id as string;
 
-  const order = useMemo(() => mockOrders.find((o) => o.id === orderId), [orderId]);
+  const [order, setOrder] = useState(() => mockOrders.find((o) => o.id === orderId));
+  const [vendor, setVendor] = useState(() => mockVendors.find((v) => v.id === order?.vendorId));
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const [o, vendors] = await Promise.all([getOrderByIdClient(orderId), getVendorsClient()]);
+        if (!mounted) return;
+        if (o) setOrder(o as any);
+        if (Array.isArray(vendors)) {
+          const v = (vendors as any[]).find((x) => x.id === (o?.vendorId || order?.vendorId));
+          if (v) setVendor(v);
+        }
+      } catch (e) {
+        // keep mock fallback
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [orderId, order?.vendorId]);
 
   // Must be before early return to satisfy Rules of Hooks
   const statusSteps = useMemo(() => {
@@ -88,7 +111,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  const vendor = mockVendors.find((v) => v.id === order.vendorId);
+  // Vendor value is provided by state `vendor` (setVendor). Use state instead of redeclaring.
 
   const canCancel = order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED;
 

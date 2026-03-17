@@ -2,11 +2,12 @@
 
 import { Search, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { getProductsClient } from "@/lib/data/clientDataFetchers";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { cn, formatCurrency } from "@/lib/utils";
-import { mockProducts } from "@/lib/data/mockData";
+import { Product } from "@/lib/types";
 
 export interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -24,7 +25,7 @@ export function SearchBar({
   showSuggestions = true,
 }: SearchBarProps) {
   const [query, setQuery] = useState(defaultValue);
-  const [suggestions, setSuggestions] = useState<typeof mockProducts>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -41,27 +42,49 @@ export function SearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Update suggestions as user types
+  // Update suggestions as user types (call API, fallback to mock)
   useEffect(() => {
-    if (!showSuggestions || !query || query.length < 2) {
-      setSuggestions([]);
-      setShowDropdown(false);
-      return;
+    let mounted = true;
+    async function load() {
+      if (!showSuggestions || !query || query.length < 2) {
+        setSuggestions([]);
+        setShowDropdown(false);
+        return;
+      }
+      try {
+        const res = await getProductsClient({ search: query, limit: 5 });
+        if (!mounted) return;
+        const list = Array.isArray(res) ? res : [];
+        setSuggestions((list as Product[]).slice(0, 5));
+        setShowDropdown(list.length > 0);
+      } catch (e) {
+        // Development fallback: filter local mock data dynamically
+        try {
+          const m = await import("@/lib/data/mockData");
+          const searchQuery = query.toLowerCase();
+          const filtered = (m.mockProducts ?? [])
+            .filter(
+              (product: Product) =>
+                product.isActive &&
+                (product.name.toLowerCase().includes(searchQuery) ||
+                  product.description?.toLowerCase().includes(searchQuery) ||
+                  product.category.toLowerCase().includes(searchQuery))
+            )
+            .slice(0, 5);
+          if (!mounted) return;
+          setSuggestions(filtered);
+          setShowDropdown(filtered.length > 0);
+        } catch (err) {
+          if (!mounted) return;
+          setSuggestions([]);
+          setShowDropdown(false);
+        }
+      }
     }
-
-    const searchQuery = query.toLowerCase();
-    const filtered = mockProducts
-      .filter(
-        (product) =>
-          product.isActive &&
-          (product.name.toLowerCase().includes(searchQuery) ||
-            product.description?.toLowerCase().includes(searchQuery) ||
-            product.category.toLowerCase().includes(searchQuery))
-      )
-      .slice(0, 5); // Limit to 5 suggestions
-
-    setSuggestions(filtered);
-    setShowDropdown(filtered.length > 0);
+    load();
+    return () => {
+      mounted = false;
+    };
   }, [query, showSuggestions]);
 
   const handleSubmit = (e: React.FormEvent) => {

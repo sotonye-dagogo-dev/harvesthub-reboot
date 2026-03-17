@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
 import { mockProducts, mockVendors } from "@/lib/data/mockData";
+import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 import type { Product } from "@/lib/types";
 import { Package, Search, Eye, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
-import { Input, Select, Table, Modal, message, Tag } from "antd";
+import { Input, Select, Table, Modal, Tag } from "antd";
+import { useToast } from "@/lib/contexts/ToastContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
@@ -15,12 +17,34 @@ import { ProductCategory, PRODUCT_CATEGORY_LABELS } from "@/lib/constants";
 export default function AdminProductsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
+  const [products, setProducts] = useState<Product[]>([...mockProducts]);
+  const [vendors, setVendors] = useState(() => [...mockVendors]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const [p, v] = await Promise.all([getProductsClient(), getVendorsClient()]);
+        if (!mounted) return;
+        if (Array.isArray(p)) setProducts(p as Product[]);
+        if (Array.isArray(v)) setVendors(v as any[]);
+      } catch (e) {
+        // keep mock fallback
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let filtered = [...mockProducts];
+    let filtered = [...products];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -42,7 +66,7 @@ export default function AdminProductsPage() {
     return filtered.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [searchQuery, categoryFilter, statusFilter]);
+  }, [searchQuery, categoryFilter, statusFilter, products]);
 
   // Redirect if not admin
   if (user?.role !== "ADMIN") {
@@ -51,10 +75,12 @@ export default function AdminProductsPage() {
   }
 
   const getVendorName = (vendorId: string) =>
-    mockVendors.find((v) => v.id === vendorId)?.storeName || "Unknown";
+    vendors.find((v) => v.id === vendorId)?.storeName ||
+    mockVendors.find((v) => v.id === vendorId)?.storeName ||
+    "Unknown";
 
   const handleToggle = (product: Product) => {
-    message.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
+    toast.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
   };
 
   const handleDelete = (_productId: string) => {
@@ -63,7 +89,7 @@ export default function AdminProductsPage() {
       content: "Are you sure you want to remove this product from the platform?",
       okText: "Delete",
       okType: "danger",
-      onOk: () => message.success("Product removed"),
+      onOk: () => toast.success("Product removed"),
     });
   };
 
@@ -181,24 +207,24 @@ export default function AdminProductsPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
           <p className="text-sm text-ds-text-secondary">Total</p>
-          <p className="text-2xl font-bold text-ds-text-brand">{mockProducts.length}</p>
+          <p className="text-2xl font-bold text-ds-text-brand">{products.length}</p>
         </Card>
         <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
           <p className="text-sm text-ds-text-secondary">Active</p>
           <p className="text-2xl font-bold text-ds-status-success-text">
-            {mockProducts.filter((p) => p.isActive).length}
+            {products.filter((p) => p.isActive).length}
           </p>
         </Card>
         <Card className="bg-ds-status-error-bg dark:bg-ds-status-error-bg/20">
           <p className="text-sm text-ds-text-secondary">Out of Stock</p>
           <p className="text-2xl font-bold text-ds-status-error-text">
-            {mockProducts.filter((p) => p.stock === 0).length}
+            {products.filter((p) => p.stock === 0).length}
           </p>
         </Card>
         <Card className="bg-ds-status-info-bg dark:bg-ds-status-info-bg/20">
           <p className="text-sm text-ds-text-secondary">Featured</p>
           <p className="text-2xl font-bold text-ds-status-info-text">
-            {mockProducts.filter((p) => p.isFeatured).length}
+            {products.filter((p) => p.isFeatured).length}
           </p>
         </Card>
       </div>

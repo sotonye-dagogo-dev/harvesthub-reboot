@@ -18,8 +18,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
-import { mockBanners } from "@/lib/data/mockData";
+import { getBannersClient } from "@/lib/data/clientDataFetchers";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -59,20 +60,50 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
 // ─── Component ────────────────────────────────────────────────────
 
 export function TopAdBanner() {
-  const [banners, setBanners] = useState<(typeof mockBanners)[number][]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Load active TOP banners ────────────────────────────────────
   useEffect(() => {
-    const activeTops = mockBanners
-      .filter(
-        (b) =>
-          b.isActive && b.position === "TOP" && (!b.endDate || new Date(b.endDate) >= new Date())
-      )
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-
-    setBanners(activeTops);
+    let mounted = true;
+    async function load() {
+      try {
+        const res = await getBannersClient();
+        const list = Array.isArray(res) ? res : [];
+        const activeTops = list
+          .filter(
+            (b) =>
+              b.isActive &&
+              b.position === "TOP" &&
+              (!b.endDate || new Date(b.endDate) >= new Date())
+          )
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+        if (!mounted) return;
+        setBanners(activeTops);
+      } catch (e) {
+        if (!mounted) return;
+        // Development-only fallback: dynamically import mock data
+        try {
+          const m = await import("@/lib/data/mockData");
+          const activeTops = (m.mockBanners ?? [])
+            .filter(
+              (b: Banner) =>
+                b.isActive &&
+                b.position === "TOP" &&
+                (!b.endDate || new Date(b.endDate) >= new Date())
+            )
+            .sort((a: Banner, b: Banner) => a.displayOrder - b.displayOrder);
+          setBanners(activeTops);
+        } catch (err) {
+          setBanners([]);
+        }
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ── Auto-rotation ──────────────────────────────────────────────
