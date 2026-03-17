@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
-import { mockWallets, mockTransactions } from "@/lib/data/mockData";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { Input, Modal, message } from "antd";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
+import type { Wallet, Transaction } from "@/lib/types";
+
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +23,8 @@ export default function WalletPage() {
   const itemsPerPage = 15;
 
   // Wallet state (fetch from API when available)
-  const [userWallet, setUserWallet] = useState(() =>
-    mockWallets.find((w) => w.userId === user?.id)
-  );
-  const [userTransactions, setUserTransactions] = useState(() =>
-    mockTransactions
-      .filter((t) => t.walletId === userWallet?.id)
-      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  );
+  const [userWallet, setUserWallet] = useState<Wallet | null>(null);
+  const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -47,7 +43,24 @@ export default function WalletPage() {
           setUserTransactions(tx);
         }
       } catch (e) {
-        // keep mock fallback
+        if (!mounted) return;
+
+        if (!useMockData) {
+          setUserWallet(null);
+          setUserTransactions([]);
+          return;
+        }
+
+        // Development fallback (mock data)
+        const m = await import("@/lib/data/mockData");
+        const wallet = (m.mockWallets ?? []).find((w: any) => w.userId === user?.id) ?? null;
+        const transactions = (m.mockTransactions ?? [])
+          .filter((t: any) => t.walletId === wallet?.id)
+          .sort(
+            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        setUserWallet(wallet);
+        setUserTransactions(transactions);
       }
     }
 

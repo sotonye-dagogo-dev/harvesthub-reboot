@@ -11,27 +11,33 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { Banner, Product, Vendor, Order } from '@/lib/types';
-import {
-    mockBanners,
-    mockProducts,
-    mockVendors,
-    mockOrders,
-    mockUsers,
-    mockReviews,
-    mockWallets,
-    mockTransactions,
-    mockAddresses,
-} from './mockData';
+// Note: mock data is loaded dynamically only when `NEXT_PUBLIC_USE_MOCK_DATA` is true.
+// This avoids bundling or statically referencing mock data in production builds.
+let _cachedMockData: any = null;
+async function loadMockData() {
+    if (_cachedMockData) return _cachedMockData;
+    try {
+        // dynamic import ensures mocks are only included in dev bundles when explicitly enabled
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const m = await import('./mockData');
+        _cachedMockData = m;
+        return m;
+    } catch (err) {
+        return null;
+    }
+}
 
 // ==================== ENVIRONMENT CHECKS ====================
 
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // ==================== BANNERS ====================
 
 export async function getBanners(): Promise<Banner[]> {
-    if (isDevelopment) {
-        return mockBanners;
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockBanners ?? []) as Banner[];
     }
 
     try {
@@ -43,13 +49,18 @@ export async function getBanners(): Promise<Banner[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return banners as any;
     } catch {
-        return mockBanners;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockBanners ?? [];
+        }
+        return [];
     }
 }
 
 export async function getHeroBanners(): Promise<Banner[]> {
-    if (isDevelopment) {
-        return mockBanners.filter((b) => b.position === 'HERO' && b.isActive);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockBanners ?? []).filter((b: any) => b.position === 'HERO' && b.isActive);
     }
 
     try {
@@ -64,15 +75,20 @@ export async function getHeroBanners(): Promise<Banner[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return banners.filter((b) => b.position === 'HERO') as any;
     } catch {
-        return mockBanners.filter((b) => b.position === 'HERO');
+        if (useMockData) {
+            const m = await loadMockData();
+            return (m?.mockBanners ?? []).filter((b: any) => b.position === 'HERO');
+        }
+        return [];
     }
 }
 
 // ==================== PRODUCTS ====================
 
 export async function getProducts(): Promise<Product[]> {
-    if (isDevelopment) {
-        return mockProducts;
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockProducts ?? []) as Product[];
     }
 
     try {
@@ -88,13 +104,18 @@ export async function getProducts(): Promise<Product[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        return mockProducts;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockProducts ?? [];
+        }
+        return [];
     }
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-    if (isDevelopment) {
-        return mockProducts.filter((p) => p.isFeatured && p.isActive).slice(0, limit);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockProducts ?? []).filter((p: any) => p.isFeatured && p.isActive).slice(0, limit);
     }
 
     try {
@@ -111,15 +132,20 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        return mockProducts.filter((p) => p.isFeatured && p.isActive).slice(0, limit);
+        if (useMockData) {
+            const m = await loadMockData();
+            return (m?.mockProducts ?? []).filter((p: any) => p.isFeatured && p.isActive).slice(0, limit);
+        }
+        return [];
     }
 }
 
 export async function getTrendingProducts(limit = 8): Promise<Product[]> {
-    if (isDevelopment) {
-        return mockProducts
-            .filter((p) => p.isActive)
-            .sort((a, b) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockProducts ?? [])
+            .filter((p: any) => p.isActive)
+            .sort((a: any, b: any) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
             .slice(0, limit);
     }
 
@@ -138,16 +164,21 @@ export async function getTrendingProducts(limit = 8): Promise<Product[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        return mockProducts
-            .filter((p) => p.isActive)
-            .sort((a, b) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
-            .slice(0, limit);
+        if (useMockData) {
+            const m = await loadMockData();
+            return (m?.mockProducts ?? [])
+                .filter((p: any) => p.isActive)
+                .sort((a: any, b: any) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
+                .slice(0, limit);
+        }
+        return [];
     }
 }
 
 export async function getProductById(id: string) {
-    if (isDevelopment) {
-        return mockProducts.find((p) => p.id === id);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockProducts ?? []).find((p: any) => p.id === id) ?? null;
     }
 
     try {
@@ -158,18 +189,18 @@ export async function getProductById(id: string) {
                     vendor: true,
                     reviews: true,
                 },
-            })
-            .catch(() => mockProducts.find((p) => p.id === id));
+            });
     } catch {
-        return mockProducts.find((p) => p.id === id);
+        return null;
     }
 }
 
 // ==================== VENDORS ====================
 
 export async function getVendors(): Promise<Vendor[]> {
-    if (isDevelopment) {
-        return mockVendors;
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockVendors ?? []) as Vendor[];
     }
 
     try {
@@ -182,55 +213,58 @@ export async function getVendors(): Promise<Vendor[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return vendors as any;
     } catch {
-        return mockVendors;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockVendors ?? [];
+        }
+        return [];
     }
 }
 
 export async function getVendorById(id: string) {
-    if (isDevelopment) {
-        return mockVendors.find((v) => v.id === id);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockVendors ?? []).find((v: any) => v.id === id) ?? null;
     }
 
     try {
-        return await prisma.vendor
-            .findUnique({
-                where: { id },
-                include: {
-                    user: true,
-                    products: true,
-                },
-            })
-            .catch(() => mockVendors.find((v) => v.id === id));
+        return await prisma.vendor.findUnique({
+            where: { id },
+            include: {
+                user: true,
+                products: true,
+            },
+        });
     } catch {
-        return mockVendors.find((v) => v.id === id);
+        return null;
     }
 }
 
 export async function getVendorByUserId(userId: string) {
-    if (isDevelopment) {
-        return mockVendors.find((v) => v.userId === userId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockVendors ?? []).find((v: any) => v.userId === userId) ?? null;
     }
 
     try {
-        return await prisma.vendor
-            .findUnique({
-                where: { userId },
-                include: {
-                    user: true,
-                    products: true,
-                },
-            })
-            .catch(() => mockVendors.find((v) => v.userId === userId));
+        return await prisma.vendor.findUnique({
+            where: { userId },
+            include: {
+                user: true,
+                products: true,
+            },
+        });
     } catch {
-        return mockVendors.find((v) => v.userId === userId);
+        return null;
     }
 }
 
 // ==================== ORDERS ====================
 
 export async function getOrders(): Promise<Order[]> {
-    if (isDevelopment) {
-        return mockOrders;
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockOrders ?? []) as Order[];
     }
 
     try {
@@ -246,34 +280,38 @@ export async function getOrders(): Promise<Order[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return orders as any;
     } catch {
-        return mockOrders;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockOrders ?? [];
+        }
+        return [];
     }
 }
 
 export async function getOrderById(id: string) {
-    if (isDevelopment) {
-        return mockOrders.find((o) => o.id === id);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockOrders ?? []).find((o: any) => o.id === id) ?? null;
     }
 
     try {
-        return await prisma.order
-            .findUnique({
-                where: { id },
-                include: {
-                    buyer: { include: { user: true } },
-                    vendor: { include: { user: true } },
-                    items: { include: { product: true } },
-                },
-            })
-            .catch(() => mockOrders.find((o) => o.id === id));
+        return await prisma.order.findUnique({
+            where: { id },
+            include: {
+                buyer: { include: { user: true } },
+                vendor: { include: { user: true } },
+                items: { include: { product: true } },
+            },
+        });
     } catch {
-        return mockOrders.find((o) => o.id === id);
+        return null;
     }
 }
 
 export async function getOrdersByBuyerId(buyerId: string): Promise<Order[]> {
-    if (isDevelopment) {
-        return mockOrders.filter((o) => o.buyerId === buyerId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockOrders ?? []).filter((o: any) => o.buyerId === buyerId);
     }
 
     try {
@@ -289,36 +327,40 @@ export async function getOrdersByBuyerId(buyerId: string): Promise<Order[]> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return orders as any;
     } catch {
-        return mockOrders.filter((o) => o.buyerId === buyerId);
+        if (useMockData) {
+            const m = await loadMockData();
+            return (m?.mockOrders ?? []).filter((o: any) => o.buyerId === buyerId);
+        }
+        return [];
     }
 }
 
 export async function getOrdersByVendorId(vendorId: string) {
-    if (isDevelopment) {
-        return mockOrders.filter((o) => o.vendorId === vendorId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockOrders ?? []).filter((o: any) => o.vendorId === vendorId);
     }
 
     try {
-        return await prisma.order
-            .findMany({
-                where: { vendorId },
-                include: {
-                    buyer: { include: { user: true } },
-                    items: { include: { product: true } },
-                },
-                orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockOrders.filter((o) => o.vendorId === vendorId));
+        return await prisma.order.findMany({
+            where: { vendorId },
+            include: {
+                buyer: { include: { user: true } },
+                items: { include: { product: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
     } catch {
-        return mockOrders.filter((o) => o.vendorId === vendorId);
+        return [];
     }
 }
 
 // ==================== USERS ====================
 
 export async function getUsers() {
-    if (isDevelopment) {
-        return mockUsers;
+    if (useMockData) {
+        const m = await loadMockData();
+        return m?.mockUsers ?? [];
     }
 
     try {
@@ -330,32 +372,37 @@ export async function getUsers() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return users as any;
     } catch {
-        return mockUsers;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockUsers ?? [];
+        }
+        return [];
     }
 }
 
 export async function getUserById(id: string) {
-    if (isDevelopment) {
-        return mockUsers.find((u) => u.id === id);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockUsers ?? []).find((u: any) => u.id === id) ?? null;
     }
 
     try {
-        const user = await prisma.user
-            .findUnique({
-                where: { id },
-            });
+        const user = await prisma.user.findUnique({
+            where: { id },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return user as any;
     } catch {
-        return mockUsers.find((u) => u.id === id);
+        return null;
     }
 }
 
 // ==================== REVIEWS ====================
 
 export async function getReviews() {
-    if (isDevelopment) {
-        return mockReviews;
+    if (useMockData) {
+        const m = await loadMockData();
+        return m?.mockReviews ?? [];
     }
 
     try {
@@ -365,16 +412,19 @@ export async function getReviews() {
                     product: true,
                 },
                 orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockReviews);
+            });
     } catch {
-        return mockReviews;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockReviews ?? [];
+        }
+        return [];
     }
 }
-
 export async function getReviewsByProductId(productId: string) {
-    if (isDevelopment) {
-        return mockReviews.filter((r) => r.productId === productId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockReviews ?? []).filter((r: any) => r.productId === productId);
     }
 
     try {
@@ -382,116 +432,119 @@ export async function getReviewsByProductId(productId: string) {
             .findMany({
                 where: { productId },
                 orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockReviews.filter((r) => r.productId === productId));
+            });
     } catch {
-        return mockReviews.filter((r) => r.productId === productId);
+        if (useMockData) {
+            const m = await loadMockData();
+            return (m?.mockReviews ?? []).filter((r: any) => r.productId === productId);
+        }
+        return [];
     }
 }
-
 // ==================== WALLETS ====================
 
 export async function getWallets() {
-    if (isDevelopment) {
-        return mockWallets;
+    if (useMockData) {
+        const m = await loadMockData();
+        return m?.mockWallets ?? [];
     }
 
     try {
         return await prisma.wallet
             .findMany({
                 include: { user: true },
-            })
-            .catch(() => mockWallets);
+            });
     } catch {
-        return mockWallets;
+        if (useMockData) {
+            const m = await loadMockData();
+            return m?.mockWallets ?? [];
+        }
+        return [];
     }
 }
-
 export async function getWalletByUserId(userId: string) {
-    if (isDevelopment) {
-        return mockWallets.find((w) => w.userId === userId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockWallets ?? []).find((w: any) => w.userId === userId) ?? null;
     }
 
     try {
-        return await prisma.wallet
-            .findUnique({
-                where: { userId },
-                include: { transactions: true },
-            })
-            .catch(() => mockWallets.find((w) => w.userId === userId));
+        return await prisma.wallet.findUnique({
+            where: { userId },
+            include: { transactions: true },
+        });
     } catch {
-        return mockWallets.find((w) => w.userId === userId);
+        return null;
     }
 }
+
+
+
 
 // ==================== TRANSACTIONS ====================
 
 export async function getTransactions() {
-    if (isDevelopment) {
-        return mockTransactions;
+    if (useMockData) {
+        const m = await loadMockData();
+        return m?.mockTransactions ?? [];
     }
 
     try {
-        return await prisma.transaction
-            .findMany({
-                include: { wallet: true },
-                orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockTransactions);
+        return await prisma.transaction.findMany({
+            include: { wallet: true },
+            orderBy: { createdAt: 'desc' },
+        });
     } catch {
-        return mockTransactions;
+        return [];
     }
 }
 
 export async function getTransactionsByWalletId(walletId: string) {
-    if (isDevelopment) {
-        return mockTransactions.filter((t) => t.walletId === walletId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockTransactions ?? []).filter((t: any) => t.walletId === walletId);
     }
 
     try {
-        return await prisma.transaction
-            .findMany({
-                where: { walletId },
-                orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockTransactions.filter((t) => t.walletId === walletId));
+        return await prisma.transaction.findMany({
+            where: { walletId },
+            orderBy: { createdAt: 'desc' },
+        });
     } catch {
-        return mockTransactions.filter((t) => t.walletId === walletId);
+        return [];
     }
 }
 
 // ==================== ADDRESSES ====================
 
 export async function getAddresses() {
-    if (isDevelopment) {
-        return mockAddresses;
+    if (useMockData) {
+        const m = await loadMockData();
+        return m?.mockAddresses ?? [];
     }
 
     try {
-        return await prisma.address
-            .findMany({
-                include: { user: true },
-                orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockAddresses);
+        return await prisma.address.findMany({
+            include: { user: true },
+            orderBy: { createdAt: 'desc' },
+        });
     } catch {
-        return mockAddresses;
+        return [];
     }
 }
 
 export async function getAddressesByUserId(userId: string) {
-    if (isDevelopment) {
-        return mockAddresses.filter((a) => a.userId === userId);
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockAddresses ?? []).filter((a: any) => a.userId === userId);
     }
 
     try {
-        return await prisma.address
-            .findMany({
-                where: { userId },
-                orderBy: { createdAt: 'desc' },
-            })
-            .catch(() => mockAddresses.filter((a) => a.userId === userId));
+        return await prisma.address.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
     } catch {
-        return mockAddresses.filter((a) => a.userId === userId);
+        return [];
     }
 }

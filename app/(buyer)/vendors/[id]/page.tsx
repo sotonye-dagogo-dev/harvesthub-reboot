@@ -2,9 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { mockProducts, mockUsers, mockReviews } from "@/lib/data/mockData";
 import { ProductCard, ReviewCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
+
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 import { Button, Tag, Tabs } from "antd";
 import {
   MapPin,
@@ -53,19 +54,23 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
     const vendor = json.vendor || null;
     if (!vendor || vendor.status !== "APPROVED") return notFound();
 
-    const vendorUser = vendor.user || mockUsers.find((u) => u.id === vendor.userId);
+    const vendorUser = vendor.user;
 
     const vendorProducts = Array.isArray(vendor.products)
       ? vendor.products.filter((p: any) => p.isActive)
-      : mockProducts.filter((product) => product.vendorId === vendor.id && product.isActive);
+      : {};
     const activeProducts = vendorProducts.filter((p: any) => p.stock > 0);
     const totalProducts = vendorProducts.length;
 
     const vendorProductIds = new Set(vendorProducts.map((p: any) => p.id));
-    const vendorReviews = mockReviews.filter((r) => vendorProductIds.has(r.productId));
+    // Derive reviews from products to avoid any mock fallbacks
+    const vendorReviews = vendorProducts.flatMap((p: any) =>
+      Array.isArray(p.reviews) ? p.reviews : []
+    );
     const avgRatingOverall =
       vendorReviews.length > 0
-        ? vendorReviews.reduce((sum, r) => sum + r.rating, 0) / vendorReviews.length
+        ? vendorReviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) /
+          vendorReviews.length
         : vendor.analytics?.averageRating || 0;
 
     return (
@@ -292,16 +297,12 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     <div>
                       {vendorReviews.length > 0 ? (
                         <div className="space-y-4">
-                          {vendorReviews.map((review) => {
-                            const reviewer = mockUsers.find(
-                              (u) =>
-                                u.id ===
-                                (mockUsers.find(
-                                  (_u) =>
-                                    _u.buyer?.id === review.buyerId || _u.id === review.buyerId
-                                )?.id ?? review.buyerId)
+                          {vendorReviews.map((review: any) => {
+                            const product = vendorProducts.find(
+                              (p: any) => p.id === review.productId
                             );
-                            const product = mockProducts.find((p) => p.id === review.productId);
+                            const reviewerName =
+                              review?.buyerName || review?.userName || "Anonymous";
 
                             return (
                               <div key={review.id}>
@@ -312,12 +313,8 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                                 )}
                                 <ReviewCard
                                   id={review.id}
-                                  userName={
-                                    reviewer
-                                      ? `${reviewer.firstName} ${reviewer.lastName}`
-                                      : "Anonymous"
-                                  }
-                                  userAvatar={reviewer?.profilePicture ?? undefined}
+                                  userName={reviewerName}
+                                  userAvatar={review?.userAvatar ?? undefined}
                                   rating={review.rating}
                                   comment={review.comment || ""}
                                   images={review.images ?? review.photos ?? undefined}

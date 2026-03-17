@@ -4,12 +4,9 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, StatCard } from "@/components/ui";
 import type { StatColorPreset } from "@/components/ui";
 import { Package, ShoppingBag, TrendingUp, DollarSign, LucideIcon } from "lucide-react";
-import {
-  mockProducts as _mockProductsFallback,
-  mockOrders as _mockOrdersFallback,
-  mockVendors as _mockVendorsFallback,
-} from "@/lib/data/mockData";
 import { useEffect, useState } from "react";
+
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 import {
   getProductsClient,
   getOrdersClient,
@@ -47,10 +44,16 @@ export default function VendorDashboardPage() {
         const ordersList = Array.isArray(ordersRaw) ? ordersRaw : [];
 
         const vendor = vendorsList.find((v) => v.userId === user.id);
-        const vendorProducts = vendor ? productsList.filter((p: any) => p.vendorId === vendor.id) : [];
+        const vendorProducts = vendor
+          ? productsList.filter((p: any) => p.vendorId === vendor.id)
+          : [];
         const vendorOrders = vendor
-          ? ordersList.filter((order: any) =>
-              Array.isArray(order.items) && order.items.some((it: any) => vendorProducts.some((p: any) => p.id === it.productId))
+          ? ordersList.filter(
+              (order: any) =>
+                Array.isArray(order.items) &&
+                order.items.some((it: any) =>
+                  vendorProducts.some((p: any) => p.id === it.productId)
+                )
             )
           : [];
 
@@ -69,19 +72,42 @@ export default function VendorDashboardPage() {
           return sum + vendorItemsTotal;
         }, 0);
 
-        setMockVendors(vendorsList.length ? vendorsList : _mockVendorsFallback ?? []);
-        setMockProducts(productsList.length ? productsList : _mockProductsFallback ?? []);
-        setMockOrders(ordersList.length ? ordersList : _mockOrdersFallback ?? []);
+        setMockVendors(vendorsList.length ? vendorsList : []);
+        setMockProducts(productsList.length ? productsList : []);
+        setMockOrders(ordersList.length ? ordersList : []);
 
         setStats([
-          { title: "Total Sales", value: `\u20a6${totalSales.toLocaleString()}`, icon: DollarSign, colorPreset: "brand" },
-          { title: "Orders", value: vendorOrders.length.toString(), icon: ShoppingBag, colorPreset: "success" },
-          { title: "Products", value: vendorProducts.length.toString(), icon: Package, colorPreset: "info" },
-          { title: "Revenue", value: `\u20a6${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "warning" },
+          {
+            title: "Total Sales",
+            value: `\u20a6${totalSales.toLocaleString()}`,
+            icon: DollarSign,
+            colorPreset: "brand",
+          },
+          {
+            title: "Orders",
+            value: vendorOrders.length.toString(),
+            icon: ShoppingBag,
+            colorPreset: "success",
+          },
+          {
+            title: "Products",
+            value: vendorProducts.length.toString(),
+            icon: Package,
+            colorPreset: "info",
+          },
+          {
+            title: "Revenue",
+            value: `\u20a6${totalRevenue.toLocaleString()}`,
+            icon: TrendingUp,
+            colorPreset: "warning",
+          },
         ]);
       } catch (e) {
-        if (process.env.NODE_ENV === "production") {
-          if (!mounted) return;
+        if (!mounted) return;
+
+        // In case of errors, avoid falling back to undefined mock variables.
+        // If in production, show zeros/empty sets; if in development and mock enabled, attempt to import mock data.
+        if (!useMockData) {
           setMockVendors([]);
           setMockProducts([]);
           setMockOrders([]);
@@ -91,35 +117,82 @@ export default function VendorDashboardPage() {
             { title: "Products", value: "0", icon: Package, colorPreset: "info" },
             { title: "Revenue", value: `₦0`, icon: TrendingUp, colorPreset: "warning" },
           ]);
-        } else {
-          // development fallback using mock data
-          const vendor = _mockVendorsFallback.find((v) => v.userId === user.id);
-          const vendorProducts = vendor ? _mockProductsFallback.filter((p) => p.vendorId === vendor.id) : [];
-          const vendorOrders = _mockOrdersFallback.filter((order: any) =>
-            Array.isArray(order.items) && order.items.some((it: any) => vendorProducts.some((p: any) => p.id === it.productId))
+          return;
+        }
+
+        try {
+          const m = await import("@/lib/data/mockData");
+          const vFallback = Array.isArray(m.mockVendors) ? m.mockVendors : [];
+          const pFallback = Array.isArray(m.mockProducts) ? m.mockProducts : [];
+          const oFallback = Array.isArray(m.mockOrders) ? m.mockOrders : [];
+
+          const vendor = vFallback.find((v: any) => v.userId === user.id);
+          const vendorProducts = vendor
+            ? pFallback.filter((p: any) => p.vendorId === vendor.id)
+            : [];
+          const vendorOrders = oFallback.filter(
+            (order: any) =>
+              Array.isArray(order.items) &&
+              order.items.some((it: any) => vendorProducts.some((p: any) => p.id === it.productId))
           );
+
           const totalRevenue = vendorOrders.reduce((sum: number, order: any) => {
             const vendorItemsTotal = (order.items || [])
               .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
               .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
             return sum + vendorItemsTotal;
           }, 0);
-          const completedOrders = vendorOrders.filter((o: any) => o.status === OrderStatus.DELIVERED);
+
+          const completedOrders = vendorOrders.filter(
+            (o: any) => o.status === OrderStatus.DELIVERED
+          );
           const totalSales = completedOrders.reduce((sum: number, order: any) => {
             const vendorItemsTotal = (order.items || [])
               .filter((item: any) => vendorProducts.some((p: any) => p.id === item.productId))
               .reduce((s: number, i: any) => s + (i.subtotal || 0), 0);
             return sum + vendorItemsTotal;
           }, 0);
+
           if (!mounted) return;
-          setMockVendors(_mockVendorsFallback ?? []);
-          setMockProducts(_mockProductsFallback ?? []);
-          setMockOrders(_mockOrdersFallback ?? []);
+          setMockVendors(vFallback);
+          setMockProducts(pFallback);
+          setMockOrders(oFallback);
           setStats([
-            { title: "Total Sales", value: `\u20a6${totalSales.toLocaleString()}`, icon: DollarSign, colorPreset: "brand" },
-            { title: "Orders", value: vendorOrders.length.toString(), icon: ShoppingBag, colorPreset: "success" },
-            { title: "Products", value: vendorProducts.length.toString(), icon: Package, colorPreset: "info" },
-            { title: "Revenue", value: `\u20a6${totalRevenue.toLocaleString()}`, icon: TrendingUp, colorPreset: "warning" },
+            {
+              title: "Total Sales",
+              value: `₦${totalSales.toLocaleString()}`,
+              icon: DollarSign,
+              colorPreset: "brand",
+            },
+            {
+              title: "Orders",
+              value: vendorOrders.length.toString(),
+              icon: ShoppingBag,
+              colorPreset: "success",
+            },
+            {
+              title: "Products",
+              value: vendorProducts.length.toString(),
+              icon: Package,
+              colorPreset: "info",
+            },
+            {
+              title: "Revenue",
+              value: `₦${totalRevenue.toLocaleString()}`,
+              icon: TrendingUp,
+              colorPreset: "warning",
+            },
+          ]);
+        } catch (err) {
+          if (!mounted) return;
+          setMockVendors([]);
+          setMockProducts([]);
+          setMockOrders([]);
+          setStats([
+            { title: "Total Sales", value: `₦0`, icon: DollarSign, colorPreset: "brand" },
+            { title: "Orders", value: "0", icon: ShoppingBag, colorPreset: "success" },
+            { title: "Products", value: "0", icon: Package, colorPreset: "info" },
+            { title: "Revenue", value: `₦0`, icon: TrendingUp, colorPreset: "warning" },
           ]);
         }
       }

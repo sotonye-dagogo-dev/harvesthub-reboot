@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-HarvestHub is a comprehensive e-commerce marketplace platform that enables buyers and vendors to connect through a secure, feature-rich digital ecosystem. The platform includes vendor storefronts, product listings, an integrated wallet system, promotional banners, pickup/delivery options, and church-affiliated vendor support. Built with modern web technologies and designed for scalability, HarvestHub aims to create a trusted marketplace that serves the Nigerian market with a focus on Lagos-based vendors and church community integration.
+HarvestHub is a comprehensive e-commerce marketplace platform that enables buyers and vendors to connect through a secure, feature-rich digital ecosystem. The platform includes vendor storefronts, product listings, an integrated wallet system, promotional banners, pickup/delivery options, and church-affiliated vendor support. Built with modern web technologies and designed for scalability, HarvestHub aims to create a trusted marketplace that serves the Nigerian market with a focus on Lagos-based vendors and church community integration. The repo is configured for automated ai-assisted development; refer to `.ai-system/` for safe agent guidance and procedures.
 
 NOTE: Primary AI agent guidance and operational procedures have been migrated into the `.ai-system/` directory. Agents should consult `.ai-system/` (especially `.ai-system/agents/general-instructions.md`) before following guidance in this file to avoid conflicting instructions.
 

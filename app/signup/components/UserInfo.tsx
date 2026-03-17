@@ -47,9 +47,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">
-          Personal Information
-        </h3>
+        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">Personal Information</h3>
         <p className="text-sm text-ds-text-secondary">Tell us about yourself</p>
       </div>
 
@@ -108,12 +106,28 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
           rules={[
             { required: true, message: "Please enter your phone number" },
             {
-              pattern: /^(\+234|0)[789]\d{9}$/,
-              message: "Please enter a valid Nigerian phone number",
+              validator: (_, value) => {
+                if (!value) return Promise.reject("Please enter your phone number");
+
+                const cleaned = String(value).replace(/\s+/g, "");
+                const patterns = [
+                  /^\+234[789]\d{8}$/, // Nigeria
+                  /^\+1\d{10}$/, // US
+                  /^\+44\d{10}$/, // UK
+                ];
+
+                if (!patterns.some((p) => p.test(cleaned))) {
+                  return Promise.reject(
+                    "Please enter a valid phone number (e.g., +2348012345678)."
+                  );
+                }
+
+                return Promise.resolve();
+              },
             },
           ]}
         >
-          <PhoneInput placeholder="803 456 7890" className="rounded-ds-md" />
+          <PhoneInput placeholder="8012345678" className="rounded-ds-md" />
         </Form.Item>
 
         <Form.Item className="mb-0">

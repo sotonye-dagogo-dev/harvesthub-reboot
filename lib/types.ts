@@ -551,6 +551,9 @@ export interface UserFormData {
     position?: string;
     storeDescription?: string;
     businessAddress?: string;
+    bankName?: string;
+    accountName?: string;
+    accountNumber?: string;
     serviceCategory?: string;
     serviceLocation?: string;
     username?: string;

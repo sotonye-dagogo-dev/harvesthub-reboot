@@ -14,6 +14,7 @@ import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Banner, Product, Vendor } from "@/lib/types";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -128,6 +129,9 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
           </h2>
           <CategoryNav categories={categories} layout="horizontal" />
         </section>
+
+        {/*Fallback for when there are no products using EmptyState component*/}
+        {products.length === 0 && <EmptyState title={"No Products Found"} />}
 
         {/* Featured Products */}
         {featuredProducts.length > 0 && (

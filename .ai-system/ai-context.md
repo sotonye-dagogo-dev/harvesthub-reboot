@@ -1,6 +1,6 @@
 # AI Context
 
-> **Overview:** MyHarvestHub is a Next.js 15 + TypeScript marketplace platform focused on Nigerian buyers and vendors (especially church communities). This repo is a refactor of the Martgram codebase and includes a mock backend, Prisma schema scaffolding, and a UI built with Ant Design + Tailwind.
+> **Overview:** MyHarvestHub is a Next.js 15 + TypeScript marketplace platform focused on Nigerian buyers and vendors (especially church communities). This repo is a refactor of the Martgram codebase and includes a mock backend, Prisma schema scaffolding, and a UI built with Ant Design + Tailwind. The repository is set up to enable automated ai-assisted development workflows for agents operating on the codebase.
 
 ## Key Modules & Concepts
 

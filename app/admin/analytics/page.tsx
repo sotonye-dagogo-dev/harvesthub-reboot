@@ -4,16 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card } from "@/components/ui";
 import {
-  mockUsers,
-  mockVendors as _mockVendorsFallback,
-  mockProducts as _mockProductsFallback,
-  mockOrders as _mockOrdersFallback,
-  mockTransactions as _mockTransactionsFallback,
-} from "@/lib/data/mockData";
-import {
   getProductsClient,
   getVendorsClient,
   getOrdersClient,
+  getUsersClient,
 } from "@/lib/data/clientDataFetchers";
 import type { Product, Vendor, Order, Transaction } from "@/lib/types";
 import {
@@ -37,41 +31,36 @@ export default function AdminAnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [mockProducts, setMockProducts] = useState<Product[]>([]);
-  const [mockVendors, setMockVendors] = useState<Vendor[]>([]);
-  const [mockOrders, setMockOrders] = useState<Order[]>([]);
-  const [mockTransactions, setMockTransactions] = useState<Transaction[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
       try {
-        const [p, v, o] = await Promise.all([
+        const [p, v, o, u] = await Promise.all([
           getProductsClient(),
           getVendorsClient(),
           getOrdersClient(),
+          getUsersClient(),
         ]);
         if (!mounted) return;
-        setMockProducts(Array.isArray(p) ? p : []);
-        setMockVendors(Array.isArray(v) ? v : []);
-        setMockOrders(Array.isArray(o) ? o : []);
+        setProducts(Array.isArray(p) ? p : []);
+        setVendors(Array.isArray(v) ? v : []);
+        setOrders(Array.isArray(o) ? o : []);
+        setUsers(Array.isArray(u) ? u : []);
       } catch (e) {
-        if (process.env.NODE_ENV === "production") {
-          if (!mounted) return;
-          setMockProducts([]);
-          setMockVendors([]);
-          setMockOrders([]);
-          setMockTransactions([]);
-        } else {
-          const m = await import("@/lib/data/mockData");
-          if (!mounted) return;
-          setMockProducts(m.mockProducts ?? _mockProductsFallback ?? []);
-          setMockVendors(m.mockVendors ?? _mockVendorsFallback ?? []);
-          setMockOrders(m.mockOrders ?? _mockOrdersFallback ?? []);
-          setMockTransactions(m.mockTransactions ?? _mockTransactionsFallback ?? []);
-        }
+        console.error("Failed to load analytics data", e);
+        if (!mounted) return;
+        setProducts([]);
+        setVendors([]);
+        setOrders([]);
+        setUsers([]);
       }
     }
+
     load();
     return () => {
       mounted = false;
@@ -79,32 +68,32 @@ export default function AdminAnalyticsPage() {
   }, []);
 
   const stats = useMemo(() => {
-    const totalRevenue = mockOrders
+    const totalRevenue = orders
       .filter((o) => o.status === OrderStatus.DELIVERED)
       .reduce((sum, o) => sum + o.total, 0);
 
-    const totalOrders = mockOrders.length;
-    const completedOrders = mockOrders.filter((o) => o.status === OrderStatus.DELIVERED).length;
-    const pendingOrders = mockOrders.filter((o) => o.status === OrderStatus.PENDING).length;
-    const cancelledOrders = mockOrders.filter((o) => o.status === OrderStatus.CANCELLED).length;
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter((o) => o.status === OrderStatus.DELIVERED).length;
+    const pendingOrders = orders.filter((o) => o.status === OrderStatus.PENDING).length;
+    const cancelledOrders = orders.filter((o) => o.status === OrderStatus.CANCELLED).length;
 
-    const activeVendors = mockVendors.filter((v) => v.status === VendorStatus.APPROVED).length;
-    const pendingVendors = mockVendors.filter((v) => v.status === VendorStatus.PENDING).length;
+    const activeVendors = vendors.filter((v) => v.status === VendorStatus.APPROVED).length;
+    const pendingVendors = vendors.filter((v) => v.status === VendorStatus.PENDING).length;
 
-    const totalProducts = mockProducts.length;
-    const activeProducts = mockProducts.filter((p) => p.isActive).length;
-    const outOfStock = mockProducts.filter((p) => p.stock === 0).length;
+    const totalProducts = products.length;
+    const activeProducts = products.filter((p) => p.isActive).length;
+    const outOfStock = products.filter((p) => p.stock === 0).length;
 
-    const totalUsers = mockUsers.length;
-    const buyerCount = mockUsers.filter((u) => u.role === UserRole.BUYER).length;
-    const vendorCount = mockUsers.filter((u) => u.role === UserRole.VENDOR).length;
+    const totalUsers = users.length;
+    const buyerCount = users.filter((u) => u.role === UserRole.BUYER).length;
+    const vendorCount = users.filter((u) => u.role === UserRole.VENDOR).length;
 
     const averageOrderValue = completedOrders > 0 ? totalRevenue / completedOrders : 0;
 
-    const totalTransactions = mockTransactions?.length || 0;
+    const totalTransactions = 0;
 
     // Discount analytics
-    const productsWithDiscount = mockProducts.filter((p) => p.discount && p.discount > 0);
+    const productsWithDiscount = products.filter((p) => p.discount && p.discount > 0);
     const discountedProductCount = productsWithDiscount.length;
     const avgDiscount =
       discountedProductCount > 0
@@ -143,49 +132,49 @@ export default function AdminAnalyticsPage() {
       highestDiscount,
       discountedActiveProducts,
     };
-  }, [mockProducts, mockOrders, mockVendors, mockTransactions]);
+  }, [products, orders, vendors, users]);
 
   // Order status distribution
   const orderStatusData = useMemo(() => {
     const statusCounts: Record<string, number> = {};
-    mockOrders.forEach((order) => {
+    orders.forEach((order) => {
       statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
     });
     return Object.entries(statusCounts).map(([status, count]) => ({
       status,
       count,
-      percentage: ((count / mockOrders.length) * 100).toFixed(1),
+      percentage: ((count / orders.length) * 100).toFixed(1),
     }));
-  }, [mockOrders]);
+  }, [orders]);
 
   // Top vendors by products
   const topVendors = useMemo(() => {
-    return mockVendors
+    return vendors
       .map((v) => ({
         ...v,
-        productCount: mockProducts.filter((p) => p.vendorId === v.id).length,
-        orderCount: mockOrders.filter((o) =>
+        productCount: products.filter((p) => p.vendorId === v.id).length,
+        orderCount: orders.filter((o) =>
           o.items?.some((item) =>
-            mockProducts.find((p) => p.id === item.productId && p.vendorId === v.id)
+            products.find((p) => p.id === item.productId && p.vendorId === v.id)
           )
         ).length,
       }))
       .sort((a, b) => b.productCount - a.productCount)
       .slice(0, 5);
-  }, [mockVendors, mockProducts]);
+  }, [vendors, products, orders]);
 
   // Top products by sales
   const topProducts = useMemo(() => {
-    return [...mockProducts].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
-  }, [mockProducts]);
+    return [...products].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
+  }, [products]);
 
   // Top discounted products
   const topDiscountedProducts = useMemo(() => {
-    return mockProducts
+    return products
       .filter((p) => p.discount && p.discount > 0 && p.isActive)
       .sort((a, b) => (b.discount || 0) - (a.discount || 0))
       .slice(0, 5);
-  }, [mockProducts]);
+  }, [products]);
 
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");
@@ -469,7 +458,7 @@ export default function AdminAnalyticsPage() {
               {topDiscountedProducts.map((product, index) => {
                 const discountedPrice =
                   product.price - (product.price * (product.discount || 0)) / 100;
-                const vendor = mockVendors.find((v) => v.id === product.vendorId);
+                const vendor = vendors.find((v) => v.id === product.vendorId);
                 return (
                   <div
                     key={product.id}

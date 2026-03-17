@@ -11,18 +11,24 @@ import {
     mockVendors,
     mockOrders,
     mockReviews,
+    mockUsers,
 } from './mockData';
+
+// Enable mock data only when explicitly opted in (e.g., during local dev when backend is not available)
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
 // ==================== BANNERS ====================
 
 export async function getBannersClient() {
     try {
         const res = await fetch('/api/banners?active=true');
+        if (!res.ok) return useMockData ? mockBanners : [];
 
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockBanners);
-    } catch {
-        return process.env.NODE_ENV === 'production' ? [] : mockBanners;
+        return data?.banners ?? (useMockData ? mockBanners : []);
+    } catch (err) {
+        console.error('getBannersClient error', err);
+        return useMockData ? mockBanners : [];
     }
 }
 
@@ -34,10 +40,12 @@ export async function getProductsClient(filters?: {
     search?: string;
     limit?: number;
 }) {
+    const limit = filters?.limit ?? 20;
+
     try {
         const params = new URLSearchParams({
             isActive: 'true',
-            limit: (filters?.limit || 20).toString(),
+            limit: limit.toString(),
         });
 
         if (filters?.isFeatured) params.append('isFeatured', 'true');
@@ -45,37 +53,33 @@ export async function getProductsClient(filters?: {
         if (filters?.search) params.append('search', filters.search);
 
         const res = await fetch(`/api/products?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to fetch products');
 
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockProducts);
-    } catch {
-        return process.env.NODE_ENV === 'production' ? [] : mockProducts;
+        const list = data?.products ?? (useMockData ? mockProducts : []);
+        return Array.isArray(list) ? list.slice(0, limit) : [];
+    } catch (err) {
+        console.error('getProductsClient error', err);
+        return useMockData ? mockProducts : [];
     }
 }
 
 export async function getFeaturedProductsClient(limit = 8) {
-    try {
-        const res = await fetch(`/api/products?isFeatured=true&limit=${limit}`);
-
-        const data = await res.json();
-        const list = data.data || (process.env.NODE_ENV === 'production' ? [] : mockProducts);
-        return list.slice(0, limit);
-    } catch {
-        return process.env.NODE_ENV === 'production'
-            ? []
-            : mockProducts.filter((p) => p.isFeatured && p.isActive).slice(0, limit);
-    }
+    return getProductsClient({ isFeatured: true, limit });
 }
 
 export async function getProductByIdClient(id: string) {
     try {
         const res = await fetch(`/api/products/${id}`);
+        if (!res.ok) {
+            return null;
+        }
 
-        if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? null : mockProducts.find((p) => p.id === id));
-    } catch {
-        return process.env.NODE_ENV === 'production' ? null : mockProducts.find((p) => p.id === id);
+        return data?.product ?? (useMockData ? mockProducts.find((p) => p.id === id) : null);
+    } catch (err) {
+        console.error('getProductByIdClient error', err);
+        return useMockData ? mockProducts.find((p) => p.id === id) : null;
     }
 }
 
@@ -84,23 +88,28 @@ export async function getProductByIdClient(id: string) {
 export async function getVendorsClient(limit = 20) {
     try {
         const res = await fetch(`/api/vendors?status=APPROVED&limit=${limit}`);
+        if (!res.ok) throw new Error('Failed to fetch vendors');
 
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockVendors);
-    } catch {
-        return process.env.NODE_ENV === 'production' ? [] : mockVendors;
+        return data?.vendors ?? (useMockData ? mockVendors : []);
+    } catch (err) {
+        console.error('getVendorsClient error', err);
+        return useMockData ? mockVendors : [];
     }
 }
 
 export async function getVendorByIdClient(id: string) {
     try {
         const res = await fetch(`/api/vendors/${id}`);
+        if (!res.ok) {
+            return null;
+        }
 
-        if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? null : mockVendors.find((v) => v.id === id));
-    } catch {
-        return process.env.NODE_ENV === 'production' ? null : mockVendors.find((v) => v.id === id);
+        return data?.vendor ?? (useMockData ? mockVendors.find((v) => v.id === id) : null);
+    } catch (err) {
+        console.error('getVendorByIdClient error', err);
+        return useMockData ? mockVendors.find((v) => v.id === id) : null;
     }
 }
 
@@ -111,11 +120,26 @@ export async function getOrdersClient() {
         const res = await fetch('/api/orders', {
             cache: 'no-store', // Orders should not be cached
         });
+        if (!res.ok) throw new Error('Failed to fetch orders');
 
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockOrders);
-    } catch {
-        return process.env.NODE_ENV === 'production' ? [] : mockOrders;
+        return data?.orders ?? (useMockData ? mockOrders : []);
+    } catch (err) {
+        console.error('getOrdersClient error', err);
+        return useMockData ? mockOrders : [];
+    }
+}
+
+export async function getUsersClient() {
+    try {
+        const res = await fetch('/api/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+
+        const data = await res.json();
+        return data?.data ?? (useMockData ? mockUsers : []);
+    } catch (err) {
+        console.error('getUsersClient error', err);
+        return useMockData ? mockUsers : [];
     }
 }
 
@@ -124,12 +148,13 @@ export async function getOrderByIdClient(id: string) {
         const res = await fetch(`/api/orders/${id}`, {
             cache: 'no-store',
         });
+        if (!res.ok) return null;
 
-        if (!res.ok) throw new Error('Not found');
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? null : mockOrders.find((o) => o.id === id));
-    } catch {
-        return process.env.NODE_ENV === 'production' ? null : mockOrders.find((o) => o.id === id);
+        return data?.order ?? null;
+    } catch (err) {
+        console.error('getOrderByIdClient error', err);
+        return null;
     }
 }
 
@@ -138,10 +163,12 @@ export async function getOrderByIdClient(id: string) {
 export async function getReviewsByProductIdClient(productId: string) {
     try {
         const res = await fetch(`/api/reviews?productId=${productId}`);
+        if (!res.ok) throw new Error('Failed to fetch reviews');
 
         const data = await res.json();
-        return data.data || (process.env.NODE_ENV === 'production' ? [] : mockReviews.filter((r) => r.productId === productId));
-    } catch {
-        return process.env.NODE_ENV === 'production' ? [] : mockReviews.filter((r) => r.productId === productId);
+        return data?.reviews ?? (useMockData ? mockReviews.filter((r) => r.productId === productId) : []);
+    } catch (err) {
+        console.error('getReviewsByProductIdClient error', err);
+        return useMockData ? mockReviews.filter((r) => r.productId === productId) : [];
     }
 }

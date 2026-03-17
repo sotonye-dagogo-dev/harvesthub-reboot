@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 // prisma client not needed here; db adapter is used
-import { db } from '@/lib/data/database';
+import prismaAdapter from '@/lib/data/prismaAdapter';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         if (active === 'true') filters.isActive = true;
         if (position) filters.position = position;
 
-        const banners = await db.banners.findAll(filters as any);
+        const banners = await prismaAdapter.bannerDb.findAll(filters as any);
 
         const result = { success: true, banners };
         await cacheSet(cacheKey, result, 300);
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'title and imageUrl are required' }, { status: 400 });
         }
 
-        const banner = await db.banners.create({
+        const banner = await prismaAdapter.bannerDb.create({
             title,
             subtitle,
             description,

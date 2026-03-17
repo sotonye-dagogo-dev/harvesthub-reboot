@@ -11,16 +11,25 @@ import { UserRole } from '@/lib/constants';
 // Secret keys — hardcoded fallback is dev-only; production MUST set env vars
 const isProduction = process.env.NODE_ENV === 'production';
 
-function getSecret(envKey: string, devFallback: string): Uint8Array {
-    const value = process.env[envKey];
-    if (!value && isProduction) {
-        throw new Error(`Missing required environment variable: ${envKey}`);
-    }
-    return new TextEncoder().encode(value || devFallback);
+function getSecretRaw(envKey: string): string | null {
+    return process.env[envKey] || null;
 }
 
-const accessTokenSecret = getSecret('JWT_SECRET', 'harvesthub-dev-access-secret-2026');
-const refreshTokenSecret = getSecret('JWT_REFRESH_SECRET', 'harvesthub-dev-refresh-secret-2026');
+function toUint8Array(secret: string): Uint8Array {
+    return new TextEncoder().encode(secret);
+}
+
+function getAccessSecret(): Uint8Array {
+    const val = getSecretRaw('JWT_SECRET');
+    if (!val && isProduction) throw new Error('Missing required environment variable: JWT_SECRET');
+    return toUint8Array(val || 'harvesthub-dev-access-secret-2026');
+}
+
+function getRefreshSecret(): Uint8Array {
+    const val = getSecretRaw('JWT_REFRESH_SECRET');
+    if (!val && isProduction) throw new Error('Missing required environment variable: JWT_REFRESH_SECRET');
+    return toUint8Array(val || 'harvesthub-dev-refresh-secret-2026');
+}
 
 // JWT claims
 const ISSUER = 'harvesthub';
@@ -53,7 +62,7 @@ export async function generateAccessToken(userId: string, email: string, role: U
         .setIssuer(ISSUER)
         .setAudience(AUDIENCE)
         .setExpirationTime(ACCESS_TOKEN_EXPIRY)
-        .sign(accessTokenSecret);
+        .sign(getAccessSecret());
 
     return token;
 }
@@ -73,7 +82,7 @@ export async function generateRefreshToken(userId: string, email: string, role: 
         .setIssuer(ISSUER)
         .setAudience(AUDIENCE)
         .setExpirationTime(REFRESH_TOKEN_EXPIRY)
-        .sign(refreshTokenSecret);
+        .sign(getRefreshSecret());
 
     return token;
 }
@@ -101,7 +110,7 @@ export async function generateTokenPair(userId: string, email: string, role: Use
  */
 export async function verifyAccessToken(token: string): Promise<JWTPayload | null> {
     try {
-        const { payload } = await jwtVerify(token, accessTokenSecret, {
+        const { payload } = await jwtVerify(token, getAccessSecret(), {
             issuer: ISSUER,
             audience: AUDIENCE,
         });
@@ -122,7 +131,7 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload | nul
  */
 export async function verifyRefreshToken(token: string): Promise<JWTPayload | null> {
     try {
-        const { payload } = await jwtVerify(token, refreshTokenSecret, {
+        const { payload } = await jwtVerify(token, getRefreshSecret(), {
             issuer: ISSUER,
             audience: AUDIENCE,
         });

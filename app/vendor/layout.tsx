@@ -1,5 +1,8 @@
 import { ReactNode } from "react";
 import { Header, Sidebar } from "@/components/layout";
+import { requireRole } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/constants";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -7,7 +10,13 @@ interface VendorLayoutProps {
   children: ReactNode;
 }
 
-export default function VendorLayout({ children }: VendorLayoutProps) {
+export default async function VendorLayout({ children }: VendorLayoutProps) {
+  try {
+    await requireRole(UserRole.VENDOR);
+  } catch {
+    redirect("/unauthorized");
+  }
+
   return (
     <div className="flex h-screen flex-col">
       <Header />

@@ -5,14 +5,15 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { OrderCard, FilterSidebar } from "@/components/features";
 import { EmptyState, LoadingSpinner, SimplePagination, Button } from "@/components/ui";
 import { Package, Download } from "lucide-react";
-import { mockOrders, mockUsers } from "@/lib/data/mockData";
+import { message } from "antd";
 import { getOrdersClient } from "@/lib/data/clientDataFetchers";
 import { formatCurrency } from "@/lib/utils";
+import type { Order } from "@/lib/types";
 
 export default function AdminOrdersPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [orders, setOrders] = useState(() => [...mockOrders]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [filters, setFilters] = useState<{
     status?: string[];
     dateRange?: { from: Date; to: Date };
@@ -28,7 +29,9 @@ export default function AdminOrdersPage() {
         if (!mounted) return;
         if (Array.isArray(res)) setOrders(res as any[]);
       } catch (e) {
-        // keep mock fallback
+        if (!mounted) return;
+        message.error("Unable to load orders. Please try again later.");
+        setOrders([]);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -168,8 +171,8 @@ export default function AdminOrdersPage() {
               <>
                 <div className="space-y-4">
                   {paginatedOrders.map((order) => {
-                    const buyer =
-                      (order.buyer as any) || mockUsers.find((u) => u.id === order.buyerId);
+                    const buyer = (order as any).buyer;
+                    const buyerName = buyer ? `${buyer.firstName} ${buyer.lastName}` : "Unknown";
                     return (
                       <OrderCard
                         key={order.id}
@@ -179,7 +182,7 @@ export default function AdminOrdersPage() {
                         total={order.total}
                         itemCount={order.items.length}
                         deliveryMethod={order.deliveryMethod}
-                        deliveryInfo={buyer ? `${buyer.firstName} ${buyer.lastName}` : "Unknown"}
+                        deliveryInfo={buyerName}
                         createdAt={order.createdAt}
                       />
                     );
