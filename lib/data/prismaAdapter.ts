@@ -202,11 +202,113 @@ export const orderDb = {
     },
 };
 
+export const buyerDb = {
+    findAll: async () => prisma.buyer.findMany(),
+    findById: async (id: string) => prisma.buyer.findUnique({ where: { id } }),
+    findByUserId: async (userId: string) => prisma.buyer.findUnique({ where: { userId } }),
+    create: async (data: any) => prisma.buyer.create({ data }),
+    update: async (id: string, data: any) => prisma.buyer.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.buyer.delete({ where: { id } });
+        return true;
+    },
+};
+
+export const vendorDb = {
+    findAll: async (filters?: any) => {
+        const where: any = {};
+        if (filters?.status) where.status = filters.status;
+        if (filters?.campus) where.campus = filters.campus;
+        if (filters?.category) where.category = filters.category;
+        const take = filters?.limit ?? undefined;
+        const skip = filters?.page && filters.limit ? (filters.page - 1) * filters.limit : undefined;
+        return prisma.vendor.findMany({ where, take, skip, orderBy: [{ createdAt: 'desc' }] });
+    },
+    findById: async (id: string) => prisma.vendor.findUnique({ where: { id } }),
+    findByUserId: async (userId: string) => prisma.vendor.findUnique({ where: { userId } }),
+    create: async (data: any) => prisma.vendor.create({ data }),
+    update: async (id: string, data: any) => prisma.vendor.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.vendor.delete({ where: { id } });
+        return true;
+    },
+};
+
+export const cartDb = {
+    findByBuyerId: async (buyerId: string) =>
+        prisma.cart.findUnique({ where: { buyerId }, include: { items: true } }),
+    create: async (data: any) => prisma.cart.create({ data }),
+    update: async (id: string, data: any) => prisma.cart.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.cart.delete({ where: { id } });
+        return true;
+    },
+    clear: async (buyerId: string) => {
+        const cart = await prisma.cart.findUnique({ where: { buyerId } });
+        if (!cart) return null;
+        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+        return prisma.cart.update({ where: { id: cart.id }, data: { subtotal: 0 } });
+    },
+};
+
+export const walletDb = {
+    findByUserId: async (userId: string) =>
+        prisma.wallet.findUnique({ where: { userId }, include: { transactions: true } }),
+    create: async (data: any) => prisma.wallet.create({ data }),
+    update: async (id: string, data: any) => prisma.wallet.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.wallet.delete({ where: { id } });
+        return true;
+    },
+};
+
+export const transactionDb = {
+    findByWalletId: async (walletId: string) =>
+        prisma.transaction.findMany({ where: { walletId }, orderBy: { createdAt: 'desc' } }),
+    create: async (data: any) => prisma.transaction.create({ data }),
+    update: async (id: string, data: any) => prisma.transaction.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.transaction.delete({ where: { id } });
+        return true;
+    },
+};
+
+export const reviewDb = {
+    findByProductId: async (productId: string) =>
+        prisma.review.findMany({ where: { productId }, orderBy: { createdAt: 'desc' } }),
+    findByUserId: async (userId: string) =>
+        prisma.review.findMany({ where: { buyerId: userId }, orderBy: { createdAt: 'desc' } }),
+    create: async (data: any) => prisma.review.create({ data }),
+    update: async (id: string, data: any) => prisma.review.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.review.delete({ where: { id } });
+        return true;
+    },
+};
+
+export const addressDb = {
+    findByUserId: async (userId: string) =>
+        prisma.address.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' } }),
+    create: async (data: any) => prisma.address.create({ data }),
+    update: async (id: string, data: any) => prisma.address.update({ where: { id }, data }),
+    delete: async (id: string) => {
+        await prisma.address.delete({ where: { id } });
+        return true;
+    },
+};
+
 const prismaAdapter = {
     userDb,
     productDb,
     bannerDb,
     orderDb,
+    buyerDb,
+    vendorDb,
+    cartDb,
+    walletDb,
+    transactionDb,
+    reviewDb,
+    addressDb,
 };
 
 export default prismaAdapter;

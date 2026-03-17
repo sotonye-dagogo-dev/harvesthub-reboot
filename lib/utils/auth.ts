@@ -5,8 +5,19 @@
  */
 
 import { UserRole } from '@/lib/constants';
-import { getAccessToken } from './cookies';
-import { verifyAccessToken, type JWTPayload } from './jwt';
+import { prisma } from '@/lib/db/prisma';
+import {
+    getAccessToken,
+    getRefreshToken,
+    setAccessTokenCookie,
+    clearAuthCookies,
+} from './cookies';
+import {
+    verifyAccessToken,
+    verifyRefreshToken,
+    generateAccessToken,
+    type JWTPayload,
+} from './jwt';
 
 // Export verifyToken as an alias for API routes
 export { verifyAccessToken as verifyToken } from './jwt';
@@ -15,13 +26,45 @@ export type { JWTPayload } from './jwt';
 /**
  * Get current authenticated user from request
  */
+async function refreshSession(): Promise<JWTPayload | null> {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) return null;
+
+    const payload = await verifyRefreshToken(refreshToken);
+    if (!payload) return null;
+
+    const user = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { id: true, email: true, role: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+        // Invalidate cookies if user no longer exists or is inactive
+        await clearAuthCookies();
+        return null;
+    }
+
+    const newAccessToken = await generateAccessToken(user.id, user.email, user.role as UserRole);
+    await setAccessTokenCookie(newAccessToken);
+
+    return {
+        userId: user.id,
+        email: user.email,
+        role: user.role as UserRole,
+        type: 'access',
+    };
+}
+
 export async function getCurrentUser(): Promise<JWTPayload | null> {
     try {
         const token = await getAccessToken();
         if (!token) return null;
 
         const payload = await verifyAccessToken(token);
-        return payload;
+        if (payload) return payload;
+
+        // Access token may have expired; attempt refresh
+        return await refreshSession();
     } catch {
         return null;
     }

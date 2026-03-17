@@ -191,6 +191,8 @@ export function Header() {
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
+            aria-expanded={showMobileMenu}
+            aria-controls="mobile-menu"
             className="rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
           >
             <Menu className="h-6 w-6" />
@@ -199,8 +201,13 @@ export function Header() {
 
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="border-t border-ds-border-base py-4 md:hidden">
+          <div id="mobile-menu" className="border-t border-ds-border-base py-4 md:hidden">
             <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-4">
+                <span className="text-sm font-medium text-ds-text-primary">Theme</span>
+                <ThemeToggle className="p-2" />
+              </div>
+
               {user ? (
                 <>
                   {/* Dashboard (Admin & Vendor only) */}

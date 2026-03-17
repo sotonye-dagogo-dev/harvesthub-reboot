@@ -6,7 +6,7 @@
  */
 
 import { milestoneDb } from '@/lib/data/milestones';
-import { db } from '@/lib/data/database';
+import { prisma } from '@/lib/db/prisma';
 import { UserRole } from '@/lib/constants';
 import type { MilestoneType } from '@/lib/types';
 
@@ -14,16 +14,16 @@ import type { MilestoneType } from '@/lib/types';
  * Check if a user already has a milestone of the given type.
  * If not, create the milestone for that user.
  */
-export function checkAndAwardMilestone(
+export async function checkAndAwardMilestone(
     userId: string,
     type: MilestoneType,
     label: string,
     metadata?: Record<string, unknown>
-): void {
-    const existing = milestoneDb.findByUserAndType(userId, type);
+): Promise<void> {
+    const existing = await milestoneDb.findByUserAndType(userId, type);
     if (existing) return;
 
-    milestoneDb.create({
+    await milestoneDb.create({
         userId,
         milestoneType: type,
         label,
@@ -32,31 +32,30 @@ export function checkAndAwardMilestone(
 }
 
 /**
- * Returns the count of users with a specific role from the mock data store.
+ * Returns the count of users with a specific role from the database.
  */
-export function getRegistrationCount(role: string): number {
-    const allUsers = db.users.findAll();
-    return allUsers.filter((u: any) => u.role === role).length;
+export async function getRegistrationCount(role: UserRole): Promise<number> {
+    return prisma.user.count({ where: { role } });
 }
 
 /**
  * Check and award registration-based milestones.
  * Call after a new user registers.
  */
-export function checkRegistrationMilestones(userId: string, role: string): void {
+export async function checkRegistrationMilestones(userId: string, role: string): Promise<void> {
     if (role === UserRole.VENDOR) {
-        const vendorCount = getRegistrationCount(UserRole.VENDOR);
+        const vendorCount = await getRegistrationCount(UserRole.VENDOR);
         if (vendorCount <= 1000) {
-            checkAndAwardMilestone(userId, 'FIRST_1000_VENDORS', 'Early Vendor Pioneer', {
+            await checkAndAwardMilestone(userId, 'FIRST_1000_VENDORS', 'Early Vendor Pioneer', {
                 vendorNumber: vendorCount,
             });
         }
     }
 
     if (role === UserRole.BUYER) {
-        const buyerCount = getRegistrationCount(UserRole.BUYER);
+        const buyerCount = await getRegistrationCount(UserRole.BUYER);
         if (buyerCount <= 1000) {
-            checkAndAwardMilestone(userId, 'FIRST_1000_BUYERS', 'Early Buyer Pioneer', {
+            await checkAndAwardMilestone(userId, 'FIRST_1000_BUYERS', 'Early Buyer Pioneer', {
                 buyerNumber: buyerCount,
             });
         }

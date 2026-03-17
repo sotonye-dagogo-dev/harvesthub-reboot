@@ -1,97 +1,102 @@
 /**
- * Milestone Store (In-Memory)
+ * Milestone Store (Prisma)
  *
- * In-memory storage for user milestone achievements.
- * TODO: Replace with Prisma model for persistence.
+ * Persistence via the `UserMilestone` Prisma model.
  */
 
+import { prisma } from '@/lib/db/prisma';
 import type { MilestoneRecord, MilestoneType } from '@/lib/types';
 
-const milestones: MilestoneRecord[] = [];
-
-function generateId(): string {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    return `milestone-${timestamp}-${random}`;
-}
-
 export const milestoneDb = {
-    findAll: (filters?: { milestoneType?: MilestoneType; userId?: string }): MilestoneRecord[] => {
-        let result = [...milestones];
-        if (filters?.milestoneType) {
-            result = result.filter((m) => m.milestoneType === filters.milestoneType);
-        }
-        if (filters?.userId) {
-            result = result.filter((m) => m.userId === filters.userId);
-        }
-        return result.sort(
-            (a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime()
-        );
+    findAll: async (filters?: { milestoneType?: MilestoneType; userId?: string }): Promise<MilestoneRecord[]> => {
+        const where: any = {};
+        if (filters?.milestoneType) where.milestoneType = filters.milestoneType;
+        if (filters?.userId) where.userId = filters.userId;
+
+        const records = await prisma.userMilestone.findMany({ where, orderBy: { achievedAt: 'desc' } });
+        return records.map((r) => ({
+            id: r.id,
+            userId: r.userId,
+            milestoneType: r.milestoneType as MilestoneType,
+            label: r.label,
+            achievedAt: r.achievedAt.toISOString(),
+            metadata: r.metadata as Record<string, unknown> | undefined,
+        }));
     },
 
-    findById: (id: string): MilestoneRecord | undefined => {
-        return milestones.find((m) => m.id === id);
+    findById: async (id: string): Promise<MilestoneRecord | undefined> => {
+        const r = await prisma.userMilestone.findUnique({ where: { id } });
+        if (!r) return undefined;
+        return {
+            id: r.id,
+            userId: r.userId,
+            milestoneType: r.milestoneType as MilestoneType,
+            label: r.label,
+            achievedAt: r.achievedAt.toISOString(),
+            metadata: r.metadata as Record<string, unknown> | undefined,
+        };
     },
 
-    findByUserId: (userId: string): MilestoneRecord[] => {
-        return milestones
-            .filter((m) => m.userId === userId)
-            .sort(
-                (a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime()
-            );
+    findByUserId: async (userId: string): Promise<MilestoneRecord[]> => {
+        return milestoneDb.findAll({ userId });
     },
 
-    findByType: (milestoneType: MilestoneType): MilestoneRecord[] => {
-        return milestones
-            .filter((m) => m.milestoneType === milestoneType)
-            .sort(
-                (a, b) => new Date(b.achievedAt).getTime() - new Date(a.achievedAt).getTime()
-            );
+    findByType: async (milestoneType: MilestoneType): Promise<MilestoneRecord[]> => {
+        return milestoneDb.findAll({ milestoneType });
     },
 
-    findByUserAndType: (
+    findByUserAndType: async (
         userId: string,
         milestoneType: MilestoneType
-    ): MilestoneRecord | undefined => {
-        return milestones.find(
-            (m) => m.userId === userId && m.milestoneType === milestoneType
-        );
+    ): Promise<MilestoneRecord | undefined> => {
+        const r = await prisma.userMilestone.findFirst({
+            where: { userId, milestoneType },
+            orderBy: { achievedAt: 'desc' },
+        });
+        if (!r) return undefined;
+        return {
+            id: r.id,
+            userId: r.userId,
+            milestoneType: r.milestoneType as MilestoneType,
+            label: r.label,
+            achievedAt: r.achievedAt.toISOString(),
+            metadata: r.metadata as Record<string, unknown> | undefined,
+        };
     },
 
-    create: (data: {
+    create: async (data: {
         userId: string;
         milestoneType: MilestoneType;
         label: string;
         metadata?: Record<string, unknown>;
-    }): MilestoneRecord => {
-        const newMilestone: MilestoneRecord = {
-            id: generateId(),
-            userId: data.userId,
-            milestoneType: data.milestoneType,
-            label: data.label,
-            achievedAt: new Date().toISOString(),
-            metadata: data.metadata,
+    }): Promise<MilestoneRecord> => {
+        const r = await prisma.userMilestone.create({
+            data: {
+                userId: data.userId,
+                milestoneType: data.milestoneType,
+                label: data.label,
+                metadata: data.metadata ?? {},
+            },
+        });
+        return {
+            id: r.id,
+            userId: r.userId,
+            milestoneType: r.milestoneType as MilestoneType,
+            label: r.label,
+            achievedAt: r.achievedAt.toISOString(),
+            metadata: r.metadata as Record<string, unknown> | undefined,
         };
-        milestones.push(newMilestone);
-        return newMilestone;
     },
 
-    update: (id: string, data: Partial<MilestoneRecord>): MilestoneRecord | null => {
-        const index = milestones.findIndex((m) => m.id === id);
-        if (index === -1) return null;
-        const updated = { ...milestones[index], ...data } as MilestoneRecord;
-        milestones[index] = updated;
-        return updated;
-    },
-
-    delete: (id: string): boolean => {
-        const index = milestones.findIndex((m) => m.id === id);
-        if (index === -1) return false;
-        milestones.splice(index, 1);
+    delete: async (id: string): Promise<boolean> => {
+        await prisma.userMilestone.delete({ where: { id } });
         return true;
     },
 
-    count: (filters?: { milestoneType?: MilestoneType; userId?: string }): number => {
-        return milestoneDb.findAll(filters).length;
+    count: async (filters?: { milestoneType?: MilestoneType; userId?: string }): Promise<number> => {
+        const where: any = {};
+        if (filters?.milestoneType) where.milestoneType = filters.milestoneType;
+        if (filters?.userId) where.userId = filters.userId;
+        return prisma.userMilestone.count({ where });
     },
 };

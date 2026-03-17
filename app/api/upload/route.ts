@@ -9,6 +9,7 @@ import {
     getAdFolder,
     getPaymentProofFolder,
 } from '@/lib/services/cloudinary';
+import { prisma } from '@/lib/db/prisma';
 import { UserRole } from '@/lib/constants';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
@@ -165,6 +166,88 @@ export async function POST(request: NextRequest) {
         const maxSizeMB = MAX_SIZE_MB[folderType];
         const result = await uploadImage(dataUri, folder, { maxSizeMB });
 
+        // Persist metadata to Prisma for supported folder types
+        const persisted: { savedTo?: string; id?: string } = {};
+
+        try {
+            if (folderType === 'vendor-logo' && vendorId) {
+                const v = await prisma.vendor.update({
+                    where: { id: vendorId },
+                    data: { storeLogo: result.url },
+                });
+                persisted.savedTo = 'vendor';
+                persisted.id = v.id;
+            } else if (folderType === 'vendor-banner' && vendorId) {
+                const v = await prisma.vendor.update({
+                    where: { id: vendorId },
+                    data: { storeBanner: result.url },
+                });
+                persisted.savedTo = 'vendor';
+                persisted.id = v.id;
+            } else if (folderType === 'profile' && effectiveUserId) {
+                const u = await prisma.user.update({
+                    where: { id: effectiveUserId },
+                    data: { profilePicture: result.url },
+                });
+                persisted.savedTo = 'user';
+                persisted.id = u.id;
+            } else if (folderType === 'ad') {
+                const ad = await prisma.advertisement.create({
+                    data: {
+                        advertiserId: effectiveUserId,
+                        title: 'Uploaded Ad',
+                        imageUrl: result.url,
+                        imagePublicId: result.publicId,
+                        dailyRate: 0,
+                    },
+                });
+                persisted.savedTo = 'advertisement';
+                persisted.id = ad.id;
+            } else if (folderType === 'payment-proof') {
+                // Optional orderId/amount may be supplied by the client
+                const orderId = (formData.get('orderId') as string) || undefined;
+                const amountRaw = formData.get('amount') as string | null;
+                const amount = amountRaw ? Number(amountRaw) : 0;
+
+                const proof = await prisma.proofOfTransfer.create({
+                    data: {
+                        userId: effectiveUserId,
+                        orderId: orderId || null,
+                        imageUrl: result.url,
+                        imagePublicId: result.publicId,
+                        amount: amount,
+                    },
+                });
+                persisted.savedTo = 'proof_of_transfer';
+                persisted.id = proof.id;
+            } else if (folderType === 'banner') {
+                const banner = await prisma.banner.create({
+                    data: {
+                        title: 'Uploaded Banner',
+                        imageUrl: result.url,
+                        createdBy: effectiveUserId,
+                    },
+                });
+                persisted.savedTo = 'banner';
+                persisted.id = banner.id;
+            } else if (folderType === 'product' && vendorId) {
+                // Create a VendorContent entry for vendor-managed media (optional)
+                const vc = await prisma.vendorContent.create({
+                    data: {
+                        vendorId: vendorId,
+                        type: 'IMAGE',
+                        title: 'Uploaded Image',
+                        mediaUrl: result.url,
+                        mediaPublicId: result.publicId,
+                    },
+                });
+                persisted.savedTo = 'vendor_content';
+                persisted.id = vc.id;
+            }
+        } catch (e) {
+            console.error('Persisting upload metadata failed:', e);
+        }
+
         return NextResponse.json(
             {
                 success: true,
@@ -173,6 +256,7 @@ export async function POST(request: NextRequest) {
                 width: result.width,
                 height: result.height,
                 format: result.format,
+                persisted,
             },
             { status: 201 }
         );

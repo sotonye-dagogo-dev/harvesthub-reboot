@@ -4,8 +4,12 @@ import { Form, Input, Select } from "antd";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
 import {
-  VENDOR_CATEGORIES, CAMPUS_LOCATIONS, POSITION_OPTIONS,
-  VendorCategory, SERVICE_CATEGORIES, SERVICE_LOCATIONS,
+  VENDOR_CATEGORIES,
+  CAMPUS_LOCATIONS,
+  POSITION_OPTIONS,
+  VendorCategory,
+  SERVICE_CATEGORIES,
+  SERVICE_LOCATIONS,
 } from "@/lib/constants";
 
 interface VendorInfoFields {
@@ -14,6 +18,10 @@ interface VendorInfoFields {
   campus: string;
   position?: string;
   storeDescription: string;
+  businessAddress?: string;
+  bankName?: string;
+  accountName?: string;
+  accountNumber?: string;
   serviceCategory?: string;
   serviceLocation?: string;
 }
@@ -33,6 +41,10 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         campus: formData.campus || undefined,
         position: formData.position || undefined,
         storeDescription: formData.storeDescription || "",
+        businessAddress: formData.businessAddress || "",
+        bankName: formData.bankName || "",
+        accountName: formData.accountName || "",
+        accountNumber: formData.accountNumber || "",
         serviceCategory: formData.serviceCategory || undefined,
         serviceLocation: formData.serviceLocation || undefined,
       });
@@ -58,9 +70,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">
-          Vendor Information
-        </h3>
+        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">Vendor Information</h3>
         <p className="text-sm text-ds-text-secondary">Tell us about your store</p>
       </div>
 
@@ -149,9 +159,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="campus"
           label={
-            <span className="text-ds-text-primary font-medium">
-              Pick up Location (Campus)
-            </span>
+            <span className="text-ds-text-primary font-medium">Pick up Location (Campus)</span>
           }
           rules={[{ required: true, message: "Please select your campus location" }]}
         >
@@ -173,9 +181,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="position"
           label={
-            <span className="text-ds-text-primary font-medium">
-              Position in Church (Optional)
-            </span>
+            <span className="text-ds-text-primary font-medium">Position in Church (Optional)</span>
           }
         >
           <Select
@@ -197,9 +203,7 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="storeDescription"
           label={
-            <span className="text-ds-text-primary font-medium">
-              Store Description (Optional)
-            </span>
+            <span className="text-ds-text-primary font-medium">Store Description (Optional)</span>
           }
         >
           <Input.TextArea
@@ -210,6 +214,44 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
             showCount
           />
         </Form.Item>
+
+        <Form.Item
+          name="businessAddress"
+          label={
+            <span className="text-ds-text-primary font-medium">Business Address (Optional)</span>
+          }
+        >
+          <Input size="large" placeholder="Street address, city, state" className="rounded-ds-md" />
+        </Form.Item>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Form.Item
+            name="bankName"
+            label={<span className="text-ds-text-primary font-medium">Bank Name</span>}
+          >
+            <Input size="large" placeholder="Bank Name" className="rounded-ds-md" />
+          </Form.Item>
+
+          <Form.Item
+            name="accountName"
+            label={<span className="text-ds-text-primary font-medium">Account Name</span>}
+          >
+            <Input size="large" placeholder="Account Name" className="rounded-ds-md" />
+          </Form.Item>
+
+          <Form.Item
+            name="accountNumber"
+            label={<span className="text-ds-text-primary font-medium">Account Number</span>}
+            rules={[
+              {
+                pattern: /^\d{10,}$/,
+                message: "Account number should be numeric and at least 10 digits",
+              },
+            ]}
+          >
+            <Input size="large" placeholder="0123456789" className="rounded-ds-md" />
+          </Form.Item>
+        </div>
 
         <Form.Item className="mb-0">
           <button

@@ -22,6 +22,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   const [form] = Form.useForm<VerificationFields>();
   const [idFileList, setIdFileList] = useState<UploadFile[]>([]);
   const [bizFileList, setBizFileList] = useState<UploadFile[]>([]);
+  const [utilityFileList, setUtilityFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,7 +36,8 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         url: doc.url,
       }));
       setIdFileList(restored.slice(0, 1));
-      if (restored.length > 1) setBizFileList(restored.slice(1));
+      if (restored.length > 1) setBizFileList(restored.slice(1, 2));
+      if (restored.length > 2) setUtilityFileList(restored.slice(2, 3));
     }
   }, [formData?.verificationDocuments]);
 
@@ -66,6 +68,14 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
       if (!validateFile(limited[0].originFileObj)) return;
     }
     setBizFileList(limited);
+  };
+
+  const handleUtilityFileChange = ({ fileList: newFileList }: UploadChangeParam) => {
+    const limited = newFileList.slice(-1);
+    if (limited.length > 0 && limited[0]?.originFileObj) {
+      if (!validateFile(limited[0].originFileObj)) return;
+    }
+    setUtilityFileList(limited);
   };
 
   const onFinish = async (values: VerificationFields) => {
@@ -102,6 +112,18 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           });
         } else if (bizFileList[0]?.url) {
           docs.push({ filename: bizFileList[0].name, url: bizFileList[0].url });
+        }
+      }
+
+      // Utility bill (optional)
+      if (utilityFileList.length > 0) {
+        if (utilityFileList[0]?.originFileObj) {
+          docs.push({
+            filename: `UTILITY_BILL_${utilityFileList[0].name}`,
+            url: URL.createObjectURL(utilityFileList[0].originFileObj),
+          });
+        } else if (utilityFileList[0]?.url) {
+          docs.push({ filename: utilityFileList[0].name, url: utilityFileList[0].url });
         }
       }
 
@@ -197,6 +219,30 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           </Upload>
           <p className="text-xs text-ds-text-placeholder mt-1">
             CAC certificate or similar. JPG, PNG, or PDF. Max 5MB.
+          </p>
+        </Form.Item>
+
+        {/* Utility Bill (Optional) */}
+        <Form.Item
+          label={<span className="text-ds-text-primary font-medium">Utility Bill (Optional)</span>}
+        >
+          <Upload
+            listType="picture-card"
+            fileList={utilityFileList}
+            onChange={handleUtilityFileChange}
+            beforeUpload={() => false}
+            maxCount={1}
+            accept=".jpg,.jpeg,.png,.pdf"
+          >
+            {utilityFileList.length === 0 && (
+              <div>
+                <PlusOutlined />
+                <div className="mt-2 text-xs">Upload</div>
+              </div>
+            )}
+          </Upload>
+          <p className="text-xs text-ds-text-placeholder mt-1">
+            Utility bill (electricity, water, etc.). JPG, PNG, or PDF. Max 5MB.
           </p>
         </Form.Item>
 

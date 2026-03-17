@@ -1101,17 +1101,43 @@ export const dbStats = {
 // UNIFIED DATABASE EXPORT
 // ===================================
 
+function missingAdapter(name: string) {
+    const handler: ProxyHandler<any> = {
+        get() {
+            return () => {
+                throw new Error(
+                    `Prisma adapter for '${name}' is not implemented.\n` +
+                    `Add the adapter in lib/data/prismaAdapter.ts or set USE_PRISMA=false to use mocks.`
+                );
+            };
+        },
+    };
+
+    return new Proxy({}, handler) as any;
+}
+
+if (usePrisma) {
+    // Warn when running in Prisma mode and any adapters are missing
+    const available = Object.keys(prismaAdapter || {});
+    const expected = ['userDb', 'productDb', 'bannerDb', 'orderDb'];
+    const missing = expected.filter((k) => !available.includes(k));
+    if (missing.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(`Prisma mode enabled but adapters missing: ${missing.join(', ')}`);
+    }
+}
+
 export const userDb = usePrisma ? prismaAdapter.userDb : mockUserDb as any;
-export const buyerDb = mockBuyerDb as any;
-export const vendorDb = mockVendorDb as any;
+export const buyerDb = usePrisma ? (prismaAdapter.buyerDb ?? missingAdapter('buyerDb')) : mockBuyerDb as any;
+export const vendorDb = usePrisma ? (prismaAdapter.vendorDb ?? missingAdapter('vendorDb')) : mockVendorDb as any;
 export const productDb = usePrisma ? prismaAdapter.productDb : mockProductDb as any;
-export const cartDb = mockCartDb as any;
+export const cartDb = usePrisma ? (prismaAdapter.cartDb ?? missingAdapter('cartDb')) : mockCartDb as any;
 export const orderDb = usePrisma ? prismaAdapter.orderDb : mockOrderDb as any;
-export const walletDb = mockWalletDb as any;
-export const transactionDb = mockTransactionDb as any;
-export const reviewDb = mockReviewDb as any;
+export const walletDb = usePrisma ? (prismaAdapter.walletDb ?? missingAdapter('walletDb')) : mockWalletDb as any;
+export const transactionDb = usePrisma ? (prismaAdapter.transactionDb ?? missingAdapter('transactionDb')) : mockTransactionDb as any;
+export const reviewDb = usePrisma ? (prismaAdapter.reviewDb ?? missingAdapter('reviewDb')) : mockReviewDb as any;
 export const bannerDb = usePrisma ? prismaAdapter.bannerDb : mockBannerDb as any;
-export const addressDb = mockAddressDb as any;
+export const addressDb = usePrisma ? (prismaAdapter.addressDb ?? missingAdapter('addressDb')) : mockAddressDb as any;
 
 export const db = {
     users: userDb,

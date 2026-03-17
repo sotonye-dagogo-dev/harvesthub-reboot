@@ -9,6 +9,8 @@ import Image from "next/image";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Product } from "@/lib/types";
 
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
 export interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
@@ -58,6 +60,13 @@ export function SearchBar({
         setSuggestions((list as Product[]).slice(0, 5));
         setShowDropdown(list.length > 0);
       } catch (e) {
+        if (!useMockData) {
+          if (!mounted) return;
+          setSuggestions([]);
+          setShowDropdown(false);
+          return;
+        }
+
         // Development fallback: filter local mock data dynamically
         try {
           const m = await import("@/lib/data/mockData");

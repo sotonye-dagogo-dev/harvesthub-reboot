@@ -22,6 +22,8 @@ import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
 import { getBannersClient } from "@/lib/data/clientDataFetchers";
 
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
 // ─── Helpers ──────────────────────────────────────────────────────
 
 interface ThemeClasses {
@@ -83,21 +85,7 @@ export function TopAdBanner() {
         setBanners(activeTops);
       } catch (e) {
         if (!mounted) return;
-        // Development-only fallback: dynamically import mock data
-        try {
-          const m = await import("@/lib/data/mockData");
-          const activeTops = (m.mockBanners ?? [])
-            .filter(
-              (b: Banner) =>
-                b.isActive &&
-                b.position === "TOP" &&
-                (!b.endDate || new Date(b.endDate) >= new Date())
-            )
-            .sort((a: Banner, b: Banner) => a.displayOrder - b.displayOrder);
-          setBanners(activeTops);
-        } catch (err) {
-          setBanners([]);
-        }
+        setBanners([]);
       }
     }
     load();

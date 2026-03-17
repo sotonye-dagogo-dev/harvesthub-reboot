@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
-import { mockUsers } from "@/lib/data/mockData";
 import type { User } from "@/lib/types";
 import { Users, Search, Eye, Ban, CheckCircle, Trash2 } from "lucide-react";
+
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 import { StatusTag } from "@/components/ui";
 import { Input, Select, Table, Modal, message, Avatar } from "antd";
 import { useRouter } from "next/navigation";
@@ -18,7 +19,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  const [users, setUsers] = useState<User[]>([...mockUsers]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -29,7 +30,14 @@ export default function AdminUsersPage() {
         const json = await res.json();
         if (mounted && Array.isArray(json.data)) setUsers(json.data);
       } catch (e) {
-        // keep mock fallback
+        if (!mounted) return;
+        if (!useMockData) {
+          setUsers([]);
+          return;
+        }
+
+        const m = await import("@/lib/data/mockData");
+        setUsers(m.mockUsers ?? []);
       }
     }
     loadUsers();

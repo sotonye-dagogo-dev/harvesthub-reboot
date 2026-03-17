@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
             dateOfBirth, gender,
             storeName, storeDescription, category, whatsappNumber, campus,
             position, isChurchAffiliated, verificationDocuments,
+            businessAddress, bankName, accountName, accountNumber,
         } = body;
 
         if (!email || !password || !firstName || !lastName || !phoneNumber || !role) {
@@ -120,9 +121,20 @@ export async function POST(request: NextRequest) {
                         status: 'PENDING',
                         isChurchAffiliated: isChurchAffiliated || false,
                         commissionRate,
-                        businessVerification: verificationDocuments?.length
-                            ? { verificationDocuments }
-                            : undefined,
+                        businessVerification: {
+                            verificationDocuments: verificationDocuments?.length
+                                ? verificationDocuments
+                                : undefined,
+                            businessAddress: businessAddress || undefined,
+                            bankDetails:
+                                bankName || accountName || accountNumber
+                                    ? {
+                                        bankName: bankName || undefined,
+                                        accountName: accountName || undefined,
+                                        accountNumber: accountNumber || undefined,
+                                    }
+                                    : undefined,
+                        },
                         storeSettings: {
                             allowsPickup: true,
                             allowsDelivery: false,

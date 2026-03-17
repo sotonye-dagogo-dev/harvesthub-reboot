@@ -3,11 +3,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
-import {
-  mockVendors as _mockVendorsFallback,
-  mockUsers as _mockUsersFallback,
-  mockProducts as _mockProductsFallback,
-} from "@/lib/data/mockData";
 import { getProductsClient } from "@/lib/data/clientDataFetchers";
 import type { Vendor, User, Product } from "@/lib/types";
 import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
@@ -45,18 +40,11 @@ export default function AdminVendorsPage() {
         setAllUsers(Array.isArray(usersRes) ? usersRes : []);
         setAllProducts(Array.isArray(productsRes) ? productsRes : []);
       } catch (e) {
-        if (process.env.NODE_ENV === "production") {
-          if (!mounted) return;
-          setVendors([]);
-          setAllUsers([]);
-          setAllProducts([]);
-        } else {
-          const m = await import("@/lib/data/mockData");
-          if (!mounted) return;
-          setVendors(m.mockVendors ?? _mockVendorsFallback ?? []);
-          setAllUsers(m.mockUsers ?? _mockUsersFallback ?? []);
-          setAllProducts(m.mockProducts ?? _mockProductsFallback ?? []);
-        }
+        if (!mounted) return;
+        message.error("Unable to load vendor data. Please try again later.");
+        setVendors([]);
+        setAllUsers([]);
+        setAllProducts([]);
       }
     }
     loadVendors();

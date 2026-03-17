@@ -6,8 +6,9 @@ import { Card, Button, EmptyState } from "@/components/ui";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { getBannersClient } from "@/lib/data/clientDataFetchers";
-import { mockBanners as _mockBannersFallback } from "@/lib/data/mockData";
 import type { Banner } from "@/lib/types";
+
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -29,14 +30,15 @@ export default function AdminBannersPage() {
         if (!mounted) return;
         if (Array.isArray(b)) setBanners(b as any[]);
       } catch (e) {
-        if (process.env.NODE_ENV === "production") {
-          if (!mounted) return;
+        if (!mounted) return;
+        if (!useMockData) {
           setBanners([]);
-        } else {
-          const m = await import("@/lib/data/mockData");
-          if (!mounted) return;
-          setBanners(m.mockBanners ?? _mockBannersFallback ?? []);
+          return;
         }
+
+        const m = await import("@/lib/data/mockData");
+        if (!mounted) return;
+        setBanners(m.mockBanners ?? []);
       }
     }
     load();

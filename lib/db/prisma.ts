@@ -6,10 +6,29 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-    return new PrismaClient({
-        log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
-        accelerateUrl: process.env.DATABASE_URL,
-    }).$extends(withAccelerate());
+    const log = process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'];
+
+    // When DATABASE_URL is not provided (e.g., in unit tests or lightweight dev),
+    // fall back to an in-memory SQLite database so Prisma can instantiate.
+    const databaseUrl =
+        process.env.DATABASE_URL ||
+        (process.env.NODE_ENV === 'test' ? 'file:./.test-db.sqlite' : undefined);
+
+    const clientConfig: any = {
+        log,
+    };
+
+    // Prisma Accelerate requires a prisma:// or prisma+postgres:// URL; only set it when provided.
+    const isAccelerateUrl = (url?: string): boolean =>
+        !!url && (url.startsWith('prisma://') || url.startsWith('prisma+postgres://'));
+
+    if (isAccelerateUrl(databaseUrl)) {
+        clientConfig.accelerateUrl = databaseUrl;
+    }
+
+    const client = new PrismaClient(clientConfig).$extends(withAccelerate());
+
+    return client;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

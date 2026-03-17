@@ -12,6 +12,12 @@ import { UserRole } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
     try {
+        // Diagnostic: log DB env and Prisma availability for debugging
+        // (Helpful when reproducing internal server errors during login)
+        // eslint-disable-next-line no-console
+        console.debug('DATABASE_URL present:', !!process.env.DATABASE_URL);
+        // eslint-disable-next-line no-console
+        console.debug('NODE_ENV:', process.env.NODE_ENV);
         const ip = request.headers.get('x-forwarded-for') || 'unknown';
         const rl = await rateLimitStrict(ip);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -26,9 +32,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const user = await prisma.user.findUnique({
-            where: { email: email.toLowerCase().trim() },
-        });
+        let user;
+        try {
+            user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
+        } catch (dbErr) {
+            // eslint-disable-next-line no-console
+            console.error('Prisma query failed in login route:', dbErr);
+            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
 
         if (!user) {
             return NextResponse.json(

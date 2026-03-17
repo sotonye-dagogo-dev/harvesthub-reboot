@@ -137,13 +137,13 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
                 src="/myharvesthublogo.png"
                 alt="MyHarvestHub Logo"
                 preview={false}
-                className="w-20 h-20 self-start"
+                className="w-16 h-16 rounded-2xl object-contain md:w-20 md:h-20 self-start"
               />
               <Image
                 src="/Rectangle16.svg"
                 alt="Abstract Rectangle"
                 preview={false}
-                className="w-16 h-16 self-end"
+                className="w-12 h-12 rounded-xl md:w-16 md:h-16 self-end"
               />
             </div>
             <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
@@ -167,7 +167,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               src="/myharvesthublogo.png"
               alt="Logo"
               preview={false}
-              className="w-20 h-20 self-start"
+              className="w-16 h-16 rounded-2xl self-start md:w-20 md:h-20"
             />
             <p className="text-xs font-thin text-ds-text-secondary">
               Join MyHarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
@@ -191,16 +191,6 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
             <div className="w-full max-w-md flex flex-col justify-between items-center gap-6">
               {childrenWithProps}
             </div>
-
-            <p className="text-xs text-start w-full text-ds-text-secondary">
-              Already have an account?{" "}
-              <Link
-                href={"/"}
-                className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium underline hover:no-underline"
-              >
-                Sign in here
-              </Link>
-            </p>
           </div>
         </div>
       </div>

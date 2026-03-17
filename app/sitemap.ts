@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { db } from "@/lib/data/database";
+import { prisma } from "@/lib/db/prisma";
 import { VendorStatus } from "@/lib/constants";
 import { APP_CONFIG } from "@/lib/constants";
 
@@ -55,12 +55,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Dynamic product pages (guarded against DB/network failures)
     let productPages: MetadataRoute.Sitemap = [];
     try {
-        const productsResult = await db.products.findAll({});
-        const allProducts = Array.isArray(productsResult) ? productsResult : productsResult?.data ?? [];
-        const activeProducts = (allProducts || []).filter((p: any) => p?.isActive);
-        productPages = activeProducts.map((product: any) => ({
+        const activeProducts = await prisma.product.findMany({
+            where: { isActive: true },
+            select: { id: true, updatedAt: true },
+        });
+
+        productPages = activeProducts.map((product) => ({
             url: `${BASE_URL}/products/${product.id}`,
-            lastModified: product?.updatedAt ? new Date(product.updatedAt) : new Date(),
+            lastModified: product.updatedAt ?? new Date(),
             changeFrequency: "weekly" as const,
             priority: 0.7,
         }));
@@ -76,11 +78,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Dynamic vendor pages (approved only) — guarded
     let vendorPages: MetadataRoute.Sitemap = [];
     try {
-        const vendorsResult = await db.vendors.findAll({ status: VendorStatus.APPROVED });
-        const vendorsList = Array.isArray(vendorsResult) ? vendorsResult : vendorsResult?.data ?? [];
-        vendorPages = (vendorsList || []).map((vendor: any) => ({
+        const approvedVendors = await prisma.vendor.findMany({
+            where: { status: VendorStatus.APPROVED },
+            select: { id: true, updatedAt: true },
+        });
+        vendorPages = approvedVendors.map((vendor) => ({
             url: `${BASE_URL}/vendors/${vendor.id}`,
-            lastModified: vendor?.updatedAt ? new Date(vendor.updatedAt) : new Date(),
+            lastModified: vendor.updatedAt ?? new Date(),
             changeFrequency: "weekly" as const,
             priority: 0.6,
         }));

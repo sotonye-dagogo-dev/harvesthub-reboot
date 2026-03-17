@@ -3,9 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState, stockLevelColor } from "@/components/ui";
-import { mockProducts, mockVendors } from "@/lib/data/mockData";
 import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
-import type { Product } from "@/lib/types";
+import type { Product, Vendor } from "@/lib/types";
 import { Package, Search, Eye, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 import { Input, Select, Table, Modal, Tag } from "antd";
 import { useToast } from "@/lib/contexts/ToastContext";
@@ -22,8 +21,8 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  const [products, setProducts] = useState<Product[]>([...mockProducts]);
-  const [vendors, setVendors] = useState(() => [...mockVendors]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -34,7 +33,10 @@ export default function AdminProductsPage() {
         if (Array.isArray(p)) setProducts(p as Product[]);
         if (Array.isArray(v)) setVendors(v as any[]);
       } catch (e) {
-        // keep mock fallback
+        toast.error("Unable to load products. Please try again later.");
+        if (!mounted) return;
+        setProducts([]);
+        setVendors([]);
       }
     }
     load();
@@ -75,9 +77,7 @@ export default function AdminProductsPage() {
   }
 
   const getVendorName = (vendorId: string) =>
-    vendors.find((v) => v.id === vendorId)?.storeName ||
-    mockVendors.find((v) => v.id === vendorId)?.storeName ||
-    "Unknown";
+    vendors.find((v) => v.id === vendorId)?.storeName || "Unknown";
 
   const handleToggle = (product: Product) => {
     toast.success(`Product ${product.isActive ? "deactivated" : "activated"} successfully`);
