@@ -43,7 +43,7 @@ export default function AdminProductsPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [toast]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];

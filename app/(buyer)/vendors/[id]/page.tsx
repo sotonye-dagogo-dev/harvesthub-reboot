@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { ProductCard, ReviewCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
 
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 import { Button, Tag, Tabs } from "antd";
 import {
   MapPin,
@@ -62,7 +61,6 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
     const activeProducts = vendorProducts.filter((p: any) => p.stock > 0);
     const totalProducts = vendorProducts.length;
 
-    const vendorProductIds = new Set(vendorProducts.map((p: any) => p.id));
     // Derive reviews from products to avoid any mock fallbacks
     const vendorReviews = vendorProducts.flatMap((p: any) =>
       Array.isArray(p.reviews) ? p.reviews : []

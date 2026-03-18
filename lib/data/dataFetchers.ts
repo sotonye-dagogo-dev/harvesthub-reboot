@@ -11,15 +11,15 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { Banner, Product, Vendor, Order } from '@/lib/types';
-// Note: mock data is loaded dynamically only when `NEXT_PUBLIC_USE_MOCK_DATA` is true.
-// This avoids bundling or statically referencing mock data in production builds.
+// Note: mock data is loaded dynamically only when `NEXT_PUBLIC_USE_MOCK_DATA` is enabled.
+// This avoids bundling large mock datasets into production builds.
 let _cachedMockData: any = null;
 async function loadMockData() {
     if (_cachedMockData) return _cachedMockData;
     try {
-        // dynamic import ensures mocks are only included in dev bundles when explicitly enabled
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const m = await import('./mockData');
+        // dynamic import ensures mock data is only included in bundles when explicitly enabled
+        // and when running in development.
+        const m = await import('./mockData.dev');
         _cachedMockData = m;
         return m;
     } catch (err) {
@@ -29,8 +29,9 @@ async function loadMockData() {
 
 // ==================== ENVIRONMENT CHECKS ====================
 
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-const isDevelopment = process.env.NODE_ENV === 'development';
+const useMockData =
+    process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
+    (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'false');
 
 // ==================== BANNERS ====================
 

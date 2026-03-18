@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState, useCallback } from "react";
 import { Input, InputProps } from "./Input";
 import { Select } from "antd";
 import { cn } from "@/lib/utils";
@@ -45,19 +45,25 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
       setLocalValue(typeof value === "string" ? value.replace(defaultCountryCode, "") : "");
     }, [value, countryCodes, defaultCountryCode]);
 
-    const emitValue = (combined: string) => {
-      if (!onChange) return;
-      const syntheticEvent = {
-        target: { value: combined },
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      onChange(syntheticEvent);
-    };
+    const emitValue = useCallback(
+      (combined: string) => {
+        if (!onChange) return;
+        const syntheticEvent = {
+          target: { value: combined },
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        onChange(syntheticEvent);
+      },
+      [onChange]
+    );
 
-    const handleCountryChange = (newCode: string) => {
-      setCountryCode(newCode);
-      const combined = `${newCode}${localValue}`;
-      emitValue(combined);
-    };
+    const handleCountryChange = useCallback(
+      (newCode: string) => {
+        setCountryCode(newCode);
+        const combined = `${newCode}${localValue}`;
+        emitValue(combined);
+      },
+      [emitValue, localValue] // depends on localValue
+    );
 
     const handleLocalChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setLocalValue(event.target.value);
@@ -76,7 +82,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           aria-label="Country code"
         />
       ),
-      [countryCode, countryCodes]
+      [countryCode, countryCodes, handleCountryChange]
     );
 
     return (

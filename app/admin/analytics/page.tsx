@@ -9,7 +9,7 @@ import {
   getOrdersClient,
   getUsersClient,
 } from "@/lib/data/clientDataFetchers";
-import type { Product, Vendor, Order, Transaction } from "@/lib/types";
+import type { Product, Vendor, Order } from "@/lib/types";
 import {
   Users,
   ShoppingBag,

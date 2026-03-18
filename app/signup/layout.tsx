@@ -1,7 +1,6 @@
 "use client";
 
 import { Image } from "antd";
-import Link from "next/link";
 import { useState, ReactNode, cloneElement, isValidElement, useEffect } from "react";
 import StageTracker from "./components/StageTracker";
 import { useRouter, usePathname } from "next/navigation";

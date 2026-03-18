@@ -22,8 +22,6 @@ import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
 import { getBannersClient } from "@/lib/data/clientDataFetchers";
 
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
 // ─── Helpers ──────────────────────────────────────────────────────
 
 interface ThemeClasses {
