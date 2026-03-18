@@ -5,6 +5,14 @@ import { verifyAccessToken } from "@/lib/utils/jwt";
 // Define route patterns for different access levels
 const publicRoutes = [
     "/",
+    "/about",
+    "/contact",
+    "/bug-report",
+    "/cookies",
+    "/faqs",
+    "/help",
+    "/privacy",
+    "/terms",
     "/login",
     "/register",
     "/signup",

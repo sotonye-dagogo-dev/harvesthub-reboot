@@ -1,30 +1,32 @@
+import 'dotenv/config';
 import { PrismaClient } from './generated/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient({
     log: ['warn', 'error'],
+    // Use Prisma Accelerate in this environment. Seed operations are short and
+    // don't need a long interactive transaction.
+    accelerateUrl: process.env['DATABASE_URL'] || process.env['DIRECT_URL'],
 });
 
 async function main() {
     console.log('🌱 Seeding database...');
 
-    // Clean existing data
-    await prisma.$transaction([
-        prisma.notification.deleteMany(),
-        prisma.transaction.deleteMany(),
-        prisma.wallet.deleteMany(),
-        prisma.review.deleteMany(),
-        prisma.orderItem.deleteMany(),
-        prisma.order.deleteMany(),
-        prisma.cartItem.deleteMany(),
-        prisma.cart.deleteMany(),
-        prisma.product.deleteMany(),
-        prisma.address.deleteMany(),
-        prisma.vendor.deleteMany(),
-        prisma.buyer.deleteMany(),
-        prisma.banner.deleteMany(),
-        prisma.user.deleteMany(),
-    ]);
+    // Clean existing data (run sequentially to avoid long interactive transactions).
+    await prisma.notification.deleteMany();
+    await prisma.transaction.deleteMany();
+    await prisma.wallet.deleteMany();
+    await prisma.review.deleteMany();
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.cartItem.deleteMany();
+    await prisma.cart.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.address.deleteMany();
+    await prisma.vendor.deleteMany();
+    await prisma.buyer.deleteMany();
+    await prisma.banner.deleteMany();
+    await prisma.user.deleteMany();
 
     const hashedPassword = await bcrypt.hash('Password123!', 10);
 
@@ -509,6 +511,26 @@ async function main() {
     await prisma.banner.createMany({
         data: [
             {
+                title: 'NLP Nigeria!',
+                subtitle: 'A worship, prayer and miracles Conference',
+                description: 'Join us for an unforgettable experience of worship, prayer, and miracles at the NLP Nigeria Conference. Connect with fellow believers, receive powerful teachings, and witness life-changing miracles. Don\'t miss this opportunity to deepen your faith and be part of something extraordinary!',
+                imageUrl: 'https://res.cloudinary.com/dgwpjkseg/image/upload/v1773760246/myharvesthub/banners/kojbl3deghfjvst4grpu.jpg',
+                linkUrl: 'https://bit.ly/NLPNigeria26',
+                actions: {
+                    label: 'NLP',
+                    href: 'https://bit.ly/NLPNigeria26',
+                    variant: 'primary',
+                    openInNewTab: true,
+                },
+                position: 'HERO',
+                theme: 'BUSINESS',
+                isActive: true,
+                displayOrder: 0,
+                clickCount: 0,
+                impressionCount: 0,
+                createdBy: admin.id,
+            },
+            {
                 title: 'Welcome to HarvestHub!',
                 subtitle: 'Your trusted church community marketplace',
                 description: 'Shop from verified vendors in your church community.',
@@ -527,6 +549,60 @@ async function main() {
                 imageUrl: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&h=400&fit=crop',
                 position: 'HERO',
                 theme: 'PROMOTION',
+                isActive: true,
+                displayOrder: 2,
+                clickCount: 0,
+                impressionCount: 0,
+                createdBy: admin.id,
+            },
+            {
+                title: 'NLP Nigeria!',
+                subtitle: 'A worship, prayer and miracles Conference',
+                description: 'Join us for an unforgettable experience of worship, prayer, and miracles at the NLP Nigeria Conference. Connect with fellow believers, receive powerful teachings, and witness life-changing miracles. Don\'t miss this opportunity to deepen your faith and be part of something extraordinary!',
+                imageUrl: 'https://res.cloudinary.com/dgwpjkseg/image/upload/v1773760246/myharvesthub/banners/kojbl3deghfjvst4grpu.jpg',
+                linkUrl: 'https://bit.ly/NLPNigeria26',
+                position: 'TOP',
+                theme: 'BUSINESS',
+                isActive: true,
+                displayOrder: 0,
+                clickCount: 0,
+                impressionCount: 0,
+                createdBy: admin.id,
+            },
+            {
+                title: 'Along - Navigate Lagos Easily',
+                subtitle: 'Find the best public transport routes in Lagos',
+                description: 'Along helps you discover the fastest and most convenient public transport routes across Lagos. Plan your journey, save time, and travel smarter with Along.',
+                imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1200&h=400&fit=crop',
+                linkUrl: 'https://along1.vercel.app',
+                actions: {
+                    label: 'Try Along',
+                    href: 'https://along1.vercel.app',
+                    variant: 'primary',
+                    openInNewTab: true,
+                },
+                position: 'TOP',
+                theme: 'PROMOTION',
+                isActive: true,
+                displayOrder: 1,
+                clickCount: 0,
+                impressionCount: 0,
+                createdBy: admin.id,
+            },
+            {
+                title: 'DMHICC Digital Marketing',
+                subtitle: 'Grow your business with expert digital marketing',
+                description: 'DMHICC offers tailored digital marketing solutions to help your business reach more customers and boost sales. Get started with a free consultation today.',
+                imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=400&fit=crop',
+                linkUrl: 'https://www.dmhicc.com',
+                actions: {
+                    label: 'Visit DMHICC',
+                    href: 'https://www.dmhicc.com',
+                    variant: 'primary',
+                    openInNewTab: true,
+                },
+                position: 'TOP',
+                theme: 'BUSINESS',
                 isActive: true,
                 displayOrder: 2,
                 clickCount: 0,

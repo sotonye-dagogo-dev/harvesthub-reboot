@@ -68,7 +68,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     const select = useMemo(
       () => (
         <Select
-          className="w-36"
+          className="w-24"
           value={countryCode}
           onChange={handleCountryChange}
           options={countryCodes}

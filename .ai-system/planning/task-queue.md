@@ -14,6 +14,8 @@
 - [x] Add role-based layout guards (buyer vs vendor vs admin)
 - [ ] Implement empty and loading states for product listings, cart, and orders
 - [ ] Add unit tests for critical business logic in `lib/data/database.ts` (and/or Prisma adapters)
+- [ ] Fix middleware route protection to allow public pages and only protect secured routes
+- [ ] Ensure Prisma client can connect in development (fix accelerateUrl/adapter configuration and make `USE_PRISMA` toggle stable)
 
 ---
 
