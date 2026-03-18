@@ -1,4 +1,5 @@
 import { PrismaClient } from '../../prisma/generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { withAccelerate } from '@prisma/extension-accelerate';
 
 const globalForPrisma = globalThis as unknown as {
@@ -29,15 +30,14 @@ function getPrismaDatabaseUrl(): string | undefined {
     }
 
     // In tests, use a lightweight sqlite file to keep the surface area small.
+    // Note: the schema is configured for PostgreSQL, so this is only suitable if
+    // you have a test database configured/available.
     if (process.env.NODE_ENV === 'test') {
-        return 'file:./.test-db.sqlite';
+        return process.env.DATABASE_URL;
     }
 
-    // For local development, default to a sqlite file so developers can run without a Postgres instance.
-    if (process.env.NODE_ENV === 'development') {
-        return 'file:./.dev.db.sqlite';
-    }
-
+    // If no database URL is provided, do not attempt to connect.
+    // The application can still work in development using mock data.
     return undefined;
 }
 
@@ -55,13 +55,38 @@ function createPrismaClient() {
         clientConfig.accelerateUrl = databaseUrl;
     }
 
-    // If using a direct connection, bind it explicitly (avoids relying on env vars in some runtimes).
+    // If using a direct connection (Postgres), configure the Postgres adapter.
+    // Prisma Client (engine type "client") requires an adapter or accelerateUrl.
     if (databaseUrl && !isAccelerateUrl(databaseUrl)) {
-        clientConfig.datasources = {
-            db: {
-                url: databaseUrl,
-            },
+        clientConfig.adapter = new PrismaPg({ connectionString: databaseUrl });
+    }
+
+    if (!databaseUrl) {
+        // Prisma is optional in development when using mock data.
+        // Return a no-op proxy that provides helpful errors when used.
+        const warning =
+            'Prisma is not configured: set DATABASE_URL (or DIRECT_URL) to a Postgres connection string, or enable mock mode with NEXT_PUBLIC_USE_MOCK_DATA=true.';
+        console.warn(warning);
+
+        const noop = async () => {
+            throw new Error(warning);
         };
+
+        const dummy = new Proxy(
+            {
+                $connect: async () => { },
+                $disconnect: async () => { },
+                $on: () => { },
+            },
+            {
+                get(target, prop) {
+                    if (prop in target) return (target as any)[prop];
+                    return noop;
+                },
+            }
+        );
+
+        return dummy as unknown as ReturnType<typeof createPrismaClient>;
     }
 
     const client = new PrismaClient(clientConfig).$extends(withAccelerate());

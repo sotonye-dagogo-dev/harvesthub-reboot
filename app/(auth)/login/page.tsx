@@ -154,7 +154,7 @@ function LoginForm() {
         </Link>
       </div>
 
-       {/* Demo Credentials 
+       Demo Credentials 
       <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
         <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">Demo Credentials:</p>
         <div className="space-y-1 text-xs text-ds-palette-purple-700 dark:text-ds-brand-muted">
@@ -168,7 +168,7 @@ function LoginForm() {
             <strong>Buyer:</strong> buyer@harvesthub.com / buyer123
           </p>
         </div>
-      </div> */}
+      </div> 
     </div>
   );
 }

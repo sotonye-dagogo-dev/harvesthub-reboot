@@ -22,6 +22,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@ant-design/nextjs-registry": "^1.0.2",
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.4.2",
     "@prisma/extension-accelerate": "^3.0.1",
     "@react-email/components": "^1.0.8",
