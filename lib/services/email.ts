@@ -9,8 +9,8 @@ try {
   resend = null;
 }
 
-const EMAIL_FROM = process.env.NEXT_PUBLIC_EMAIL_FROM || 'noreply@harvesthub.ng';
-const APP_NAME = 'HarvestHub';
+const EMAIL_FROM = process.env.NEXT_PUBLIC_EMAIL_FROM || 'noreply@myharvesthub.ng';
+const APP_NAME = 'MyHarvestHub';
 
 interface SendEmailOptions {
   to: string | string[];

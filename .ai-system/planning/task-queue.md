@@ -6,16 +6,19 @@
 
 ## Current Sprint
 
-> **Section summary:** Tasks actively being worked on. Agents pick the first incomplete task.
+> **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.
 
-- [x] Ensure the repository builds cleanly (`npm run build` + `npx tsc --noEmit`)
-- [x] Complete missing API routes for orders, carts, and wallets under `app/api/`
-- [ ] Migrate mock backend to Prisma + PostgreSQL (incremental, keep mocks for unimplemented domains)
-- [x] Add role-based layout guards (buyer vs vendor vs admin)
-- [ ] Implement empty and loading states for product listings, cart, and orders
-- [ ] Add unit tests for critical business logic in `lib/data/database.ts` (and/or Prisma adapters)
-- [ ] Fix middleware route protection to allow public pages and only protect secured routes
-- [ ] Ensure Prisma client can connect in development (fix accelerateUrl/adapter configuration and make `USE_PRISMA` toggle stable)
+- [x] Create a refactor plan document capturing current architecture and target state (`.ai-system/planning/refactor-plan.md`)
+- [ ] Create a centralized runtime config module (`lib/config/*`) and migrate scattered `process.env` access into typed helpers
+- [ ] Replace hardcoded RBAC route lists in `middleware.ts` with a declarative policy registry and per-route metadata
+- [ ] Add unit tests for RBAC guards (middleware) and config normalization
+- [ ] Implement a shared data adapter interface and ensure `USE_PRISMA` / `ENABLE_MOCK_BACKEND` toggles are explicit and safe
+- [ ] Add robust email + notification infrastructure (retry/backoff, persistence, in-app and push delivery)
+- [ ] Add caching layer for public content and heavily-read data (Redis cache + invalidation and key namespacing)
+- [ ] Implement cloud asset handling best practices (upload metadata persistence, safe failure modes, and cache busting for media)
+- [ ] Audit and modernize the UI design system across core flows (signup, product browsing, carts, checkout, dashboards) using consistent tokens and responsive layouts
+- [ ] Establish CI validation checks for Prisma migrations, required env vars, and linting
+- [ ] Add a small admin-editable public content model (banners/FAQ/About/Terms and Conditions/Policy, etc.) and caching strategy (Redis + invalidation endpoint)
 
 ---
 
