@@ -686,10 +686,12 @@ export const CATEGORY_COMMISSION_DEFAULTS: Record<VendorCategory, number> = {
 // LISTING TYPES
 // ============================================================================
 
-export enum ListingType {
-    PRODUCT = 'PRODUCT',
-    SERVICE = 'SERVICE',
-}
+export const ListingType = {
+    PRODUCT: 'PRODUCT',
+    SERVICE: 'SERVICE',
+} as const;
+
+export type ListingType = (typeof ListingType)[keyof typeof ListingType];
 
 export const LISTING_TYPES = [
     { value: ListingType.PRODUCT, label: 'Physical Product', description: 'Tangible goods for sale' },

@@ -411,13 +411,17 @@ export async function getReviews() {
     }
 
     try {
-        return await prisma.review
-            .findMany({
-                include: {
-                    product: true,
-                },
-                orderBy: { createdAt: 'desc' },
-            });
+        const reviews = await prisma.review.findMany({
+            include: {
+                product: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        // Prisma returns its own generated types which can differ from our app's
+        // canonical types (e.g., JSON fields such as product.variants). Cast to our
+        // Review type to keep the rest of the app consistent.
+        return reviews as unknown as Review[];
     } catch {
         if (useMockData) {
             const m = await loadMockData();
@@ -433,11 +437,11 @@ export async function getReviewsByProductId(productId: string) {
     }
 
     try {
-        return await prisma.review
-            .findMany({
-                where: { productId },
-                orderBy: { createdAt: 'desc' },
-            });
+        const reviews = await prisma.review.findMany({
+            where: { productId },
+            orderBy: { createdAt: 'desc' },
+        });
+        return reviews as unknown as Review[];
     } catch {
         if (useMockData) {
             const m = await loadMockData();
