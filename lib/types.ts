@@ -4,7 +4,7 @@
  * All types are globally available via tsconfig.json
  */
 
-import {
+import type {
     UserRole,
     OrderStatus,
     PaymentStatus,

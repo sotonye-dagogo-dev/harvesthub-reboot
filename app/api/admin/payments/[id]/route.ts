@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@/prisma/generated/client';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
@@ -55,7 +56,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         }
 
         if (action === 'verify') {
-            const updated = await prisma.$transaction(async (tx) => {
+            const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
                 const p = await tx.advertiserPayment.update({
                     where: { id },
                     data: { status: 'VERIFIED', verifiedAt: new Date() },
@@ -69,7 +70,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             });
             return NextResponse.json({ success: true, payment: updated });
         } else {
-            const updated = await prisma.$transaction(async (tx) => {
+            const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
                 const p = await tx.advertiserPayment.update({
                     where: { id },
                     data: { status: 'REJECTED' },

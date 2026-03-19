@@ -41,21 +41,24 @@ export async function GET(req: NextRequest) {
         ]);
 
         // Manually join reporter info for reports that have userId
-        const userIds = reports.map((r) => r.userId).filter((id): id is string => !!id);
+        const userIds = reports
+            .map((r: { userId?: string | null }) => r.userId)
+            .filter((id): id is string => !!id);
         const users = userIds.length > 0
             ? await prisma.user.findMany({
                 where: { id: { in: userIds } },
                 select: { id: true, firstName: true, lastName: true, email: true },
             })
             : [];
-        const userMap = new Map(users.map((u) => [u.id, u]));
+        const userMap = new Map(users.map((u: { id: string }) => [u.id, u]));
 
         return NextResponse.json({
             success: true,
-            reports: reports.map((r) => ({
+            reports: reports.map((r: any) => ({
                 ...r,
                 reporter: r.userId ? userMap.get(r.userId) ?? null : null,
             })),
+
             stats: (stats as Array<{ status: string; _count: { id: number } }>).reduce<Record<string, number>>((acc, s) => ({ ...acc, [s.status]: s._count.id }), {}),
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });

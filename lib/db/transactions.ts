@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import type { Prisma } from '@/prisma/generated/client';
 
 /**
  * ACID Transaction Utilities for MyHarvestHub
@@ -20,8 +21,8 @@ export async function createOrderTransaction(params: {
   }>;
   paymentMethod: string;
   deliveryMethod: string;
-  deliveryAddress?: Record<string, unknown>;
-  pickupDetails?: Record<string, unknown>;
+  deliveryAddress?: Prisma.InputJsonValue;
+  pickupDetails?: Prisma.InputJsonValue;
   notes?: string;
   deliveryFee?: number;
   voucherCode?: string;

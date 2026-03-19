@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { userWalletKey } from '@/lib/cache/keys';
-import { TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
+import { Prisma, TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
 
 export async function POST(req: NextRequest) {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
         const reference = `WDR-${Date.now()}`;
 
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const updated = await tx.wallet.update({
                 where: { id: wallet.id },
                 data: { balance: { decrement: amount } },

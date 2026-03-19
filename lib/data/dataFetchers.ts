@@ -11,10 +11,14 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { Banner, Product, Vendor, Order } from '@/lib/types';
+
+// Ensure mock data module is strongly typed so callbacks infer proper types.
+type MockData = typeof import('./mockData.dev');
+
 // Note: mock data is loaded dynamically only when `NEXT_PUBLIC_USE_MOCK_DATA` is enabled.
 // This avoids bundling large mock datasets into production builds.
-let _cachedMockData: any = null;
-async function loadMockData() {
+let _cachedMockData: MockData | null = null;
+async function loadMockData(): Promise<MockData | null> {
     if (_cachedMockData) return _cachedMockData;
     try {
         // dynamic import ensures mock data is only included in bundles when explicitly enabled
@@ -61,7 +65,7 @@ export async function getBanners(): Promise<Banner[]> {
 export async function getHeroBanners(): Promise<Banner[]> {
     if (useMockData) {
         const m = await loadMockData();
-        return (m?.mockBanners ?? []).filter((b: any) => b.position === 'HERO' && b.isActive);
+        return (m?.mockBanners ?? []).filter((b: Banner) => b.position === 'HERO' && b.isActive);
     }
 
     try {
@@ -78,7 +82,7 @@ export async function getHeroBanners(): Promise<Banner[]> {
     } catch {
         if (useMockData) {
             const m = await loadMockData();
-            return (m?.mockBanners ?? []).filter((b: any) => b.position === 'HERO');
+            return (m?.mockBanners ?? []).filter((b: Banner) => b.position === 'HERO');
         }
         return [];
     }
@@ -116,7 +120,7 @@ export async function getProducts(): Promise<Product[]> {
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
     if (useMockData) {
         const m = await loadMockData();
-        return (m?.mockProducts ?? []).filter((p: any) => p.isFeatured && p.isActive).slice(0, limit);
+        return (m?.mockProducts ?? []).filter((p: Product) => p.isFeatured && p.isActive).slice(0, limit);
     }
 
     try {
@@ -135,7 +139,7 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
     } catch {
         if (useMockData) {
             const m = await loadMockData();
-            return (m?.mockProducts ?? []).filter((p: any) => p.isFeatured && p.isActive).slice(0, limit);
+            return (m?.mockProducts ?? []).filter((p: Product) => p.isFeatured && p.isActive).slice(0, limit);
         }
         return [];
     }
@@ -145,8 +149,8 @@ export async function getTrendingProducts(limit = 8): Promise<Product[]> {
     if (useMockData) {
         const m = await loadMockData();
         return (m?.mockProducts ?? [])
-            .filter((p: any) => p.isActive)
-            .sort((a: any, b: any) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
+            .filter((p: Product) => p.isActive)
+            .sort((a: Product, b: Product) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
             .slice(0, limit);
     }
 
@@ -168,8 +172,8 @@ export async function getTrendingProducts(limit = 8): Promise<Product[]> {
         if (useMockData) {
             const m = await loadMockData();
             return (m?.mockProducts ?? [])
-                .filter((p: any) => p.isActive)
-                .sort((a: any, b: any) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
+                .filter((p: Product) => p.isActive)
+                .sort((a: Product, b: Product) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
                 .slice(0, limit);
         }
         return [];

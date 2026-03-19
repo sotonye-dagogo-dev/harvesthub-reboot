@@ -41,7 +41,7 @@ function getPrismaDatabaseUrl(): string | undefined {
     return undefined;
 }
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
     const log = process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'];
 
     const databaseUrl = getPrismaDatabaseUrl();
@@ -91,7 +91,9 @@ function createPrismaClient() {
 
     const client = new PrismaClient(clientConfig).$extends(withAccelerate());
 
-    return client;
+    // The Prisma client extension can change the inferred type shape.
+    // Cast back to the expected PrismaClient type for consistency.
+    return client as unknown as PrismaClient;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

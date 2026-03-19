@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
             prisma.review.aggregate({ where: { ...where, rating: undefined }, _avg: { rating: true } }),
         ]);
 
-        const enriched = reviews.map((r) => ({
+        const enriched = reviews.map((r: any) => ({
             ...r,
         }));
 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
                 },
                 include: { items: true },
             });
-            if (order && order.items.some((item) => item.productId === productId)) {
+            if (order && order.items.some((item: any) => item.productId === productId)) {
                 verifiedPurchase = true;
             }
         }

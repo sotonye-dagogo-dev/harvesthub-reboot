@@ -13,7 +13,16 @@ export async function GET(req: NextRequest) {
 
         const now = new Date();
 
-        const activeAds = await prisma.advertisement.findMany({
+        type ActiveAd = {
+            id: string;
+            title: string;
+            subtitle?: string | null;
+            ctaText?: string | null;
+            ctaLink?: string | null;
+            imageUrl?: string | null;
+        };
+
+        const activeAds: ActiveAd[] = await prisma.advertisement.findMany({
             where: {
                 status: AdStatus.ACTIVE,
                 startDate: { lte: now },

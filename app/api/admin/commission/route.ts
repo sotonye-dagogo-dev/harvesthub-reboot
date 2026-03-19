@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest) {
 
         // Merge DB configs with defaults for categories without overrides
         const allCategories = Object.values(VendorCategory).map((cat) => {
-            const dbConfig = configs.find((c) => c.category === cat);
+            const dbConfig = configs.find((c: { category: VendorCategory; }) => c.category === cat);
             return {
                 category: cat,
                 rate: dbConfig ? dbConfig.rate : CATEGORY_COMMISSION_DEFAULTS[cat],
