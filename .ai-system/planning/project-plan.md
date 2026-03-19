@@ -40,7 +40,9 @@
 
 - [ ] Reviews & ratings system for products and vendors
 - [ ] Delivery and pickup scheduling (church pickup, home delivery)
-- [ ] Notifications system (in-app & email)
+- [ ] Notifications system (in-app & email) and optional web push
+- [ ] Caching layer for public and frequently-read content (Redis + invalidation)
+- [ ] Cloud asset handling (upload metadata persistence, safe failure paths)
 - [ ] Analytics dashboards for vendors and admins
 - [ ] Search and filtering improvements (categories, locations)
 

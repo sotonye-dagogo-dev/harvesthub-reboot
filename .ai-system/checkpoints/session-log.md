@@ -225,3 +225,31 @@ Improve signup UX and complete mock-to-Prisma migration by removing remaining mo
 **Notes / Blockers:**
 
 - The signup flow now gathers more data; ensure backend registration accepts and stores it properly. If any fields are missing server-side, the UI will still allow submission (will result in no persistence).
+
+## Session 8 — 2026-03-19
+
+**Goal:**
+Create a lasting, actionable refactor plan (modular, config-driven, role-aware) and persist it in `.ai-system` so future sessions can execute reliably.
+
+**Completed:**
+
+- Created `.ai-system/planning/refactor-plan.md` capturing current architecture, desired end state, and implementation strategy.
+- Updated `task-queue.md` with a prioritized list of refactor milestones.
+- Recorded key decisions in `project-decisions.md` (centralized RBAC + adapter pattern).
+- Updated `session-log.md` and `dev-history.md` with this planning session.
+
+**Files Modified:**
+
+- `.ai-system/planning/refactor-plan.md` — new planning doc
+- `.ai-system/planning/task-queue.md` — prioritized refactor tasks
+- `.ai-system/memory/project-decisions.md` — decisions recorded
+- `.ai-system/checkpoints/session-log.md` — added session entry
+- `.ai-system/summaries/dev-history.md` — added history entry
+
+**Next Task:**
+
+- Begin Phase B (Core Refactor): implement `lib/config` module and RBAC policy registry; make `middleware.ts` consume the new patterns.
+
+**Notes / Blockers:**
+
+- No code changes were made in this session; all work was documentation and planning.

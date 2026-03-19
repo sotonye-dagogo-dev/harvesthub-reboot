@@ -84,13 +84,36 @@ Started the migration of the in-memory mock data layer to Prisma. Added an initi
 Aligned frontend and backend email verification flow, added a client `/verify-email` page, and hardened the email service for local/dev environments when the `RESEND_API_KEY` is not configured.
 
 **Completed:**
+
 - Added `app/verify-email/page.tsx` (client) that posts to `/api/auth/verify-email` and allows resending verification links.
 - Updated verification email template to point to `/verify-email?token=` instead of the API route.
 - Made `lib/services/email.ts` resilient to a missing `RESEND_API_KEY` to avoid startup failures in dev.
 - Ensured server routes use JSX elements when calling `sendEmail` and that email sends are non-blocking (`.catch` used where appropriate).
 
 **Key Changes:**
+
 - Verification UX now lands on the frontend for a better user experience and consistent client-server behavior.
 
 **Next Sprint Focus:**
+
 - Audit remaining email usages, run build and smoke tests, and continue Prisma adapter expansion.
+
+## 2026-03-19 — Refactor Planning
+
+**Summary:**
+Created a durable refactor plan that captures the current architecture, defines a desired modular/config-driven end state, and outlines a prioritized set of implementation tasks.
+
+**Completed:**
+
+- Added `.ai-system/planning/refactor-plan.md` with architecture and target state documentation.
+- Updated `task-queue.md` with a prioritized refactor task list.
+- Recorded key architectural decisions in `project-decisions.md`.
+- Logged planning progress in `session-log.md`.
+
+**Key Changes:**
+
+- Formalized the need for a centralized config layer, declarative RBAC, and explicit adapter patterns for data persistence.
+
+**Next Sprint Focus:**
+
+- Begin implementing the core refactor: build `lib/config` and a RBAC policy registry; refactor `middleware.ts` and route guards to use the new system.
