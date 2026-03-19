@@ -2,8 +2,9 @@
 // Matches lib/types.ts and lib/constants/index.ts
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../prisma/generated/client"
+  provider   = "prisma-client-js"
+  output     = "../prisma/generated/client"
+  engineType = "binary"
 }
 
 datasource db {

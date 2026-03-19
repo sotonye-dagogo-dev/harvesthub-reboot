@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
 import { generateTokenPair } from '@/lib/utils/jwt';
 import { setAuthCookies } from '@/lib/utils/cookies';
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
         const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         // Use a transaction to create user + role profile + wallet atomically
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Count existing users of this role for registration sequence
             const roleCount = await tx.user.count({ where: { role } });
 

@@ -5,6 +5,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@/prisma/generated/client';
 import type { MilestoneRecord, MilestoneType } from '@/lib/types';
 
 export const milestoneDb = {
@@ -75,7 +76,7 @@ export const milestoneDb = {
                 userId: data.userId,
                 milestoneType: data.milestoneType,
                 label: data.label,
-                metadata: data.metadata ?? {},
+                metadata: (data.metadata ?? {}) as Prisma.InputJsonValue,
             },
         });
         return {

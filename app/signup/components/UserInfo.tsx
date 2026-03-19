@@ -111,7 +111,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
 
                 const cleaned = String(value).replace(/\s+/g, "");
                 const patterns = [
-                  /^\+234[789]\d{8}$/, // Nigeria
+                  /^\+234[789]\d{9}$/, // Nigeria (10 digits after +234)
                   /^\+1\d{10}$/, // US
                   /^\+44\d{10}$/, // UK
                 ];

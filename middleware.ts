@@ -5,6 +5,14 @@ import { verifyAccessToken } from "@/lib/utils/jwt";
 // Define route patterns for different access levels
 const publicRoutes = [
     "/",
+    "/about",
+    "/contact",
+    "/bug-report",
+    "/cookies",
+    "/faqs",
+    "/help",
+    "/privacy",
+    "/terms",
     "/login",
     "/register",
     "/signup",
@@ -106,9 +114,9 @@ export const config = {
          * - api routes (handled separately)
          * - _next/static (static files)
          * - _next/image (image optimization)
-         * - favicon.ico
-         * - public folder
+         * - favicon.ico, manifest.json, robots.txt, etc.
+         * - public assets (files with extensions)
          */
-        "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|_next).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|manifest\\.json|robots\\.txt|offline\\.html|.*\\..*|_next).*)",
     ],
 };

@@ -11,10 +11,7 @@ export async function GET() {
         const currentUser = await getCurrentUser();
 
         if (!currentUser) {
-            return NextResponse.json(
-                { error: 'Not authenticated' },
-                { status: 401 }
-            );
+            return NextResponse.json({ user: null }, { status: 200 });
         }
 
         const user = await prisma.user.findUnique({

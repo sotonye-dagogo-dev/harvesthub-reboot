@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
         const result = {
             success: true,
-            vendors: vendors.map((v) => ({
+            vendors: vendors.map((v: any) => ({
                 ...v,
                 productCount: (v as unknown as { _count: { products: number } })._count.products,
                 _count: undefined,

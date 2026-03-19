@@ -3,6 +3,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@/prisma/generated/client';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         const { reason } = body as { reason?: string };
 
         // Cancel + refund to wallet in a transaction
-        const updated = await prisma.$transaction(async (tx) => {
+        const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const cancelled = await tx.order.update({
                 where: { id },
                 data: {

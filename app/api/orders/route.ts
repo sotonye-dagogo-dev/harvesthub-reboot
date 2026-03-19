@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         const total = subtotal + deliveryFee;
         const orderNumber = `MHH-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-        const order = await prisma.$transaction(async (tx) => {
+        const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const newOrder = await tx.order.create({
                 data: {
                     orderNumber,

@@ -64,12 +64,12 @@ export async function GET(req: NextRequest) {
         ]);
 
         // Compute available filter facets
-        const allActive = await prisma.product.findMany({
+        const allActive: Array<{ category: string; price: number }> = await prisma.product.findMany({
             where: { isActive: true },
             select: { category: true, price: true },
         });
-        const categories = [...new Set(allActive.map(p => p.category))];
-        const prices = allActive.map(p => p.price);
+        const categories = [...new Set(allActive.map((p) => p.category))];
+        const prices = allActive.map((p) => p.price);
         const priceRange = { min: prices.length ? Math.min(...prices) : 0, max: prices.length ? Math.max(...prices) : 0 };
 
         return NextResponse.json({

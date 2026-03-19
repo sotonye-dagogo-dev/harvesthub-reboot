@@ -27,8 +27,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/notifications?limit=50");
 
       if (!res.ok) {
-        // Silently fail - API might not be ready yet
-        console.warn("Notifications API not available");
+        // Silently fail - API might not be ready yet.
+        // Avoid logging 401 for anonymous users.
+        if (res.status !== 401) {
+          console.warn("Notifications API not available");
+        }
         return;
       }
 

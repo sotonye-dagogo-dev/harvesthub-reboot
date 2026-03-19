@@ -60,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             select: { id: true, updatedAt: true },
         });
 
-        productPages = activeProducts.map((product) => ({
+        productPages = activeProducts.map((product: { id: string; updatedAt: Date | null }) => ({
             url: `${BASE_URL}/products/${product.id}`,
             lastModified: product.updatedAt ?? new Date(),
             changeFrequency: "weekly" as const,
@@ -82,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             where: { status: VendorStatus.APPROVED },
             select: { id: true, updatedAt: true },
         });
-        vendorPages = approvedVendors.map((vendor) => ({
+        vendorPages = approvedVendors.map((vendor: { id: string; updatedAt: Date | null }) => ({
             url: `${BASE_URL}/vendors/${vendor.id}`,
             lastModified: vendor.updatedAt ?? new Date(),
             changeFrequency: "weekly" as const,
