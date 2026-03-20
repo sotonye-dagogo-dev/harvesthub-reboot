@@ -44,8 +44,9 @@ import {
 } from './mockData';
 
 import prismaAdapter from './prismaAdapter';
+import { featureFlags } from '@/lib/config';
 
-const usePrisma = process.env.USE_PRISMA === 'true' || process.env.NODE_ENV === 'production';
+const usePrisma = featureFlags.usePrisma;
 
 // ===================================
 // DATABASE STATE

@@ -9,11 +9,11 @@
 > **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.
 
 - [x] Create a refactor plan document capturing current architecture and target state (`.ai-system/planning/refactor-plan.md`)
-- [ ] Create a centralized runtime config module (`lib/config/*`) and migrate scattered `process.env` access into typed helpers
-- [ ] Replace hardcoded RBAC route lists in `middleware.ts` with a declarative policy registry and per-route metadata
+- [x] Create a centralized runtime config module (`lib/config/*`) and migrate scattered `process.env` access into typed helpers
+- [x] Replace hardcoded RBAC route lists in `middleware.ts` with a declarative policy registry and per-route metadata
 - [ ] Add unit tests for RBAC guards (middleware) and config normalization
-- [ ] Implement a shared data adapter interface and ensure `USE_PRISMA` / `ENABLE_MOCK_BACKEND` toggles are explicit and safe
-- [ ] Add robust email + notification infrastructure (retry/backoff, persistence, in-app and push delivery)
+- [x] Implement a shared data adapter interface and ensure `USE_PRISMA` / `ENABLE_MOCK_BACKEND` toggles are explicit and safe
+- [x] Add robust email + notification infrastructure (retry/backoff, persistence, in-app and push delivery)
 - [ ] Add caching layer for public content and heavily-read data (Redis cache + invalidation and key namespacing)
 - [ ] Implement cloud asset handling best practices (upload metadata persistence, safe failure modes, and cache busting for media)
 - [ ] Audit and modernize the UI design system across core flows (signup, product browsing, carts, checkout, dashboards) using consistent tokens and responsive layouts

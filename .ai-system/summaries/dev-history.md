@@ -117,3 +117,25 @@ Created a durable refactor plan that captures the current architecture, defines 
 **Next Sprint Focus:**
 
 - Begin implementing the core refactor: build `lib/config` and a RBAC policy registry; refactor `middleware.ts` and route guards to use the new system.
+
+## 2026-03-20 — Core Refactor Baseline (Config/RBAC/Email Reliability)
+
+**Summary:**
+Implemented the first execution slice of the modernization plan with focused, production-oriented changes. The codebase now has a centralized typed runtime config, declarative middleware policies, adapter interface conformance checks, and resilient email send behavior with retry and persistence logging.
+
+**Completed:**
+
+- Added `lib/config` typed env and feature flag modules.
+- Replaced middleware hardcoded route lists with `lib/rbac/policies.ts`.
+- Added `CrudAdapter` interface and enforced it on Prisma adapter exports.
+- Added email retry/backoff and persistent delivery log support (`EmailDelivery` Prisma model).
+- Wired cache/push/cloudinary/data-layer toggles into centralized config.
+
+**Key Changes:**
+
+- RBAC is now policy-driven and easier to audit/extend.
+- Email delivery failures are persisted and retried instead of only logging transient errors.
+
+**Next Sprint Focus:**
+
+- Add targeted tests for config + RBAC policies and finish remaining modernization tasks (UI refresh breadth, cache invalidation tests, push delivery trigger paths).

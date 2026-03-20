@@ -253,3 +253,47 @@ Create a lasting, actionable refactor plan (modular, config-driven, role-aware) 
 **Notes / Blockers:**
 
 - No code changes were made in this session; all work was documentation and planning.
+
+## Session 9 — 2026-03-20
+
+**Goal:**
+Implement the top-priority modernization baseline with minimal, surgical changes: typed config, declarative RBAC, adapter interface, and email retry/persistence.
+
+**Completed:**
+
+- Added centralized typed config and feature flags (`lib/config/*`) and wired key services to it.
+- Replaced hardcoded middleware route arrays with declarative RBAC route policies (`lib/rbac/policies.ts` + `middleware.ts`).
+- Added shared `CrudAdapter` interface and applied it in Prisma adapter exports.
+- Hardened email sending with retry/backoff and persistence logging to Prisma (`EmailDelivery` model + `NotificationType.EMAIL_STATUS` enum value).
+- Updated `.ai-system` planning/decision docs to reflect implementation progress.
+- Ran baseline checks:
+  - `npx tsc --noEmit -p tsconfig.json` ✅
+  - `npm test -- --run` ❌ (pre-existing failures in schema/component/API tests not introduced by this change set)
+
+**Files Modified:**
+
+- `lib/config/env.ts`
+- `lib/config/features.ts`
+- `lib/config/index.ts`
+- `lib/rbac/policies.ts`
+- `middleware.ts`
+- `lib/data/adapterTypes.ts`
+- `lib/data/prismaAdapter.ts`
+- `lib/data/database.ts`
+- `lib/services/email.ts`
+- `lib/cache/redis.ts`
+- `lib/services/push.ts`
+- `lib/services/cloudinary.ts`
+- `prisma/schema.prisma`
+- `.ai-system/planning/task-queue.md`
+- `.ai-system/planning/refactor-plan.md`
+- `.ai-system/memory/project-decisions.md`
+
+**Next Task:**
+
+- Add targeted unit tests for config normalization and RBAC policy matching, then run `npm run build` and capture final validation results.
+
+**Notes / Blockers:**
+
+- `.ai-system/project-context.md` is absent; canonical project context currently resides at `.ai-system/agents/project-context.md`.
+- `npm test` currently reports multiple pre-existing failing tests unrelated to this change; keep scope focused.

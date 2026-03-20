@@ -72,3 +72,18 @@
 - In-app notifications should persist and be replayable, with optional push delivery.
 - Cached content must have a clear invalidation mechanism.
 - Cloud uploads must persist metadata and tolerate partial failures without blocking core flows.
+
+## Typed Runtime Configuration Module
+
+**Decision:** Introduce `lib/config` as the only runtime config entry point, with parsed env values and explicit feature flags consumed by core services.
+**Date:** 2026-03-20
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:** Scattered direct `process.env` access made behavior inconsistent across services and hard to test. A central typed module enables safe defaults, clearer toggles, and predictable behavior in middleware/services.
+
+**Alternatives Considered:** Keep reading env values inline in each module (minimal effort but brittle) or add a heavy external config framework (unnecessary complexity for current scope).
+
+**Implications:**
+
+- Services should import `env`/`featureFlags` instead of raw env access where practical.
+- New runtime toggles should be added to `lib/config/env.ts` first.

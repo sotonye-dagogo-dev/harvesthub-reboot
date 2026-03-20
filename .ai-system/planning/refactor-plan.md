@@ -121,6 +121,7 @@
 1. Create a canonical config module (`lib/config/*`) and migrate env access away from ad-hoc `process.env` usage.
 2. Build a RBAC policy system and replace `middleware.ts` route arrays with declarative policies.
 3. Standardize route metadata (e.g., `routeConfig` objects or `routeMeta` exports) for each page.
+4. **Status update (2026-03-20):** `lib/config` typed env + feature flags implemented and wired into key services (`email`, `push`, `redis`, Cloudinary root folder, data layer Prisma toggle). Middleware now uses declarative route policies from `lib/rbac/policies.ts`.
 
 ### Phase C — Data Layer / Prisma
 
@@ -129,6 +130,7 @@
 3. Implement a robust notifications system (email + in-app + web push) with retry/backoff, persistence, and admin controls.
 4. Implement a cache layer for public content and heavily-read queries (banners, vendor lists, featured products) with explicit invalidation.
 5. Ensure `lib/data/database.ts` falls back to safe mocks only when explicitly enabled.
+6. **Status update (2026-03-20):** Introduced shared `CrudAdapter` interface (`lib/data/adapterTypes.ts`) and enforced conformance in `lib/data/prismaAdapter.ts` with `satisfies`.
 
 ### Phase D — Design System & Sign-up UX
 
