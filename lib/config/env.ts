@@ -28,9 +28,17 @@ if (!parsed.success) {
 
 const raw = parsed.data;
 
+/**
+ * Naming convention:
+ * ENV vars remain UPPER_SNAKE_CASE in process.env while exported config values
+ * are normalized to camelCase for TypeScript ergonomics.
+ */
 function toBoolean(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) return fallback;
-  return value.toLowerCase() === 'true';
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return fallback;
 }
 
 function toPositiveInt(value: string | undefined, fallback: number): number {

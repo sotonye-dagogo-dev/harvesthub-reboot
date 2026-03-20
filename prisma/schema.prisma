@@ -833,6 +833,24 @@ model NotificationPreference {
   @@map("notification_preferences")
 }
 
+model EmailDeliveryLog {
+  id          String   @id @default(cuid())
+  to          String
+  subject     String
+  status      String   @default("PENDING")
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  nextRetryAt DateTime?
+  lastError   String?
+  providerId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([createdAt])
+  @@map("email_delivery_logs")
+}
+
 model ProductAvailabilityRequest {
   id             String                    @id @default(cuid())
   buyerId        String

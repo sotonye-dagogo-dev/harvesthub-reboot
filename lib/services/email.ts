@@ -38,7 +38,7 @@ export async function sendEmail({
   const maxAttempts = env.emailRetryAttempts;
   const baseDelayMs = env.emailRetryBaseDelayMs;
 
-  const deliveryLog = createEmailDeliveryLog({
+  const deliveryLog = await createEmailDeliveryLog({
     to: toField,
     subject,
     maxAttempts,
@@ -52,7 +52,7 @@ export async function sendEmail({
     if (!resend) {
       const msg = '[Email Service] RESEND_API_KEY not configured — skipping send in non-production.';
       console.warn(msg);
-      updateEmailDeliveryLog(deliveryLog.id, {
+      await updateEmailDeliveryLog(deliveryLog.id, {
         status: 'FAILED',
         attempts: 1,
         lastError: 'Resend API key not configured',
@@ -71,7 +71,7 @@ export async function sendEmail({
       });
 
       if (!error) {
-        updateEmailDeliveryLog(deliveryLog.id, {
+        await updateEmailDeliveryLog(deliveryLog.id, {
           status: 'SENT',
           attempts: attempt,
           providerId: data?.id ?? null,
@@ -86,7 +86,7 @@ export async function sendEmail({
       const nextRetryAt = isLastAttempt ? null : new Date(Date.now() + nextDelayMs);
       console.error(`[Email Service] Failed to send email on attempt ${attempt}:`, error);
 
-      updateEmailDeliveryLog(deliveryLog.id, {
+      await updateEmailDeliveryLog(deliveryLog.id, {
         status: isLastAttempt ? 'FAILED' : 'RETRYING',
         attempts: attempt,
         lastError: error.message,
@@ -104,7 +104,7 @@ export async function sendEmail({
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email error';
     console.error('[Email Service] Exception:', message);
-    updateEmailDeliveryLog(deliveryLog.id, {
+    await updateEmailDeliveryLog(deliveryLog.id, {
       status: 'FAILED',
       attempts: deliveryLog.attempts + 1,
       lastError: message,

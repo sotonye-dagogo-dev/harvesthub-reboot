@@ -60,7 +60,7 @@ export const userDb = {
         await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
         return true;
     },
-} satisfies CrudAdapter<any, any, any>;
+} satisfies CrudAdapter<any, any, any, [string]>;
 
 // single default export at end of file
 

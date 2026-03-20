@@ -264,7 +264,8 @@ Implement the top-priority modernization baseline with minimal, surgical changes
 - Added centralized typed config and feature flags (`lib/config/*`) and wired key services to it.
 - Replaced hardcoded middleware route arrays with declarative RBAC route policies (`lib/rbac/policies.ts` + `middleware.ts`).
 - Added shared `CrudAdapter` interface and applied it in Prisma adapter exports.
-- Hardened email sending with retry/backoff and persistence logging to Prisma (`EmailDelivery` model + `NotificationType.EMAIL_STATUS` enum value).
+- Hardened email sending with retry/backoff and persistence logging via `EmailDeliveryLog` (Prisma-backed when DB is configured, safe in-memory fallback otherwise).
+- Addressed follow-up review feedback: improved boolean parsing (`1/0`, `yes/no`, `on/off`), refined adapter extra-args typing, and persisted email delivery logs through Prisma model.
 - Updated `.ai-system` planning/decision docs to reflect implementation progress.
 - Ran baseline checks:
   - `npx tsc --noEmit -p tsconfig.json` ✅

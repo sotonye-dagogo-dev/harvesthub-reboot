@@ -128,7 +128,8 @@ Implemented the first execution slice of the modernization plan with focused, pr
 - Added `lib/config` typed env and feature flag modules.
 - Replaced middleware hardcoded route lists with `lib/rbac/policies.ts`.
 - Added `CrudAdapter` interface and enforced it on Prisma adapter exports.
-- Added email retry/backoff and persistent delivery log support (`EmailDelivery` Prisma model).
+- Added email retry/backoff and persistent delivery log support (`EmailDeliveryLog` Prisma model with safe fallback).
+- Incorporated review-driven hardening: tolerant boolean env parsing and adapter typing improvements.
 - Wired cache/push/cloudinary/data-layer toggles into centralized config.
 
 **Key Changes:**
