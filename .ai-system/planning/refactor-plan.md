@@ -90,6 +90,22 @@
 - **Component library:** Build reusable UI primitives (buttons, inputs, cards, form fields) that are used across sign-up and checkout.
 - **Sign-up flow overhaul:** Bring sign-up / onboarding components into the design system; eliminate outdated “relic” styles and make flow responsive, WCAG-friendly, and consistent.
 
+### Non-negotiable Modular Architecture Principles (Blueprint)
+
+- **Single route per feature:** Remove role-specific route directories (`/(buyer|vendor|admin)` for the same feature). One route per logical feature with dynamic rendering and policy checks.
+- **Policy-driven role access:** Central policy in `lib/rbac/policies.ts` + `lib/permissions.ts`. A role capability layer (`getRoleCapabilities(role)` and `canAccess(feature, action)`).
+- **Dynamic rendering wrappers:** `RoleGuard`, `PermissionsGate`, `AsyncContent`, `DataFetchBoundary`, and `RoleAwareFeatureRenderer` used across interface.
+- **Config-driven metadata:** `routes.ts`/`nav.ts`/`modules/*` contain declarative feature metadata, labels, permissions, endpoint keys.
+- **Shared core UI layer:** `components/ui` should provide minimal primitives (`Card`, `Button`, `Input`, `Table`) with AntD adaptors, not full per-role pages.
+- **Remove duplication:** Consolidate duplicate view components from admin/vendor/buyer into one reusable module with props/config.
+
+### Additional required modules
+
+- `lib/config/env.ts`, `lib/config/features.ts`, `lib/config/index.ts` (already built as baseline)
+- `lib/rbac/policies.ts`, `lib/permissions.ts`, `lib/modules.ts`
+- `config/publicContent.ts` + admin/public content API + caching layer
+- `lib/services/emailDeliveryLog.ts` (for email reliability), existing now in place but confirm.
+
 ### Resilience & Safety
 
 - **Data reliability:** Ensure Prisma adapters are complete; if a domain is not implemented, fail fast with clear error messages.

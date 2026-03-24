@@ -384,6 +384,20 @@ exports.Prisma.NotificationPreferenceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailDeliveryLogScalarFieldEnum = {
+  id: 'id',
+  to: 'to',
+  subject: 'subject',
+  status: 'status',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  nextRetryAt: 'nextRetryAt',
+  lastError: 'lastError',
+  providerId: 'providerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ProductAvailabilityRequestScalarFieldEnum = {
   id: 'id',
   buyerId: 'buyerId',
@@ -517,6 +531,17 @@ exports.Prisma.BugReportScalarFieldEnum = {
   status: 'status',
   screenshot: 'screenshot',
   metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PublicContentScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  body: 'body',
+  metadata: 'metadata',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -855,6 +880,12 @@ exports.BookingStatus = exports.$Enums.BookingStatus = {
   NO_SHOW: 'NO_SHOW'
 };
 
+exports.PublicContentStatus = exports.$Enums.PublicContentStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
 exports.VendorContentType = exports.$Enums.VendorContentType = {
   IMAGE: 'IMAGE',
   VIDEO: 'VIDEO',
@@ -888,6 +919,7 @@ exports.Prisma.ModelName = {
   Notification: 'Notification',
   PushSubscription: 'PushSubscription',
   NotificationPreference: 'NotificationPreference',
+  EmailDeliveryLog: 'EmailDeliveryLog',
   ProductAvailabilityRequest: 'ProductAvailabilityRequest',
   Advertisement: 'Advertisement',
   AdvertiserPayment: 'AdvertiserPayment',
@@ -898,6 +930,7 @@ exports.Prisma.ModelName = {
   Booking: 'Booking',
   ReviewVote: 'ReviewVote',
   BugReport: 'BugReport',
+  PublicContent: 'PublicContent',
   VendorContent: 'VendorContent'
 };
 

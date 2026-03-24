@@ -23,4 +23,18 @@ describe('rbac route policies', () => {
   it('returns null for unknown routes so middleware can enforce authentication', () => {
     expect(getRoutePolicy('/unknown-private-route')).toBeNull();
   });
+
+  it('adds analytics route policy to the registry', () => {
+    expect(getRoutePolicy('/analytics')).toMatchObject({
+      public: false,
+      roles: [UserRole.VENDOR, UserRole.ADMIN],
+    });
+  });
+
+  it('adds store-settings route policy for vendor-only', () => {
+    expect(getRoutePolicy('/store-settings')).toMatchObject({
+      public: false,
+      roles: [UserRole.VENDOR],
+    });
+  });
 });

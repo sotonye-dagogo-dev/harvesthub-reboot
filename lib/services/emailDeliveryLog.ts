@@ -36,13 +36,18 @@ function createFallbackEntry(data: { to: string; subject: string; maxAttempts: n
   return entry;
 }
 
+type EmailDeliveryLogModel = {
+  create: (args: { data: { to: string; subject: string; maxAttempts: number } }) => Promise<any>;
+  update: (args: { where: { id: string }; data: Partial<EmailDeliveryLogEntry> }) => Promise<any>;
+};
+
 export async function createEmailDeliveryLog(data: {
   to: string;
   subject: string;
   maxAttempts: number;
 }): Promise<EmailDeliveryLogEntry> {
   try {
-    const model = (prisma as unknown as { emailDeliveryLog?: { create: Function } }).emailDeliveryLog;
+    const model = (prisma as unknown as { emailDeliveryLog?: EmailDeliveryLogModel }).emailDeliveryLog;
     if (!model?.create) {
       throw new Error('EmailDeliveryLog model not available on Prisma client');
     }
@@ -68,7 +73,7 @@ export async function updateEmailDeliveryLog(
   data: Partial<Omit<EmailDeliveryLogEntry, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<EmailDeliveryLogEntry | null> {
   try {
-    const model = (prisma as unknown as { emailDeliveryLog?: { update: Function } }).emailDeliveryLog;
+    const model = (prisma as unknown as { emailDeliveryLog?: EmailDeliveryLogModel }).emailDeliveryLog;
     if (!model?.update) {
       throw new Error('EmailDeliveryLog model not available on Prisma client');
     }

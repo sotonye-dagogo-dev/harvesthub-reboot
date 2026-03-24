@@ -6,6 +6,7 @@
  */
 
 import { SignJWT, jwtVerify, decodeJwt } from 'jose';
+import { TextEncoder } from 'util';
 import { UserRole } from '@/lib/constants';
 
 // Secret keys — hardcoded fallback is dev-only; production MUST set env vars
@@ -15,20 +16,20 @@ function getSecretRaw(envKey: string): string | null {
     return process.env[envKey] || null;
 }
 
-function toUint8Array(secret: string): Uint8Array {
+function getSecretKey(secret: string): Uint8Array {
     return new TextEncoder().encode(secret);
 }
 
 function getAccessSecret(): Uint8Array {
     const val = getSecretRaw('JWT_SECRET');
     if (!val && isProduction) throw new Error('Missing required environment variable: JWT_SECRET');
-    return toUint8Array(val || 'harvesthub-dev-access-secret-2026');
+    return getSecretKey(val || 'harvesthub-dev-access-secret-2026');
 }
 
 function getRefreshSecret(): Uint8Array {
     const val = getSecretRaw('JWT_REFRESH_SECRET');
     if (!val && isProduction) throw new Error('Missing required environment variable: JWT_REFRESH_SECRET');
-    return toUint8Array(val || 'harvesthub-dev-refresh-secret-2026');
+    return getSecretKey(val || 'harvesthub-dev-refresh-secret-2026');
 }
 
 // JWT claims
@@ -51,6 +52,8 @@ export interface JWTPayload {
  * Generate access token
  */
 export async function generateAccessToken(userId: string, email: string, role: UserRole): Promise<string> {
+    const secret = getAccessSecret();
+    console.log('generateAccessToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,
@@ -62,7 +65,7 @@ export async function generateAccessToken(userId: string, email: string, role: U
         .setIssuer(ISSUER)
         .setAudience(AUDIENCE)
         .setExpirationTime(ACCESS_TOKEN_EXPIRY)
-        .sign(getAccessSecret());
+        .sign(secret);
 
     return token;
 }
@@ -71,6 +74,8 @@ export async function generateAccessToken(userId: string, email: string, role: U
  * Generate refresh token
  */
 export async function generateRefreshToken(userId: string, email: string, role: UserRole): Promise<string> {
+    const secret = getRefreshSecret();
+    console.log('generateRefreshToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,
@@ -82,7 +87,7 @@ export async function generateRefreshToken(userId: string, email: string, role: 
         .setIssuer(ISSUER)
         .setAudience(AUDIENCE)
         .setExpirationTime(REFRESH_TOKEN_EXPIRY)
-        .sign(getRefreshSecret());
+        .sign(secret);
 
     return token;
 }

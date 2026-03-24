@@ -27,7 +27,7 @@ export type DepositInput = z.infer<typeof depositSchema>;
 export const withdrawalSchema = z.object({
     amount: z
         .number()
-        .min(VALIDATION_RULES.MIN_DEPOSIT, `Minimum withdrawal is ₦${VALIDATION_RULES.MIN_DEPOSIT}`)
+        .min(VALIDATION_RULES.MIN_WITHDRAWAL, `Minimum withdrawal is ₦${VALIDATION_RULES.MIN_WITHDRAWAL}`)
         .max(VALIDATION_RULES.MAX_WITHDRAWAL, `Maximum withdrawal is ₦${VALIDATION_RULES.MAX_WITHDRAWAL}`)
         .positive('Amount must be positive'),
     bankName: z.string().min(1, 'Bank name is required'),
@@ -69,24 +69,42 @@ const phoneSchema = z
         return val;
     });
 
-export const addressSchema = z.object({
-    label: z.string().min(1, 'Address label is required').max(50, 'Label too long').trim(),
+const addressBaseSchema = z.object({
+    label: z.string().min(1, 'Address label is required').max(50, 'Label too long').trim().optional(),
     fullName: z.string().min(2, 'Full name must be at least 2 characters').trim(),
     phoneNumber: phoneSchema,
     addressLine1: z.string().min(5, 'Address must be at least 5 characters').trim(),
     addressLine2: z.string().max(200, 'Address line 2 too long').optional().nullable(),
     city: z.string().min(2, 'City is required').trim(),
     state: z.string().min(2, 'State is required').trim(),
-    campus: z.nativeEnum(Campus).optional().nullable(),
+    campus: z.nativeEnum(Campus),
     landmark: z.string().max(200, 'Landmark too long').optional().nullable(),
     isDefault: z.boolean().default(false),
 });
 
+export const addressSchema = z.preprocess(
+    (raw) => {
+        if (raw && typeof raw === 'object') {
+            const value = raw as Record<string, any>;
+            if (value.address && !value.addressLine1) {
+                value.addressLine1 = value.address;
+            }
+            if (!value.label) {
+                value.label = 'Default';
+            }
+        }
+        return raw;
+    },
+    addressBaseSchema
+);
+
 export type AddressInput = z.infer<typeof addressSchema>;
 
-export const updateAddressSchema = addressSchema.extend({
-    id: z.string().min(1, 'Address ID is required'),
-});
+export const updateAddressSchema = addressBaseSchema
+    .partial()
+    .extend({
+        id: z.string().min(1, 'Address ID is required'),
+    });
 
 export type UpdateAddressInput = z.infer<typeof updateAddressSchema>;
 
@@ -104,6 +122,7 @@ export const createReviewSchema = z.object({
         .max(VALIDATION_RULES.MAX_RATING, `Maximum rating is ${VALIDATION_RULES.MAX_RATING}`),
     comment: z
         .string()
+        .min(10, 'Review must be at least 10 characters')
         .max(VALIDATION_RULES.MAX_REVIEW_LENGTH, `Review must not exceed ${VALIDATION_RULES.MAX_REVIEW_LENGTH} characters`)
         .optional()
         .nullable(),

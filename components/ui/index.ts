@@ -27,6 +27,10 @@ export type { PhoneInputProps } from "./PhoneInput";
 
 export { ThemeToggle } from "./ThemeToggle";
 
+export { RoleGuard } from "./RoleGuard";
+export { PermissionsGate } from "./PermissionsGate";
+export { RoleAwareFeatureRenderer } from "./RoleAwareFeatureRenderer";
+
 export { StatusTag, getTagColor, stockLevelColor, booleanColor } from "./StatusTag";
 export type { StatusTagProps, StatusDomain } from "./StatusTag";
 export {

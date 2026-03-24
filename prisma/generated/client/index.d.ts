@@ -99,6 +99,11 @@ export type PushSubscription = $Result.DefaultSelection<Prisma.$PushSubscription
  */
 export type NotificationPreference = $Result.DefaultSelection<Prisma.$NotificationPreferencePayload>
 /**
+ * Model EmailDeliveryLog
+ * 
+ */
+export type EmailDeliveryLog = $Result.DefaultSelection<Prisma.$EmailDeliveryLogPayload>
+/**
  * Model ProductAvailabilityRequest
  * 
  */
@@ -148,6 +153,11 @@ export type ReviewVote = $Result.DefaultSelection<Prisma.$ReviewVotePayload>
  * 
  */
 export type BugReport = $Result.DefaultSelection<Prisma.$BugReportPayload>
+/**
+ * Model PublicContent
+ * 
+ */
+export type PublicContent = $Result.DefaultSelection<Prisma.$PublicContentPayload>
 /**
  * Model VendorContent
  * 
@@ -591,6 +601,15 @@ export const VendorContentStatus: {
 
 export type VendorContentStatus = (typeof VendorContentStatus)[keyof typeof VendorContentStatus]
 
+
+export const PublicContentStatus: {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+export type PublicContentStatus = (typeof PublicContentStatus)[keyof typeof PublicContentStatus]
+
 }
 
 export type UserRole = $Enums.UserRole
@@ -720,6 +739,10 @@ export const VendorContentType: typeof $Enums.VendorContentType
 export type VendorContentStatus = $Enums.VendorContentStatus
 
 export const VendorContentStatus: typeof $Enums.VendorContentStatus
+
+export type PublicContentStatus = $Enums.PublicContentStatus
+
+export const PublicContentStatus: typeof $Enums.PublicContentStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -1013,6 +1036,16 @@ export class PrismaClient<
   get notificationPreference(): Prisma.NotificationPreferenceDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.emailDeliveryLog`: Exposes CRUD operations for the **EmailDeliveryLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EmailDeliveryLogs
+    * const emailDeliveryLogs = await prisma.emailDeliveryLog.findMany()
+    * ```
+    */
+  get emailDeliveryLog(): Prisma.EmailDeliveryLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.productAvailabilityRequest`: Exposes CRUD operations for the **ProductAvailabilityRequest** model.
     * Example usage:
     * ```ts
@@ -1111,6 +1144,16 @@ export class PrismaClient<
     * ```
     */
   get bugReport(): Prisma.BugReportDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.publicContent`: Exposes CRUD operations for the **PublicContent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PublicContents
+    * const publicContents = await prisma.publicContent.findMany()
+    * ```
+    */
+  get publicContent(): Prisma.PublicContentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.vendorContent`: Exposes CRUD operations for the **VendorContent** model.
@@ -1572,6 +1615,7 @@ export namespace Prisma {
     Notification: 'Notification',
     PushSubscription: 'PushSubscription',
     NotificationPreference: 'NotificationPreference',
+    EmailDeliveryLog: 'EmailDeliveryLog',
     ProductAvailabilityRequest: 'ProductAvailabilityRequest',
     Advertisement: 'Advertisement',
     AdvertiserPayment: 'AdvertiserPayment',
@@ -1582,6 +1626,7 @@ export namespace Prisma {
     Booking: 'Booking',
     ReviewVote: 'ReviewVote',
     BugReport: 'BugReport',
+    PublicContent: 'PublicContent',
     VendorContent: 'VendorContent'
   };
 
@@ -1598,7 +1643,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "vendorContent"
+      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2860,6 +2905,80 @@ export namespace Prisma {
           }
         }
       }
+      EmailDeliveryLog: {
+        payload: Prisma.$EmailDeliveryLogPayload<ExtArgs>
+        fields: Prisma.EmailDeliveryLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EmailDeliveryLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EmailDeliveryLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          findFirst: {
+            args: Prisma.EmailDeliveryLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EmailDeliveryLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          findMany: {
+            args: Prisma.EmailDeliveryLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>[]
+          }
+          create: {
+            args: Prisma.EmailDeliveryLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          createMany: {
+            args: Prisma.EmailDeliveryLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EmailDeliveryLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>[]
+          }
+          delete: {
+            args: Prisma.EmailDeliveryLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          update: {
+            args: Prisma.EmailDeliveryLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.EmailDeliveryLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EmailDeliveryLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EmailDeliveryLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.EmailDeliveryLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EmailDeliveryLogPayload>
+          }
+          aggregate: {
+            args: Prisma.EmailDeliveryLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEmailDeliveryLog>
+          }
+          groupBy: {
+            args: Prisma.EmailDeliveryLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EmailDeliveryLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EmailDeliveryLogCountArgs<ExtArgs>
+            result: $Utils.Optional<EmailDeliveryLogCountAggregateOutputType> | number
+          }
+        }
+      }
       ProductAvailabilityRequest: {
         payload: Prisma.$ProductAvailabilityRequestPayload<ExtArgs>
         fields: Prisma.ProductAvailabilityRequestFieldRefs
@@ -3600,6 +3719,80 @@ export namespace Prisma {
           }
         }
       }
+      PublicContent: {
+        payload: Prisma.$PublicContentPayload<ExtArgs>
+        fields: Prisma.PublicContentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PublicContentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PublicContentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          findFirst: {
+            args: Prisma.PublicContentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PublicContentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          findMany: {
+            args: Prisma.PublicContentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>[]
+          }
+          create: {
+            args: Prisma.PublicContentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          createMany: {
+            args: Prisma.PublicContentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PublicContentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>[]
+          }
+          delete: {
+            args: Prisma.PublicContentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          update: {
+            args: Prisma.PublicContentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          deleteMany: {
+            args: Prisma.PublicContentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PublicContentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PublicContentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>[]
+          }
+          upsert: {
+            args: Prisma.PublicContentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PublicContentPayload>
+          }
+          aggregate: {
+            args: Prisma.PublicContentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePublicContent>
+          }
+          groupBy: {
+            args: Prisma.PublicContentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PublicContentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PublicContentCountArgs<ExtArgs>
+            result: $Utils.Optional<PublicContentCountAggregateOutputType> | number
+          }
+        }
+      }
       VendorContent: {
         payload: Prisma.$VendorContentPayload<ExtArgs>
         fields: Prisma.VendorContentFieldRefs
@@ -3799,6 +3992,7 @@ export namespace Prisma {
     notification?: NotificationOmit
     pushSubscription?: PushSubscriptionOmit
     notificationPreference?: NotificationPreferenceOmit
+    emailDeliveryLog?: EmailDeliveryLogOmit
     productAvailabilityRequest?: ProductAvailabilityRequestOmit
     advertisement?: AdvertisementOmit
     advertiserPayment?: AdvertiserPaymentOmit
@@ -3809,6 +4003,7 @@ export namespace Prisma {
     booking?: BookingOmit
     reviewVote?: ReviewVoteOmit
     bugReport?: BugReportOmit
+    publicContent?: PublicContentOmit
     vendorContent?: VendorContentOmit
   }
 
@@ -25407,6 +25602,1122 @@ export namespace Prisma {
 
 
   /**
+   * Model EmailDeliveryLog
+   */
+
+  export type AggregateEmailDeliveryLog = {
+    _count: EmailDeliveryLogCountAggregateOutputType | null
+    _avg: EmailDeliveryLogAvgAggregateOutputType | null
+    _sum: EmailDeliveryLogSumAggregateOutputType | null
+    _min: EmailDeliveryLogMinAggregateOutputType | null
+    _max: EmailDeliveryLogMaxAggregateOutputType | null
+  }
+
+  export type EmailDeliveryLogAvgAggregateOutputType = {
+    attempts: number | null
+    maxAttempts: number | null
+  }
+
+  export type EmailDeliveryLogSumAggregateOutputType = {
+    attempts: number | null
+    maxAttempts: number | null
+  }
+
+  export type EmailDeliveryLogMinAggregateOutputType = {
+    id: string | null
+    to: string | null
+    subject: string | null
+    status: string | null
+    attempts: number | null
+    maxAttempts: number | null
+    nextRetryAt: Date | null
+    lastError: string | null
+    providerId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmailDeliveryLogMaxAggregateOutputType = {
+    id: string | null
+    to: string | null
+    subject: string | null
+    status: string | null
+    attempts: number | null
+    maxAttempts: number | null
+    nextRetryAt: Date | null
+    lastError: string | null
+    providerId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EmailDeliveryLogCountAggregateOutputType = {
+    id: number
+    to: number
+    subject: number
+    status: number
+    attempts: number
+    maxAttempts: number
+    nextRetryAt: number
+    lastError: number
+    providerId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EmailDeliveryLogAvgAggregateInputType = {
+    attempts?: true
+    maxAttempts?: true
+  }
+
+  export type EmailDeliveryLogSumAggregateInputType = {
+    attempts?: true
+    maxAttempts?: true
+  }
+
+  export type EmailDeliveryLogMinAggregateInputType = {
+    id?: true
+    to?: true
+    subject?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    nextRetryAt?: true
+    lastError?: true
+    providerId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmailDeliveryLogMaxAggregateInputType = {
+    id?: true
+    to?: true
+    subject?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    nextRetryAt?: true
+    lastError?: true
+    providerId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EmailDeliveryLogCountAggregateInputType = {
+    id?: true
+    to?: true
+    subject?: true
+    status?: true
+    attempts?: true
+    maxAttempts?: true
+    nextRetryAt?: true
+    lastError?: true
+    providerId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EmailDeliveryLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailDeliveryLog to aggregate.
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailDeliveryLogs to fetch.
+     */
+    orderBy?: EmailDeliveryLogOrderByWithRelationInput | EmailDeliveryLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EmailDeliveryLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailDeliveryLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailDeliveryLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmailDeliveryLogs
+    **/
+    _count?: true | EmailDeliveryLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EmailDeliveryLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EmailDeliveryLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmailDeliveryLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmailDeliveryLogMaxAggregateInputType
+  }
+
+  export type GetEmailDeliveryLogAggregateType<T extends EmailDeliveryLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmailDeliveryLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmailDeliveryLog[P]>
+      : GetScalarType<T[P], AggregateEmailDeliveryLog[P]>
+  }
+
+
+
+
+  export type EmailDeliveryLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EmailDeliveryLogWhereInput
+    orderBy?: EmailDeliveryLogOrderByWithAggregationInput | EmailDeliveryLogOrderByWithAggregationInput[]
+    by: EmailDeliveryLogScalarFieldEnum[] | EmailDeliveryLogScalarFieldEnum
+    having?: EmailDeliveryLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmailDeliveryLogCountAggregateInputType | true
+    _avg?: EmailDeliveryLogAvgAggregateInputType
+    _sum?: EmailDeliveryLogSumAggregateInputType
+    _min?: EmailDeliveryLogMinAggregateInputType
+    _max?: EmailDeliveryLogMaxAggregateInputType
+  }
+
+  export type EmailDeliveryLogGroupByOutputType = {
+    id: string
+    to: string
+    subject: string
+    status: string
+    attempts: number
+    maxAttempts: number
+    nextRetryAt: Date | null
+    lastError: string | null
+    providerId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EmailDeliveryLogCountAggregateOutputType | null
+    _avg: EmailDeliveryLogAvgAggregateOutputType | null
+    _sum: EmailDeliveryLogSumAggregateOutputType | null
+    _min: EmailDeliveryLogMinAggregateOutputType | null
+    _max: EmailDeliveryLogMaxAggregateOutputType | null
+  }
+
+  type GetEmailDeliveryLogGroupByPayload<T extends EmailDeliveryLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EmailDeliveryLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmailDeliveryLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmailDeliveryLogGroupByOutputType[P]>
+            : GetScalarType<T[P], EmailDeliveryLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmailDeliveryLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    to?: boolean
+    subject?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    nextRetryAt?: boolean
+    lastError?: boolean
+    providerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["emailDeliveryLog"]>
+
+  export type EmailDeliveryLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    to?: boolean
+    subject?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    nextRetryAt?: boolean
+    lastError?: boolean
+    providerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["emailDeliveryLog"]>
+
+  export type EmailDeliveryLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    to?: boolean
+    subject?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    nextRetryAt?: boolean
+    lastError?: boolean
+    providerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["emailDeliveryLog"]>
+
+  export type EmailDeliveryLogSelectScalar = {
+    id?: boolean
+    to?: boolean
+    subject?: boolean
+    status?: boolean
+    attempts?: boolean
+    maxAttempts?: boolean
+    nextRetryAt?: boolean
+    lastError?: boolean
+    providerId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EmailDeliveryLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "to" | "subject" | "status" | "attempts" | "maxAttempts" | "nextRetryAt" | "lastError" | "providerId" | "createdAt" | "updatedAt", ExtArgs["result"]["emailDeliveryLog"]>
+
+  export type $EmailDeliveryLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EmailDeliveryLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      to: string
+      subject: string
+      status: string
+      attempts: number
+      maxAttempts: number
+      nextRetryAt: Date | null
+      lastError: string | null
+      providerId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["emailDeliveryLog"]>
+    composites: {}
+  }
+
+  type EmailDeliveryLogGetPayload<S extends boolean | null | undefined | EmailDeliveryLogDefaultArgs> = $Result.GetResult<Prisma.$EmailDeliveryLogPayload, S>
+
+  type EmailDeliveryLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EmailDeliveryLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EmailDeliveryLogCountAggregateInputType | true
+    }
+
+  export interface EmailDeliveryLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EmailDeliveryLog'], meta: { name: 'EmailDeliveryLog' } }
+    /**
+     * Find zero or one EmailDeliveryLog that matches the filter.
+     * @param {EmailDeliveryLogFindUniqueArgs} args - Arguments to find a EmailDeliveryLog
+     * @example
+     * // Get one EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmailDeliveryLogFindUniqueArgs>(args: SelectSubset<T, EmailDeliveryLogFindUniqueArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EmailDeliveryLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EmailDeliveryLogFindUniqueOrThrowArgs} args - Arguments to find a EmailDeliveryLog
+     * @example
+     * // Get one EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmailDeliveryLogFindUniqueOrThrowArgs>(args: SelectSubset<T, EmailDeliveryLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmailDeliveryLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogFindFirstArgs} args - Arguments to find a EmailDeliveryLog
+     * @example
+     * // Get one EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmailDeliveryLogFindFirstArgs>(args?: SelectSubset<T, EmailDeliveryLogFindFirstArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EmailDeliveryLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogFindFirstOrThrowArgs} args - Arguments to find a EmailDeliveryLog
+     * @example
+     * // Get one EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmailDeliveryLogFindFirstOrThrowArgs>(args?: SelectSubset<T, EmailDeliveryLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EmailDeliveryLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmailDeliveryLogs
+     * const emailDeliveryLogs = await prisma.emailDeliveryLog.findMany()
+     * 
+     * // Get first 10 EmailDeliveryLogs
+     * const emailDeliveryLogs = await prisma.emailDeliveryLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const emailDeliveryLogWithIdOnly = await prisma.emailDeliveryLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EmailDeliveryLogFindManyArgs>(args?: SelectSubset<T, EmailDeliveryLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EmailDeliveryLog.
+     * @param {EmailDeliveryLogCreateArgs} args - Arguments to create a EmailDeliveryLog.
+     * @example
+     * // Create one EmailDeliveryLog
+     * const EmailDeliveryLog = await prisma.emailDeliveryLog.create({
+     *   data: {
+     *     // ... data to create a EmailDeliveryLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends EmailDeliveryLogCreateArgs>(args: SelectSubset<T, EmailDeliveryLogCreateArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EmailDeliveryLogs.
+     * @param {EmailDeliveryLogCreateManyArgs} args - Arguments to create many EmailDeliveryLogs.
+     * @example
+     * // Create many EmailDeliveryLogs
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EmailDeliveryLogCreateManyArgs>(args?: SelectSubset<T, EmailDeliveryLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EmailDeliveryLogs and returns the data saved in the database.
+     * @param {EmailDeliveryLogCreateManyAndReturnArgs} args - Arguments to create many EmailDeliveryLogs.
+     * @example
+     * // Create many EmailDeliveryLogs
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EmailDeliveryLogs and only return the `id`
+     * const emailDeliveryLogWithIdOnly = await prisma.emailDeliveryLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EmailDeliveryLogCreateManyAndReturnArgs>(args?: SelectSubset<T, EmailDeliveryLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EmailDeliveryLog.
+     * @param {EmailDeliveryLogDeleteArgs} args - Arguments to delete one EmailDeliveryLog.
+     * @example
+     * // Delete one EmailDeliveryLog
+     * const EmailDeliveryLog = await prisma.emailDeliveryLog.delete({
+     *   where: {
+     *     // ... filter to delete one EmailDeliveryLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EmailDeliveryLogDeleteArgs>(args: SelectSubset<T, EmailDeliveryLogDeleteArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EmailDeliveryLog.
+     * @param {EmailDeliveryLogUpdateArgs} args - Arguments to update one EmailDeliveryLog.
+     * @example
+     * // Update one EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EmailDeliveryLogUpdateArgs>(args: SelectSubset<T, EmailDeliveryLogUpdateArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EmailDeliveryLogs.
+     * @param {EmailDeliveryLogDeleteManyArgs} args - Arguments to filter EmailDeliveryLogs to delete.
+     * @example
+     * // Delete a few EmailDeliveryLogs
+     * const { count } = await prisma.emailDeliveryLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EmailDeliveryLogDeleteManyArgs>(args?: SelectSubset<T, EmailDeliveryLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailDeliveryLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmailDeliveryLogs
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EmailDeliveryLogUpdateManyArgs>(args: SelectSubset<T, EmailDeliveryLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmailDeliveryLogs and returns the data updated in the database.
+     * @param {EmailDeliveryLogUpdateManyAndReturnArgs} args - Arguments to update many EmailDeliveryLogs.
+     * @example
+     * // Update many EmailDeliveryLogs
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EmailDeliveryLogs and only return the `id`
+     * const emailDeliveryLogWithIdOnly = await prisma.emailDeliveryLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EmailDeliveryLogUpdateManyAndReturnArgs>(args: SelectSubset<T, EmailDeliveryLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EmailDeliveryLog.
+     * @param {EmailDeliveryLogUpsertArgs} args - Arguments to update or create a EmailDeliveryLog.
+     * @example
+     * // Update or create a EmailDeliveryLog
+     * const emailDeliveryLog = await prisma.emailDeliveryLog.upsert({
+     *   create: {
+     *     // ... data to create a EmailDeliveryLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmailDeliveryLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmailDeliveryLogUpsertArgs>(args: SelectSubset<T, EmailDeliveryLogUpsertArgs<ExtArgs>>): Prisma__EmailDeliveryLogClient<$Result.GetResult<Prisma.$EmailDeliveryLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EmailDeliveryLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogCountArgs} args - Arguments to filter EmailDeliveryLogs to count.
+     * @example
+     * // Count the number of EmailDeliveryLogs
+     * const count = await prisma.emailDeliveryLog.count({
+     *   where: {
+     *     // ... the filter for the EmailDeliveryLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmailDeliveryLogCountArgs>(
+      args?: Subset<T, EmailDeliveryLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmailDeliveryLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmailDeliveryLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmailDeliveryLogAggregateArgs>(args: Subset<T, EmailDeliveryLogAggregateArgs>): Prisma.PrismaPromise<GetEmailDeliveryLogAggregateType<T>>
+
+    /**
+     * Group by EmailDeliveryLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailDeliveryLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmailDeliveryLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmailDeliveryLogGroupByArgs['orderBy'] }
+        : { orderBy?: EmailDeliveryLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmailDeliveryLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmailDeliveryLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EmailDeliveryLog model
+   */
+  readonly fields: EmailDeliveryLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmailDeliveryLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmailDeliveryLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EmailDeliveryLog model
+   */
+  interface EmailDeliveryLogFieldRefs {
+    readonly id: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly to: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly subject: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly status: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly attempts: FieldRef<"EmailDeliveryLog", 'Int'>
+    readonly maxAttempts: FieldRef<"EmailDeliveryLog", 'Int'>
+    readonly nextRetryAt: FieldRef<"EmailDeliveryLog", 'DateTime'>
+    readonly lastError: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly providerId: FieldRef<"EmailDeliveryLog", 'String'>
+    readonly createdAt: FieldRef<"EmailDeliveryLog", 'DateTime'>
+    readonly updatedAt: FieldRef<"EmailDeliveryLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EmailDeliveryLog findUnique
+   */
+  export type EmailDeliveryLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter, which EmailDeliveryLog to fetch.
+     */
+    where: EmailDeliveryLogWhereUniqueInput
+  }
+
+  /**
+   * EmailDeliveryLog findUniqueOrThrow
+   */
+  export type EmailDeliveryLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter, which EmailDeliveryLog to fetch.
+     */
+    where: EmailDeliveryLogWhereUniqueInput
+  }
+
+  /**
+   * EmailDeliveryLog findFirst
+   */
+  export type EmailDeliveryLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter, which EmailDeliveryLog to fetch.
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailDeliveryLogs to fetch.
+     */
+    orderBy?: EmailDeliveryLogOrderByWithRelationInput | EmailDeliveryLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailDeliveryLogs.
+     */
+    cursor?: EmailDeliveryLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailDeliveryLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailDeliveryLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailDeliveryLogs.
+     */
+    distinct?: EmailDeliveryLogScalarFieldEnum | EmailDeliveryLogScalarFieldEnum[]
+  }
+
+  /**
+   * EmailDeliveryLog findFirstOrThrow
+   */
+  export type EmailDeliveryLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter, which EmailDeliveryLog to fetch.
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailDeliveryLogs to fetch.
+     */
+    orderBy?: EmailDeliveryLogOrderByWithRelationInput | EmailDeliveryLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmailDeliveryLogs.
+     */
+    cursor?: EmailDeliveryLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailDeliveryLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailDeliveryLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailDeliveryLogs.
+     */
+    distinct?: EmailDeliveryLogScalarFieldEnum | EmailDeliveryLogScalarFieldEnum[]
+  }
+
+  /**
+   * EmailDeliveryLog findMany
+   */
+  export type EmailDeliveryLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter, which EmailDeliveryLogs to fetch.
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmailDeliveryLogs to fetch.
+     */
+    orderBy?: EmailDeliveryLogOrderByWithRelationInput | EmailDeliveryLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmailDeliveryLogs.
+     */
+    cursor?: EmailDeliveryLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EmailDeliveryLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EmailDeliveryLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmailDeliveryLogs.
+     */
+    distinct?: EmailDeliveryLogScalarFieldEnum | EmailDeliveryLogScalarFieldEnum[]
+  }
+
+  /**
+   * EmailDeliveryLog create
+   */
+  export type EmailDeliveryLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a EmailDeliveryLog.
+     */
+    data: XOR<EmailDeliveryLogCreateInput, EmailDeliveryLogUncheckedCreateInput>
+  }
+
+  /**
+   * EmailDeliveryLog createMany
+   */
+  export type EmailDeliveryLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EmailDeliveryLogs.
+     */
+    data: EmailDeliveryLogCreateManyInput | EmailDeliveryLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailDeliveryLog createManyAndReturn
+   */
+  export type EmailDeliveryLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many EmailDeliveryLogs.
+     */
+    data: EmailDeliveryLogCreateManyInput | EmailDeliveryLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EmailDeliveryLog update
+   */
+  export type EmailDeliveryLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a EmailDeliveryLog.
+     */
+    data: XOR<EmailDeliveryLogUpdateInput, EmailDeliveryLogUncheckedUpdateInput>
+    /**
+     * Choose, which EmailDeliveryLog to update.
+     */
+    where: EmailDeliveryLogWhereUniqueInput
+  }
+
+  /**
+   * EmailDeliveryLog updateMany
+   */
+  export type EmailDeliveryLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EmailDeliveryLogs.
+     */
+    data: XOR<EmailDeliveryLogUpdateManyMutationInput, EmailDeliveryLogUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailDeliveryLogs to update
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * Limit how many EmailDeliveryLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmailDeliveryLog updateManyAndReturn
+   */
+  export type EmailDeliveryLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * The data used to update EmailDeliveryLogs.
+     */
+    data: XOR<EmailDeliveryLogUpdateManyMutationInput, EmailDeliveryLogUncheckedUpdateManyInput>
+    /**
+     * Filter which EmailDeliveryLogs to update
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * Limit how many EmailDeliveryLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmailDeliveryLog upsert
+   */
+  export type EmailDeliveryLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the EmailDeliveryLog to update in case it exists.
+     */
+    where: EmailDeliveryLogWhereUniqueInput
+    /**
+     * In case the EmailDeliveryLog found by the `where` argument doesn't exist, create a new EmailDeliveryLog with this data.
+     */
+    create: XOR<EmailDeliveryLogCreateInput, EmailDeliveryLogUncheckedCreateInput>
+    /**
+     * In case the EmailDeliveryLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmailDeliveryLogUpdateInput, EmailDeliveryLogUncheckedUpdateInput>
+  }
+
+  /**
+   * EmailDeliveryLog delete
+   */
+  export type EmailDeliveryLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+    /**
+     * Filter which EmailDeliveryLog to delete.
+     */
+    where: EmailDeliveryLogWhereUniqueInput
+  }
+
+  /**
+   * EmailDeliveryLog deleteMany
+   */
+  export type EmailDeliveryLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EmailDeliveryLogs to delete
+     */
+    where?: EmailDeliveryLogWhereInput
+    /**
+     * Limit how many EmailDeliveryLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EmailDeliveryLog without action
+   */
+  export type EmailDeliveryLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EmailDeliveryLog
+     */
+    select?: EmailDeliveryLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EmailDeliveryLog
+     */
+    omit?: EmailDeliveryLogOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model ProductAvailabilityRequest
    */
 
@@ -37032,6 +38343,1041 @@ export namespace Prisma {
 
 
   /**
+   * Model PublicContent
+   */
+
+  export type AggregatePublicContent = {
+    _count: PublicContentCountAggregateOutputType | null
+    _min: PublicContentMinAggregateOutputType | null
+    _max: PublicContentMaxAggregateOutputType | null
+  }
+
+  export type PublicContentMinAggregateOutputType = {
+    id: string | null
+    slug: string | null
+    title: string | null
+    body: string | null
+    status: $Enums.PublicContentStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PublicContentMaxAggregateOutputType = {
+    id: string | null
+    slug: string | null
+    title: string | null
+    body: string | null
+    status: $Enums.PublicContentStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PublicContentCountAggregateOutputType = {
+    id: number
+    slug: number
+    title: number
+    body: number
+    metadata: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PublicContentMinAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    body?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PublicContentMaxAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    body?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PublicContentCountAggregateInputType = {
+    id?: true
+    slug?: true
+    title?: true
+    body?: true
+    metadata?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PublicContentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PublicContent to aggregate.
+     */
+    where?: PublicContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PublicContents to fetch.
+     */
+    orderBy?: PublicContentOrderByWithRelationInput | PublicContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PublicContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PublicContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PublicContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PublicContents
+    **/
+    _count?: true | PublicContentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PublicContentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PublicContentMaxAggregateInputType
+  }
+
+  export type GetPublicContentAggregateType<T extends PublicContentAggregateArgs> = {
+        [P in keyof T & keyof AggregatePublicContent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePublicContent[P]>
+      : GetScalarType<T[P], AggregatePublicContent[P]>
+  }
+
+
+
+
+  export type PublicContentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PublicContentWhereInput
+    orderBy?: PublicContentOrderByWithAggregationInput | PublicContentOrderByWithAggregationInput[]
+    by: PublicContentScalarFieldEnum[] | PublicContentScalarFieldEnum
+    having?: PublicContentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PublicContentCountAggregateInputType | true
+    _min?: PublicContentMinAggregateInputType
+    _max?: PublicContentMaxAggregateInputType
+  }
+
+  export type PublicContentGroupByOutputType = {
+    id: string
+    slug: string
+    title: string
+    body: string
+    metadata: JsonValue | null
+    status: $Enums.PublicContentStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: PublicContentCountAggregateOutputType | null
+    _min: PublicContentMinAggregateOutputType | null
+    _max: PublicContentMaxAggregateOutputType | null
+  }
+
+  type GetPublicContentGroupByPayload<T extends PublicContentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PublicContentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PublicContentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PublicContentGroupByOutputType[P]>
+            : GetScalarType<T[P], PublicContentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PublicContentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    body?: boolean
+    metadata?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["publicContent"]>
+
+  export type PublicContentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    body?: boolean
+    metadata?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["publicContent"]>
+
+  export type PublicContentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    body?: boolean
+    metadata?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["publicContent"]>
+
+  export type PublicContentSelectScalar = {
+    id?: boolean
+    slug?: boolean
+    title?: boolean
+    body?: boolean
+    metadata?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PublicContentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "slug" | "title" | "body" | "metadata" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["publicContent"]>
+
+  export type $PublicContentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PublicContent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      slug: string
+      title: string
+      body: string
+      metadata: Prisma.JsonValue | null
+      status: $Enums.PublicContentStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["publicContent"]>
+    composites: {}
+  }
+
+  type PublicContentGetPayload<S extends boolean | null | undefined | PublicContentDefaultArgs> = $Result.GetResult<Prisma.$PublicContentPayload, S>
+
+  type PublicContentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PublicContentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PublicContentCountAggregateInputType | true
+    }
+
+  export interface PublicContentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PublicContent'], meta: { name: 'PublicContent' } }
+    /**
+     * Find zero or one PublicContent that matches the filter.
+     * @param {PublicContentFindUniqueArgs} args - Arguments to find a PublicContent
+     * @example
+     * // Get one PublicContent
+     * const publicContent = await prisma.publicContent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PublicContentFindUniqueArgs>(args: SelectSubset<T, PublicContentFindUniqueArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PublicContent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PublicContentFindUniqueOrThrowArgs} args - Arguments to find a PublicContent
+     * @example
+     * // Get one PublicContent
+     * const publicContent = await prisma.publicContent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PublicContentFindUniqueOrThrowArgs>(args: SelectSubset<T, PublicContentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PublicContent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentFindFirstArgs} args - Arguments to find a PublicContent
+     * @example
+     * // Get one PublicContent
+     * const publicContent = await prisma.publicContent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PublicContentFindFirstArgs>(args?: SelectSubset<T, PublicContentFindFirstArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PublicContent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentFindFirstOrThrowArgs} args - Arguments to find a PublicContent
+     * @example
+     * // Get one PublicContent
+     * const publicContent = await prisma.publicContent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PublicContentFindFirstOrThrowArgs>(args?: SelectSubset<T, PublicContentFindFirstOrThrowArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PublicContents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PublicContents
+     * const publicContents = await prisma.publicContent.findMany()
+     * 
+     * // Get first 10 PublicContents
+     * const publicContents = await prisma.publicContent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const publicContentWithIdOnly = await prisma.publicContent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PublicContentFindManyArgs>(args?: SelectSubset<T, PublicContentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PublicContent.
+     * @param {PublicContentCreateArgs} args - Arguments to create a PublicContent.
+     * @example
+     * // Create one PublicContent
+     * const PublicContent = await prisma.publicContent.create({
+     *   data: {
+     *     // ... data to create a PublicContent
+     *   }
+     * })
+     * 
+     */
+    create<T extends PublicContentCreateArgs>(args: SelectSubset<T, PublicContentCreateArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PublicContents.
+     * @param {PublicContentCreateManyArgs} args - Arguments to create many PublicContents.
+     * @example
+     * // Create many PublicContents
+     * const publicContent = await prisma.publicContent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PublicContentCreateManyArgs>(args?: SelectSubset<T, PublicContentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PublicContents and returns the data saved in the database.
+     * @param {PublicContentCreateManyAndReturnArgs} args - Arguments to create many PublicContents.
+     * @example
+     * // Create many PublicContents
+     * const publicContent = await prisma.publicContent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PublicContents and only return the `id`
+     * const publicContentWithIdOnly = await prisma.publicContent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PublicContentCreateManyAndReturnArgs>(args?: SelectSubset<T, PublicContentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PublicContent.
+     * @param {PublicContentDeleteArgs} args - Arguments to delete one PublicContent.
+     * @example
+     * // Delete one PublicContent
+     * const PublicContent = await prisma.publicContent.delete({
+     *   where: {
+     *     // ... filter to delete one PublicContent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PublicContentDeleteArgs>(args: SelectSubset<T, PublicContentDeleteArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PublicContent.
+     * @param {PublicContentUpdateArgs} args - Arguments to update one PublicContent.
+     * @example
+     * // Update one PublicContent
+     * const publicContent = await prisma.publicContent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PublicContentUpdateArgs>(args: SelectSubset<T, PublicContentUpdateArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PublicContents.
+     * @param {PublicContentDeleteManyArgs} args - Arguments to filter PublicContents to delete.
+     * @example
+     * // Delete a few PublicContents
+     * const { count } = await prisma.publicContent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PublicContentDeleteManyArgs>(args?: SelectSubset<T, PublicContentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PublicContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PublicContents
+     * const publicContent = await prisma.publicContent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PublicContentUpdateManyArgs>(args: SelectSubset<T, PublicContentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PublicContents and returns the data updated in the database.
+     * @param {PublicContentUpdateManyAndReturnArgs} args - Arguments to update many PublicContents.
+     * @example
+     * // Update many PublicContents
+     * const publicContent = await prisma.publicContent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PublicContents and only return the `id`
+     * const publicContentWithIdOnly = await prisma.publicContent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PublicContentUpdateManyAndReturnArgs>(args: SelectSubset<T, PublicContentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PublicContent.
+     * @param {PublicContentUpsertArgs} args - Arguments to update or create a PublicContent.
+     * @example
+     * // Update or create a PublicContent
+     * const publicContent = await prisma.publicContent.upsert({
+     *   create: {
+     *     // ... data to create a PublicContent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PublicContent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PublicContentUpsertArgs>(args: SelectSubset<T, PublicContentUpsertArgs<ExtArgs>>): Prisma__PublicContentClient<$Result.GetResult<Prisma.$PublicContentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PublicContents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentCountArgs} args - Arguments to filter PublicContents to count.
+     * @example
+     * // Count the number of PublicContents
+     * const count = await prisma.publicContent.count({
+     *   where: {
+     *     // ... the filter for the PublicContents we want to count
+     *   }
+     * })
+    **/
+    count<T extends PublicContentCountArgs>(
+      args?: Subset<T, PublicContentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PublicContentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PublicContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PublicContentAggregateArgs>(args: Subset<T, PublicContentAggregateArgs>): Prisma.PrismaPromise<GetPublicContentAggregateType<T>>
+
+    /**
+     * Group by PublicContent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PublicContentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PublicContentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PublicContentGroupByArgs['orderBy'] }
+        : { orderBy?: PublicContentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PublicContentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPublicContentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PublicContent model
+   */
+  readonly fields: PublicContentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PublicContent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PublicContentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PublicContent model
+   */
+  interface PublicContentFieldRefs {
+    readonly id: FieldRef<"PublicContent", 'String'>
+    readonly slug: FieldRef<"PublicContent", 'String'>
+    readonly title: FieldRef<"PublicContent", 'String'>
+    readonly body: FieldRef<"PublicContent", 'String'>
+    readonly metadata: FieldRef<"PublicContent", 'Json'>
+    readonly status: FieldRef<"PublicContent", 'PublicContentStatus'>
+    readonly createdAt: FieldRef<"PublicContent", 'DateTime'>
+    readonly updatedAt: FieldRef<"PublicContent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PublicContent findUnique
+   */
+  export type PublicContentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter, which PublicContent to fetch.
+     */
+    where: PublicContentWhereUniqueInput
+  }
+
+  /**
+   * PublicContent findUniqueOrThrow
+   */
+  export type PublicContentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter, which PublicContent to fetch.
+     */
+    where: PublicContentWhereUniqueInput
+  }
+
+  /**
+   * PublicContent findFirst
+   */
+  export type PublicContentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter, which PublicContent to fetch.
+     */
+    where?: PublicContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PublicContents to fetch.
+     */
+    orderBy?: PublicContentOrderByWithRelationInput | PublicContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PublicContents.
+     */
+    cursor?: PublicContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PublicContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PublicContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PublicContents.
+     */
+    distinct?: PublicContentScalarFieldEnum | PublicContentScalarFieldEnum[]
+  }
+
+  /**
+   * PublicContent findFirstOrThrow
+   */
+  export type PublicContentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter, which PublicContent to fetch.
+     */
+    where?: PublicContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PublicContents to fetch.
+     */
+    orderBy?: PublicContentOrderByWithRelationInput | PublicContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PublicContents.
+     */
+    cursor?: PublicContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PublicContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PublicContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PublicContents.
+     */
+    distinct?: PublicContentScalarFieldEnum | PublicContentScalarFieldEnum[]
+  }
+
+  /**
+   * PublicContent findMany
+   */
+  export type PublicContentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter, which PublicContents to fetch.
+     */
+    where?: PublicContentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PublicContents to fetch.
+     */
+    orderBy?: PublicContentOrderByWithRelationInput | PublicContentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PublicContents.
+     */
+    cursor?: PublicContentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PublicContents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PublicContents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PublicContents.
+     */
+    distinct?: PublicContentScalarFieldEnum | PublicContentScalarFieldEnum[]
+  }
+
+  /**
+   * PublicContent create
+   */
+  export type PublicContentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * The data needed to create a PublicContent.
+     */
+    data: XOR<PublicContentCreateInput, PublicContentUncheckedCreateInput>
+  }
+
+  /**
+   * PublicContent createMany
+   */
+  export type PublicContentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PublicContents.
+     */
+    data: PublicContentCreateManyInput | PublicContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PublicContent createManyAndReturn
+   */
+  export type PublicContentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * The data used to create many PublicContents.
+     */
+    data: PublicContentCreateManyInput | PublicContentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PublicContent update
+   */
+  export type PublicContentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * The data needed to update a PublicContent.
+     */
+    data: XOR<PublicContentUpdateInput, PublicContentUncheckedUpdateInput>
+    /**
+     * Choose, which PublicContent to update.
+     */
+    where: PublicContentWhereUniqueInput
+  }
+
+  /**
+   * PublicContent updateMany
+   */
+  export type PublicContentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PublicContents.
+     */
+    data: XOR<PublicContentUpdateManyMutationInput, PublicContentUncheckedUpdateManyInput>
+    /**
+     * Filter which PublicContents to update
+     */
+    where?: PublicContentWhereInput
+    /**
+     * Limit how many PublicContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PublicContent updateManyAndReturn
+   */
+  export type PublicContentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * The data used to update PublicContents.
+     */
+    data: XOR<PublicContentUpdateManyMutationInput, PublicContentUncheckedUpdateManyInput>
+    /**
+     * Filter which PublicContents to update
+     */
+    where?: PublicContentWhereInput
+    /**
+     * Limit how many PublicContents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PublicContent upsert
+   */
+  export type PublicContentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * The filter to search for the PublicContent to update in case it exists.
+     */
+    where: PublicContentWhereUniqueInput
+    /**
+     * In case the PublicContent found by the `where` argument doesn't exist, create a new PublicContent with this data.
+     */
+    create: XOR<PublicContentCreateInput, PublicContentUncheckedCreateInput>
+    /**
+     * In case the PublicContent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PublicContentUpdateInput, PublicContentUncheckedUpdateInput>
+  }
+
+  /**
+   * PublicContent delete
+   */
+  export type PublicContentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+    /**
+     * Filter which PublicContent to delete.
+     */
+    where: PublicContentWhereUniqueInput
+  }
+
+  /**
+   * PublicContent deleteMany
+   */
+  export type PublicContentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PublicContents to delete
+     */
+    where?: PublicContentWhereInput
+    /**
+     * Limit how many PublicContents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PublicContent without action
+   */
+  export type PublicContentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PublicContent
+     */
+    select?: PublicContentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PublicContent
+     */
+    omit?: PublicContentOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model VendorContent
    */
 
@@ -38566,6 +40912,23 @@ export namespace Prisma {
   export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
 
 
+  export const EmailDeliveryLogScalarFieldEnum: {
+    id: 'id',
+    to: 'to',
+    subject: 'subject',
+    status: 'status',
+    attempts: 'attempts',
+    maxAttempts: 'maxAttempts',
+    nextRetryAt: 'nextRetryAt',
+    lastError: 'lastError',
+    providerId: 'providerId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EmailDeliveryLogScalarFieldEnum = (typeof EmailDeliveryLogScalarFieldEnum)[keyof typeof EmailDeliveryLogScalarFieldEnum]
+
+
   export const ProductAvailabilityRequestScalarFieldEnum: {
     id: 'id',
     buyerId: 'buyerId',
@@ -38731,6 +41094,20 @@ export namespace Prisma {
   };
 
   export type BugReportScalarFieldEnum = (typeof BugReportScalarFieldEnum)[keyof typeof BugReportScalarFieldEnum]
+
+
+  export const PublicContentScalarFieldEnum: {
+    id: 'id',
+    slug: 'slug',
+    title: 'title',
+    body: 'body',
+    metadata: 'metadata',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PublicContentScalarFieldEnum = (typeof PublicContentScalarFieldEnum)[keyof typeof PublicContentScalarFieldEnum]
 
 
   export const VendorContentScalarFieldEnum: {
@@ -39246,6 +41623,20 @@ export namespace Prisma {
    * Reference to a field of type 'BookingStatus[]'
    */
   export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PublicContentStatus'
+   */
+  export type EnumPublicContentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicContentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PublicContentStatus[]'
+   */
+  export type ListEnumPublicContentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicContentStatus[]'>
     
 
 
@@ -40986,6 +43377,90 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"NotificationPreference"> | Date | string
   }
 
+  export type EmailDeliveryLogWhereInput = {
+    AND?: EmailDeliveryLogWhereInput | EmailDeliveryLogWhereInput[]
+    OR?: EmailDeliveryLogWhereInput[]
+    NOT?: EmailDeliveryLogWhereInput | EmailDeliveryLogWhereInput[]
+    id?: StringFilter<"EmailDeliveryLog"> | string
+    to?: StringFilter<"EmailDeliveryLog"> | string
+    subject?: StringFilter<"EmailDeliveryLog"> | string
+    status?: StringFilter<"EmailDeliveryLog"> | string
+    attempts?: IntFilter<"EmailDeliveryLog"> | number
+    maxAttempts?: IntFilter<"EmailDeliveryLog"> | number
+    nextRetryAt?: DateTimeNullableFilter<"EmailDeliveryLog"> | Date | string | null
+    lastError?: StringNullableFilter<"EmailDeliveryLog"> | string | null
+    providerId?: StringNullableFilter<"EmailDeliveryLog"> | string | null
+    createdAt?: DateTimeFilter<"EmailDeliveryLog"> | Date | string
+    updatedAt?: DateTimeFilter<"EmailDeliveryLog"> | Date | string
+  }
+
+  export type EmailDeliveryLogOrderByWithRelationInput = {
+    id?: SortOrder
+    to?: SortOrder
+    subject?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    providerId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailDeliveryLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EmailDeliveryLogWhereInput | EmailDeliveryLogWhereInput[]
+    OR?: EmailDeliveryLogWhereInput[]
+    NOT?: EmailDeliveryLogWhereInput | EmailDeliveryLogWhereInput[]
+    to?: StringFilter<"EmailDeliveryLog"> | string
+    subject?: StringFilter<"EmailDeliveryLog"> | string
+    status?: StringFilter<"EmailDeliveryLog"> | string
+    attempts?: IntFilter<"EmailDeliveryLog"> | number
+    maxAttempts?: IntFilter<"EmailDeliveryLog"> | number
+    nextRetryAt?: DateTimeNullableFilter<"EmailDeliveryLog"> | Date | string | null
+    lastError?: StringNullableFilter<"EmailDeliveryLog"> | string | null
+    providerId?: StringNullableFilter<"EmailDeliveryLog"> | string | null
+    createdAt?: DateTimeFilter<"EmailDeliveryLog"> | Date | string
+    updatedAt?: DateTimeFilter<"EmailDeliveryLog"> | Date | string
+  }, "id">
+
+  export type EmailDeliveryLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    to?: SortOrder
+    subject?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    nextRetryAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    providerId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EmailDeliveryLogCountOrderByAggregateInput
+    _avg?: EmailDeliveryLogAvgOrderByAggregateInput
+    _max?: EmailDeliveryLogMaxOrderByAggregateInput
+    _min?: EmailDeliveryLogMinOrderByAggregateInput
+    _sum?: EmailDeliveryLogSumOrderByAggregateInput
+  }
+
+  export type EmailDeliveryLogScalarWhereWithAggregatesInput = {
+    AND?: EmailDeliveryLogScalarWhereWithAggregatesInput | EmailDeliveryLogScalarWhereWithAggregatesInput[]
+    OR?: EmailDeliveryLogScalarWhereWithAggregatesInput[]
+    NOT?: EmailDeliveryLogScalarWhereWithAggregatesInput | EmailDeliveryLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EmailDeliveryLog"> | string
+    to?: StringWithAggregatesFilter<"EmailDeliveryLog"> | string
+    subject?: StringWithAggregatesFilter<"EmailDeliveryLog"> | string
+    status?: StringWithAggregatesFilter<"EmailDeliveryLog"> | string
+    attempts?: IntWithAggregatesFilter<"EmailDeliveryLog"> | number
+    maxAttempts?: IntWithAggregatesFilter<"EmailDeliveryLog"> | number
+    nextRetryAt?: DateTimeNullableWithAggregatesFilter<"EmailDeliveryLog"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"EmailDeliveryLog"> | string | null
+    providerId?: StringNullableWithAggregatesFilter<"EmailDeliveryLog"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EmailDeliveryLog"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EmailDeliveryLog"> | Date | string
+  }
+
   export type ProductAvailabilityRequestWhereInput = {
     AND?: ProductAvailabilityRequestWhereInput | ProductAvailabilityRequestWhereInput[]
     OR?: ProductAvailabilityRequestWhereInput[]
@@ -41847,6 +44322,73 @@ export namespace Prisma {
     metadata?: JsonNullableWithAggregatesFilter<"BugReport">
     createdAt?: DateTimeWithAggregatesFilter<"BugReport"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"BugReport"> | Date | string
+  }
+
+  export type PublicContentWhereInput = {
+    AND?: PublicContentWhereInput | PublicContentWhereInput[]
+    OR?: PublicContentWhereInput[]
+    NOT?: PublicContentWhereInput | PublicContentWhereInput[]
+    id?: StringFilter<"PublicContent"> | string
+    slug?: StringFilter<"PublicContent"> | string
+    title?: StringFilter<"PublicContent"> | string
+    body?: StringFilter<"PublicContent"> | string
+    metadata?: JsonNullableFilter<"PublicContent">
+    status?: EnumPublicContentStatusFilter<"PublicContent"> | $Enums.PublicContentStatus
+    createdAt?: DateTimeFilter<"PublicContent"> | Date | string
+    updatedAt?: DateTimeFilter<"PublicContent"> | Date | string
+  }
+
+  export type PublicContentOrderByWithRelationInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PublicContentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    slug?: string
+    AND?: PublicContentWhereInput | PublicContentWhereInput[]
+    OR?: PublicContentWhereInput[]
+    NOT?: PublicContentWhereInput | PublicContentWhereInput[]
+    title?: StringFilter<"PublicContent"> | string
+    body?: StringFilter<"PublicContent"> | string
+    metadata?: JsonNullableFilter<"PublicContent">
+    status?: EnumPublicContentStatusFilter<"PublicContent"> | $Enums.PublicContentStatus
+    createdAt?: DateTimeFilter<"PublicContent"> | Date | string
+    updatedAt?: DateTimeFilter<"PublicContent"> | Date | string
+  }, "id" | "slug">
+
+  export type PublicContentOrderByWithAggregationInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    metadata?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PublicContentCountOrderByAggregateInput
+    _max?: PublicContentMaxOrderByAggregateInput
+    _min?: PublicContentMinOrderByAggregateInput
+  }
+
+  export type PublicContentScalarWhereWithAggregatesInput = {
+    AND?: PublicContentScalarWhereWithAggregatesInput | PublicContentScalarWhereWithAggregatesInput[]
+    OR?: PublicContentScalarWhereWithAggregatesInput[]
+    NOT?: PublicContentScalarWhereWithAggregatesInput | PublicContentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PublicContent"> | string
+    slug?: StringWithAggregatesFilter<"PublicContent"> | string
+    title?: StringWithAggregatesFilter<"PublicContent"> | string
+    body?: StringWithAggregatesFilter<"PublicContent"> | string
+    metadata?: JsonNullableWithAggregatesFilter<"PublicContent">
+    status?: EnumPublicContentStatusWithAggregatesFilter<"PublicContent"> | $Enums.PublicContentStatus
+    createdAt?: DateTimeWithAggregatesFilter<"PublicContent"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PublicContent"> | Date | string
   }
 
   export type VendorContentWhereInput = {
@@ -43915,6 +46457,104 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EmailDeliveryLogCreateInput = {
+    id?: string
+    to: string
+    subject: string
+    status?: string
+    attempts?: number
+    maxAttempts?: number
+    nextRetryAt?: Date | string | null
+    lastError?: string | null
+    providerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailDeliveryLogUncheckedCreateInput = {
+    id?: string
+    to: string
+    subject: string
+    status?: string
+    attempts?: number
+    maxAttempts?: number
+    nextRetryAt?: Date | string | null
+    lastError?: string | null
+    providerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailDeliveryLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    to?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailDeliveryLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    to?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailDeliveryLogCreateManyInput = {
+    id?: string
+    to: string
+    subject: string
+    status?: string
+    attempts?: number
+    maxAttempts?: number
+    nextRetryAt?: Date | string | null
+    lastError?: string | null
+    providerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EmailDeliveryLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    to?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EmailDeliveryLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    to?: StringFieldUpdateOperationsInput | string
+    subject?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    attempts?: IntFieldUpdateOperationsInput | number
+    maxAttempts?: IntFieldUpdateOperationsInput | number
+    nextRetryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ProductAvailabilityRequestCreateInput = {
     id?: string
     items: JsonNullValueInput | InputJsonValue
@@ -44865,6 +47505,83 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     screenshot?: NullableStringFieldUpdateOperationsInput | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PublicContentCreateInput = {
+    id?: string
+    slug: string
+    title: string
+    body: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.PublicContentStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PublicContentUncheckedCreateInput = {
+    id?: string
+    slug: string
+    title: string
+    body: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.PublicContentStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PublicContentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumPublicContentStatusFieldUpdateOperationsInput | $Enums.PublicContentStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PublicContentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumPublicContentStatusFieldUpdateOperationsInput | $Enums.PublicContentStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PublicContentCreateManyInput = {
+    id?: string
+    slug: string
+    title: string
+    body: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: $Enums.PublicContentStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PublicContentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumPublicContentStatusFieldUpdateOperationsInput | $Enums.PublicContentStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PublicContentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    status?: EnumPublicContentStatusFieldUpdateOperationsInput | $Enums.PublicContentStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46855,6 +49572,58 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EmailDeliveryLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    to?: SortOrder
+    subject?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    nextRetryAt?: SortOrder
+    lastError?: SortOrder
+    providerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailDeliveryLogAvgOrderByAggregateInput = {
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+  }
+
+  export type EmailDeliveryLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    to?: SortOrder
+    subject?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    nextRetryAt?: SortOrder
+    lastError?: SortOrder
+    providerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailDeliveryLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    to?: SortOrder
+    subject?: SortOrder
+    status?: SortOrder
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+    nextRetryAt?: SortOrder
+    lastError?: SortOrder
+    providerId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EmailDeliveryLogSumOrderByAggregateInput = {
+    attempts?: SortOrder
+    maxAttempts?: SortOrder
+  }
+
   export type EnumAvailabilityRequestStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.AvailabilityRequestStatus | EnumAvailabilityRequestStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AvailabilityRequestStatus[] | ListEnumAvailabilityRequestStatusFieldRefInput<$PrismaModel>
@@ -47467,6 +50236,54 @@ export namespace Prisma {
     screenshot?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type EnumPublicContentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PublicContentStatus | EnumPublicContentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPublicContentStatusFilter<$PrismaModel> | $Enums.PublicContentStatus
+  }
+
+  export type PublicContentCountOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    metadata?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PublicContentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PublicContentMinOrderByAggregateInput = {
+    id?: SortOrder
+    slug?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumPublicContentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PublicContentStatus | EnumPublicContentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPublicContentStatusWithAggregatesFilter<$PrismaModel> | $Enums.PublicContentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPublicContentStatusFilter<$PrismaModel>
+    _max?: NestedEnumPublicContentStatusFilter<$PrismaModel>
   }
 
   export type EnumVendorContentTypeFilter<$PrismaModel = never> = {
@@ -49600,6 +52417,10 @@ export namespace Prisma {
     update?: XOR<XOR<ReviewUpdateToOneWithWhereWithoutVotesInput, ReviewUpdateWithoutVotesInput>, ReviewUncheckedUpdateWithoutVotesInput>
   }
 
+  export type EnumPublicContentStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PublicContentStatus
+  }
+
   export type VendorCreateNestedOneWithoutVendorContentInput = {
     create?: XOR<VendorCreateWithoutVendorContentInput, VendorUncheckedCreateWithoutVendorContentInput>
     connectOrCreate?: VendorCreateOrConnectWithoutVendorContentInput
@@ -50358,6 +53179,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBookingStatusFilter<$PrismaModel>
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPublicContentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PublicContentStatus | EnumPublicContentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPublicContentStatusFilter<$PrismaModel> | $Enums.PublicContentStatus
+  }
+
+  export type NestedEnumPublicContentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PublicContentStatus | EnumPublicContentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PublicContentStatus[] | ListEnumPublicContentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPublicContentStatusWithAggregatesFilter<$PrismaModel> | $Enums.PublicContentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPublicContentStatusFilter<$PrismaModel>
+    _max?: NestedEnumPublicContentStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumVendorContentTypeFilter<$PrismaModel = never> = {

@@ -11,13 +11,19 @@
 - [x] Create a refactor plan document capturing current architecture and target state (`.ai-system/planning/refactor-plan.md`)
 - [x] Create a centralized runtime config module (`lib/config/*`) and migrate scattered `process.env` access into typed helpers
 - [x] Replace hardcoded RBAC route lists in `middleware.ts` with a declarative policy registry and per-route metadata
-- [ ] Add unit tests for RBAC guards (middleware) and config normalization
+- [x] Add unit tests for RBAC guards (middleware) and config normalization
 - [x] Implement a shared data adapter interface and ensure `USE_PRISMA` / `ENABLE_MOCK_BACKEND` toggles are explicit and safe
 - [x] Add robust email + notification infrastructure (retry/backoff, persistence, in-app and push delivery)
-- [ ] Add caching layer for public content and heavily-read data (Redis cache + invalidation and key namespacing)
-- [ ] Implement cloud asset handling best practices (upload metadata persistence, safe failure modes, and cache busting for media)
+- [x] Add caching layer for public content and heavily-read data (Redis cache + invalidation and key namespacing)
+- [x] Add a small admin-editable public content model (banners/FAQ/About/Terms and Conditions/Policy, etc.) and caching strategy (Redis + invalidation endpoint)
+- [x] Implement cloud asset handling best practices (upload metadata persistence, safe failure modes, and cache busting for media)
 - [ ] Audit and modernize the UI design system across core flows (signup, product browsing, carts, checkout, dashboards) using consistent tokens and responsive layouts
-- [ ] Establish CI validation checks for Prisma migrations, required env vars, and linting
+- [x] Refactor to single-route-per-feature architecture: move vendor/admin/buyer variations into dynamic routes/components + `RoleAwareFeatureRenderer`
+- [x] Fully deprecate role-specific pages and ensure all functional content is accessible through config-driven single pages (e.g., /orders, /wallet, /profile) with role-based behavior inside.
+- [x] Unify duplicated components (e.g., ProductCard, OrderCard, KPI Card, Button, Table, Form Field) across buyer/vendor/admin paths with configuration and slot props.
+- [x] Remove redundant role-specific pages and deprecate (buyer/admin/vendor) page directories once merged.
+- [x] Build `lib/permissions.ts`, `lib/rbac/policies.ts`, and `RoleGuard`/`PermissionsGate` wrappers.
+- [x] Establish CI validation checks for Prisma migrations, required env vars, and linting
 - [ ] Add a small admin-editable public content model (banners/FAQ/About/Terms and Conditions/Policy, etc.) and caching strategy (Redis + invalidation endpoint)
 
 ---

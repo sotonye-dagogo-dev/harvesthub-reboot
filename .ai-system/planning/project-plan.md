@@ -16,7 +16,10 @@
 - [x] Establish role-based layout routing (buyer, vendor, admin)
 - [x] Create core UI component library (`components/ui/`) and feature scaffolds (`components/features/`)
 - [x] Add starter test setup with Vitest
-- [ ] Solidify CI/Dev workflow (lint, build, test scripts)
+- [x] Solidify CI/Dev workflow (lint, build, test scripts)
+- [ ] Consolidate role-based pages into single-page-per-feature (remove /buyer, /vendor, /admin page duplication)
+- [ ] Build dynamic role-aware routing provider and config-driven page rendering service
+- [ ] Migrate API route permissions to policy-driven router middleware
 
 ---
 
