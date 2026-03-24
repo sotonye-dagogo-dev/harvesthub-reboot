@@ -4,7 +4,6 @@ import {
   Head,
   Heading,
   Hr,
-  Html,
   Link,
   Preview,
   Section,
@@ -27,7 +26,7 @@ export function EmailLayout({ previewText, heading, children }: EmailLayoutProps
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
 
   return (
-    <Html>
+    <>
       <Head />
       <Preview>{previewText}</Preview>
       <Body style={bodyStyle}>
@@ -61,7 +60,7 @@ export function EmailLayout({ previewText, heading, children }: EmailLayoutProps
           </Section>
         </Container>
       </Body>
-    </Html>
+    </>
   );
 }
 
