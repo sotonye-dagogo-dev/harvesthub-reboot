@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword, verifyPassword as comparePassword } from '@/lib/utils/password';
+import type { CrudAdapter } from '@/lib/data/adapterTypes';
 
 // Minimal Prisma-backed adapter for key data operations.
 // Start with user operations. Expand other adapters incrementally.
@@ -59,7 +60,7 @@ export const userDb = {
         await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any, [string]>;
 
 // single default export at end of file
 
@@ -118,7 +119,7 @@ export const productDb = {
         await prisma.product.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const bannerDb = {
     findAll: async (filters?: any) => {
@@ -155,7 +156,7 @@ export const bannerDb = {
         await prisma.banner.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const orderDb = {
     findAll: async (filters?: any) => {
@@ -200,7 +201,7 @@ export const orderDb = {
         await prisma.order.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const buyerDb = {
     findAll: async () => prisma.buyer.findMany(),
@@ -212,7 +213,7 @@ export const buyerDb = {
         await prisma.buyer.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const vendorDb = {
     findAll: async (filters?: any) => {
@@ -232,7 +233,7 @@ export const vendorDb = {
         await prisma.vendor.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const cartDb = {
     findByBuyerId: async (buyerId: string) =>
@@ -249,7 +250,7 @@ export const cartDb = {
         await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
         return prisma.cart.update({ where: { id: cart.id }, data: { subtotal: 0 } });
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const walletDb = {
     findByUserId: async (userId: string) =>
@@ -260,7 +261,7 @@ export const walletDb = {
         await prisma.wallet.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const transactionDb = {
     findByWalletId: async (walletId: string) =>
@@ -271,7 +272,7 @@ export const transactionDb = {
         await prisma.transaction.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const reviewDb = {
     findByProductId: async (productId: string) =>
@@ -284,7 +285,7 @@ export const reviewDb = {
         await prisma.review.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 export const addressDb = {
     findByUserId: async (userId: string) =>
@@ -295,7 +296,7 @@ export const addressDb = {
         await prisma.address.delete({ where: { id } });
         return true;
     },
-};
+} satisfies CrudAdapter<any, any, any>;
 
 const prismaAdapter = {
     userDb,

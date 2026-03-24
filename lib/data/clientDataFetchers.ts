@@ -5,7 +5,7 @@
  * They call API routes which handle environment-aware data fetching
  */
 
-import type { Product, Vendor, Order, User, Review } from '@/lib/types';
+import type { Product, Vendor, Review } from '@/lib/types';
 
 // Enable mock data only when explicitly opted in (e.g., during local dev when backend is not available)
 const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';

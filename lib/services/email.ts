@@ -1,15 +1,15 @@
 import { Resend } from 'resend';
+import { env, featureFlags } from '@/lib/config';
+import { createEmailDeliveryLog, updateEmailDeliveryLog } from '@/lib/services/emailDeliveryLog';
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.RESEND_API_KEY?.toString();
 let resend: Resend | null = null;
 try {
-  if (RESEND_API_KEY) resend = new Resend(RESEND_API_KEY);
+  if (env.resendApiKey && featureFlags.enableEmail) resend = new Resend(env.resendApiKey);
 } catch (err) {
   console.error('[Email Service] Failed to initialize Resend client:', err);
   resend = null;
 }
 
-const EMAIL_FROM = process.env.NEXT_PUBLIC_EMAIL_FROM || 'noreply@myharvesthub.ng';
 const APP_NAME = 'MyHarvestHub';
 
 interface SendEmailOptions {
@@ -33,31 +33,82 @@ export async function sendEmail({
   replyTo,
   tags,
 }: SendEmailOptions): Promise<SendEmailResult> {
+  const recipientList = Array.isArray(to) ? to : [to];
+  const toField = recipientList.join(',');
+  const maxAttempts = env.emailRetryAttempts;
+  const baseDelayMs = env.emailRetryBaseDelayMs;
+
+  const deliveryLog = await createEmailDeliveryLog({
+    to: toField,
+    subject,
+    maxAttempts,
+  });
+
   try {
+    if (!featureFlags.enableEmail) {
+      return { success: false, error: 'Email delivery disabled by feature flag' };
+    }
+
     if (!resend) {
       const msg = '[Email Service] RESEND_API_KEY not configured — skipping send in non-production.';
       console.warn(msg);
+      await updateEmailDeliveryLog(deliveryLog.id, {
+        status: 'FAILED',
+        attempts: 1,
+        lastError: 'Resend API key not configured',
+      });
       return { success: false, error: 'Resend API key not configured' };
     }
 
-    const { data, error } = await resend.emails.send({
-      from: `${APP_NAME} <${EMAIL_FROM}>`,
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      react,
-      replyTo,
-      tags,
-    });
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const { data, error } = await resend.emails.send({
+        from: `${APP_NAME} <${env.emailFrom}>`,
+        to: recipientList,
+        subject,
+        react,
+        replyTo,
+        tags,
+      });
 
-    if (error) {
-      console.error('[Email Service] Failed to send email:', error);
-      return { success: false, error: error.message };
+      if (!error) {
+        await updateEmailDeliveryLog(deliveryLog.id, {
+          status: 'SENT',
+          attempts: attempt,
+          providerId: data?.id ?? null,
+          nextRetryAt: null,
+          lastError: null,
+        });
+        return { success: true, id: data?.id };
+      }
+
+      const isLastAttempt = attempt === maxAttempts;
+      const nextDelayMs = baseDelayMs * 2 ** (attempt - 1);
+      const nextRetryAt = isLastAttempt ? null : new Date(Date.now() + nextDelayMs);
+      console.error(`[Email Service] Failed to send email on attempt ${attempt}:`, error);
+
+      await updateEmailDeliveryLog(deliveryLog.id, {
+        status: isLastAttempt ? 'FAILED' : 'RETRYING',
+        attempts: attempt,
+        lastError: error.message,
+        nextRetryAt,
+      });
+
+      if (!isLastAttempt) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, nextDelayMs);
+        });
+      }
     }
 
-    return { success: true, id: data?.id };
+    return { success: false, error: 'Failed to send email after retries' };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown email error';
     console.error('[Email Service] Exception:', message);
+    await updateEmailDeliveryLog(deliveryLog.id, {
+      status: 'FAILED',
+      attempts: deliveryLog.attempts + 1,
+      lastError: message,
+    });
     return { success: false, error: message };
   }
 }

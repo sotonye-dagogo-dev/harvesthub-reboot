@@ -1,33 +1,23 @@
 "use client";
 
-import { PageLoader } from "@/components/ui";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
+import StoreSettingsFeature from "@/components/features/StoreSettingsPage";
+import { PageLoader } from "@/components/ui";
 
-/**
- * Deprecated route — redirects vendors to the proper store-settings page.
- * @deprecated Use /vendor/store-settings instead.
- */
-
-export default function StoreSettingsRedirectPage() {
+export default function StoreSettingsPage() {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return;
+  if (isLoading) {
+    return <PageLoader />;
+  }
 
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <p className="text-center text-ds-text-secondary">Please log in to access store settings</p>
+      </div>
+    );
+  }
 
-    if (user.role === "VENDOR") {
-      router.replace("/vendor/store-settings");
-    } else {
-      router.replace("/");
-    }
-  }, [user, isLoading, router]);
-
-  return <PageLoader />;
+  return <StoreSettingsFeature />;
 }

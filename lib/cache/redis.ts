@@ -1,14 +1,19 @@
 import { Redis } from '@upstash/redis';
+import { env, featureFlags } from '@/lib/config';
 
-export const REDIS_KEY_PREFIX = 'harvesthub:';
+export const REDIS_KEY_PREFIX = env.redisPrefix;
 
 export function prefixKey(key: string): string {
   return `${REDIS_KEY_PREFIX}${key}`;
 }
 
 function createRedisClient(): Redis | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!featureFlags.enableRedisCache) {
+    return null;
+  }
+
+  const url = env.upstashUrl;
+  const token = env.upstashToken;
 
   if (!url || !token) {
     console.warn(

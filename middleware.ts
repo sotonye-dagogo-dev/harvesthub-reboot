@@ -1,38 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { UserRole } from "@/lib/constants";
+import { getRoutePolicy } from "@/lib/rbac/policies";
 import { verifyAccessToken } from "@/lib/utils/jwt";
-
-// Define route patterns for different access levels
-const publicRoutes = [
-    "/",
-    "/about",
-    "/contact",
-    "/bug-report",
-    "/cookies",
-    "/faqs",
-    "/help",
-    "/privacy",
-    "/terms",
-    "/login",
-    "/register",
-    "/signup",
-    "/signup/user-info",
-    "/signup/account-info",
-    "/signup/security-info",
-    "/signup/store-info",
-    "/signup-success",
-    "/forgot-password",
-    "/reset-password",
-    "/products",
-    "/vendors",
-];
-const authRoutes = ["/login", "/register"];
-const buyerRoutes = ["/cart", "/checkout"];
-// Routes accessible to all authenticated users (buyers, vendors, admins)
-const sharedAuthRoutes = ["/orders", "/wallet", "/profile", "/notifications", "/favourites"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const routePolicy = getRoutePolicy(pathname);
 
     // Get token from cookie
     const accessToken = request.cookies.get("accessToken")?.value;
@@ -49,9 +23,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // Allow public routes for everyone
-    if (publicRoutes.some((route) => pathname === route || pathname.startsWith(route))) {
+    if (routePolicy?.public) {
         // If authenticated user tries to access auth routes (login/register only), redirect to dashboard
-        if (user && authRoutes.some((route) => pathname === route)) {
+        if (user && routePolicy.authRoute) {
             return NextResponse.redirect(new URL(getDashboardRoute(user.role), request.url));
         }
         return NextResponse.next();
@@ -66,21 +40,11 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check role-based access
-    if (pathname.startsWith("/admin")) {
-        if (user.role !== UserRole.ADMIN) {
-            return NextResponse.redirect(new URL("/unauthorized", request.url));
-        }
-    } else if (pathname.startsWith("/vendor")) {
-        if (user.role !== UserRole.VENDOR) {
-            return NextResponse.redirect(new URL("/unauthorized", request.url));
-        }
-    } else if (buyerRoutes.some((route) => pathname.startsWith(route))) {
-        if (user.role !== UserRole.BUYER) {
+    if (routePolicy?.roles?.length) {
+        if (!routePolicy.roles.includes(user.role as UserRole)) {
             return NextResponse.redirect(new URL("/unauthorized", request.url));
         }
     }
-    // Shared auth routes (/wallet, /orders, /profile, /notifications) are accessible
-    // to all authenticated users — no role check needed (auth was verified above).
 
     return NextResponse.next();
 }
@@ -97,13 +61,6 @@ function getDashboardRoute(role: string): string {
         default:
             return "/";
     }
-}
-
-// Enum for UserRole (matches lib/types.ts)
-enum UserRole {
-    ADMIN = "ADMIN",
-    VENDOR = "VENDOR",
-    BUYER = "BUYER",
 }
 
 // Configure which routes to run middleware on

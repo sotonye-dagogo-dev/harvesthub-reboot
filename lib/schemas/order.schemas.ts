@@ -53,6 +53,7 @@ export const createOrderSchema = z
                 z.object({
                     productId: z.string().min(1, 'Product ID is required'),
                     quantity: z.number().int('Quantity must be a whole number').min(1, 'Quantity must be at least 1'),
+                    price: z.number().positive('Price must be positive'),
                     selectedVariants: z.record(z.string(), z.string()).optional().nullable(),
                 })
             )
@@ -64,6 +65,7 @@ export const createOrderSchema = z
             errorMap: () => ({ message: 'Please select a payment method' }),
         }),
         addressId: z.string().optional().nullable(),
+        pickupService: z.nativeEnum(PickupService).optional().nullable(),
         pickupDetails: pickupDetailsSchema.optional().nullable(),
         notes: z.string().max(1000, 'Notes too long').optional().nullable(),
     })
@@ -81,13 +83,17 @@ export const createOrderSchema = z
     )
     .refine(
         (data) => {
-            if (data.deliveryMethod === DeliveryMethod.PICKUP && !data.pickupDetails) {
+            if (
+                data.deliveryMethod === DeliveryMethod.PICKUP &&
+                !data.pickupDetails &&
+                !data.pickupService
+            ) {
                 return false;
             }
             return true;
         },
         {
-            message: 'Pickup details are required for pickup orders',
+            message: 'Pickup details or pickup service are required for pickup orders',
             path: ['pickupDetails'],
         }
     );
@@ -99,7 +105,7 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 // ============================================================================
 
 export const updateOrderStatusSchema = z.object({
-    orderId: z.string().min(1, 'Order ID is required'),
+    orderId: z.string().min(1, 'Order ID is required').optional(),
     status: z.string().min(1, 'Status is required'),
     notes: z.string().max(500, 'Notes too long').optional().nullable(),
 });

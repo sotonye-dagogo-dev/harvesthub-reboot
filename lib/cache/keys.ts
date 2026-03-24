@@ -27,3 +27,11 @@ export function userWalletKey(userId: string): string {
 export function userProfileKey(userId: string): string {
   return `cache:user:${userId}:profile`;
 }
+
+export function publicContentKey(slug: string): string {
+  return `cache:public-content:${slug}`;
+}
+
+export function publicContentListKey(): string {
+  return 'cache:public-content:list';
+}
