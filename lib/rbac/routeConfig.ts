@@ -31,7 +31,8 @@ export const routeConfig: RouteConfig[] = [
     { path: '/about', labelKey: 'about', featureKey: 'about', public: true },
     { path: '/faqs', labelKey: 'faqs', featureKey: 'faqs', public: true },
     { path: '/terms', labelKey: 'terms', featureKey: 'terms', public: true },
-    { path: '/privacy', labelKey: 'privacy', featureKey: 'privacy', public: true }
+    { path: '/privacy', labelKey: 'privacy', featureKey: 'privacy', public: true },
+    { path: '/unauthorized', labelKey: 'unauthorized', featureKey: 'unauthorized', public: true },
 ];
 
 export function getRouteConfig(pathname: string): RouteConfig | null {

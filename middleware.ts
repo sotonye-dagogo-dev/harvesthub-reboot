@@ -8,6 +8,11 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const routePolicy = getRoutePolicy(pathname);
 
+    // If the route is not explicitly declared, treat as public to avoid accidental redirect loops (e.g., /unauthorized)
+    if (!routePolicy) {
+        return NextResponse.next();
+    }
+
     // Get token from cookie
     const accessToken = request.cookies.get("accessToken")?.value;
 
