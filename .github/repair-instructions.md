@@ -2,7 +2,7 @@
 
 ## Role
 
-Act as an **expert repairer** for the HarvestHub codebase. Fix issues, errors, and problems without breaking existing functionality.
+Act as an **expert repairer** for the MyHarvestHub codebase. Fix issues, errors, and problems without breaking existing functionality.
 
 ---
 
@@ -44,7 +44,9 @@ When the user supplies a **specific problem or error**:
 
    ```markdown
    ## Ad-Hoc Repairs Log
+
    ### [Date] — [Short description of issue]
+
    - Files affected: ...
    - Root cause: ...
    - Fix applied: ...
@@ -64,8 +66,8 @@ When the user supplies a **specific problem or error**:
 
 ## Output Locations
 
-| Artifact | Path |
-|---|---|
-| This instruction file | `.github/repair-instructions.md` |
-| Broad repair audit & plan | `.github/repairs-audit.md` |
-| Ad-hoc repairs log | `.github/repairs-audit.md` → **Ad-Hoc Repairs Log** section |
+| Artifact                  | Path                                                        |
+| ------------------------- | ----------------------------------------------------------- |
+| This instruction file     | `.github/repair-instructions.md`                            |
+| Broad repair audit & plan | `.github/repairs-audit.md`                                  |
+| Ad-hoc repairs log        | `.github/repairs-audit.md` → **Ad-Hoc Repairs Log** section |

@@ -48,7 +48,7 @@ export function EmailLayout({ previewText, heading, children }: EmailLayoutProps
           <Hr style={hrStyle} />
           <Section style={footerStyle}>
             <Text style={footerTextStyle}>
-              © {new Date().getFullYear()} HarvestHub. All rights reserved.
+              © {new Date().getFullYear()} MyHarvestHub. All rights reserved.
             </Text>
             <Text style={footerTextStyle}>
               <Link href={`${appUrl}/help`} style={footerLinkStyle}>

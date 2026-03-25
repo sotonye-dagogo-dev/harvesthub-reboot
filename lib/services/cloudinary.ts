@@ -1,5 +1,5 @@
 /**
- * Cloudinary Image Management Service for HarvestHub
+ * Cloudinary Image Management Service for MyHarvestHub
  *
  * All images are stored under the root folder: myharvesthub/
  *

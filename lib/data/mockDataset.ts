@@ -568,7 +568,7 @@ export const mockBanners: Banner[] = [
     },
     {
         id: 'banner-001',
-        title: 'Welcome to HarvestHub',
+        title: 'Welcome to MyHarvestHub',
         subtitle: 'Discover trusted vendors and great deals',
         description: 'Browse farm-fresh produce, quality electronics, and local services from our community of verified sellers.',
         imageUrl: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1200',

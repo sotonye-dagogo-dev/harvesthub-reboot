@@ -1,14 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Header, Footer } from "@/components/layout";
-import {
-  BannerCarousel,
-  ProductCard,
-  CategoryNav,
-  VendorCard,
-  TopAdBanner,
-} from "@/components/features";
+import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
@@ -111,9 +104,6 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
   return (
     <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
-      <Header />
-      {/* Top Ad Banner - below navbar */}
-      <TopAdBanner />
       {/* Hero Banner Carousel */}
       {activeBanners.length > 0 && (
         <section>
@@ -147,7 +137,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {featuredProducts.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -197,7 +187,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {trendingProducts.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -247,7 +237,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-3">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {newArrivals.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const avgRating =
@@ -316,7 +306,6 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
           </section>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

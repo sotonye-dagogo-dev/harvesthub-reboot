@@ -1,4 +1,4 @@
-# HarvestHub Setup Summary
+# MyHarvestHub Setup Summary
 
 **Date**: January 24, 2026
 **Status**: Documentation Complete - Ready for Development
@@ -101,7 +101,7 @@
 
 ### Immediate Actions (Phase 1)
 
-1. **Rename MartGram to HarvestHub**
+1. **Rename MartGram to MyHarvestHub**
 
    ```bash
    # Update package.json name

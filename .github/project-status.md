@@ -1,4 +1,4 @@
-# Project Status — HarvestHub Reboot
+# Project Status — MyHarvestHub Reboot
 
 Last updated: 2026-02-18
 
@@ -160,7 +160,7 @@ Legend: ✅ done, 🟡 partial, 🔴 todo
 
 **Conclusion & What's Left**
 
-- Summary: The HarvestHub reboot is in a strong state with core UI, auth, mock backend, and many features implemented (approx. 82% of the planned MVP). The primary remaining work is completing API endpoints (admin/product/user/order/cart), adding coverage for component and end-to-end tests, migrating to Prisma, and wiring production integrations (payments, Cloudinary, Redis) plus CI/CD.
+- Summary: The MyHarvestHub reboot is in a strong state with core UI, auth, mock backend, and many features implemented (approx. 82% of the planned MVP). The primary remaining work is completing API endpoints (admin/product/user/order/cart), adding coverage for component and end-to-end tests, migrating to Prisma, and wiring production integrations (payments, Cloudinary, Redis) plus CI/CD.
 - Next recommended milestone: finish API endpoint coverage and add component tests, then begin a staged Prisma migration on a feature branch.
 
 If you'd like, I can:
@@ -170,4 +170,3 @@ If you'd like, I can:
 - scaffold the Prisma schema + seed script for the migration.
 
 Please tell me which next step you'd like prioritized.
-                             

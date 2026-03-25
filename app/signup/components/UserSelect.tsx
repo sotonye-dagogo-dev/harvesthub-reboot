@@ -47,42 +47,45 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-ds-text-primary">Join MyHarvestHub</h1>
-        <p className="text-ds-text-secondary">Choose how you want to use MyHarvestHub</p>
+        <h1 className="text-4xl font-bold text-ds-text-primary">Create your account</h1>
+        <p className="mt-2 text-sm text-ds-text-secondary max-w-xl mx-auto">
+          Pick your role and continue through the guided setup. You can always adjust your
+          preferences later.
+        </p>
       </div>
 
       {/* Account Type Cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = selectedType === option.name;
-          const IconComponent = option.icon === "buyer"? ShoppingBag : Store; return ( <button key={option.name} onClick={() => handleSelect(option.name)} className={`group relative overflow-hidden rounded-ds-lg border-2 p-6 text-left transition-all ${ isSelected ?"border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`} > {/* Icon */} <div className={`mb-4 inline-flex rounded-ds-md p-3 transition-colors ${ isSelected ?"bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white " }`}
+          const IconComponent = option.icon === "buyer" ? ShoppingBag : Store;
+          return (
+            <button
+              key={option.name}
+              onClick={() => handleSelect(option.name)}
+              className={`group relative overflow-hidden rounded-ds-lg border-2 p-6 text-left transition-all ${isSelected ? "border-ds-border-brand bg-ds-brand-surface dark:border-ds-border-focus dark:bg-ds-brand-subtle" : "border-ds-border-base bg-ds-surface-base hover:border-ds-brand-muted "}`}
+            >
+              {" "}
+              {/* Icon */}{" "}
+              <div
+                className={`mb-4 inline-flex rounded-ds-md p-3 transition-colors ${isSelected ? "bg-ds-brand-primary text-white" : "bg-ds-brand-subtle text-ds-text-brand group-hover:bg-ds-brand-primary group-hover:text-white "}`}
               >
                 <IconComponent className="h-6 w-6" />
               </div>
-
               {/* Title */}
-              <h3 className="mb-2 text-xl font-bold text-ds-text-primary">
-                {option.title}
-              </h3>
-
+              <h3 className="mb-2 text-xl font-bold text-ds-text-primary">{option.title}</h3>
               {/* Description */}
               <p className="mb-4 text-sm text-ds-text-secondary">{option.description}</p>
-
               {/* Features */}
               <ul className="space-y-2">
                 {option.features.map((feature, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center gap-2 text-sm text-ds-text-secondary"
-                  >
+                  <li key={idx} className="flex items-center gap-2 text-sm text-ds-text-secondary">
                     <span className="h-1.5 w-1.5 rounded-ds-full bg-ds-brand-primary"></span>
                     {feature}
                   </li>
                 ))}
               </ul>
-
               {/* Selected Indicator */}
               {isSelected && (
                 <div className="absolute right-4 top-4 rounded-ds-full bg-ds-brand-primary p-1">

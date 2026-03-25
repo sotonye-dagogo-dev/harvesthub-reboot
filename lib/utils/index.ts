@@ -1,5 +1,5 @@
 /**
- * Utility functions for HarvestHub
+ * Utility functions for MyHarvestHub
  * Common helpers used across the application
  */
 

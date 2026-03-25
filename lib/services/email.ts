@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Resend } from 'resend';
 import { env, featureFlags } from '@/lib/config';
 import { createEmailDeliveryLog, updateEmailDeliveryLog } from '@/lib/services/emailDeliveryLog';
@@ -115,13 +116,149 @@ export async function sendEmail({
 
 // ── Convenience wrappers for each email type ─────────────────────────
 
-export { sendVerifyEmail } from '@/lib/emails/VerifyEmail';
-export { sendResetPasswordEmail } from '@/lib/emails/ResetPassword';
-export { sendWelcomeEmail } from '@/lib/emails/WelcomeEmail';
-export { sendOrderConfirmationEmail } from '@/lib/emails/OrderConfirmation';
-export { sendOrderStatusUpdateEmail } from '@/lib/emails/OrderStatusUpdate';
-export { sendVendorApprovalEmail } from '@/lib/emails/VendorApproval';
-export { sendAvailabilityRequestEmail } from '@/lib/emails/AvailabilityRequest';
-export { sendAvailabilityResponseEmail } from '@/lib/emails/AvailabilityResponse';
-export { sendWithdrawalRequestEmail } from '@/lib/emails/WithdrawalRequest';
-export { sendLowStockAlertEmail } from '@/lib/emails/LowStockAlert';
+const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
+
+export async function sendVerifyEmail(to: string, firstName: string, verificationToken: string) {
+  const { VerifyEmail } = await import('@/lib/emails/VerifyEmail');
+  const appUrl = getAppUrl();
+  const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
+
+  return sendEmail({
+    to,
+    subject: 'Verify your MyHarvestHub email',
+    react: React.createElement(VerifyEmail, { firstName, verificationUrl }),
+    tags: [{ name: 'category', value: 'verify-email' }],
+  });
+}
+
+export async function sendResetPasswordEmail(to: string, firstName: string, resetToken: string) {
+  const { ResetPassword } = await import('@/lib/emails/ResetPassword');
+  const appUrl = getAppUrl();
+  const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
+
+  return sendEmail({
+    to,
+    subject: 'Reset your MyHarvestHub password',
+    react: React.createElement(ResetPassword, { firstName, resetUrl }),
+    tags: [{ name: 'category', value: 'reset-password' }],
+  });
+}
+
+export async function sendWelcomeEmail(to: string, firstName: string, role: 'BUYER' | 'VENDOR') {
+  const { WelcomeEmail } = await import('@/lib/emails/WelcomeEmail');
+
+  return sendEmail({
+    to,
+    subject: `Welcome to MyHarvestHub${role === 'VENDOR' ? ' — Vendor Application Received' : ''}!`,
+    react: React.createElement(WelcomeEmail, { firstName, role }),
+    tags: [{ name: 'category', value: 'welcome' }],
+  });
+}
+
+export async function sendOrderConfirmationEmail(to: string, data: any) {
+  const { OrderConfirmation } = await import('@/lib/emails/OrderConfirmation');
+  return sendEmail({
+    to,
+    subject: `Order ${data.orderNumber} confirmed — ₦${data.total.toLocaleString('en-NG')}`,
+    react: React.createElement(OrderConfirmation, { ...data }),
+    tags: [
+      { name: 'category', value: 'order-confirmation' },
+      { name: 'order', value: data.orderNumber },
+    ],
+  });
+}
+
+export async function sendOrderStatusUpdateEmail(to: string, data: any) {
+  const { OrderStatusUpdate } = await import('@/lib/emails/OrderStatusUpdate');
+  const statusLabels: Record<string, string> = {
+    CONFIRMED: 'Confirmed',
+    PROCESSING: 'Processing',
+    READY_FOR_PICKUP: 'Ready for Pickup',
+    OUT_FOR_DELIVERY: 'Out for Delivery',
+    DELIVERED: 'Delivered',
+    CANCELLED: 'Cancelled',
+    REFUNDED: 'Refunded',
+  };
+  const cfg = statusLabels[String(data.status)] ?? 'Status update';
+
+  return sendEmail({
+    to,
+    subject: `Order ${data.orderNumber} — ${cfg}`,
+    react: React.createElement(OrderStatusUpdate, { ...data }),
+    tags: [
+      { name: 'category', value: 'order-status' },
+      { name: 'order', value: data.orderNumber },
+      { name: 'status', value: data.status },
+    ],
+  });
+}
+
+export async function sendVendorApprovalEmail(to: string, data: any) {
+  const { VendorApproval } = await import('@/lib/emails/VendorApproval');
+
+  return sendEmail({
+    to,
+    subject: data.approved
+      ? `Your store "${data.storeName}" has been approved!`
+      : `Update on your "${data.storeName}" application`,
+    react: React.createElement(VendorApproval, { ...data }),
+    tags: [
+      { name: 'category', value: 'vendor-approval' },
+      { name: 'approved', value: String(data.approved) },
+    ],
+  });
+}
+
+export async function sendAvailabilityRequestEmail(to: string, data: any) {
+  const { AvailabilityRequest } = await import('@/lib/emails/AvailabilityRequest');
+
+  return sendEmail({
+    to,
+    subject: `Availability check: "${data.productName}" × ${data.quantity}`,
+    react: React.createElement(AvailabilityRequest, { ...data }),
+    tags: [
+      { name: 'category', value: 'availability-request' },
+      { name: 'requestId', value: data.requestId },
+    ],
+  });
+}
+
+export async function sendAvailabilityResponseEmail(to: string, data: any) {
+  const { AvailabilityResponse } = await import('@/lib/emails/AvailabilityResponse');
+
+  return sendEmail({
+    to,
+    subject: data.available
+      ? `"${data.productName}" is available from ${data.vendorName}!`
+      : `"${data.productName}" — vendor response`,
+    react: React.createElement(AvailabilityResponse, { ...data }),
+    tags: [{ name: 'category', value: 'availability-response' }],
+  });
+}
+
+export async function sendWithdrawalRequestEmail(to: string, data: any) {
+  const { WithdrawalRequest } = await import('@/lib/emails/WithdrawalRequest');
+
+  return sendEmail({
+    to,
+    subject: `Withdrawal ${data.status.toLowerCase()}: ₦${data.amount.toLocaleString('en-NG')}`,
+    react: React.createElement(WithdrawalRequest, { ...data }),
+    tags: [
+      { name: 'category', value: 'withdrawal' },
+      { name: 'status', value: data.status },
+      { name: 'reference', value: data.reference },
+    ],
+  });
+}
+
+export async function sendLowStockAlertEmail(to: string, data: any) {
+  const { LowStockAlert } = await import('@/lib/emails/LowStockAlert');
+  const count = data.products.length;
+
+  return sendEmail({
+    to,
+    subject: `Low stock alert: ${count} product${count > 1 ? 's' : ''} need attention`,
+    react: React.createElement(LowStockAlert, { ...data }),
+    tags: [{ name: 'category', value: 'low-stock' }],
+  });
+}

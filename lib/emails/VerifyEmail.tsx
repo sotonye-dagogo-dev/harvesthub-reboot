@@ -1,7 +1,6 @@
 import { Link, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 interface VerifyEmailProps {
   firstName: string;
@@ -10,10 +9,10 @@ interface VerifyEmailProps {
 
 export function VerifyEmail({ firstName, verificationUrl }: VerifyEmailProps) {
   return (
-    <EmailLayout previewText="Verify your HarvestHub account" heading="Verify Your Email">
+    <EmailLayout previewText="Verify your MyHarvestHub account" heading="Verify Your Email">
       <Text style={styles.paragraph}>Hi {firstName},</Text>
       <Text style={styles.paragraph}>
-        Thanks for signing up for HarvestHub! Please verify your email address by clicking the
+        Thanks for signing up for MyHarvestHub! Please verify your email address by clicking the
         button below.
       </Text>
 
@@ -24,7 +23,7 @@ export function VerifyEmail({ firstName, verificationUrl }: VerifyEmailProps) {
       </Section>
 
       <Text style={styles.muted}>
-        This link expires in 24 hours. If you didn&apos;t create a HarvestHub account, you can
+        This link expires in 24 hours. If you didn&apos;t create a MyHarvestHub account, you can
         safely ignore this email.
       </Text>
 
@@ -34,16 +33,4 @@ export function VerifyEmail({ firstName, verificationUrl }: VerifyEmailProps) {
       <Text style={{ ...styles.muted, wordBreak: "break-all" }}>{verificationUrl}</Text>
     </EmailLayout>
   );
-}
-
-export async function sendVerifyEmail(to: string, firstName: string, verificationToken: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
-  const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
-
-  return sendEmail({
-    to,
-    subject: "Verify your HarvestHub email",
-    react: <VerifyEmail firstName={firstName} verificationUrl={verificationUrl} />,
-    tags: [{ name: "category", value: "verify-email" }],
-  });
 }

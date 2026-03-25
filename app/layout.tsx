@@ -21,9 +21,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <body className="min-h-screen bg-ds-surface-base text-ds-text-primary">
         <Providers>
           <div className="flex min-h-screen flex-col">
-            <Header />
             <TopAdBanner />
-            <main className="flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">{children}</main>
+            <Header />
+            <main className="flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">
+              {children}
+            </main>
             <Footer />
           </div>
         </Providers>

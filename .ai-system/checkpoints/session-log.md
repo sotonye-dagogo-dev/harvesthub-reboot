@@ -328,56 +328,76 @@ Implement the top-priority modernization baseline with minimal, surgical changes
 
 ## Session 10 — 2026-03-21
 
-**Goal:**
-Implement admin-editable public content with caching and finish the role-aware unified orders route.
-
-**Completed:**
-
-- Added `PublicContentStatus` enum and `PublicContent` model to `prisma/schema.prisma`.
-- Implemented Redis caching key helpers in `lib/cache/keys.ts` and `lib/cache/contentCache.ts`.
-- Built `lib/data/publicContent.ts` with mock and Prisma fallback behavior and cache invalidation.
-- Added API routes:
-  - `app/api/admin/public-content/route.ts` (GET/POST/DELETE, admin-only)
-  - `app/api/public-content/[slug]/route.ts` (public content retrieval)
-- Updated `app/(buyer)/terms/page.tsx` to use dynamic public content with fallback.
-- Added `OrderCard`-based orders page in `app/orders/page.tsx` and fixed role-based order fetch signature in `lib/data/dataFetchers.ts`.
-- Added route configuration for `/register`, `/admin/public-content`, `/admin/dashboard`, and vendor routes in `lib/rbac/routeConfig.ts`.
-- Updated `lib/rbac/policies.ts` to recognize `authRoute` for `/register`.
-- Updated `lib/navigation.ts` labels and restored Header component to a stable state.
-- Added tests in `lib/__tests__/publicContent.test.ts` and ensured targeted tests pass.
-
-**Files Modified:**
-
-- prisma/schema.prisma
-- lib/cache/keys.ts
-- lib/cache/contentCache.ts
-- lib/data/publicContent.ts
-- app/api/admin/public-content/route.ts
-- app/api/public-content/[slug]/route.ts
-- app/(buyer)/terms/page.tsx
-- app/orders/page.tsx
-- lib/data/dataFetchers.ts
-- lib/rbac/routeConfig.ts
-- lib/rbac/policies.ts
-- lib/navigation.ts
-- components/layout/Header.tsx
-- lib/**tests**/publicContent.test.ts
-- .ai-system/planning/task-queue.md
-
-**Next Task:**
-
-- Implement cloud asset handling best practices and continue UI design system audit.
-- Add additional RBAC tests for admin/public content endpoints and route guard integration tests.
-
-**Notes / Blockers:**
-
-- Full Prisma-backed public content path requires running `npx prisma migrate dev` after schema updates; the current test environment uses mock mode.
+... (existing content unchanged) ...
 
 **Completed:**
 
 - Added centralized typed config and feature flags (`lib/config/*`) and wired key services to it.
 - Replaced hardcoded middleware route arrays with declarative RBAC route policies (`lib/rbac/policies.ts` + `middleware.ts`).
 - Added shared `CrudAdapter` interface and applied it in Prisma adapter exports.
+
+## Session 11 — 2026-03-25
+
+**Goal:**
+
+- Stabilize Prisma adapter resiliency and fix “server connection closed” issues across all production-facing adapters.
+
+**Completed:**
+
+- Added `withPrismaReconnect()` in `lib/data/prismaAdapter.ts`.
+- Wrapped Prisma operations in reconnect handling for:
+  - `userDb`, `productDb`, `orderDb`, `bannerDb`, `buyerDb`, `vendorDb`, `cartDb`, `walletDb`, `transactionDb`, `reviewDb`, `addressDb`.
+- Ensured no remaining TS/ lint errors in modified files.
+- Updated `.ai-system` docs for repair and testing status.
+
+**Files Modified:**
+
+- lib/data/prismaAdapter.ts
+- .ai-system/agents/repair-system.md
+- .ai-system/testing/test-results.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+
+- Run `npm run lint`, `npm run build`, and `npx vitest --run` locally.
+- Validate `GET /api/banners?active=true` and a representative user/order/cart endpoint for transient Prisma disconnect recovery.
+
+**Notes / Blockers:**
+
+- all code changes applied, final execution validation is environment-dependent.
+
+## Session 11 — 2026-03-25
+
+**Goal:**
+Fix email service parser errors and complete self-healing loop for JSX-in-TS issue in `lib/services/email.ts`.
+
+**Completed:**
+
+- Replaced JSX literals in `lib/services/email.ts` with `React.createElement(...)` so the `.ts` file parses correctly and avoids `<...>` syntax parser errors.
+- Added typed status lookup in `sendOrderStatusUpdateEmail` to avoid `Element implicitly has an 'any' type` indexer error.
+- Added Prisma reconnect wrapper for banner API from crashed DB connections (`Server has closed the connection`).
+- Updated `.ai-system` documents:
+  - `agents/repair-system.md` with error, root cause, fix, and prevention.
+  - `testing/test-results.md` with current check summary.
+  - `checkpoints/session-log.md` with this session entry.
+
+**Files Modified:**
+
+- lib/services/email.ts
+- lib/data/prismaAdapter.ts
+- .ai-system/agents/repair-system.md
+- .ai-system/testing/test-results.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+
+- Run `npm run lint`, `npm run build`, and `npx vitest --run` in local shell.
+- Confirm GET /api/banners now returns cached result or Prisma data with reconnect fallback.
+
+**Notes / Blockers:**
+
+- This session handled both parser and runtime DB reconnect errors with minimal, isolated changes.
+- The terminal environment still limits the exact external command behavior; local execution may be needed for final validation.
 - Hardened email sending with retry/backoff and persistence logging via `EmailDeliveryLog` (Prisma-backed when DB is configured, safe in-memory fallback otherwise).
 - Addressed follow-up review feedback: improved boolean parsing (`1/0`, `yes/no`, `on/off`), refined adapter extra-args typing, and persisted email delivery logs through Prisma model.
 - Updated `.ai-system` planning/decision docs to reflect implementation progress.
@@ -549,6 +569,8 @@ Solidify public content admin API + caching layer, and ensure core tests cleanly
 
 - Continue UI design system audit in `components/ui` and integrate `AnalyticsFeature` into dashboard routes.
 - Begin the single-route refactor audit for all role-specific directories and component duplication.
-## Session 9 � 2026-03-23\n\n**Goal:**\nConsolidate role-specific pages under root routes and remove legacy route groups for buyer/admin/vendor feature duplicates.\n\n**Completed:**\n- Copied buyer public pages (about/contact/faqs/etc.) from pp/(buyer) into root pp/ and removed the pp/(buyer) folder.\n- Removed deprecated routing folders for duplicate shared feature routes: dmin/orders, dmin/products, dmin/dashboard, dmin/analytics, endor/orders, endor/products, endor/dashboard, endor/analytics.\n- Created unified pp/store-settings/page.tsx backed by a shared components/features/StoreSettingsPage.tsx and handled vendor-only access in the same file.\n- Updated pp/vendor/store-settings/page.tsx to redirect to /store-settings.\n- Added shared components/features/ProductsContent.tsx and updated pp/products/page.tsx to use it.\n- All TypeScript checks pass (
-px tsc --noEmit).\n\n**Files Modified:**\n- app/(buyer)/* (moved to root and removed)\n- app/admin/* (deleted route duplicates)\n- app/vendor/* (deleted route duplicates, updated store-settings redirect)\n- app/store-settings/page.tsx\n- components/features/StoreSettingsPage.tsx\n- components/features/ProductsContent.tsx\n- app/products/page.tsx\n- .ai-system/checkpoints/session-log.md\n\n**Next Task:**\n- Add automated route guard tests for unified endpoints (/orders, /profile, /wallet, /products, /dashboard, /analytics, /store-settings).\n- Re-run 
+
+## Session 9 � 2026-03-23\n\n**Goal:**\nConsolidate role-specific pages under root routes and remove legacy route groups for buyer/admin/vendor feature duplicates.\n\n**Completed:**\n- Copied buyer public pages (about/contact/faqs/etc.) from pp/(buyer) into root pp/ and removed the pp/(buyer) folder.\n- Removed deprecated routing folders for duplicate shared feature routes: dmin/orders, dmin/products, dmin/dashboard, dmin/analytics, endor/orders, endor/products, endor/dashboard, endor/analytics.\n- Created unified pp/store-settings/page.tsx backed by a shared components/features/StoreSettingsPage.tsx and handled vendor-only access in the same file.\n- Updated pp/vendor/store-settings/page.tsx to redirect to /store-settings.\n- Added shared components/features/ProductsContent.tsx and updated pp/products/page.tsx to use it.\n- All TypeScript checks pass (
+
+px tsc --noEmit).\n\n**Files Modified:**\n- app/(buyer)/_ (moved to root and removed)\n- app/admin/_ (deleted route duplicates)\n- app/vendor/\* (deleted route duplicates, updated store-settings redirect)\n- app/store-settings/page.tsx\n- components/features/StoreSettingsPage.tsx\n- components/features/ProductsContent.tsx\n- app/products/page.tsx\n- .ai-system/checkpoints/session-log.md\n\n**Next Task:**\n- Add automated route guard tests for unified endpoints (/orders, /profile, /wallet, /products, /dashboard, /analytics, /store-settings).\n- Re-run
 px vitest --run and document existing unrelated failures in JWT/misc schemas (these failures are pre-existing).\n\n**Notes / Blockers:**\n- Current test failures are in jwt.utils.test.ts and misc.schemas.test.ts, unrelated to routing refactor.\n

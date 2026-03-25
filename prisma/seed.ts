@@ -531,7 +531,7 @@ async function main() {
                 createdBy: admin.id,
             },
             {
-                title: 'Welcome to HarvestHub!',
+                title: 'Welcome to MyHarvestHub!',
                 subtitle: 'Your trusted church community marketplace',
                 description: 'Shop from verified vendors in your church community.',
                 imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=400&fit=crop',
