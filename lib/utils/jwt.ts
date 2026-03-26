@@ -45,19 +45,21 @@ export interface JWTPayload {
     userId: string;
     email: string;
     role: UserRole;
+    emailVerified: boolean;
     type: 'access' | 'refresh';
 }
 
 /**
  * Generate access token
  */
-export async function generateAccessToken(userId: string, email: string, role: UserRole): Promise<string> {
+export async function generateAccessToken(userId: string, email: string, role: UserRole, emailVerified = false): Promise<string> {
     const secret = getAccessSecret();
     console.log('generateAccessToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,
         role,
+        emailVerified,
         type: 'access',
     })
         .setProtectedHeader({ alg: 'HS256' })
@@ -73,13 +75,14 @@ export async function generateAccessToken(userId: string, email: string, role: U
 /**
  * Generate refresh token
  */
-export async function generateRefreshToken(userId: string, email: string, role: UserRole): Promise<string> {
+export async function generateRefreshToken(userId: string, email: string, role: UserRole, emailVerified = false): Promise<string> {
     const secret = getRefreshSecret();
     console.log('generateRefreshToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,
         role,
+        emailVerified,
         type: 'refresh',
     })
         .setProtectedHeader({ alg: 'HS256' })
@@ -95,13 +98,13 @@ export async function generateRefreshToken(userId: string, email: string, role: 
 /**
  * Generate both access and refresh tokens
  */
-export async function generateTokenPair(userId: string, email: string, role: UserRole): Promise<{
+export async function generateTokenPair(userId: string, email: string, role: UserRole, emailVerified = false): Promise<{
     accessToken: string;
     refreshToken: string;
 }> {
     const [accessToken, refreshToken] = await Promise.all([
-        generateAccessToken(userId, email, role),
-        generateRefreshToken(userId, email, role),
+        generateAccessToken(userId, email, role, emailVerified),
+        generateRefreshToken(userId, email, role, emailVerified),
     ]);
 
     return {

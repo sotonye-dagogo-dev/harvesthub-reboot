@@ -84,6 +84,7 @@ describe('JWT Utilities (jose library)', () => {
             expect(payload?.sub).toBe(testUserId);
             expect(payload?.email).toBe(testEmail);
             expect(payload?.role).toBe(testRole);
+            expect(payload?.emailVerified).toBe(false);
         });
 
         it('should return null for invalid token', async () => {
@@ -126,6 +127,7 @@ describe('JWT Utilities (jose library)', () => {
             expect(payload).toHaveProperty('sub');
             expect(payload).toHaveProperty('email');
             expect(payload).toHaveProperty('role');
+            expect(payload).toHaveProperty('emailVerified');
             expect(payload).toHaveProperty('iat'); // issued at
             expect(payload).toHaveProperty('exp'); // expiration
         });

@@ -6,11 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
-import { generateTokenPair } from '@/lib/utils/jwt';
-import { setAuthCookies } from '@/lib/utils/cookies';
 import { sendVerifyEmail } from '@/lib/services/email';
 import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { UserRole } from '@/lib/constants';
 import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
