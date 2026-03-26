@@ -1,7 +1,6 @@
 import { Link, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 interface WelcomeEmailProps {
   firstName: string;
@@ -14,8 +13,8 @@ export function WelcomeEmail({ firstName, role }: WelcomeEmailProps) {
 
   return (
     <EmailLayout
-      previewText="Welcome to HarvestHub!"
-      heading={`Welcome to HarvestHub${role === "VENDOR" ? " 🏪" : ""}`}
+      previewText="Welcome to MyHarvestHub!"
+      heading={`Welcome to MyHarvestHub${role === "VENDOR" ? " 🏪" : ""}`}
     >
       <Text style={styles.paragraph}>Hi {firstName},</Text>
       <Text style={styles.paragraph}>
@@ -61,13 +60,4 @@ export function WelcomeEmail({ firstName, role }: WelcomeEmailProps) {
       </Text>
     </EmailLayout>
   );
-}
-
-export async function sendWelcomeEmail(to: string, firstName: string, role: "BUYER" | "VENDOR") {
-  return sendEmail({
-    to,
-    subject: `Welcome to HarvestHub${role === "VENDOR" ? " — Vendor Application Received" : ""}!`,
-    react: <WelcomeEmail firstName={firstName} role={role} />,
-    tags: [{ name: "category", value: "welcome" }],
-  });
 }

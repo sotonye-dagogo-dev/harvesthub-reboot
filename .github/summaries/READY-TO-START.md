@@ -1,4 +1,4 @@
-# 🚀 HarvestHub: Ready to Start Development
+# 🚀 MyHarvestHub: Ready to Start Development
 
 **Date**: January 24, 2026  
 **Status**: ✅ Documentation Complete - Ready for Phase 1  
@@ -147,7 +147,7 @@ const name = user?.name ?? "Guest";
 
 ```bash
 # 1. Rename directory
-# Rename: Martgram → harvesthub-app
+# Rename: Martgram → myharvesthub-app
 
 # 2. Update package.json name
 "name": "harvesthub-app"
@@ -158,9 +158,9 @@ npm install zustand zod date-fns bcryptjs jsonwebtoken
 npm install -D @types/bcryptjs @types/jsonwebtoken prettier
 
 # 4. Find & Replace ALL files
-# Martgram → HarvestHub
-# martgram → harvesthub
-# MartGram → HarvestHub
+# Martgram → MyHarvestHub
+# martgram → myharvesthub
+# MartGram → MyHarvestHub
 ```
 
 ### Hour 3-4: Purple Theme
@@ -413,7 +413,7 @@ Don't accumulate untested code. Test after each small change.
 ### Hour 1-2: Foundation Setup
 
 1. Open [QUICK-START.md](QUICK-START.md) Step 1
-2. Rename Martgram directory → harvesthub-app
+2. Rename Martgram directory → myharvesthub-app
 3. Update package.json name
 4. Find & replace all "Martgram" variants
 5. Update dependencies (Next.js 15, React 19, install new packages)

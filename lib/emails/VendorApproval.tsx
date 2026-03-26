@@ -1,7 +1,6 @@
-import { Link, Section, Text } from '@react-email/components';
-import * as React from 'react';
-import { EmailLayout, styles } from './EmailLayout';
-import { sendEmail } from '@/lib/services/email';
+import { Link, Section, Text } from "@react-email/components";
+import * as React from "react";
+import { EmailLayout, styles } from "./EmailLayout";
 
 interface VendorApprovalProps {
   firstName: string;
@@ -16,7 +15,7 @@ export function VendorApproval({
   approved,
   rejectionReason,
 }: VendorApprovalProps) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
 
   return (
     <EmailLayout
@@ -25,56 +24,56 @@ export function VendorApproval({
           ? `Your store "${storeName}" has been approved!`
           : `Update on your store "${storeName}" application`
       }
-      heading={approved ? 'Store Approved! 🎉' : 'Application Update'}
+      heading={approved ? "Store Approved! 🎉" : "Application Update"}
     >
       <Text style={styles.paragraph}>Hi {firstName},</Text>
 
       {approved ? (
         <>
           <Text style={styles.paragraph}>
-            Great news! Your store <strong>{storeName}</strong> has been approved
-            and is now live on HarvestHub.
+            Great news! Your store <strong>{storeName}</strong> has been approved and is now live on
+            MyHarvestHub.
           </Text>
           <Text style={styles.paragraph}>
-            You can now start listing your products and accepting orders from
-            buyers across the platform.
+            You can now start listing your products and accepting orders from buyers across the
+            platform.
           </Text>
-          <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+          <Section style={{ textAlign: "center", margin: "24px 0" }}>
             <Link href={`${appUrl}/vendor/dashboard`} style={styles.button}>
               Go to Dashboard
             </Link>
           </Section>
           <Text style={styles.muted}>
-            Tip: Add your first product, set up your store banner, and share
-            your store link with customers to start getting orders.
+            Tip: Add your first product, set up your store banner, and share your store link with
+            customers to start getting orders.
           </Text>
         </>
       ) : (
         <>
           <Text style={styles.paragraph}>
-            We&apos;ve reviewed your application for <strong>{storeName}</strong>,
-            and unfortunately it wasn&apos;t approved at this time.
+            We&apos;ve reviewed your application for <strong>{storeName}</strong>, and unfortunately
+            it wasn&apos;t approved at this time.
           </Text>
           {rejectionReason && (
             <Section
               style={{
-                backgroundColor: '#fef2f2',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                margin: '16px 0',
-                borderLeft: '4px solid #ef4444',
+                backgroundColor: "#fef2f2",
+                borderRadius: "8px",
+                padding: "12px 16px",
+                margin: "16px 0",
+                borderLeft: "4px solid #ef4444",
               }}
             >
-              <Text style={{ ...styles.muted, color: '#991b1b', margin: 0 }}>
+              <Text style={{ ...styles.muted, color: "#991b1b", margin: 0 }}>
                 <strong>Reason:</strong> {rejectionReason}
               </Text>
             </Section>
           )}
           <Text style={styles.paragraph}>
-            You can update your store information and resubmit your application.
-            If you have questions, please contact our support team.
+            You can update your store information and resubmit your application. If you have
+            questions, please contact our support team.
           </Text>
-          <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+          <Section style={{ textAlign: "center", margin: "24px 0" }}>
             <Link href={`${appUrl}/vendor/store-settings`} style={styles.buttonSecondary}>
               Update Store Info
             </Link>
@@ -83,21 +82,4 @@ export function VendorApproval({
       )}
     </EmailLayout>
   );
-}
-
-export async function sendVendorApprovalEmail(
-  to: string,
-  data: VendorApprovalProps,
-) {
-  return sendEmail({
-    to,
-    subject: data.approved
-      ? `Your store "${data.storeName}" has been approved!`
-      : `Update on your "${data.storeName}" application`,
-    react: <VendorApproval {...data} />,
-    tags: [
-      { name: 'category', value: 'vendor-approval' },
-      { name: 'approved', value: String(data.approved) },
-    ],
-  });
 }

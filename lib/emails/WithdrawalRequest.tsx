@@ -1,7 +1,6 @@
 import { Link, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 type WithdrawalStatus = "SUBMITTED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
@@ -126,18 +125,4 @@ export function WithdrawalRequest({
       </Section>
     </EmailLayout>
   );
-}
-
-export async function sendWithdrawalRequestEmail(to: string, data: WithdrawalRequestProps) {
-  const cfg = STATUS_CONFIG[data.status];
-  return sendEmail({
-    to,
-    subject: `Withdrawal ${cfg.label.toLowerCase()}: ${formatNgn(data.amount)}`,
-    react: <WithdrawalRequest {...data} />,
-    tags: [
-      { name: "category", value: "withdrawal" },
-      { name: "status", value: data.status },
-      { name: "reference", value: data.reference },
-    ],
-  });
 }

@@ -1,4 +1,4 @@
-# HarvestHub E-Commerce Platform
+# MyHarvestHub E-Commerce Platform
 
 > A comprehensive e-commerce marketplace connecting buyers and vendors with integrated wallet functionality, promotional banners, and flexible pickup/delivery options.
 
@@ -130,7 +130,7 @@ Comprehensive documentation is available in the `.github` directory:
 
 ## 🧪 Development Approach
 
-This project follows a refactoring-first approach, transforming an existing codebase (Martgram) into HarvestHub. Key principles:
+This project follows a refactoring-first approach, transforming an existing codebase (Martgram) into MyHarvestHub. Key principles:
 
 - **Type Safety First**: Comprehensive TypeScript types defined globally
 - **Relational Integrity**: Mock data with valid foreign keys from day one

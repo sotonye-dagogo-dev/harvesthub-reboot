@@ -1,4 +1,4 @@
-# HarvestHub Implementation Tasks
+# MyHarvestHub Implementation Tasks
 
 ## Completed ✅
 
@@ -73,7 +73,7 @@
 12. **Implement Help Page Routes**
     - /faqs - FAQ page with accordion
     - /contact - Contact form
-    - /about - About HarvestHub
+    - /about - About MyHarvestHub
     - /terms - Terms & Conditions
     - /privacy - Privacy Policy
 

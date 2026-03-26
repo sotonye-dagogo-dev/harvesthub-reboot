@@ -439,7 +439,7 @@ const activeVendors = mockVendors.filter((v) => v.status.toUpperCase() === "ACTI
 
 ## 📝 Architecture Recommendations
 
-### For HarvestHub Project:
+### For MyHarvestHub Project:
 
 1. **Use Unique Route Names** (Option 1) - Clearest separation of concerns
 2. **Middleware-Based Access Control** - Route protection by user role

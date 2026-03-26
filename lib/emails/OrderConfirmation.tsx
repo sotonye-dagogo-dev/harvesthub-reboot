@@ -1,7 +1,6 @@
 import { Column, Link, Row, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 interface OrderItemData {
   name: string;
@@ -126,19 +125,4 @@ export function OrderConfirmation({
       </Text>
     </EmailLayout>
   );
-}
-
-export async function sendOrderConfirmationEmail(
-  to: string,
-  data: Omit<OrderConfirmationProps, "firstName"> & { firstName: string }
-) {
-  return sendEmail({
-    to,
-    subject: `Order ${data.orderNumber} confirmed — ${formatNgn(data.total)}`,
-    react: <OrderConfirmation {...data} />,
-    tags: [
-      { name: "category", value: "order-confirmation" },
-      { name: "order", value: data.orderNumber },
-    ],
-  });
 }

@@ -1,7 +1,6 @@
-import { Link, Section, Text } from '@react-email/components';
-import * as React from 'react';
-import { EmailLayout, styles } from './EmailLayout';
-import { sendEmail } from '@/lib/services/email';
+import { Link, Section, Text } from "@react-email/components";
+import * as React from "react";
+import { EmailLayout, styles } from "./EmailLayout";
 
 interface AvailabilityResponseProps {
   buyerFirstName: string;
@@ -14,7 +13,7 @@ interface AvailabilityResponseProps {
 }
 
 function formatNgn(amount: number): string {
-  return `₦${amount.toLocaleString('en-NG', { minimumFractionDigits: 0 })}`;
+  return `₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 0 })}`;
 }
 
 export function AvailabilityResponse({
@@ -26,7 +25,7 @@ export function AvailabilityResponse({
   estimatedPrice,
   vendorMessage,
 }: AvailabilityResponseProps) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://myharvesthub.org";
 
   return (
     <EmailLayout
@@ -39,15 +38,15 @@ export function AvailabilityResponse({
     >
       <Text style={styles.paragraph}>Hi {buyerFirstName},</Text>
       <Text style={styles.paragraph}>
-        <strong>{vendorName}</strong> has responded to your availability check for{' '}
+        <strong>{vendorName}</strong> has responded to your availability check for{" "}
         <strong>{productName}</strong>.
       </Text>
 
-      <Section style={{ textAlign: 'center', margin: '16px 0' }}>
+      <Section style={{ textAlign: "center", margin: "16px 0" }}>
         {available ? (
-          <Text style={styles.badge('#22c55e', '#dcfce7')}>✓ Available</Text>
+          <Text style={styles.badge("#22c55e", "#dcfce7")}>✓ Available</Text>
         ) : (
-          <Text style={styles.badge('#ef4444', '#fee2e2')}>✗ Not Available</Text>
+          <Text style={styles.badge("#ef4444", "#fee2e2")}>✗ Not Available</Text>
         )}
       </Section>
 
@@ -71,10 +70,10 @@ export function AvailabilityResponse({
       {vendorMessage && (
         <Section
           style={{
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            margin: '16px 0',
+            backgroundColor: "#f9fafb",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            margin: "16px 0",
           }}
         >
           <Text style={{ ...styles.muted, margin: 0 }}>
@@ -84,13 +83,13 @@ export function AvailabilityResponse({
       )}
 
       {available ? (
-        <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+        <Section style={{ textAlign: "center", margin: "24px 0" }}>
           <Link href={`${appUrl}/products`} style={styles.button}>
             Order Now
           </Link>
         </Section>
       ) : (
-        <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+        <Section style={{ textAlign: "center", margin: "24px 0" }}>
           <Link href={`${appUrl}/products`} style={styles.buttonSecondary}>
             Browse Alternatives
           </Link>
@@ -98,18 +97,4 @@ export function AvailabilityResponse({
       )}
     </EmailLayout>
   );
-}
-
-export async function sendAvailabilityResponseEmail(
-  to: string,
-  data: AvailabilityResponseProps,
-) {
-  return sendEmail({
-    to,
-    subject: data.available
-      ? `"${data.productName}" is available from ${data.vendorName}!`
-      : `"${data.productName}" — vendor response`,
-    react: <AvailabilityResponse {...data} />,
-    tags: [{ name: 'category', value: 'availability-response' }],
-  });
 }

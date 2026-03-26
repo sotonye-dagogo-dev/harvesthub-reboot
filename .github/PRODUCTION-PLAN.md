@@ -1,4 +1,4 @@
-# HarvestHub — Production Execution Plan
+# MyHarvestHub — Production Execution Plan
 
 > **Created**: March 7, 2026
 > **Status**: In Progress
@@ -117,7 +117,7 @@ web-push @types/web-push
 DATABASE_URL=prisma://accelerate.prisma-data.net/...
 DIRECT_URL=postgresql://...
 
-# Upstash Redis (shared DB — all keys namespaced with harvesthub:)
+# Upstash Redis (shared DB — all keys namespaced with myharvesthub:)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 
@@ -399,7 +399,7 @@ myharvesthub/
   - [ ] `AvailabilityResponse.tsx` — buyer receives vendor response
   - [ ] `WithdrawalRequest.tsx` — withdrawal submitted/processed
   - [ ] `LowStockAlert.tsx` — vendor low stock warning
-  - [ ] All templates: branded with HarvestHub purple, responsive, plain-text fallback
+  - [ ] All templates: branded with MyHarvestHub purple, responsive, plain-text fallback
 - [ ] **4.4** Add email verification flow
   - [ ] `emailVerificationToken` + `emailVerificationExpiry` fields (already in updated User model)
   - [ ] `POST /api/auth/verify-email` — validates token, marks `emailVerified: true`

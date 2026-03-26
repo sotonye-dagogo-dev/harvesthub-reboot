@@ -1,4 +1,4 @@
-# HarvestHub UI Component Wrapper Audit Report
+# MyHarvestHub UI Component Wrapper Audit Report
 
 **Date**: 2026-02-24  
 **Scope**: Full codebase scan (excluding node_modules/.next)

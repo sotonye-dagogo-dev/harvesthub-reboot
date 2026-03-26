@@ -7,7 +7,6 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
 import { ListingType } from '../../../../prisma/generated/client';
-import type { CartItem } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
     try {

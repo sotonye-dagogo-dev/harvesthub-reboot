@@ -6,6 +6,7 @@
  */
 
 import webpush from "web-push";
+import { env, featureFlags } from "@/lib/config";
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -19,10 +20,11 @@ let configured = false;
 
 function ensureConfigured(): boolean {
   if (configured) return true;
+  if (!featureFlags.enablePushNotifications) return false;
 
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT;
+  const publicKey = env.vapidPublicKey;
+  const privateKey = env.vapidPrivateKey;
+  const subject = env.vapidSubject;
 
   if (!publicKey || !privateKey || !subject) {
     console.warn(

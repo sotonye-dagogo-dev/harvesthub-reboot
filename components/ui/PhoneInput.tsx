@@ -74,11 +74,11 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     const select = useMemo(
       () => (
         <Select
-          className="w-24"
+          className="min-w-[80px] max-w-[110px] w-fit"
+          dropdownMatchSelectWidth={false}
           value={countryCode}
           onChange={handleCountryChange}
           options={countryCodes}
-          dropdownMatchSelectWidth={false}
           aria-label="Country code"
         />
       ),

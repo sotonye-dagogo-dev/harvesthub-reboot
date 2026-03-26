@@ -1,85 +1,35 @@
-import React from "react";
-import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { Providers } from "./providers";
-import OfflineNotice from "@/components/features/pwa/OfflineNotice";
 import "@/app/_styles/globals.css";
+import { ReactNode } from "react";
+import { Header, Footer } from "@/components/layout";
+import { TopAdBanner } from "@/components/features";
+import { Providers } from "@/app/providers";
 
-export const metadata: Metadata = {
-  title: {
-    template: "%s | MyHarvestHub",
-    default: "MyHarvestHub | Faith-Based E-Marketplace",
-  },
-  description:
-    "A comprehensive e-commerce marketplace connecting buyers and vendors. Shop from verified vendors with integrated wallet, flexible pickup and delivery options.",
-  keywords: [
-    "e-commerce",
-    "marketplace",
-    "Lagos",
-    "Nigeria",
-    "church vendors",
-    "online shopping",
-    "MyHarvestHub",
-  ],
-  authors: [{ name: "MyHarvestHub Team" }],
-  creator: "MyHarvestHub",
-  publisher: "MyHarvestHub",
-  metadataBase: new URL("https://myharvesthub.org"),
-  openGraph: {
-    type: "website",
-    locale: "en_NG",
-    url: "https://myharvesthub.org",
-    title: "MyHarvestHub | Faith-Based E-Marketplace",
-    description:
-      "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
-    siteName: "MyHarvestHub",
-    images: [
-      {
-        url: "/myharvesthublogo.png",
-        width: 1200,
-        height: 630,
-        alt: "MyHarvestHub",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "MyHarvestHub | Faith-Based E-Marketplace",
-    description:
-      "A faith-based e-marketplace connecting Christian communities with trusted vendors.",
-    images: ["/myharvesthublogo.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+export const metadata = {
+  title: "MyHarvestHub",
+  description: "Next-gen agriculture e-commerce for campus vendors and buyers",
 };
 
-const layout = ({ children }: { children: React.ReactNode }) => {
+export const dynamic = "force-dynamic";
+
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/icons/icon-48x48.png" />
-        <meta name="theme-color" content="#9333ea" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      </head>
-      <body className={GeistSans.className}>
+      <body className="min-h-screen bg-ds-surface-base text-ds-text-primary">
         <Providers>
-          <main>{children}</main>
-          <OfflineNotice />
+          <div className="flex min-h-screen flex-col">
+            <TopAdBanner />
+            <Header />
+            <main className="flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
   );
-};
-
-export default layout;
+}

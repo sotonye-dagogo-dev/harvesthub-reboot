@@ -1,5 +1,4 @@
 import React from "react";
-import { Button, Steps } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 
 interface StageTrackerProps {
@@ -9,108 +8,82 @@ interface StageTrackerProps {
   canGoBack: boolean;
 }
 
-const stageNames = {
-  selection: "Selection",
-  "user-info": "Personal Information",
-  "store-info": "Store Information",
-  "account-info": "Account Information",
-  "security-info": "Security Information",
+const stageNames: Record<string, string> = {
+  selection: "Choose Account Type",
+  "user-info": "Your Profile",
+  "store-info": "Store Details",
+  "verification-docs": "Verify Documents",
+  "account-info": "Account Setup",
+  "security-info": "Security Setup",
 };
 
-const StageTracker: React.FC<StageTrackerProps> = ({
-  currentStage,
-  stages,
-  onBack,
-  canGoBack,
-}) => {
-  return currentStage === 0 ? (
-    <div></div>
-  ) : (
-    <div className="w-full">
-      <div className="flex items-center justify-between w-fit gap-4 mb-4">
+const StageTracker: React.FC<StageTrackerProps> = ({ currentStage, stages, onBack, canGoBack }) => {
+  const total = stages.length;
+  const percentage = ((currentStage + 1) / total) * 100;
+
+  const getProgressClass = () => {
+    if (percentage >= 100) return "w-full";
+    if (percentage >= 80) return "w-4/5";
+    if (percentage >= 60) return "w-3/5";
+    if (percentage >= 40) return "w-2/5";
+    if (percentage >= 20) return "w-1/5";
+    return "w-1/12";
+  };
+
+  const progressClass = getProgressClass();
+
+  return (
+    <div className="w-full rounded-ds-lg border border-ds-border-base p-4 bg-ds-surface-base shadow-ds-sm">
+      <div className="flex items-center justify-between mb-3 gap-2">
         <div className="flex items-center gap-2">
           {canGoBack && (
-            <Button
-              type="text"
-              icon={<LeftOutlined />}
+            <button
               onClick={onBack}
-              className="flex items-center justify-center"
-            />
+              className="inline-flex items-center gap-1 rounded-ds-sm border border-ds-border-base px-2 py-1 text-xs text-ds-text-primary hover:bg-ds-surface-hover"
+            >
+              <LeftOutlined className="text-xs" /> Back
+            </button>
           )}
-          <span className="text-sm text-ds-text-placeholder">Back</span>
+          <span className="text-xs font-medium text-ds-text-secondary">
+            Step {currentStage + 1} of {total}
+          </span>
         </div>
-        <span className="font-semibold text-sm capitalize">
-          {(stageNames[stages[currentStage] as keyof typeof stageNames])?.replace("-", " ")}
+        <span className="text-xs font-semibold text-ds-text-primary">
+          {(() => {
+            const currentStep = stages[currentStage];
+            if (!currentStep) return "Unknown step";
+            return stageNames[currentStep] || currentStep;
+          })()}
         </span>
       </div>
 
-      <div className="w-7/12 flex items-center gap-2 text-[0.6rem]">
-        <div className="flex-grow h-full">
-          <Steps
-            current={currentStage}
-            size="small"
-            direction="horizontal"
-            responsive={false}
-            className="custom-steps w-fit"
-            items={stages.map((_, index) => ({
-              title: "",
-              description: "",
-              id: index,
-            }))}
-          />
-        </div>
-        <div>
-          {currentStage + 1}/{stages.length}
-        </div>
+      <div className="h-2 w-full rounded-full bg-ds-border-base overflow-hidden mb-3">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r from-ds-brand-primary to-ds-brand-accent transition-all ${progressClass}`}
+        />
       </div>
 
-      <style jsx global>{`
-        .custom-steps .ant-steps-item-icon {
-          display: none !important;
-        }
-
-        .custom-steps .ant-steps-item {
-          height: fit-content !important;
-          padding-inline-start: 0 !important;
-        }
-
-        .custom-steps .ant-steps-item-tail {
-          display: flex !important;
-          position: static !important;
-          height: 0.5rem;
-          width: 3rem !important;
-          border-radius: 9999px;
-          background-color: #e5e7eb !important;
-          margin: 0 0.1rem !important;
-        }
-
-        .custom-steps .ant-steps-item-process .ant-steps-item-tail::after {
-          background-color: #e5e7eb !important;
-          height: 0.5rem;
-          width: 3rem !important;
-          border-radius: 9999px;
-        }
-
-        .custom-steps .ant-steps-item-wait .ant-steps-item-tail::after {
-          background-color: #e5e7eb !important;
-          height: 0.5rem;
-          width: 3rem !important;
-          border-radius: 9999px;
-        }
-
-        .custom-steps .ant-steps-item-finish .ant-steps-item-tail::after {
-          background-color: #ff6b00 !important;
-          height: 0.5rem;
-          width: 3rem !important;
-          border-radius: 9999px;
-        }
-
-        .custom-steps .ant-steps-item-container {
-          width: fit-content;
-          display: flex;
-          align-items: center;
-        }
-      `}</style>
+      <div className="grid grid-cols-3 gap-2 text-[11px] text-ds-text-secondary">
+        {stages.map((step, index) => {
+          const isActive = index === currentStage;
+          const isComplete = index < currentStage;
+          return (
+            <div
+              key={step}
+              className={`flex items-center gap-2 rounded-ds-sm px-2 py-1 ${
+                isActive
+                  ? "bg-ds-brand-primary text-white"
+                  : isComplete
+                    ? "bg-ds-brand-subtle text-ds-text-primary"
+                    : "bg-ds-surface-sunken"
+              }`}
+            >
+              <span className="text-xs font-bold">{index + 1}</span>
+              <span className="truncate">{stageNames[step] || step}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

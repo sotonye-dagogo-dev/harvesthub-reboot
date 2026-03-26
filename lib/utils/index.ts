@@ -1,5 +1,5 @@
 /**
- * Utility functions for HarvestHub
+ * Utility functions for MyHarvestHub
  * Common helpers used across the application
  */
 
@@ -215,6 +215,14 @@ export function calculatePercentage(part: number, whole: number): number {
  */
 export function clamp(num: number, min: number, max: number): number {
     return Math.min(Math.max(num, min), max);
+}
+
+export async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+        throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
 }
 
 // ============================================================================

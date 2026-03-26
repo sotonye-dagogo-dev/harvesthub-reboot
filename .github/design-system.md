@@ -1,6 +1,6 @@
-# HarvestHub Design System – Token Reference
+# MyHarvestHub Design System – Token Reference
 
-> **Version 1.0** — Single source of truth for colours, typography, spacing, shadows, elevation, and radii used across the HarvestHub codebase.
+> **Version 1.0** — Single source of truth for colours, typography, spacing, shadows, elevation, and radii used across the MyHarvestHub codebase.
 
 ---
 

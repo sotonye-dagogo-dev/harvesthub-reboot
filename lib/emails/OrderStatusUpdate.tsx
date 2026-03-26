@@ -1,9 +1,15 @@
 import { Link, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
-type StatusType = "CONFIRMED" | "PROCESSING" | "READY_FOR_PICKUP" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+type StatusType =
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "READY_FOR_PICKUP"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "REFUNDED";
 
 interface OrderStatusUpdateProps {
   firstName: string;
@@ -117,18 +123,4 @@ export function OrderStatusUpdate({
       </Section>
     </EmailLayout>
   );
-}
-
-export async function sendOrderStatusUpdateEmail(to: string, data: OrderStatusUpdateProps) {
-  const cfg = STATUS_CONFIG[data.status];
-  return sendEmail({
-    to,
-    subject: `Order ${data.orderNumber} — ${cfg.label}`,
-    react: <OrderStatusUpdate {...data} />,
-    tags: [
-      { name: "category", value: "order-status" },
-      { name: "order", value: data.orderNumber },
-      { name: "status", value: data.status },
-    ],
-  });
 }

@@ -1,5 +1,5 @@
 /**
- * Cloudinary Image Management Service for HarvestHub
+ * Cloudinary Image Management Service for MyHarvestHub
  *
  * All images are stored under the root folder: myharvesthub/
  *
@@ -10,13 +10,14 @@
  */
 
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { env } from '@/lib/config';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
 export const CLOUDINARY_ROOT_FOLDER =
-    process.env.CLOUDINARY_ROOT_FOLDER || 'myharvesthub';
+    env.cloudinaryRootFolder;
 
 let configured = false;
 

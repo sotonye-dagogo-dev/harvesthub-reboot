@@ -245,6 +245,24 @@ export async function getVendorById(id: string) {
     }
 }
 
+export async function getBuyerByUserId(userId: string) {
+    if (useMockData) {
+        const m = await loadMockData();
+        return (m?.mockBuyers ?? []).find((b: any) => b.userId === userId) ?? null;
+    }
+
+    try {
+        return await prisma.buyer.findUnique({
+            where: { userId },
+            include: {
+                user: true,
+            },
+        });
+    } catch {
+        return null;
+    }
+}
+
 export async function getVendorByUserId(userId: string) {
     if (useMockData) {
         const m = await loadMockData();
@@ -358,6 +376,28 @@ export async function getOrdersByVendorId(vendorId: string) {
     } catch {
         return [];
     }
+}
+
+export async function getOrdersByUserRole(user: { userId: string; role: string }) {
+    if (!user || !user.userId) return [];
+
+    if (user.role === 'ADMIN') {
+        return getOrders();
+    }
+
+    if (user.role === 'VENDOR') {
+        const vendor = await getVendorByUserId(user.userId);
+        if (!vendor?.id) return [];
+        return getOrdersByVendorId(vendor.id);
+    }
+
+    if (user.role === 'BUYER') {
+        const buyer = await getBuyerByUserId(user.userId);
+        if (!buyer?.id) return [];
+        return getOrdersByBuyerId(buyer.id);
+    }
+
+    return [];
 }
 
 // ==================== USERS ====================

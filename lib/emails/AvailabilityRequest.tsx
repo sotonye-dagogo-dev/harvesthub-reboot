@@ -1,7 +1,6 @@
 import { Link, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 interface AvailabilityRequestProps {
   vendorFirstName: string;
@@ -80,16 +79,4 @@ export function AvailabilityRequest({
       </Text>
     </EmailLayout>
   );
-}
-
-export async function sendAvailabilityRequestEmail(to: string, data: AvailabilityRequestProps) {
-  return sendEmail({
-    to,
-    subject: `Availability check: "${data.productName}" × ${data.quantity}`,
-    react: <AvailabilityRequest {...data} />,
-    tags: [
-      { name: "category", value: "availability-request" },
-      { name: "requestId", value: data.requestId },
-    ],
-  });
 }

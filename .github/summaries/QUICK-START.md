@@ -1,7 +1,7 @@
-# HarvestHub Quick Start Guide
+# MyHarvestHub Quick Start Guide
 
 **Date**: January 24, 2026  
-**Approach**: Refactoring Martgram → HarvestHub
+**Approach**: Refactoring Martgram → MyHarvestHub
 
 ---
 
@@ -14,7 +14,7 @@
 cd Martgram
 
 # Rename directory (do this outside terminal if easier)
-# Martgram → harvesthub-app
+# Martgram → myharvesthub-app
 
 # Update dependencies
 npm install next@^15.1.0 react@^19.0.0 react-dom@^19.0.0 antd@^5.22.0
@@ -269,10 +269,7 @@ export const db = {
       return product ? clone(product) : null;
     },
 
-    findAll: (filters?: {
-      category?: string;
-      vendorId?: string;
-    }): Product[] => {
+    findAll: (filters?: { category?: string; vendorId?: string }): Product[] => {
       let results = [...products];
 
       if (filters?.category) {

@@ -1,7 +1,6 @@
 import { Column, Link, Row, Section, Text } from "@react-email/components";
 import * as React from "react";
 import { EmailLayout, styles } from "./EmailLayout";
-import { sendEmail } from "@/lib/services/email";
 
 interface LowStockProduct {
   name: string;
@@ -73,14 +72,4 @@ export function LowStockAlert({ firstName, storeName, products }: LowStockAlertP
       </Text>
     </EmailLayout>
   );
-}
-
-export async function sendLowStockAlertEmail(to: string, data: LowStockAlertProps) {
-  const count = data.products.length;
-  return sendEmail({
-    to,
-    subject: `Low stock alert: ${count} product${count > 1 ? "s" : ""} need attention`,
-    react: <LowStockAlert {...data} />,
-    tags: [{ name: "category", value: "low-stock" }],
-  });
 }

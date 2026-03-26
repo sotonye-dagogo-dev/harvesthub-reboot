@@ -43,14 +43,9 @@ export default function DashboardPage() {
     redirect("/");
   }
 
-  // Redirect vendors to vendor analytics
-  if (user.role === "VENDOR") {
-    redirect("/vendor/analytics");
-  }
-
-  // Redirect admins to admin analytics
-  if (user.role === "ADMIN") {
-    redirect("/admin/analytics");
+  // Redirect vendors and admins to unified analytics route
+  if (user.role === "VENDOR" || user.role === "ADMIN") {
+    redirect("/analytics");
   }
 
   // Fallback
