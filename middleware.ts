@@ -52,13 +52,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // If email is not yet verified, route to verify page (except verification and auth routes)
-    const userRecord = await import("@/lib/db/prisma").then((mod) =>
-        mod.prisma.user.findUnique({ where: { id: user.userId }, select: { emailVerified: true } })
-    );
-
     const verifyingAllowed = ["/verify-email", "/api/auth/verify-email", "/api/auth/resend-verification", "/signup", "/signup-success", "/login", "/register", "/api/auth/login", "/api/auth/register"];
 
-    if (userRecord && !userRecord.emailVerified && !verifyingAllowed.some((p) => pathname === p || pathname.startsWith(p))) {
+    if (user && user.emailVerified === false && !verifyingAllowed.some((p) => pathname === p || pathname.startsWith(p))) {
         return NextResponse.redirect(new URL("/verify-email", request.url));
     }
 

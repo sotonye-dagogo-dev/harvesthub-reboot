@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role as UserRole);
+        const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role as UserRole, user.emailVerified);
         await setAuthCookies(accessToken, refreshToken, !!rememberMe);
 
         return NextResponse.json(

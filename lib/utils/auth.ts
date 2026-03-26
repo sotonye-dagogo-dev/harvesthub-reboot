@@ -35,7 +35,7 @@ async function refreshSession(): Promise<JWTPayload | null> {
 
     const user = await prisma.user.findUnique({
         where: { id: payload.userId },
-        select: { id: true, email: true, role: true, isActive: true },
+        select: { id: true, email: true, role: true, isActive: true, emailVerified: true },
     });
 
     if (!user || !user.isActive) {
@@ -51,6 +51,7 @@ async function refreshSession(): Promise<JWTPayload | null> {
         userId: user.id,
         email: user.email,
         role: user.role as UserRole,
+        emailVerified: user.emailVerified,
         type: 'access',
     };
 }

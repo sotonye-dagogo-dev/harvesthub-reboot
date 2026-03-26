@@ -34,7 +34,7 @@ export function EmailLayout({ previewText, heading, children }: EmailLayoutProps
           {/* Header */}
           <Section style={headerStyle}>
             <Link href={appUrl} style={{ textDecoration: "none" }}>
-              <Text style={logoTextStyle}>HarvestHub</Text>
+              <Text style={logoTextStyle}>MyHarvestHub</Text>
             </Link>
           </Section>
 
