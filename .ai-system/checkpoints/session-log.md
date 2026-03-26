@@ -378,6 +378,43 @@ Fix email service parser errors and complete self-healing loop for JSX-in-TS iss
 - Added Prisma reconnect wrapper for banner API from crashed DB connections (`Server has closed the connection`).
 - Updated `.ai-system` documents:
   - `agents/repair-system.md` with error, root cause, fix, and prevention.
+
+## Session 12 — 2026-03-26
+
+**Goal:**
+Implement verify-email gating in signup and login flows, and finalize signup stage workflow integration.
+
+**Completed:**
+
+- Updated `/api/auth/register` to set `emailVerified: false` and not automatically set auth cookies; used `needsEmailVerification` response.
+- Updated `/api/auth/login` to reject unverified users with explicit `403` and message.
+- Updated `AuthProvider.register` to keep user logged out when email verification is required.
+- Updated `/app/signup/security-info/page.tsx` to redirect to `/verify-email` after registration.
+- Updated `/app/signup-success/page.tsx` to instruct user to verify email before login.
+- Updated middleware to check `prisma.user.emailVerified` and redirect unverified users to `/verify-email` for protected routes.
+- Added placeholder color fix and logo sizing adjustments in signup/header for design consistency.
+
+**Files Modified:**
+
+- app/api/auth/register/route.ts
+- app/api/auth/login/route.ts
+- app/signup/security-info/page.tsx
+- app/signup-success/page.tsx
+- lib/contexts/AuthContext.tsx
+- middleware.ts
+- app/verify-email/page.tsx
+- app/\_styles/globals.css
+- app/components/layout/Header.tsx
+- app/signup/layout.tsx
+
+**Next Task:**
+
+- Run `npm run lint`, `npm run build`, and `npx vitest --run` locally.
+- Validate full signup->verify->login flow in browser and via API tests.
+
+**Notes / Blockers:**
+
+- Functionality is complete from flow perspective; local execution required to verify side effects in cookies/session.
   - `testing/test-results.md` with current check summary.
   - `checkpoints/session-log.md` with this session entry.
 

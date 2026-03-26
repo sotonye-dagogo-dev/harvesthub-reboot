@@ -218,7 +218,7 @@
     --ds-text-primary: var(--ds-palette-neutral-200);
     --ds-text-secondary: var(--ds-palette-neutral-400);
     --ds-text-tertiary: var(--ds-palette-neutral-500);
-    --ds-text-placeholder: var(--ds-palette-neutral-600);
+    --ds-text-placeholder: var(--ds-palette-neutral-500);
     --ds-text-disabled: var(--ds-palette-neutral-600);
     --ds-text-inverse: var(--ds-palette-black);
     --ds-text-brand: var(--ds-palette-purple-400);

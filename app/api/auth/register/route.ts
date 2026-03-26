@@ -166,12 +166,11 @@ export async function POST(request: NextRequest) {
             console.error('Failed to send verification email:', err)
         );
 
-        const { accessToken, refreshToken } = await generateTokenPair(result.id, result.email, result.role as UserRole);
-        await setAuthCookies(accessToken, refreshToken);
-
+        // Important: Do not log the user in until email is verified.
         return NextResponse.json(
             {
-                message: 'Registration successful',
+                message: 'Registration successful. Please verify your email address before logging in.',
+                needsEmailVerification: true,
                 user: {
                     id: result.id,
                     email: result.email,

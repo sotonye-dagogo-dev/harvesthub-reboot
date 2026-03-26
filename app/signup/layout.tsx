@@ -136,7 +136,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
                 src="/myharvesthublogo.png"
                 alt="MyHarvestHub Logo"
                 preview={false}
-                className="w-16 h-16 rounded-2xl object-contain md:w-20 md:h-20 self-start"
+                className="w-12 h-12 rounded-2xl object-contain md:w-14 md:h-14 self-start"
               />
               <Image
                 src="/Rectangle16.svg"
@@ -166,7 +166,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
               src="/myharvesthublogo.png"
               alt="Logo"
               preview={false}
-              className="w-16 h-16 rounded-2xl self-start md:w-20 md:h-20"
+              className="w-12 h-12 rounded-2xl self-start md:w-14 md:h-14"
             />
             <p className="text-xs font-thin text-ds-text-secondary">
               Join MyHarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!

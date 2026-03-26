@@ -63,29 +63,33 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: "48px auto", padding: "0 16px" }}>
-      <h1>Verify your email</h1>
-      {status === "loading" && <p>Verifying...</p>}
-      {status === "success" && <p style={{ color: "green" }}>{message}</p>}
-      {status === "error" && <p style={{ color: "red" }}>{message}</p>}
+    <main className="mx-auto mt-12 max-w-lg px-4">
+      <h1 className="text-2xl font-bold mb-4">Verify your email</h1>
+      {status === "loading" && <p className="text-ds-text-secondary">Verifying...</p>}
+      {status === "success" && <p className="mb-4 text-green-500">{message}</p>}
+      {status === "error" && <p className="mb-4 text-red-500">{message}</p>}
       {!token && (
-        <p>
-          No verification token found in the URL. If you didn&apos;t receive an email, enter your address
-          below to resend the verification link.
+        <p className="text-ds-text-secondary mb-4">
+          No verification token found in the URL. If you didn&apos;t receive an email, enter your
+          address below to resend the verification link.
         </p>
       )}
 
-      <form onSubmit={handleResend} style={{ marginTop: 24 }}>
-        <label style={{ display: "block", marginBottom: 8 }}>Email</label>
+      <form onSubmit={handleResend} className="space-y-3">
+        <label className="block text-sm font-medium">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          style={{ padding: 8, width: "100%", maxWidth: 420 }}
+          className="w-full max-w-md rounded-md border border-ds-border-base bg-ds-surface-base p-2 text-sm dark:bg-ds-surface-sunken dark:text-ds-text-primary"
         />
-        <div style={{ marginTop: 12 }}>
-          <button type="submit" disabled={resendLoading} style={{ padding: "8px 16px" }}>
+        <div>
+          <button
+            type="submit"
+            disabled={resendLoading}
+            className="min-w-[150px] rounded-ds-md bg-ds-brand-primary px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
             {resendLoading ? "Sending…" : "Resend verification email"}
           </button>
         </div>

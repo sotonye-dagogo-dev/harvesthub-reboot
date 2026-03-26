@@ -63,6 +63,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (!user.emailVerified) {
+            return NextResponse.json(
+                { error: 'Please verify your email address before logging in', needsEmailVerification: true },
+                { status: 403 }
+            );
+        }
+
         const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role as UserRole);
         await setAuthCookies(accessToken, refreshToken, !!rememberMe);
 

@@ -80,3 +80,16 @@
 - [ ] Add unit & integration tests for new inputs and flows
 - [ ] Update `.ai-system/design-system.md` and `.ai-system/agents/system-architecture.md` to reflect new components and data flow
 - [ ] Mark Feature done and add checkpoint entry when complete
+
+---
+
+## Feature: Signup + Email Verification Gate + Complete Integration
+
+- [x] Ensure signup progression waits on email verification before completing user status (enforce `verifiedEmail` state in register flow).
+- [x] Implement dynamic `StageTracker` stage filtering by user type (buyer vs vendor) so only relevant stages appear.
+- [x] Wire in all email flows for signup, password reset, order, vendor approval via `lib/services/email.ts` and `app/api/auth` routes.
+- [ ] Confirm PWA setup is complete in `app/_service-worker`, manifest, and route/service worker registration.
+- [x] Verify DB interactions for signup and user verification come through unified `prismaAdapter` (and fallback mock path) with connection resilience.
+- [ ] Add end-to-end signup test covering role selection, form completion, verify-email page, and post-verify persistence.
+- [ ] Add PWA offline banner state and cache-first fallback for core pages in app shell.
+- [x] Add checkpoint entry after this feature is merged.

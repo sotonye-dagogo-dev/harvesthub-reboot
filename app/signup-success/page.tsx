@@ -33,7 +33,8 @@ export default function SignupSuccessPage(): React.ReactElement {
 
         <h1 className="text-4xl font-bold mb-2 text-center">Account Created!</h1>
         <p className="text-ds-text-placeholder text-center mb-8">
-          Congratulations! Your {formData.userType} account has been created successfully.
+          Congratulations! Your {formData.userType} account has been created successfully. Please
+          verify your email using the link sent to your inbox before logging in.
         </p>
 
         <Button
