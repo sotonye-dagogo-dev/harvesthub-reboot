@@ -23,7 +23,17 @@ const labelMap: Record<string, string> = {
     faqs: 'FAQs',
     terms: 'Terms',
     privacy: 'Privacy',
+    help: 'Help',
+    contact: 'Contact',
+    forgotPassword: 'Forgot Password',
+    checkout: 'Checkout',
     adminPublicContent: 'Public Content',
+    adminVendors: 'Vendors',
+    adminUsers: 'Users',
+    adminBanners: 'Banners',
+    adminAds: 'Ads',
+    adminBugReports: 'Bug Reports',
+    adminSettings: 'Settings',
 };
 
 export function buildNav(role?: UserRole) {

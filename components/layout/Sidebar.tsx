@@ -18,39 +18,53 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { buildNav } from "@/lib/navigation";
+import { UserRole } from "@/lib/constants";
 
 interface SidebarProps {
   type: "vendor" | "admin";
 }
 
-const vendorLinks = [
-  { href: "/vendor/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/vendor/products", label: "Products", icon: Package },
-  { href: "/vendor/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/wallet", label: "Wallet", icon: Wallet },
-  { href: "/vendor/marketing-content", label: "Marketing", icon: Megaphone },
-  { href: "/vendor/store-settings", label: "Store Settings", icon: Settings },
-];
-
-const adminLinks = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/vendors", label: "Vendors", icon: Users },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/banners", label: "Banners", icon: AlertCircle },
-  { href: "/admin/vendor-content", label: "Vendor Content", icon: Megaphone },
-  { href: "/admin/bug-reports", label: "Bug Reports", icon: Bug },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-];
+function getSidebarLinks(type: "vendor" | "admin") {
+  const role = type === "admin" ? UserRole.ADMIN : UserRole.VENDOR;
+  return buildNav(role).filter(
+    (item) =>
+      item.path.startsWith(`/${type}`) ||
+      item.path === "/wallet" ||
+      item.path === "/notifications" ||
+      item.path === "/profile"
+  );
+}
 
 export function Sidebar({ type }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  const links = type === "vendor" ? vendorLinks : adminLinks;
+  const links = getSidebarLinks(type);
+
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    "/admin/dashboard": LayoutDashboard,
+    "/admin/vendors": Users,
+    "/admin/users": Users,
+    "/admin/banners": AlertCircle,
+    "/admin/ads": Megaphone,
+    "/admin/vendor-content": Megaphone,
+    "/admin/bug-reports": Bug,
+    "/admin/settings": Settings,
+    "/vendor/dashboard": LayoutDashboard,
+    "/vendor/products": Package,
+    "/vendor/orders": ShoppingBag,
+    "/vendor/marketing-content": Megaphone,
+    "/vendor/store-settings": Settings,
+    "/wallet": Wallet,
+    "/orders": ShoppingBag,
+    "/notifications": BarChart3,
+    "/profile": Users,
+  };
+
+  const getIcon = (href: string) => {
+    return iconMap[href];
+  };
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
@@ -76,13 +90,14 @@ export function Sidebar({ type }: SidebarProps) {
           {/* Navigation Links */}
           <nav className="flex-1 space-y-1 px-2 py-4">
             {links.map((link) => {
-              const Icon = link.icon;
-              const active = isActive(link.href);
+              const href = link.path;
+              const Icon = getIcon(href);
+              const active = isActive(href);
 
               return (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={href}
+                  href={href}
                   className={cn(
                     "flex items-center gap-3 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     active
@@ -92,7 +107,7 @@ export function Sidebar({ type }: SidebarProps) {
                   )}
                   title={collapsed ? link.label : undefined}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  {Icon ? <Icon className="h-5 w-5 flex-shrink-0" /> : null}
                   {!collapsed && <span>{link.label}</span>}
                 </Link>
               );
@@ -105,19 +120,20 @@ export function Sidebar({ type }: SidebarProps) {
       <nav className="fixed bottom-0 left-0 right-0 z-ds-header border-t border-ds-border-base bg-ds-surface-base dark:bg-ds-surface-base md:hidden">
         <div className="flex items-center overflow-x-auto px-2 py-1">
           {links.map((link) => {
-            const Icon = link.icon;
-            const active = isActive(link.href);
+            const href = link.path;
+            const Icon = getIcon(href);
+            const active = isActive(href);
 
             return (
               <Link
-                key={link.href}
-                href={link.href}
+                key={href}
+                href={href}
                 className={cn(
                   "flex min-w-[72px] flex-col items-center gap-1 px-3 py-2 text-xs font-medium",
                   active ? "text-ds-text-brand" : "text-ds-text-secondary"
                 )}
               >
-                <Icon className="h-5 w-5" />
+                {Icon ? <Icon className="h-5 w-5" /> : null}
                 <span className="truncate">{link.label}</span>
               </Link>
             );

@@ -79,6 +79,11 @@ export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
  */
 export type Banner = $Result.DefaultSelection<Prisma.$BannerPayload>
 /**
+ * Model AdApplication
+ * 
+ */
+export type AdApplication = $Result.DefaultSelection<Prisma.$AdApplicationPayload>
+/**
  * Model CommissionConfig
  * 
  */
@@ -443,6 +448,15 @@ export const ReviewStatus: {
 export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus]
 
 
+export const AdApplicationStatus: {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+export type AdApplicationStatus = (typeof AdApplicationStatus)[keyof typeof AdApplicationStatus]
+
+
 export const AvailabilityRequestStatus: {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
@@ -683,6 +697,10 @@ export const BannerTheme: typeof $Enums.BannerTheme
 export type ReviewStatus = $Enums.ReviewStatus
 
 export const ReviewStatus: typeof $Enums.ReviewStatus
+
+export type AdApplicationStatus = $Enums.AdApplicationStatus
+
+export const AdApplicationStatus: typeof $Enums.AdApplicationStatus
 
 export type AvailabilityRequestStatus = $Enums.AvailabilityRequestStatus
 
@@ -994,6 +1012,16 @@ export class PrismaClient<
     * ```
     */
   get banner(): Prisma.BannerDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adApplication`: Exposes CRUD operations for the **AdApplication** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdApplications
+    * const adApplications = await prisma.adApplication.findMany()
+    * ```
+    */
+  get adApplication(): Prisma.AdApplicationDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.commissionConfig`: Exposes CRUD operations for the **CommissionConfig** model.
@@ -1611,6 +1639,7 @@ export namespace Prisma {
     Transaction: 'Transaction',
     Review: 'Review',
     Banner: 'Banner',
+    AdApplication: 'AdApplication',
     CommissionConfig: 'CommissionConfig',
     Notification: 'Notification',
     PushSubscription: 'PushSubscription',
@@ -1643,7 +1672,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
+      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2606,6 +2635,80 @@ export namespace Prisma {
           count: {
             args: Prisma.BannerCountArgs<ExtArgs>
             result: $Utils.Optional<BannerCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdApplication: {
+        payload: Prisma.$AdApplicationPayload<ExtArgs>
+        fields: Prisma.AdApplicationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdApplicationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdApplicationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          findFirst: {
+            args: Prisma.AdApplicationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdApplicationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          findMany: {
+            args: Prisma.AdApplicationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>[]
+          }
+          create: {
+            args: Prisma.AdApplicationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          createMany: {
+            args: Prisma.AdApplicationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdApplicationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>[]
+          }
+          delete: {
+            args: Prisma.AdApplicationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          update: {
+            args: Prisma.AdApplicationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdApplicationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdApplicationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdApplicationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdApplicationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdApplicationPayload>
+          }
+          aggregate: {
+            args: Prisma.AdApplicationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdApplication>
+          }
+          groupBy: {
+            args: Prisma.AdApplicationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdApplicationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdApplicationCountArgs<ExtArgs>
+            result: $Utils.Optional<AdApplicationCountAggregateOutputType> | number
           }
         }
       }
@@ -3988,6 +4091,7 @@ export namespace Prisma {
     transaction?: TransactionOmit
     review?: ReviewOmit
     banner?: BannerOmit
+    adApplication?: AdApplicationOmit
     commissionConfig?: CommissionConfigOmit
     notification?: NotificationOmit
     pushSubscription?: PushSubscriptionOmit
@@ -4091,6 +4195,8 @@ export namespace Prisma {
     pushSubscriptions: number
     milestones: number
     advertisements: number
+    adApplications: number
+    reviewedAdApplications: number
     proofOfTransfers: number
     voucherRedemptions: number
   }
@@ -4102,6 +4208,8 @@ export namespace Prisma {
     pushSubscriptions?: boolean | UserCountOutputTypeCountPushSubscriptionsArgs
     milestones?: boolean | UserCountOutputTypeCountMilestonesArgs
     advertisements?: boolean | UserCountOutputTypeCountAdvertisementsArgs
+    adApplications?: boolean | UserCountOutputTypeCountAdApplicationsArgs
+    reviewedAdApplications?: boolean | UserCountOutputTypeCountReviewedAdApplicationsArgs
     proofOfTransfers?: boolean | UserCountOutputTypeCountProofOfTransfersArgs
     voucherRedemptions?: boolean | UserCountOutputTypeCountVoucherRedemptionsArgs
   }
@@ -4157,6 +4265,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAdvertisementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AdvertisementWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAdApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdApplicationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountReviewedAdApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdApplicationWhereInput
   }
 
   /**
@@ -4877,6 +4999,8 @@ export namespace Prisma {
     notificationPreference?: boolean | User$notificationPreferenceArgs<ExtArgs>
     milestones?: boolean | User$milestonesArgs<ExtArgs>
     advertisements?: boolean | User$advertisementsArgs<ExtArgs>
+    adApplications?: boolean | User$adApplicationsArgs<ExtArgs>
+    reviewedAdApplications?: boolean | User$reviewedAdApplicationsArgs<ExtArgs>
     proofOfTransfers?: boolean | User$proofOfTransfersArgs<ExtArgs>
     voucherRedemptions?: boolean | User$voucherRedemptionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -4957,6 +5081,8 @@ export namespace Prisma {
     notificationPreference?: boolean | User$notificationPreferenceArgs<ExtArgs>
     milestones?: boolean | User$milestonesArgs<ExtArgs>
     advertisements?: boolean | User$advertisementsArgs<ExtArgs>
+    adApplications?: boolean | User$adApplicationsArgs<ExtArgs>
+    reviewedAdApplications?: boolean | User$reviewedAdApplicationsArgs<ExtArgs>
     proofOfTransfers?: boolean | User$proofOfTransfersArgs<ExtArgs>
     voucherRedemptions?: boolean | User$voucherRedemptionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -4977,6 +5103,8 @@ export namespace Prisma {
       notificationPreference: Prisma.$NotificationPreferencePayload<ExtArgs> | null
       milestones: Prisma.$UserMilestonePayload<ExtArgs>[]
       advertisements: Prisma.$AdvertisementPayload<ExtArgs>[]
+      adApplications: Prisma.$AdApplicationPayload<ExtArgs>[]
+      reviewedAdApplications: Prisma.$AdApplicationPayload<ExtArgs>[]
       proofOfTransfers: Prisma.$ProofOfTransferPayload<ExtArgs>[]
       voucherRedemptions: Prisma.$VoucherRedemptionPayload<ExtArgs>[]
     }
@@ -5403,6 +5531,8 @@ export namespace Prisma {
     notificationPreference<T extends User$notificationPreferenceArgs<ExtArgs> = {}>(args?: Subset<T, User$notificationPreferenceArgs<ExtArgs>>): Prisma__NotificationPreferenceClient<$Result.GetResult<Prisma.$NotificationPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     milestones<T extends User$milestonesArgs<ExtArgs> = {}>(args?: Subset<T, User$milestonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     advertisements<T extends User$advertisementsArgs<ExtArgs> = {}>(args?: Subset<T, User$advertisementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdvertisementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    adApplications<T extends User$adApplicationsArgs<ExtArgs> = {}>(args?: Subset<T, User$adApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    reviewedAdApplications<T extends User$reviewedAdApplicationsArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewedAdApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     proofOfTransfers<T extends User$proofOfTransfersArgs<ExtArgs> = {}>(args?: Subset<T, User$proofOfTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProofOfTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     voucherRedemptions<T extends User$voucherRedemptionsArgs<ExtArgs> = {}>(args?: Subset<T, User$voucherRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VoucherRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -6062,6 +6192,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AdvertisementScalarFieldEnum | AdvertisementScalarFieldEnum[]
+  }
+
+  /**
+   * User.adApplications
+   */
+  export type User$adApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    where?: AdApplicationWhereInput
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    cursor?: AdApplicationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdApplicationScalarFieldEnum | AdApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * User.reviewedAdApplications
+   */
+  export type User$reviewedAdApplicationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    where?: AdApplicationWhereInput
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    cursor?: AdApplicationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AdApplicationScalarFieldEnum | AdApplicationScalarFieldEnum[]
   }
 
   /**
@@ -21253,6 +21431,1297 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: BannerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdApplication
+   */
+
+  export type AggregateAdApplication = {
+    _count: AdApplicationCountAggregateOutputType | null
+    _min: AdApplicationMinAggregateOutputType | null
+    _max: AdApplicationMaxAggregateOutputType | null
+  }
+
+  export type AdApplicationMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    email: string | null
+    phoneNumber: string | null
+    companyName: string | null
+    title: string | null
+    description: string | null
+    imageUrl: string | null
+    linkUrl: string | null
+    position: $Enums.BannerPosition | null
+    theme: $Enums.BannerTheme | null
+    requestedStart: Date | null
+    requestedEnd: Date | null
+    status: $Enums.AdApplicationStatus | null
+    reviewComment: string | null
+    reviewedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdApplicationMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    email: string | null
+    phoneNumber: string | null
+    companyName: string | null
+    title: string | null
+    description: string | null
+    imageUrl: string | null
+    linkUrl: string | null
+    position: $Enums.BannerPosition | null
+    theme: $Enums.BannerTheme | null
+    requestedStart: Date | null
+    requestedEnd: Date | null
+    status: $Enums.AdApplicationStatus | null
+    reviewComment: string | null
+    reviewedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdApplicationCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    email: number
+    phoneNumber: number
+    companyName: number
+    title: number
+    description: number
+    imageUrl: number
+    linkUrl: number
+    position: number
+    theme: number
+    requestedStart: number
+    requestedEnd: number
+    status: number
+    reviewComment: number
+    reviewedBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AdApplicationMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    email?: true
+    phoneNumber?: true
+    companyName?: true
+    title?: true
+    description?: true
+    imageUrl?: true
+    linkUrl?: true
+    position?: true
+    theme?: true
+    requestedStart?: true
+    requestedEnd?: true
+    status?: true
+    reviewComment?: true
+    reviewedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdApplicationMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    email?: true
+    phoneNumber?: true
+    companyName?: true
+    title?: true
+    description?: true
+    imageUrl?: true
+    linkUrl?: true
+    position?: true
+    theme?: true
+    requestedStart?: true
+    requestedEnd?: true
+    status?: true
+    reviewComment?: true
+    reviewedBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdApplicationCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    email?: true
+    phoneNumber?: true
+    companyName?: true
+    title?: true
+    description?: true
+    imageUrl?: true
+    linkUrl?: true
+    position?: true
+    theme?: true
+    requestedStart?: true
+    requestedEnd?: true
+    status?: true
+    reviewComment?: true
+    reviewedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AdApplicationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdApplication to aggregate.
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdApplications to fetch.
+     */
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdApplications
+    **/
+    _count?: true | AdApplicationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdApplicationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdApplicationMaxAggregateInputType
+  }
+
+  export type GetAdApplicationAggregateType<T extends AdApplicationAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdApplication]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdApplication[P]>
+      : GetScalarType<T[P], AggregateAdApplication[P]>
+  }
+
+
+
+
+  export type AdApplicationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdApplicationWhereInput
+    orderBy?: AdApplicationOrderByWithAggregationInput | AdApplicationOrderByWithAggregationInput[]
+    by: AdApplicationScalarFieldEnum[] | AdApplicationScalarFieldEnum
+    having?: AdApplicationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdApplicationCountAggregateInputType | true
+    _min?: AdApplicationMinAggregateInputType
+    _max?: AdApplicationMaxAggregateInputType
+  }
+
+  export type AdApplicationGroupByOutputType = {
+    id: string
+    userId: string | null
+    name: string
+    email: string
+    phoneNumber: string
+    companyName: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl: string | null
+    position: $Enums.BannerPosition
+    theme: $Enums.BannerTheme
+    requestedStart: Date
+    requestedEnd: Date | null
+    status: $Enums.AdApplicationStatus
+    reviewComment: string | null
+    reviewedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AdApplicationCountAggregateOutputType | null
+    _min: AdApplicationMinAggregateOutputType | null
+    _max: AdApplicationMaxAggregateOutputType | null
+  }
+
+  type GetAdApplicationGroupByPayload<T extends AdApplicationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdApplicationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdApplicationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdApplicationGroupByOutputType[P]>
+            : GetScalarType<T[P], AdApplicationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdApplicationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    email?: boolean
+    phoneNumber?: boolean
+    companyName?: boolean
+    title?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    linkUrl?: boolean
+    position?: boolean
+    theme?: boolean
+    requestedStart?: boolean
+    requestedEnd?: boolean
+    status?: boolean
+    reviewComment?: boolean
+    reviewedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }, ExtArgs["result"]["adApplication"]>
+
+  export type AdApplicationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    email?: boolean
+    phoneNumber?: boolean
+    companyName?: boolean
+    title?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    linkUrl?: boolean
+    position?: boolean
+    theme?: boolean
+    requestedStart?: boolean
+    requestedEnd?: boolean
+    status?: boolean
+    reviewComment?: boolean
+    reviewedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }, ExtArgs["result"]["adApplication"]>
+
+  export type AdApplicationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    email?: boolean
+    phoneNumber?: boolean
+    companyName?: boolean
+    title?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    linkUrl?: boolean
+    position?: boolean
+    theme?: boolean
+    requestedStart?: boolean
+    requestedEnd?: boolean
+    status?: boolean
+    reviewComment?: boolean
+    reviewedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }, ExtArgs["result"]["adApplication"]>
+
+  export type AdApplicationSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    email?: boolean
+    phoneNumber?: boolean
+    companyName?: boolean
+    title?: boolean
+    description?: boolean
+    imageUrl?: boolean
+    linkUrl?: boolean
+    position?: boolean
+    theme?: boolean
+    requestedStart?: boolean
+    requestedEnd?: boolean
+    status?: boolean
+    reviewComment?: boolean
+    reviewedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AdApplicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "email" | "phoneNumber" | "companyName" | "title" | "description" | "imageUrl" | "linkUrl" | "position" | "theme" | "requestedStart" | "requestedEnd" | "status" | "reviewComment" | "reviewedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["adApplication"]>
+  export type AdApplicationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }
+  export type AdApplicationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }
+  export type AdApplicationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
+    reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
+  }
+
+  export type $AdApplicationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdApplication"
+    objects: {
+      applicant: Prisma.$UserPayload<ExtArgs> | null
+      reviewer: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string | null
+      name: string
+      email: string
+      phoneNumber: string
+      companyName: string | null
+      title: string
+      description: string
+      imageUrl: string
+      linkUrl: string | null
+      position: $Enums.BannerPosition
+      theme: $Enums.BannerTheme
+      requestedStart: Date
+      requestedEnd: Date | null
+      status: $Enums.AdApplicationStatus
+      reviewComment: string | null
+      reviewedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["adApplication"]>
+    composites: {}
+  }
+
+  type AdApplicationGetPayload<S extends boolean | null | undefined | AdApplicationDefaultArgs> = $Result.GetResult<Prisma.$AdApplicationPayload, S>
+
+  type AdApplicationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdApplicationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdApplicationCountAggregateInputType | true
+    }
+
+  export interface AdApplicationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdApplication'], meta: { name: 'AdApplication' } }
+    /**
+     * Find zero or one AdApplication that matches the filter.
+     * @param {AdApplicationFindUniqueArgs} args - Arguments to find a AdApplication
+     * @example
+     * // Get one AdApplication
+     * const adApplication = await prisma.adApplication.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdApplicationFindUniqueArgs>(args: SelectSubset<T, AdApplicationFindUniqueArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdApplication that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdApplicationFindUniqueOrThrowArgs} args - Arguments to find a AdApplication
+     * @example
+     * // Get one AdApplication
+     * const adApplication = await prisma.adApplication.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdApplicationFindUniqueOrThrowArgs>(args: SelectSubset<T, AdApplicationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdApplication that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationFindFirstArgs} args - Arguments to find a AdApplication
+     * @example
+     * // Get one AdApplication
+     * const adApplication = await prisma.adApplication.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdApplicationFindFirstArgs>(args?: SelectSubset<T, AdApplicationFindFirstArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdApplication that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationFindFirstOrThrowArgs} args - Arguments to find a AdApplication
+     * @example
+     * // Get one AdApplication
+     * const adApplication = await prisma.adApplication.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdApplicationFindFirstOrThrowArgs>(args?: SelectSubset<T, AdApplicationFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdApplications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdApplications
+     * const adApplications = await prisma.adApplication.findMany()
+     * 
+     * // Get first 10 AdApplications
+     * const adApplications = await prisma.adApplication.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adApplicationWithIdOnly = await prisma.adApplication.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdApplicationFindManyArgs>(args?: SelectSubset<T, AdApplicationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdApplication.
+     * @param {AdApplicationCreateArgs} args - Arguments to create a AdApplication.
+     * @example
+     * // Create one AdApplication
+     * const AdApplication = await prisma.adApplication.create({
+     *   data: {
+     *     // ... data to create a AdApplication
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdApplicationCreateArgs>(args: SelectSubset<T, AdApplicationCreateArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdApplications.
+     * @param {AdApplicationCreateManyArgs} args - Arguments to create many AdApplications.
+     * @example
+     * // Create many AdApplications
+     * const adApplication = await prisma.adApplication.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdApplicationCreateManyArgs>(args?: SelectSubset<T, AdApplicationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdApplications and returns the data saved in the database.
+     * @param {AdApplicationCreateManyAndReturnArgs} args - Arguments to create many AdApplications.
+     * @example
+     * // Create many AdApplications
+     * const adApplication = await prisma.adApplication.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdApplications and only return the `id`
+     * const adApplicationWithIdOnly = await prisma.adApplication.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdApplicationCreateManyAndReturnArgs>(args?: SelectSubset<T, AdApplicationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdApplication.
+     * @param {AdApplicationDeleteArgs} args - Arguments to delete one AdApplication.
+     * @example
+     * // Delete one AdApplication
+     * const AdApplication = await prisma.adApplication.delete({
+     *   where: {
+     *     // ... filter to delete one AdApplication
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdApplicationDeleteArgs>(args: SelectSubset<T, AdApplicationDeleteArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdApplication.
+     * @param {AdApplicationUpdateArgs} args - Arguments to update one AdApplication.
+     * @example
+     * // Update one AdApplication
+     * const adApplication = await prisma.adApplication.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdApplicationUpdateArgs>(args: SelectSubset<T, AdApplicationUpdateArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdApplications.
+     * @param {AdApplicationDeleteManyArgs} args - Arguments to filter AdApplications to delete.
+     * @example
+     * // Delete a few AdApplications
+     * const { count } = await prisma.adApplication.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdApplicationDeleteManyArgs>(args?: SelectSubset<T, AdApplicationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdApplications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdApplications
+     * const adApplication = await prisma.adApplication.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdApplicationUpdateManyArgs>(args: SelectSubset<T, AdApplicationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdApplications and returns the data updated in the database.
+     * @param {AdApplicationUpdateManyAndReturnArgs} args - Arguments to update many AdApplications.
+     * @example
+     * // Update many AdApplications
+     * const adApplication = await prisma.adApplication.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdApplications and only return the `id`
+     * const adApplicationWithIdOnly = await prisma.adApplication.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdApplicationUpdateManyAndReturnArgs>(args: SelectSubset<T, AdApplicationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdApplication.
+     * @param {AdApplicationUpsertArgs} args - Arguments to update or create a AdApplication.
+     * @example
+     * // Update or create a AdApplication
+     * const adApplication = await prisma.adApplication.upsert({
+     *   create: {
+     *     // ... data to create a AdApplication
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdApplication we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdApplicationUpsertArgs>(args: SelectSubset<T, AdApplicationUpsertArgs<ExtArgs>>): Prisma__AdApplicationClient<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdApplications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationCountArgs} args - Arguments to filter AdApplications to count.
+     * @example
+     * // Count the number of AdApplications
+     * const count = await prisma.adApplication.count({
+     *   where: {
+     *     // ... the filter for the AdApplications we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdApplicationCountArgs>(
+      args?: Subset<T, AdApplicationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdApplicationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdApplication.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdApplicationAggregateArgs>(args: Subset<T, AdApplicationAggregateArgs>): Prisma.PrismaPromise<GetAdApplicationAggregateType<T>>
+
+    /**
+     * Group by AdApplication.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdApplicationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdApplicationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdApplicationGroupByArgs['orderBy'] }
+        : { orderBy?: AdApplicationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdApplicationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdApplicationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdApplication model
+   */
+  readonly fields: AdApplicationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdApplication.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdApplicationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    applicant<T extends AdApplication$applicantArgs<ExtArgs> = {}>(args?: Subset<T, AdApplication$applicantArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    reviewer<T extends AdApplication$reviewerArgs<ExtArgs> = {}>(args?: Subset<T, AdApplication$reviewerArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdApplication model
+   */
+  interface AdApplicationFieldRefs {
+    readonly id: FieldRef<"AdApplication", 'String'>
+    readonly userId: FieldRef<"AdApplication", 'String'>
+    readonly name: FieldRef<"AdApplication", 'String'>
+    readonly email: FieldRef<"AdApplication", 'String'>
+    readonly phoneNumber: FieldRef<"AdApplication", 'String'>
+    readonly companyName: FieldRef<"AdApplication", 'String'>
+    readonly title: FieldRef<"AdApplication", 'String'>
+    readonly description: FieldRef<"AdApplication", 'String'>
+    readonly imageUrl: FieldRef<"AdApplication", 'String'>
+    readonly linkUrl: FieldRef<"AdApplication", 'String'>
+    readonly position: FieldRef<"AdApplication", 'BannerPosition'>
+    readonly theme: FieldRef<"AdApplication", 'BannerTheme'>
+    readonly requestedStart: FieldRef<"AdApplication", 'DateTime'>
+    readonly requestedEnd: FieldRef<"AdApplication", 'DateTime'>
+    readonly status: FieldRef<"AdApplication", 'AdApplicationStatus'>
+    readonly reviewComment: FieldRef<"AdApplication", 'String'>
+    readonly reviewedBy: FieldRef<"AdApplication", 'String'>
+    readonly createdAt: FieldRef<"AdApplication", 'DateTime'>
+    readonly updatedAt: FieldRef<"AdApplication", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdApplication findUnique
+   */
+  export type AdApplicationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter, which AdApplication to fetch.
+     */
+    where: AdApplicationWhereUniqueInput
+  }
+
+  /**
+   * AdApplication findUniqueOrThrow
+   */
+  export type AdApplicationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter, which AdApplication to fetch.
+     */
+    where: AdApplicationWhereUniqueInput
+  }
+
+  /**
+   * AdApplication findFirst
+   */
+  export type AdApplicationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter, which AdApplication to fetch.
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdApplications to fetch.
+     */
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdApplications.
+     */
+    cursor?: AdApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdApplications.
+     */
+    distinct?: AdApplicationScalarFieldEnum | AdApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * AdApplication findFirstOrThrow
+   */
+  export type AdApplicationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter, which AdApplication to fetch.
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdApplications to fetch.
+     */
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdApplications.
+     */
+    cursor?: AdApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdApplications.
+     */
+    distinct?: AdApplicationScalarFieldEnum | AdApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * AdApplication findMany
+   */
+  export type AdApplicationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter, which AdApplications to fetch.
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdApplications to fetch.
+     */
+    orderBy?: AdApplicationOrderByWithRelationInput | AdApplicationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdApplications.
+     */
+    cursor?: AdApplicationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdApplications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdApplications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdApplications.
+     */
+    distinct?: AdApplicationScalarFieldEnum | AdApplicationScalarFieldEnum[]
+  }
+
+  /**
+   * AdApplication create
+   */
+  export type AdApplicationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AdApplication.
+     */
+    data: XOR<AdApplicationCreateInput, AdApplicationUncheckedCreateInput>
+  }
+
+  /**
+   * AdApplication createMany
+   */
+  export type AdApplicationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdApplications.
+     */
+    data: AdApplicationCreateManyInput | AdApplicationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdApplication createManyAndReturn
+   */
+  export type AdApplicationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdApplications.
+     */
+    data: AdApplicationCreateManyInput | AdApplicationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdApplication update
+   */
+  export type AdApplicationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AdApplication.
+     */
+    data: XOR<AdApplicationUpdateInput, AdApplicationUncheckedUpdateInput>
+    /**
+     * Choose, which AdApplication to update.
+     */
+    where: AdApplicationWhereUniqueInput
+  }
+
+  /**
+   * AdApplication updateMany
+   */
+  export type AdApplicationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdApplications.
+     */
+    data: XOR<AdApplicationUpdateManyMutationInput, AdApplicationUncheckedUpdateManyInput>
+    /**
+     * Filter which AdApplications to update
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * Limit how many AdApplications to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdApplication updateManyAndReturn
+   */
+  export type AdApplicationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * The data used to update AdApplications.
+     */
+    data: XOR<AdApplicationUpdateManyMutationInput, AdApplicationUncheckedUpdateManyInput>
+    /**
+     * Filter which AdApplications to update
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * Limit how many AdApplications to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AdApplication upsert
+   */
+  export type AdApplicationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AdApplication to update in case it exists.
+     */
+    where: AdApplicationWhereUniqueInput
+    /**
+     * In case the AdApplication found by the `where` argument doesn't exist, create a new AdApplication with this data.
+     */
+    create: XOR<AdApplicationCreateInput, AdApplicationUncheckedCreateInput>
+    /**
+     * In case the AdApplication was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdApplicationUpdateInput, AdApplicationUncheckedUpdateInput>
+  }
+
+  /**
+   * AdApplication delete
+   */
+  export type AdApplicationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
+    /**
+     * Filter which AdApplication to delete.
+     */
+    where: AdApplicationWhereUniqueInput
+  }
+
+  /**
+   * AdApplication deleteMany
+   */
+  export type AdApplicationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdApplications to delete
+     */
+    where?: AdApplicationWhereInput
+    /**
+     * Limit how many AdApplications to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdApplication.applicant
+   */
+  export type AdApplication$applicantArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * AdApplication.reviewer
+   */
+  export type AdApplication$reviewerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * AdApplication without action
+   */
+  export type AdApplicationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdApplication
+     */
+    select?: AdApplicationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdApplication
+     */
+    omit?: AdApplicationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AdApplicationInclude<ExtArgs> | null
   }
 
 
@@ -40858,6 +42327,31 @@ export namespace Prisma {
   export type BannerScalarFieldEnum = (typeof BannerScalarFieldEnum)[keyof typeof BannerScalarFieldEnum]
 
 
+  export const AdApplicationScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    email: 'email',
+    phoneNumber: 'phoneNumber',
+    companyName: 'companyName',
+    title: 'title',
+    description: 'description',
+    imageUrl: 'imageUrl',
+    linkUrl: 'linkUrl',
+    position: 'position',
+    theme: 'theme',
+    requestedStart: 'requestedStart',
+    requestedEnd: 'requestedEnd',
+    status: 'status',
+    reviewComment: 'reviewComment',
+    reviewedBy: 'reviewedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AdApplicationScalarFieldEnum = (typeof AdApplicationScalarFieldEnum)[keyof typeof AdApplicationScalarFieldEnum]
+
+
   export const CommissionConfigScalarFieldEnum: {
     id: 'id',
     category: 'category',
@@ -41515,6 +43009,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'AdApplicationStatus'
+   */
+  export type EnumAdApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdApplicationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'AdApplicationStatus[]'
+   */
+  export type ListEnumAdApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdApplicationStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'NotificationType'
    */
   export type EnumNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationType'>
@@ -41703,6 +43211,8 @@ export namespace Prisma {
     notificationPreference?: XOR<NotificationPreferenceNullableScalarRelationFilter, NotificationPreferenceWhereInput> | null
     milestones?: UserMilestoneListRelationFilter
     advertisements?: AdvertisementListRelationFilter
+    adApplications?: AdApplicationListRelationFilter
+    reviewedAdApplications?: AdApplicationListRelationFilter
     proofOfTransfers?: ProofOfTransferListRelationFilter
     voucherRedemptions?: VoucherRedemptionListRelationFilter
   }
@@ -41736,6 +43246,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceOrderByWithRelationInput
     milestones?: UserMilestoneOrderByRelationAggregateInput
     advertisements?: AdvertisementOrderByRelationAggregateInput
+    adApplications?: AdApplicationOrderByRelationAggregateInput
+    reviewedAdApplications?: AdApplicationOrderByRelationAggregateInput
     proofOfTransfers?: ProofOfTransferOrderByRelationAggregateInput
     voucherRedemptions?: VoucherRedemptionOrderByRelationAggregateInput
   }
@@ -41772,6 +43284,8 @@ export namespace Prisma {
     notificationPreference?: XOR<NotificationPreferenceNullableScalarRelationFilter, NotificationPreferenceWhereInput> | null
     milestones?: UserMilestoneListRelationFilter
     advertisements?: AdvertisementListRelationFilter
+    adApplications?: AdApplicationListRelationFilter
+    reviewedAdApplications?: AdApplicationListRelationFilter
     proofOfTransfers?: ProofOfTransferListRelationFilter
     voucherRedemptions?: VoucherRedemptionListRelationFilter
   }, "id" | "email" | "resetToken" | "emailVerificationToken" | "registrationSequence">
@@ -43106,6 +44620,134 @@ export namespace Prisma {
     createdBy?: StringWithAggregatesFilter<"Banner"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Banner"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Banner"> | Date | string
+  }
+
+  export type AdApplicationWhereInput = {
+    AND?: AdApplicationWhereInput | AdApplicationWhereInput[]
+    OR?: AdApplicationWhereInput[]
+    NOT?: AdApplicationWhereInput | AdApplicationWhereInput[]
+    id?: StringFilter<"AdApplication"> | string
+    userId?: StringNullableFilter<"AdApplication"> | string | null
+    name?: StringFilter<"AdApplication"> | string
+    email?: StringFilter<"AdApplication"> | string
+    phoneNumber?: StringFilter<"AdApplication"> | string
+    companyName?: StringNullableFilter<"AdApplication"> | string | null
+    title?: StringFilter<"AdApplication"> | string
+    description?: StringFilter<"AdApplication"> | string
+    imageUrl?: StringFilter<"AdApplication"> | string
+    linkUrl?: StringNullableFilter<"AdApplication"> | string | null
+    position?: EnumBannerPositionFilter<"AdApplication"> | $Enums.BannerPosition
+    theme?: EnumBannerThemeFilter<"AdApplication"> | $Enums.BannerTheme
+    requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
+    requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
+    status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    reviewComment?: StringNullableFilter<"AdApplication"> | string | null
+    reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
+    createdAt?: DateTimeFilter<"AdApplication"> | Date | string
+    updatedAt?: DateTimeFilter<"AdApplication"> | Date | string
+    applicant?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    reviewer?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }
+
+  export type AdApplicationOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    phoneNumber?: SortOrder
+    companyName?: SortOrderInput | SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    linkUrl?: SortOrderInput | SortOrder
+    position?: SortOrder
+    theme?: SortOrder
+    requestedStart?: SortOrder
+    requestedEnd?: SortOrderInput | SortOrder
+    status?: SortOrder
+    reviewComment?: SortOrderInput | SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    applicant?: UserOrderByWithRelationInput
+    reviewer?: UserOrderByWithRelationInput
+  }
+
+  export type AdApplicationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdApplicationWhereInput | AdApplicationWhereInput[]
+    OR?: AdApplicationWhereInput[]
+    NOT?: AdApplicationWhereInput | AdApplicationWhereInput[]
+    userId?: StringNullableFilter<"AdApplication"> | string | null
+    name?: StringFilter<"AdApplication"> | string
+    email?: StringFilter<"AdApplication"> | string
+    phoneNumber?: StringFilter<"AdApplication"> | string
+    companyName?: StringNullableFilter<"AdApplication"> | string | null
+    title?: StringFilter<"AdApplication"> | string
+    description?: StringFilter<"AdApplication"> | string
+    imageUrl?: StringFilter<"AdApplication"> | string
+    linkUrl?: StringNullableFilter<"AdApplication"> | string | null
+    position?: EnumBannerPositionFilter<"AdApplication"> | $Enums.BannerPosition
+    theme?: EnumBannerThemeFilter<"AdApplication"> | $Enums.BannerTheme
+    requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
+    requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
+    status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    reviewComment?: StringNullableFilter<"AdApplication"> | string | null
+    reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
+    createdAt?: DateTimeFilter<"AdApplication"> | Date | string
+    updatedAt?: DateTimeFilter<"AdApplication"> | Date | string
+    applicant?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    reviewer?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }, "id">
+
+  export type AdApplicationOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    phoneNumber?: SortOrder
+    companyName?: SortOrderInput | SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    linkUrl?: SortOrderInput | SortOrder
+    position?: SortOrder
+    theme?: SortOrder
+    requestedStart?: SortOrder
+    requestedEnd?: SortOrderInput | SortOrder
+    status?: SortOrder
+    reviewComment?: SortOrderInput | SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AdApplicationCountOrderByAggregateInput
+    _max?: AdApplicationMaxOrderByAggregateInput
+    _min?: AdApplicationMinOrderByAggregateInput
+  }
+
+  export type AdApplicationScalarWhereWithAggregatesInput = {
+    AND?: AdApplicationScalarWhereWithAggregatesInput | AdApplicationScalarWhereWithAggregatesInput[]
+    OR?: AdApplicationScalarWhereWithAggregatesInput[]
+    NOT?: AdApplicationScalarWhereWithAggregatesInput | AdApplicationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AdApplication"> | string
+    userId?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    name?: StringWithAggregatesFilter<"AdApplication"> | string
+    email?: StringWithAggregatesFilter<"AdApplication"> | string
+    phoneNumber?: StringWithAggregatesFilter<"AdApplication"> | string
+    companyName?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    title?: StringWithAggregatesFilter<"AdApplication"> | string
+    description?: StringWithAggregatesFilter<"AdApplication"> | string
+    imageUrl?: StringWithAggregatesFilter<"AdApplication"> | string
+    linkUrl?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    position?: EnumBannerPositionWithAggregatesFilter<"AdApplication"> | $Enums.BannerPosition
+    theme?: EnumBannerThemeWithAggregatesFilter<"AdApplication"> | $Enums.BannerTheme
+    requestedStart?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
+    requestedEnd?: DateTimeNullableWithAggregatesFilter<"AdApplication"> | Date | string | null
+    status?: EnumAdApplicationStatusWithAggregatesFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    reviewComment?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    reviewedBy?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
   }
 
   export type CommissionConfigWhereInput = {
@@ -44530,6 +46172,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -44563,6 +46207,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -44596,6 +46242,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -44629,6 +46277,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -46162,6 +47812,158 @@ export namespace Prisma {
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
     createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationCreateInput = {
+    id?: string
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    applicant?: UserCreateNestedOneWithoutAdApplicationsInput
+    reviewer?: UserCreateNestedOneWithoutReviewedAdApplicationsInput
+  }
+
+  export type AdApplicationUncheckedCreateInput = {
+    id?: string
+    userId?: string | null
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    reviewedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdApplicationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    applicant?: UserUpdateOneWithoutAdApplicationsNestedInput
+    reviewer?: UserUpdateOneWithoutReviewedAdApplicationsNestedInput
+  }
+
+  export type AdApplicationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationCreateManyInput = {
+    id?: string
+    userId?: string | null
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    reviewedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdApplicationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -47856,6 +49658,12 @@ export namespace Prisma {
     none?: AdvertisementWhereInput
   }
 
+  export type AdApplicationListRelationFilter = {
+    every?: AdApplicationWhereInput
+    some?: AdApplicationWhereInput
+    none?: AdApplicationWhereInput
+  }
+
   export type ProofOfTransferListRelationFilter = {
     every?: ProofOfTransferWhereInput
     some?: ProofOfTransferWhereInput
@@ -47894,6 +49702,10 @@ export namespace Prisma {
   }
 
   export type AdvertisementOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AdApplicationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -49425,6 +51237,94 @@ export namespace Prisma {
     _max?: NestedEnumBannerThemeFilter<$PrismaModel>
   }
 
+  export type EnumAdApplicationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAdApplicationStatusFilter<$PrismaModel> | $Enums.AdApplicationStatus
+  }
+
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
+  export type AdApplicationCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    phoneNumber?: SortOrder
+    companyName?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    linkUrl?: SortOrder
+    position?: SortOrder
+    theme?: SortOrder
+    requestedStart?: SortOrder
+    requestedEnd?: SortOrder
+    status?: SortOrder
+    reviewComment?: SortOrder
+    reviewedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdApplicationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    phoneNumber?: SortOrder
+    companyName?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    linkUrl?: SortOrder
+    position?: SortOrder
+    theme?: SortOrder
+    requestedStart?: SortOrder
+    requestedEnd?: SortOrder
+    status?: SortOrder
+    reviewComment?: SortOrder
+    reviewedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdApplicationMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    phoneNumber?: SortOrder
+    companyName?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    imageUrl?: SortOrder
+    linkUrl?: SortOrder
+    position?: SortOrder
+    theme?: SortOrder
+    requestedStart?: SortOrder
+    requestedEnd?: SortOrder
+    status?: SortOrder
+    reviewComment?: SortOrder
+    reviewedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumAdApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAdApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AdApplicationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+    _max?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+  }
+
   export type CommissionConfigCountOrderByAggregateInput = {
     id?: SortOrder
     category?: SortOrder
@@ -50443,6 +52343,20 @@ export namespace Prisma {
     connect?: AdvertisementWhereUniqueInput | AdvertisementWhereUniqueInput[]
   }
 
+  export type AdApplicationCreateNestedManyWithoutApplicantInput = {
+    create?: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput> | AdApplicationCreateWithoutApplicantInput[] | AdApplicationUncheckedCreateWithoutApplicantInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutApplicantInput | AdApplicationCreateOrConnectWithoutApplicantInput[]
+    createMany?: AdApplicationCreateManyApplicantInputEnvelope
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+  }
+
+  export type AdApplicationCreateNestedManyWithoutReviewerInput = {
+    create?: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput> | AdApplicationCreateWithoutReviewerInput[] | AdApplicationUncheckedCreateWithoutReviewerInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutReviewerInput | AdApplicationCreateOrConnectWithoutReviewerInput[]
+    createMany?: AdApplicationCreateManyReviewerInputEnvelope
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+  }
+
   export type ProofOfTransferCreateNestedManyWithoutUserInput = {
     create?: XOR<ProofOfTransferCreateWithoutUserInput, ProofOfTransferUncheckedCreateWithoutUserInput> | ProofOfTransferCreateWithoutUserInput[] | ProofOfTransferUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ProofOfTransferCreateOrConnectWithoutUserInput | ProofOfTransferCreateOrConnectWithoutUserInput[]
@@ -50521,6 +52435,20 @@ export namespace Prisma {
     connectOrCreate?: AdvertisementCreateOrConnectWithoutAdvertiserInput | AdvertisementCreateOrConnectWithoutAdvertiserInput[]
     createMany?: AdvertisementCreateManyAdvertiserInputEnvelope
     connect?: AdvertisementWhereUniqueInput | AdvertisementWhereUniqueInput[]
+  }
+
+  export type AdApplicationUncheckedCreateNestedManyWithoutApplicantInput = {
+    create?: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput> | AdApplicationCreateWithoutApplicantInput[] | AdApplicationUncheckedCreateWithoutApplicantInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutApplicantInput | AdApplicationCreateOrConnectWithoutApplicantInput[]
+    createMany?: AdApplicationCreateManyApplicantInputEnvelope
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+  }
+
+  export type AdApplicationUncheckedCreateNestedManyWithoutReviewerInput = {
+    create?: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput> | AdApplicationCreateWithoutReviewerInput[] | AdApplicationUncheckedCreateWithoutReviewerInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutReviewerInput | AdApplicationCreateOrConnectWithoutReviewerInput[]
+    createMany?: AdApplicationCreateManyReviewerInputEnvelope
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
   }
 
   export type ProofOfTransferUncheckedCreateNestedManyWithoutUserInput = {
@@ -50697,6 +52625,34 @@ export namespace Prisma {
     deleteMany?: AdvertisementScalarWhereInput | AdvertisementScalarWhereInput[]
   }
 
+  export type AdApplicationUpdateManyWithoutApplicantNestedInput = {
+    create?: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput> | AdApplicationCreateWithoutApplicantInput[] | AdApplicationUncheckedCreateWithoutApplicantInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutApplicantInput | AdApplicationCreateOrConnectWithoutApplicantInput[]
+    upsert?: AdApplicationUpsertWithWhereUniqueWithoutApplicantInput | AdApplicationUpsertWithWhereUniqueWithoutApplicantInput[]
+    createMany?: AdApplicationCreateManyApplicantInputEnvelope
+    set?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    disconnect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    delete?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    update?: AdApplicationUpdateWithWhereUniqueWithoutApplicantInput | AdApplicationUpdateWithWhereUniqueWithoutApplicantInput[]
+    updateMany?: AdApplicationUpdateManyWithWhereWithoutApplicantInput | AdApplicationUpdateManyWithWhereWithoutApplicantInput[]
+    deleteMany?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
+  }
+
+  export type AdApplicationUpdateManyWithoutReviewerNestedInput = {
+    create?: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput> | AdApplicationCreateWithoutReviewerInput[] | AdApplicationUncheckedCreateWithoutReviewerInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutReviewerInput | AdApplicationCreateOrConnectWithoutReviewerInput[]
+    upsert?: AdApplicationUpsertWithWhereUniqueWithoutReviewerInput | AdApplicationUpsertWithWhereUniqueWithoutReviewerInput[]
+    createMany?: AdApplicationCreateManyReviewerInputEnvelope
+    set?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    disconnect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    delete?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    update?: AdApplicationUpdateWithWhereUniqueWithoutReviewerInput | AdApplicationUpdateWithWhereUniqueWithoutReviewerInput[]
+    updateMany?: AdApplicationUpdateManyWithWhereWithoutReviewerInput | AdApplicationUpdateManyWithWhereWithoutReviewerInput[]
+    deleteMany?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
+  }
+
   export type ProofOfTransferUpdateManyWithoutUserNestedInput = {
     create?: XOR<ProofOfTransferCreateWithoutUserInput, ProofOfTransferUncheckedCreateWithoutUserInput> | ProofOfTransferCreateWithoutUserInput[] | ProofOfTransferUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ProofOfTransferCreateOrConnectWithoutUserInput | ProofOfTransferCreateOrConnectWithoutUserInput[]
@@ -50847,6 +52803,34 @@ export namespace Prisma {
     update?: AdvertisementUpdateWithWhereUniqueWithoutAdvertiserInput | AdvertisementUpdateWithWhereUniqueWithoutAdvertiserInput[]
     updateMany?: AdvertisementUpdateManyWithWhereWithoutAdvertiserInput | AdvertisementUpdateManyWithWhereWithoutAdvertiserInput[]
     deleteMany?: AdvertisementScalarWhereInput | AdvertisementScalarWhereInput[]
+  }
+
+  export type AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput = {
+    create?: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput> | AdApplicationCreateWithoutApplicantInput[] | AdApplicationUncheckedCreateWithoutApplicantInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutApplicantInput | AdApplicationCreateOrConnectWithoutApplicantInput[]
+    upsert?: AdApplicationUpsertWithWhereUniqueWithoutApplicantInput | AdApplicationUpsertWithWhereUniqueWithoutApplicantInput[]
+    createMany?: AdApplicationCreateManyApplicantInputEnvelope
+    set?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    disconnect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    delete?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    update?: AdApplicationUpdateWithWhereUniqueWithoutApplicantInput | AdApplicationUpdateWithWhereUniqueWithoutApplicantInput[]
+    updateMany?: AdApplicationUpdateManyWithWhereWithoutApplicantInput | AdApplicationUpdateManyWithWhereWithoutApplicantInput[]
+    deleteMany?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
+  }
+
+  export type AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput = {
+    create?: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput> | AdApplicationCreateWithoutReviewerInput[] | AdApplicationUncheckedCreateWithoutReviewerInput[]
+    connectOrCreate?: AdApplicationCreateOrConnectWithoutReviewerInput | AdApplicationCreateOrConnectWithoutReviewerInput[]
+    upsert?: AdApplicationUpsertWithWhereUniqueWithoutReviewerInput | AdApplicationUpsertWithWhereUniqueWithoutReviewerInput[]
+    createMany?: AdApplicationCreateManyReviewerInputEnvelope
+    set?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    disconnect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    delete?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    connect?: AdApplicationWhereUniqueInput | AdApplicationWhereUniqueInput[]
+    update?: AdApplicationUpdateWithWhereUniqueWithoutReviewerInput | AdApplicationUpdateWithWhereUniqueWithoutReviewerInput[]
+    updateMany?: AdApplicationUpdateManyWithWhereWithoutReviewerInput | AdApplicationUpdateManyWithWhereWithoutReviewerInput[]
+    deleteMany?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
   }
 
   export type ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput = {
@@ -52075,6 +54059,42 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBannersCreatedInput, UserUpdateWithoutBannersCreatedInput>, UserUncheckedUpdateWithoutBannersCreatedInput>
   }
 
+  export type UserCreateNestedOneWithoutAdApplicationsInput = {
+    create?: XOR<UserCreateWithoutAdApplicationsInput, UserUncheckedCreateWithoutAdApplicationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAdApplicationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutReviewedAdApplicationsInput = {
+    create?: XOR<UserCreateWithoutReviewedAdApplicationsInput, UserUncheckedCreateWithoutReviewedAdApplicationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReviewedAdApplicationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumAdApplicationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AdApplicationStatus
+  }
+
+  export type UserUpdateOneWithoutAdApplicationsNestedInput = {
+    create?: XOR<UserCreateWithoutAdApplicationsInput, UserUncheckedCreateWithoutAdApplicationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAdApplicationsInput
+    upsert?: UserUpsertWithoutAdApplicationsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAdApplicationsInput, UserUpdateWithoutAdApplicationsInput>, UserUncheckedUpdateWithoutAdApplicationsInput>
+  }
+
+  export type UserUpdateOneWithoutReviewedAdApplicationsNestedInput = {
+    create?: XOR<UserCreateWithoutReviewedAdApplicationsInput, UserUncheckedCreateWithoutReviewedAdApplicationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReviewedAdApplicationsInput
+    upsert?: UserUpsertWithoutReviewedAdApplicationsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewedAdApplicationsInput, UserUpdateWithoutReviewedAdApplicationsInput>, UserUncheckedUpdateWithoutReviewedAdApplicationsInput>
+  }
+
   export type UserCreateNestedOneWithoutNotificationsInput = {
     create?: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutNotificationsInput
@@ -53045,6 +55065,23 @@ export namespace Prisma {
     _max?: NestedEnumBannerThemeFilter<$PrismaModel>
   }
 
+  export type NestedEnumAdApplicationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAdApplicationStatusFilter<$PrismaModel> | $Enums.AdApplicationStatus
+  }
+
+  export type NestedEnumAdApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAdApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AdApplicationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+    _max?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+  }
+
   export type NestedEnumNotificationTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.NotificationType | EnumNotificationTypeFieldRefInput<$PrismaModel>
     in?: $Enums.NotificationType[] | ListEnumNotificationTypeFieldRefInput<$PrismaModel>
@@ -53620,6 +55657,110 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AdApplicationCreateWithoutApplicantInput = {
+    id?: string
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    reviewer?: UserCreateNestedOneWithoutReviewedAdApplicationsInput
+  }
+
+  export type AdApplicationUncheckedCreateWithoutApplicantInput = {
+    id?: string
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    reviewedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdApplicationCreateOrConnectWithoutApplicantInput = {
+    where: AdApplicationWhereUniqueInput
+    create: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput>
+  }
+
+  export type AdApplicationCreateManyApplicantInputEnvelope = {
+    data: AdApplicationCreateManyApplicantInput | AdApplicationCreateManyApplicantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AdApplicationCreateWithoutReviewerInput = {
+    id?: string
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    applicant?: UserCreateNestedOneWithoutAdApplicationsInput
+  }
+
+  export type AdApplicationUncheckedCreateWithoutReviewerInput = {
+    id?: string
+    userId?: string | null
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdApplicationCreateOrConnectWithoutReviewerInput = {
+    where: AdApplicationWhereUniqueInput
+    create: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput>
+  }
+
+  export type AdApplicationCreateManyReviewerInputEnvelope = {
+    data: AdApplicationCreateManyReviewerInput | AdApplicationCreateManyReviewerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProofOfTransferCreateWithoutUserInput = {
     id?: string
     imageUrl: string
@@ -54067,6 +56208,63 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Advertisement"> | Date | string
   }
 
+  export type AdApplicationUpsertWithWhereUniqueWithoutApplicantInput = {
+    where: AdApplicationWhereUniqueInput
+    update: XOR<AdApplicationUpdateWithoutApplicantInput, AdApplicationUncheckedUpdateWithoutApplicantInput>
+    create: XOR<AdApplicationCreateWithoutApplicantInput, AdApplicationUncheckedCreateWithoutApplicantInput>
+  }
+
+  export type AdApplicationUpdateWithWhereUniqueWithoutApplicantInput = {
+    where: AdApplicationWhereUniqueInput
+    data: XOR<AdApplicationUpdateWithoutApplicantInput, AdApplicationUncheckedUpdateWithoutApplicantInput>
+  }
+
+  export type AdApplicationUpdateManyWithWhereWithoutApplicantInput = {
+    where: AdApplicationScalarWhereInput
+    data: XOR<AdApplicationUpdateManyMutationInput, AdApplicationUncheckedUpdateManyWithoutApplicantInput>
+  }
+
+  export type AdApplicationScalarWhereInput = {
+    AND?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
+    OR?: AdApplicationScalarWhereInput[]
+    NOT?: AdApplicationScalarWhereInput | AdApplicationScalarWhereInput[]
+    id?: StringFilter<"AdApplication"> | string
+    userId?: StringNullableFilter<"AdApplication"> | string | null
+    name?: StringFilter<"AdApplication"> | string
+    email?: StringFilter<"AdApplication"> | string
+    phoneNumber?: StringFilter<"AdApplication"> | string
+    companyName?: StringNullableFilter<"AdApplication"> | string | null
+    title?: StringFilter<"AdApplication"> | string
+    description?: StringFilter<"AdApplication"> | string
+    imageUrl?: StringFilter<"AdApplication"> | string
+    linkUrl?: StringNullableFilter<"AdApplication"> | string | null
+    position?: EnumBannerPositionFilter<"AdApplication"> | $Enums.BannerPosition
+    theme?: EnumBannerThemeFilter<"AdApplication"> | $Enums.BannerTheme
+    requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
+    requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
+    status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    reviewComment?: StringNullableFilter<"AdApplication"> | string | null
+    reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
+    createdAt?: DateTimeFilter<"AdApplication"> | Date | string
+    updatedAt?: DateTimeFilter<"AdApplication"> | Date | string
+  }
+
+  export type AdApplicationUpsertWithWhereUniqueWithoutReviewerInput = {
+    where: AdApplicationWhereUniqueInput
+    update: XOR<AdApplicationUpdateWithoutReviewerInput, AdApplicationUncheckedUpdateWithoutReviewerInput>
+    create: XOR<AdApplicationCreateWithoutReviewerInput, AdApplicationUncheckedCreateWithoutReviewerInput>
+  }
+
+  export type AdApplicationUpdateWithWhereUniqueWithoutReviewerInput = {
+    where: AdApplicationWhereUniqueInput
+    data: XOR<AdApplicationUpdateWithoutReviewerInput, AdApplicationUncheckedUpdateWithoutReviewerInput>
+  }
+
+  export type AdApplicationUpdateManyWithWhereWithoutReviewerInput = {
+    where: AdApplicationScalarWhereInput
+    data: XOR<AdApplicationUpdateManyMutationInput, AdApplicationUncheckedUpdateManyWithoutReviewerInput>
+  }
+
   export type ProofOfTransferUpsertWithWhereUniqueWithoutUserInput = {
     where: ProofOfTransferWhereUniqueInput
     update: XOR<ProofOfTransferUpdateWithoutUserInput, ProofOfTransferUncheckedUpdateWithoutUserInput>
@@ -54157,6 +56355,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -54189,6 +56389,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -54434,6 +56636,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -54466,6 +56670,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -54669,6 +56875,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -54701,6 +56909,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -54991,6 +57201,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -55023,6 +57235,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -56486,6 +58700,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -56518,6 +58734,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -56566,6 +58784,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -56598,6 +58818,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -56630,6 +58852,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -56662,6 +58886,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -56750,6 +58976,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -56782,6 +59010,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -57249,6 +59479,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -57281,6 +59513,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -57329,6 +59563,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -57361,6 +59597,312 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
+    proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutAdApplicationsInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerCreateNestedOneWithoutUserInput
+    vendor?: VendorCreateNestedOneWithoutUserInput
+    addresses?: AddressCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    wallet?: WalletCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
+    proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAdApplicationsInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerUncheckedCreateNestedOneWithoutUserInput
+    vendor?: VendorUncheckedCreateNestedOneWithoutUserInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerUncheckedCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
+    proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAdApplicationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAdApplicationsInput, UserUncheckedCreateWithoutAdApplicationsInput>
+  }
+
+  export type UserCreateWithoutReviewedAdApplicationsInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerCreateNestedOneWithoutUserInput
+    vendor?: VendorCreateNestedOneWithoutUserInput
+    addresses?: AddressCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    wallet?: WalletCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutReviewedAdApplicationsInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerUncheckedCreateNestedOneWithoutUserInput
+    vendor?: VendorUncheckedCreateNestedOneWithoutUserInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerUncheckedCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutReviewedAdApplicationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutReviewedAdApplicationsInput, UserUncheckedCreateWithoutReviewedAdApplicationsInput>
+  }
+
+  export type UserUpsertWithoutAdApplicationsInput = {
+    update: XOR<UserUpdateWithoutAdApplicationsInput, UserUncheckedUpdateWithoutAdApplicationsInput>
+    create: XOR<UserCreateWithoutAdApplicationsInput, UserUncheckedCreateWithoutAdApplicationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAdApplicationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAdApplicationsInput, UserUncheckedUpdateWithoutAdApplicationsInput>
+  }
+
+  export type UserUpdateWithoutAdApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUpdateOneWithoutUserNestedInput
+    vendor?: VendorUpdateOneWithoutUserNestedInput
+    addresses?: AddressUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    wallet?: WalletUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
+    proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAdApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUncheckedUpdateOneWithoutUserNestedInput
+    vendor?: VendorUncheckedUpdateOneWithoutUserNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUncheckedUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
+    proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUpsertWithoutReviewedAdApplicationsInput = {
+    update: XOR<UserUpdateWithoutReviewedAdApplicationsInput, UserUncheckedUpdateWithoutReviewedAdApplicationsInput>
+    create: XOR<UserCreateWithoutReviewedAdApplicationsInput, UserUncheckedCreateWithoutReviewedAdApplicationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutReviewedAdApplicationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutReviewedAdApplicationsInput, UserUncheckedUpdateWithoutReviewedAdApplicationsInput>
+  }
+
+  export type UserUpdateWithoutReviewedAdApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUpdateOneWithoutUserNestedInput
+    vendor?: VendorUpdateOneWithoutUserNestedInput
+    addresses?: AddressUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    wallet?: WalletUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutReviewedAdApplicationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUncheckedUpdateOneWithoutUserNestedInput
+    vendor?: VendorUncheckedUpdateOneWithoutUserNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUncheckedUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -57393,6 +59935,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -57425,6 +59969,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -57473,6 +60019,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -57505,6 +60053,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -57537,6 +60087,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -57569,6 +60121,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -57617,6 +60171,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -57649,6 +60205,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -57681,6 +60239,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -57713,6 +60273,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -57761,6 +60323,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -57793,6 +60357,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -58033,6 +60599,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -58065,6 +60633,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -58147,6 +60717,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -58179,6 +60751,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -58344,6 +60918,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
 
@@ -58376,6 +60952,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -58475,6 +61053,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
 
@@ -58507,6 +61087,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -58683,6 +61265,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
   }
 
@@ -58715,6 +61299,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -58814,6 +61400,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
   }
 
@@ -58846,6 +61434,8 @@ export namespace Prisma {
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -58877,6 +61467,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
     notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
     advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
   }
@@ -58909,6 +61501,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
     notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
     advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
   }
@@ -58957,6 +61551,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
     notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
     advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
   }
@@ -58989,6 +61585,8 @@ export namespace Prisma {
     pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
     notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
     advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
   }
@@ -59648,6 +62246,48 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type AdApplicationCreateManyApplicantInput = {
+    id?: string
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    reviewedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdApplicationCreateManyReviewerInput = {
+    id?: string
+    userId?: string | null
+    name: string
+    email: string
+    phoneNumber: string
+    companyName?: string | null
+    title: string
+    description: string
+    imageUrl: string
+    linkUrl?: string | null
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    requestedStart?: Date | string
+    requestedEnd?: Date | string | null
+    status?: $Enums.AdApplicationStatus
+    reviewComment?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ProofOfTransferCreateManyUserInput = {
     id?: string
     orderId?: string | null
@@ -59929,6 +62569,132 @@ export namespace Prisma {
     rejectionReason?: NullableStringFieldUpdateOperationsInput | string | null
     impressions?: IntFieldUpdateOperationsInput | number
     clicks?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationUpdateWithoutApplicantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reviewer?: UserUpdateOneWithoutReviewedAdApplicationsNestedInput
+  }
+
+  export type AdApplicationUncheckedUpdateWithoutApplicantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationUncheckedUpdateManyWithoutApplicantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationUpdateWithoutReviewerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    applicant?: UserUpdateOneWithoutAdApplicationsNestedInput
+  }
+
+  export type AdApplicationUncheckedUpdateWithoutReviewerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdApplicationUncheckedUpdateManyWithoutReviewerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    companyName?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

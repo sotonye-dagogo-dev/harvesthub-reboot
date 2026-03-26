@@ -120,6 +120,34 @@ export async function getVendorsClient(limit = 20) {
     }
 }
 
+export async function applyForAdClient(application: Record<string, unknown>) {
+    const res = await fetch('/api/ad-applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(application),
+    });
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to submit ad application');
+    }
+
+    return res.json();
+}
+
+export async function getAdApplicationsClient(status?: string) {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    const res = await fetch(`/api/ad-applications${query}`);
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to fetch ad applications');
+    }
+
+    return res.json();
+}
+
+
 export async function getVendorByIdClient(id: string) {
     try {
         const res = await fetch(`/api/vendors/${id}`);

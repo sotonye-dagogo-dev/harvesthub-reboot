@@ -255,7 +255,35 @@ export const buyerDb = {
         return true;
     },
 } satisfies CrudAdapter<any, any, any>;
+export const adApplicationDb = {
+    findAll: async (filters?: any) => {
+        const where: any = {};
+        if (filters?.status) where.status = filters.status;
+        if (filters?.userId) where.userId = filters.userId;
+        const take = filters?.limit ?? undefined;
+        const skip = filters?.page && filters.limit ? (filters.page - 1) * filters.limit : undefined;
+        return withPrismaReconnect(() =>
+            prisma.adApplication.findMany({ where, take, skip, orderBy: [{ createdAt: 'desc' }] })
+        );
+    },
 
+    findById: async (id: string) => {
+        return withPrismaReconnect(() => prisma.adApplication.findUnique({ where: { id } }));
+    },
+
+    create: async (data: any) => {
+        return withPrismaReconnect(() => prisma.adApplication.create({ data }));
+    },
+
+    update: async (id: string, data: any) => {
+        return withPrismaReconnect(() => prisma.adApplication.update({ where: { id }, data }));
+    },
+
+    delete: async (id: string) => {
+        await withPrismaReconnect(() => prisma.adApplication.delete({ where: { id } }));
+        return true;
+    },
+} satisfies CrudAdapter<any, any, any>;
 export const vendorDb = {
     findAll: async (filters?: any) => {
         const where: any = {};
@@ -344,6 +372,7 @@ const prismaAdapter = {
     userDb,
     productDb,
     bannerDb,
+    adApplicationDb,
     orderDb,
     buyerDb,
     vendorDb,

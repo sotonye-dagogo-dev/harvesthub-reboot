@@ -342,6 +342,28 @@ exports.Prisma.BannerScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AdApplicationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  companyName: 'companyName',
+  title: 'title',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  linkUrl: 'linkUrl',
+  position: 'position',
+  theme: 'theme',
+  requestedStart: 'requestedStart',
+  requestedEnd: 'requestedEnd',
+  status: 'status',
+  reviewComment: 'reviewComment',
+  reviewedBy: 'reviewedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CommissionConfigScalarFieldEnum = {
   id: 'id',
   category: 'category',
@@ -813,6 +835,12 @@ exports.BannerTheme = exports.$Enums.BannerTheme = {
   PROMOTION: 'PROMOTION'
 };
 
+exports.AdApplicationStatus = exports.$Enums.AdApplicationStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
 exports.NotificationType = exports.$Enums.NotificationType = {
   ORDER_CONFIRMED: 'ORDER_CONFIRMED',
   ORDER_READY: 'ORDER_READY',
@@ -915,6 +943,7 @@ exports.Prisma.ModelName = {
   Transaction: 'Transaction',
   Review: 'Review',
   Banner: 'Banner',
+  AdApplication: 'AdApplication',
   CommissionConfig: 'CommissionConfig',
   Notification: 'Notification',
   PushSubscription: 'PushSubscription',

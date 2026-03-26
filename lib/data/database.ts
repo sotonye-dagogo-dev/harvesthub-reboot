@@ -26,6 +26,7 @@ import type {
     Transaction,
     Review,
     Banner,
+    AdApplication,
     Address,
 } from '@/lib/types';
 
@@ -62,6 +63,7 @@ let wallets: Wallet[] = [...mockWallets];
 let transactions: Transaction[] = [...mockTransactions];
 let reviews: Review[] = [...mockReviews];
 let banners: Banner[] = [...mockBanners];
+let adApplications: AdApplication[] = [];
 let addresses: Address[] = [...mockAddresses];
 
 // For password storage (separate from User type)
@@ -994,6 +996,54 @@ const mockBannerDb = {
 };
 
 // ===================================
+// AD APPLICATION OPERATIONS
+// ===================================
+
+const mockAdApplicationDb = {
+    findAll: (filters?: { status?: string; userId?: string }) => {
+        let filtered = adApplications;
+
+        if (filters?.status) filtered = filtered.filter((a) => a.status === filters.status);
+        if (filters?.userId) filtered = filtered.filter((a) => a.userId === filters.userId);
+
+        return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+
+    findById: (id: string): AdApplication | undefined => {
+        return adApplications.find((a) => a.id === id);
+    },
+
+    create: (data: Omit<AdApplication, 'id' | 'createdAt' | 'updatedAt'>): AdApplication => {
+        const newApp: AdApplication = {
+            id: generateId('adApp'),
+            ...data,
+            status: data.status ?? 'PENDING',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } as AdApplication;
+        adApplications.push(newApp);
+        return newApp;
+    },
+
+    update: (id: string, data: Partial<AdApplication>): AdApplication | null => {
+        const index = adApplications.findIndex((a) => a.id === id);
+        if (index === -1) return null;
+
+        const updated = { ...adApplications[index], ...data, updatedAt: new Date() } as AdApplication;
+        adApplications[index] = updated;
+        return updated;
+    },
+
+    delete: (id: string): boolean => {
+        const index = adApplications.findIndex((a) => a.id === id);
+        if (index === -1) return false;
+
+        adApplications.splice(index, 1);
+        return true;
+    },
+};
+
+// ===================================
 // ADDRESS OPERATIONS
 // ===================================
 
@@ -1094,6 +1144,7 @@ export const dbStats = {
         transactions = [...mockTransactions];
         reviews = [...mockReviews];
         banners = [...mockBanners];
+        adApplications = [];
         addresses = [...mockAddresses];
     },
 };
@@ -1138,6 +1189,7 @@ export const walletDb = usePrisma ? (prismaAdapter.walletDb ?? missingAdapter('w
 export const transactionDb = usePrisma ? (prismaAdapter.transactionDb ?? missingAdapter('transactionDb')) : mockTransactionDb as any;
 export const reviewDb = usePrisma ? (prismaAdapter.reviewDb ?? missingAdapter('reviewDb')) : mockReviewDb as any;
 export const bannerDb = usePrisma ? prismaAdapter.bannerDb : mockBannerDb as any;
+export const adApplicationDb = usePrisma ? (prismaAdapter.adApplicationDb ?? missingAdapter('adApplicationDb')) : mockAdApplicationDb as any;
 export const addressDb = usePrisma ? (prismaAdapter.addressDb ?? missingAdapter('addressDb')) : mockAddressDb as any;
 
 export const db = {
@@ -1151,6 +1203,7 @@ export const db = {
     transactions: transactionDb,
     reviews: reviewDb,
     banners: bannerDb,
+    adApplications: adApplicationDb,
     addresses: addressDb,
     stats: dbStats,
 };
