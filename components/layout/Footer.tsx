@@ -106,6 +106,14 @@ export function Footer() {
                   About Us
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/advertise"
+                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                >
+                  Apply to Advertise
+                </Link>
+              </li>
             </ul>
           </div>
 

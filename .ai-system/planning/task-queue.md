@@ -36,6 +36,12 @@
 - [ ] Add payment gateway integration stubs (Paystack, Flutterwave)
 - [ ] Implement notifications (email + in-app) using `resend` / `web-push`
 - [ ] Add vendor analytics dashboards (sales, orders, revenue)
+- [ ] Add public ad application page + footer CTA link (accessible to unauthenticated users)
+  - [ ] Create `app/ad-application` page with form content and static information
+  - [ ] Add backend endpoint `app/api/ads/apply/route.ts` to receive submissions
+  - [ ] Ensure no auth guard in middleware for this page (public route access)
+  - [ ] Add a clear footer link text like “Apply to Advertise” in `components/layout/Footer` or equivalent
+  - [ ] Add tests: route accessibility + form submit behavior + footer link presence
 
 ---
 

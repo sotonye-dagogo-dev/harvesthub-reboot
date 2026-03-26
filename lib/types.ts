@@ -474,6 +474,28 @@ export interface Banner {
     createdBy: ID;
 }
 
+export interface AdApplication {
+    id: ID;
+    userId?: ID | null;
+    name: string;
+    email: Email;
+    phoneNumber: PhoneNumber;
+    companyName?: string | null;
+    title: string;
+    description: string;
+    imageUrl: URL;
+    linkUrl?: URL | null;
+    position: 'TOP' | 'HERO' | 'SIDEBAR';
+    theme?: 'BUSINESS' | 'CHURCH' | 'EVENT' | 'PROMOTION' | null;
+    requestedStart: Timestamp;
+    requestedEnd?: Timestamp | null;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    reviewComment?: string | null;
+    reviewedBy?: ID | null;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
 // ============================================================================
 // NOTIFICATION TYPES
 // ============================================================================
