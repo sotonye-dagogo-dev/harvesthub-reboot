@@ -45,7 +45,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="relative h-10 w-10 flex-shrink-0">
+            <div className="relative h-8 w-8 flex-shrink-0">
               <Image
                 src="/myharvesthublogo.png"
                 alt="MyHarvestHub"
@@ -65,7 +65,7 @@ export function Header() {
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs placeholder:text-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
               />
             </div>
           </div>

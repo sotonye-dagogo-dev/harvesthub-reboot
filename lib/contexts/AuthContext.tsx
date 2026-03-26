@@ -181,7 +181,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const responseData = await response.json();
+
+    // If email verification is required, do not set user as logged in yet.
+    if (responseData.needsEmailVerification) {
+      setUser(null);
+      setCachedUser(null);
+      return responseData;
+    }
+
     setUser(responseData.user);
+    setCachedUser(responseData.user);
+
+    return responseData;
   };
 
   // Logout function

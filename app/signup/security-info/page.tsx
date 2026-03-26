@@ -47,8 +47,8 @@ export default function SecurityInfoPage() {
         }),
       });
 
-      // Redirect to success page
-      router.push("/signup-success");
+      // Redirect to verify email page
+      router.push("/verify-email");
     } catch (error) {
       console.error("Registration failed:", error);
       // Error will be handled by SecurityInfo component
