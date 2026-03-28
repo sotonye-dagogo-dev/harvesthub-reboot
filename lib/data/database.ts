@@ -64,6 +64,16 @@ let transactions: Transaction[] = [...mockTransactions];
 let reviews: Review[] = [...mockReviews];
 let banners: Banner[] = [...mockBanners];
 let adApplications: AdApplication[] = [];
+let adRateConfigs: { id: string; hourlyRate: number; dailyRate: number; isActive: boolean; createdAt: Date; updatedAt: Date }[] = [
+    {
+        id: 'ad-rate-default',
+        hourlyRate: 500,
+        dailyRate: 8000,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+];
 let addresses: Address[] = [...mockAddresses];
 
 // For password storage (separate from User type)
@@ -1047,6 +1057,23 @@ const mockAdApplicationDb = {
 // ADDRESS OPERATIONS
 // ===================================
 
+const mockAdRateConfigDb = {
+    getActive: () => {
+        return adRateConfigs.find((config) => config.isActive) || null;
+    },
+    getById: (id: string) => adRateConfigs.find((config) => config.id === id) || null,
+    update: (id: string, data: Partial<{ hourlyRate: number; dailyRate: number; isActive: boolean }>) => {
+        const index = adRateConfigs.findIndex((config) => config.id === id);
+        if (index === -1) return null;
+        adRateConfigs[index] = {
+            ...adRateConfigs[index],
+            ...data,
+            updatedAt: new Date(),
+        };
+        return adRateConfigs[index];
+    },
+};
+
 const mockAddressDb = {
     findAll: (userId?: string) => {
         if (userId) {
@@ -1130,6 +1157,7 @@ export const dbStats = {
         transactions: transactions.length,
         reviews: reviews.length,
         banners: banners.length,
+        adApplications: adApplications.length,
         addresses: addresses.length,
     }),
 
@@ -1145,6 +1173,16 @@ export const dbStats = {
         reviews = [...mockReviews];
         banners = [...mockBanners];
         adApplications = [];
+        adRateConfigs = [
+            {
+                id: 'ad-rate-default',
+                hourlyRate: 500,
+                dailyRate: 8000,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        ];
         addresses = [...mockAddresses];
     },
 };
@@ -1204,6 +1242,7 @@ export const db = {
     reviews: reviewDb,
     banners: bannerDb,
     adApplications: adApplicationDb,
+    adRateConfig: usePrisma ? (prismaAdapter.adRateConfig ?? missingAdapter('adRateConfig')) : mockAdRateConfigDb as any,
     addresses: addressDb,
     stats: dbStats,
 };

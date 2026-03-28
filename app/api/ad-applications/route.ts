@@ -45,9 +45,14 @@ export async function POST(req: NextRequest) {
             theme,
             requestedStart,
             requestedEnd,
+            paymentMethod,
+            amountPaid,
+            proofOfTransferUrl,
+            durationType,
+            durationValue,
         } = body;
 
-        if (!name || !email || !phoneNumber || !title || !description || !imageUrl) {
+        if (!name || !email || !phoneNumber || !title || !description || !imageUrl || !paymentMethod || !amountPaid || !proofOfTransferUrl) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -65,9 +70,15 @@ export async function POST(req: NextRequest) {
             theme: theme ?? 'BUSINESS',
             requestedStart: requestedStart ? new Date(requestedStart) : new Date(),
             requestedEnd: requestedEnd ? new Date(requestedEnd) : null,
-            status: 'PENDING',
+            status: 'PENDING_PAYMENT',
+            paymentMethod,
+            amountPaid: Number(amountPaid),
+            proofOfTransferUrl,
+            durationType: durationType ?? 'DAILY',
+            durationValue: Number(durationValue ?? 1),
             reviewComment: null,
             reviewedBy: null,
+            activeUntil: null,
         });
 
         return NextResponse.json({ success: true, application }, { status: 201 });

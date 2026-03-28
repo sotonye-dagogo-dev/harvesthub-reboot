@@ -284,6 +284,13 @@ export const adApplicationDb = {
         return true;
     },
 } satisfies CrudAdapter<any, any, any>;
+
+export const adRateConfigDb = {
+    getActive: async () => withPrismaReconnect(() => prisma.adRateConfig.findFirst({ where: { isActive: true } })),
+    getById: async (id: string) => withPrismaReconnect(() => prisma.adRateConfig.findUnique({ where: { id } })),
+    update: async (id: string, data: any) => withPrismaReconnect(() => prisma.adRateConfig.update({ where: { id }, data })),
+} satisfies CrudAdapter<any, any, any>;
+
 export const vendorDb = {
     findAll: async (filters?: any) => {
         const where: any = {};

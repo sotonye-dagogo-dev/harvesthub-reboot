@@ -17,6 +17,10 @@ export default function AdminAdsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [rateConfig, setRateConfig] = useState<{ hourlyRate: number; dailyRate: number } | null>(
+    null
+  );
+  const [rateSaving, setRateSaving] = useState(false);
 
   useEffect(() => {
     if (user?.role !== "ADMIN") {
@@ -24,6 +28,7 @@ export default function AdminAdsPage() {
       return;
     }
     fetchApplications();
+    fetchAdRateConfig();
   }, [user, router]);
 
   const fetchApplications = async () => {
@@ -39,6 +44,39 @@ export default function AdminAdsPage() {
       message.error(err.message || "Could not load applications");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAdRateConfig = async () => {
+    try {
+      const res = await fetch("/api/admin/ads/rates");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch ad rate config");
+      setRateConfig(data.rateConfig);
+    } catch (err: any) {
+      console.error(err);
+      message.error(err.message || "Could not load ad rate config");
+    }
+  };
+
+  const handleRateSave = async () => {
+    if (!rateConfig) return;
+    setRateSaving(true);
+    try {
+      const res = await fetch("/api/admin/ads/rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rateConfig),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update ad rate config");
+      setRateConfig(data.rateConfig);
+      message.success("Ad rates updated successfully");
+    } catch (err: any) {
+      console.error(err);
+      message.error(err.message || "Could not update ad rate config");
+    } finally {
+      setRateSaving(false);
     }
   };
 
@@ -160,6 +198,48 @@ export default function AdminAdsPage() {
         Review and approve/reject incoming ad requests. Approved apps generate banner entries for
         rotation.
       </p>
+
+      <div className="mb-8 rounded-ds-lg border border-ds-border-base p-5">
+        <h2 className="text-xl font-semibold mb-3">Ad Rate Configuration</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label className="block text-sm font-medium text-ds-text-secondary mb-1">
+              Hourly Rate (NGN)
+            </label>
+            <input
+              type="number"
+              className="w-full rounded-ds-md border border-ds-border-base p-2"
+              value={rateConfig?.hourlyRate ?? 0}
+              onChange={(e) =>
+                setRateConfig((prev) => ({ ...prev, hourlyRate: Number(e.target.value) }))
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-ds-text-secondary mb-1">
+              Daily Rate (NGN)
+            </label>
+            <input
+              type="number"
+              className="w-full rounded-ds-md border border-ds-border-base p-2"
+              value={rateConfig?.dailyRate ?? 0}
+              onChange={(e) =>
+                setRateConfig((prev) => ({ ...prev, dailyRate: Number(e.target.value) }))
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="rounded-ds-md bg-ds-brand-primary py-2 px-4 text-white hover:bg-ds-brand-primary-hover"
+              onClick={handleRateSave}
+            >
+              Update Rates
+            </button>
+            {rateSaving && <span className="text-sm text-ds-text-secondary">Saving...</span>}
+          </div>
+        </div>
+      </div>
+
       <Table<ApplicationRow> dataSource={applications} columns={columns} loading={loading} />
     </div>
   );

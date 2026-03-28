@@ -84,6 +84,11 @@ export type Banner = $Result.DefaultSelection<Prisma.$BannerPayload>
  */
 export type AdApplication = $Result.DefaultSelection<Prisma.$AdApplicationPayload>
 /**
+ * Model AdRateConfig
+ * 
+ */
+export type AdRateConfig = $Result.DefaultSelection<Prisma.$AdRateConfigPayload>
+/**
  * Model CommissionConfig
  * 
  */
@@ -450,11 +455,32 @@ export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus]
 
 export const AdApplicationStatus: {
   PENDING: 'PENDING',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED'
 };
 
 export type AdApplicationStatus = (typeof AdApplicationStatus)[keyof typeof AdApplicationStatus]
+
+
+export const AdPaymentMethod: {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  CARD: 'CARD',
+  USSD: 'USSD'
+};
+
+export type AdPaymentMethod = (typeof AdPaymentMethod)[keyof typeof AdPaymentMethod]
+
+
+export const AdDurationType: {
+  HOURLY: 'HOURLY',
+  DAILY: 'DAILY'
+};
+
+export type AdDurationType = (typeof AdDurationType)[keyof typeof AdDurationType]
 
 
 export const AvailabilityRequestStatus: {
@@ -701,6 +727,14 @@ export const ReviewStatus: typeof $Enums.ReviewStatus
 export type AdApplicationStatus = $Enums.AdApplicationStatus
 
 export const AdApplicationStatus: typeof $Enums.AdApplicationStatus
+
+export type AdPaymentMethod = $Enums.AdPaymentMethod
+
+export const AdPaymentMethod: typeof $Enums.AdPaymentMethod
+
+export type AdDurationType = $Enums.AdDurationType
+
+export const AdDurationType: typeof $Enums.AdDurationType
 
 export type AvailabilityRequestStatus = $Enums.AvailabilityRequestStatus
 
@@ -1022,6 +1056,16 @@ export class PrismaClient<
     * ```
     */
   get adApplication(): Prisma.AdApplicationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adRateConfig`: Exposes CRUD operations for the **AdRateConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdRateConfigs
+    * const adRateConfigs = await prisma.adRateConfig.findMany()
+    * ```
+    */
+  get adRateConfig(): Prisma.AdRateConfigDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.commissionConfig`: Exposes CRUD operations for the **CommissionConfig** model.
@@ -1640,6 +1684,7 @@ export namespace Prisma {
     Review: 'Review',
     Banner: 'Banner',
     AdApplication: 'AdApplication',
+    AdRateConfig: 'AdRateConfig',
     CommissionConfig: 'CommissionConfig',
     Notification: 'Notification',
     PushSubscription: 'PushSubscription',
@@ -1672,7 +1717,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
+      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2709,6 +2754,80 @@ export namespace Prisma {
           count: {
             args: Prisma.AdApplicationCountArgs<ExtArgs>
             result: $Utils.Optional<AdApplicationCountAggregateOutputType> | number
+          }
+        }
+      }
+      AdRateConfig: {
+        payload: Prisma.$AdRateConfigPayload<ExtArgs>
+        fields: Prisma.AdRateConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdRateConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdRateConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.AdRateConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdRateConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          findMany: {
+            args: Prisma.AdRateConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>[]
+          }
+          create: {
+            args: Prisma.AdRateConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          createMany: {
+            args: Prisma.AdRateConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AdRateConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.AdRateConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          update: {
+            args: Prisma.AdRateConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdRateConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdRateConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AdRateConfigUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>[]
+          }
+          upsert: {
+            args: Prisma.AdRateConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdRateConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.AdRateConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdRateConfig>
+          }
+          groupBy: {
+            args: Prisma.AdRateConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdRateConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdRateConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<AdRateConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -4092,6 +4211,7 @@ export namespace Prisma {
     review?: ReviewOmit
     banner?: BannerOmit
     adApplication?: AdApplicationOmit
+    adRateConfig?: AdRateConfigOmit
     commissionConfig?: CommissionConfigOmit
     notification?: NotificationOmit
     pushSubscription?: PushSubscriptionOmit
@@ -21440,8 +21560,20 @@ export namespace Prisma {
 
   export type AggregateAdApplication = {
     _count: AdApplicationCountAggregateOutputType | null
+    _avg: AdApplicationAvgAggregateOutputType | null
+    _sum: AdApplicationSumAggregateOutputType | null
     _min: AdApplicationMinAggregateOutputType | null
     _max: AdApplicationMaxAggregateOutputType | null
+  }
+
+  export type AdApplicationAvgAggregateOutputType = {
+    amountPaid: number | null
+    durationValue: number | null
+  }
+
+  export type AdApplicationSumAggregateOutputType = {
+    amountPaid: number | null
+    durationValue: number | null
   }
 
   export type AdApplicationMinAggregateOutputType = {
@@ -21460,6 +21592,12 @@ export namespace Prisma {
     requestedStart: Date | null
     requestedEnd: Date | null
     status: $Enums.AdApplicationStatus | null
+    paymentMethod: $Enums.AdPaymentMethod | null
+    amountPaid: number | null
+    proofOfTransferUrl: string | null
+    durationType: $Enums.AdDurationType | null
+    durationValue: number | null
+    activeUntil: Date | null
     reviewComment: string | null
     reviewedBy: string | null
     createdAt: Date | null
@@ -21482,6 +21620,12 @@ export namespace Prisma {
     requestedStart: Date | null
     requestedEnd: Date | null
     status: $Enums.AdApplicationStatus | null
+    paymentMethod: $Enums.AdPaymentMethod | null
+    amountPaid: number | null
+    proofOfTransferUrl: string | null
+    durationType: $Enums.AdDurationType | null
+    durationValue: number | null
+    activeUntil: Date | null
     reviewComment: string | null
     reviewedBy: string | null
     createdAt: Date | null
@@ -21504,6 +21648,12 @@ export namespace Prisma {
     requestedStart: number
     requestedEnd: number
     status: number
+    paymentMethod: number
+    amountPaid: number
+    proofOfTransferUrl: number
+    durationType: number
+    durationValue: number
+    activeUntil: number
     reviewComment: number
     reviewedBy: number
     createdAt: number
@@ -21511,6 +21661,16 @@ export namespace Prisma {
     _all: number
   }
 
+
+  export type AdApplicationAvgAggregateInputType = {
+    amountPaid?: true
+    durationValue?: true
+  }
+
+  export type AdApplicationSumAggregateInputType = {
+    amountPaid?: true
+    durationValue?: true
+  }
 
   export type AdApplicationMinAggregateInputType = {
     id?: true
@@ -21528,6 +21688,12 @@ export namespace Prisma {
     requestedStart?: true
     requestedEnd?: true
     status?: true
+    paymentMethod?: true
+    amountPaid?: true
+    proofOfTransferUrl?: true
+    durationType?: true
+    durationValue?: true
+    activeUntil?: true
     reviewComment?: true
     reviewedBy?: true
     createdAt?: true
@@ -21550,6 +21716,12 @@ export namespace Prisma {
     requestedStart?: true
     requestedEnd?: true
     status?: true
+    paymentMethod?: true
+    amountPaid?: true
+    proofOfTransferUrl?: true
+    durationType?: true
+    durationValue?: true
+    activeUntil?: true
     reviewComment?: true
     reviewedBy?: true
     createdAt?: true
@@ -21572,6 +21744,12 @@ export namespace Prisma {
     requestedStart?: true
     requestedEnd?: true
     status?: true
+    paymentMethod?: true
+    amountPaid?: true
+    proofOfTransferUrl?: true
+    durationType?: true
+    durationValue?: true
+    activeUntil?: true
     reviewComment?: true
     reviewedBy?: true
     createdAt?: true
@@ -21617,6 +21795,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: AdApplicationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdApplicationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: AdApplicationMinAggregateInputType
@@ -21647,6 +21837,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: AdApplicationCountAggregateInputType | true
+    _avg?: AdApplicationAvgAggregateInputType
+    _sum?: AdApplicationSumAggregateInputType
     _min?: AdApplicationMinAggregateInputType
     _max?: AdApplicationMaxAggregateInputType
   }
@@ -21667,11 +21859,19 @@ export namespace Prisma {
     requestedStart: Date
     requestedEnd: Date | null
     status: $Enums.AdApplicationStatus
+    paymentMethod: $Enums.AdPaymentMethod | null
+    amountPaid: number | null
+    proofOfTransferUrl: string | null
+    durationType: $Enums.AdDurationType | null
+    durationValue: number | null
+    activeUntil: Date | null
     reviewComment: string | null
     reviewedBy: string | null
     createdAt: Date
     updatedAt: Date
     _count: AdApplicationCountAggregateOutputType | null
+    _avg: AdApplicationAvgAggregateOutputType | null
+    _sum: AdApplicationSumAggregateOutputType | null
     _min: AdApplicationMinAggregateOutputType | null
     _max: AdApplicationMaxAggregateOutputType | null
   }
@@ -21706,6 +21906,12 @@ export namespace Prisma {
     requestedStart?: boolean
     requestedEnd?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    amountPaid?: boolean
+    proofOfTransferUrl?: boolean
+    durationType?: boolean
+    durationValue?: boolean
+    activeUntil?: boolean
     reviewComment?: boolean
     reviewedBy?: boolean
     createdAt?: boolean
@@ -21730,6 +21936,12 @@ export namespace Prisma {
     requestedStart?: boolean
     requestedEnd?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    amountPaid?: boolean
+    proofOfTransferUrl?: boolean
+    durationType?: boolean
+    durationValue?: boolean
+    activeUntil?: boolean
     reviewComment?: boolean
     reviewedBy?: boolean
     createdAt?: boolean
@@ -21754,6 +21966,12 @@ export namespace Prisma {
     requestedStart?: boolean
     requestedEnd?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    amountPaid?: boolean
+    proofOfTransferUrl?: boolean
+    durationType?: boolean
+    durationValue?: boolean
+    activeUntil?: boolean
     reviewComment?: boolean
     reviewedBy?: boolean
     createdAt?: boolean
@@ -21778,13 +21996,19 @@ export namespace Prisma {
     requestedStart?: boolean
     requestedEnd?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    amountPaid?: boolean
+    proofOfTransferUrl?: boolean
+    durationType?: boolean
+    durationValue?: boolean
+    activeUntil?: boolean
     reviewComment?: boolean
     reviewedBy?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type AdApplicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "email" | "phoneNumber" | "companyName" | "title" | "description" | "imageUrl" | "linkUrl" | "position" | "theme" | "requestedStart" | "requestedEnd" | "status" | "reviewComment" | "reviewedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["adApplication"]>
+  export type AdApplicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "email" | "phoneNumber" | "companyName" | "title" | "description" | "imageUrl" | "linkUrl" | "position" | "theme" | "requestedStart" | "requestedEnd" | "status" | "paymentMethod" | "amountPaid" | "proofOfTransferUrl" | "durationType" | "durationValue" | "activeUntil" | "reviewComment" | "reviewedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["adApplication"]>
   export type AdApplicationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     applicant?: boolean | AdApplication$applicantArgs<ExtArgs>
     reviewer?: boolean | AdApplication$reviewerArgs<ExtArgs>
@@ -21820,6 +22044,12 @@ export namespace Prisma {
       requestedStart: Date
       requestedEnd: Date | null
       status: $Enums.AdApplicationStatus
+      paymentMethod: $Enums.AdPaymentMethod | null
+      amountPaid: number | null
+      proofOfTransferUrl: string | null
+      durationType: $Enums.AdDurationType | null
+      durationValue: number | null
+      activeUntil: Date | null
       reviewComment: string | null
       reviewedBy: string | null
       createdAt: Date
@@ -22264,6 +22494,12 @@ export namespace Prisma {
     readonly requestedStart: FieldRef<"AdApplication", 'DateTime'>
     readonly requestedEnd: FieldRef<"AdApplication", 'DateTime'>
     readonly status: FieldRef<"AdApplication", 'AdApplicationStatus'>
+    readonly paymentMethod: FieldRef<"AdApplication", 'AdPaymentMethod'>
+    readonly amountPaid: FieldRef<"AdApplication", 'Float'>
+    readonly proofOfTransferUrl: FieldRef<"AdApplication", 'String'>
+    readonly durationType: FieldRef<"AdApplication", 'AdDurationType'>
+    readonly durationValue: FieldRef<"AdApplication", 'Int'>
+    readonly activeUntil: FieldRef<"AdApplication", 'DateTime'>
     readonly reviewComment: FieldRef<"AdApplication", 'String'>
     readonly reviewedBy: FieldRef<"AdApplication", 'String'>
     readonly createdAt: FieldRef<"AdApplication", 'DateTime'>
@@ -22722,6 +22958,1057 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AdApplicationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AdRateConfig
+   */
+
+  export type AggregateAdRateConfig = {
+    _count: AdRateConfigCountAggregateOutputType | null
+    _avg: AdRateConfigAvgAggregateOutputType | null
+    _sum: AdRateConfigSumAggregateOutputType | null
+    _min: AdRateConfigMinAggregateOutputType | null
+    _max: AdRateConfigMaxAggregateOutputType | null
+  }
+
+  export type AdRateConfigAvgAggregateOutputType = {
+    hourlyRate: number | null
+    dailyRate: number | null
+  }
+
+  export type AdRateConfigSumAggregateOutputType = {
+    hourlyRate: number | null
+    dailyRate: number | null
+  }
+
+  export type AdRateConfigMinAggregateOutputType = {
+    id: string | null
+    hourlyRate: number | null
+    dailyRate: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdRateConfigMaxAggregateOutputType = {
+    id: string | null
+    hourlyRate: number | null
+    dailyRate: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AdRateConfigCountAggregateOutputType = {
+    id: number
+    hourlyRate: number
+    dailyRate: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AdRateConfigAvgAggregateInputType = {
+    hourlyRate?: true
+    dailyRate?: true
+  }
+
+  export type AdRateConfigSumAggregateInputType = {
+    hourlyRate?: true
+    dailyRate?: true
+  }
+
+  export type AdRateConfigMinAggregateInputType = {
+    id?: true
+    hourlyRate?: true
+    dailyRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdRateConfigMaxAggregateInputType = {
+    id?: true
+    hourlyRate?: true
+    dailyRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AdRateConfigCountAggregateInputType = {
+    id?: true
+    hourlyRate?: true
+    dailyRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AdRateConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdRateConfig to aggregate.
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdRateConfigs to fetch.
+     */
+    orderBy?: AdRateConfigOrderByWithRelationInput | AdRateConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdRateConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdRateConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdRateConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdRateConfigs
+    **/
+    _count?: true | AdRateConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AdRateConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdRateConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdRateConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdRateConfigMaxAggregateInputType
+  }
+
+  export type GetAdRateConfigAggregateType<T extends AdRateConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdRateConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdRateConfig[P]>
+      : GetScalarType<T[P], AggregateAdRateConfig[P]>
+  }
+
+
+
+
+  export type AdRateConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdRateConfigWhereInput
+    orderBy?: AdRateConfigOrderByWithAggregationInput | AdRateConfigOrderByWithAggregationInput[]
+    by: AdRateConfigScalarFieldEnum[] | AdRateConfigScalarFieldEnum
+    having?: AdRateConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdRateConfigCountAggregateInputType | true
+    _avg?: AdRateConfigAvgAggregateInputType
+    _sum?: AdRateConfigSumAggregateInputType
+    _min?: AdRateConfigMinAggregateInputType
+    _max?: AdRateConfigMaxAggregateInputType
+  }
+
+  export type AdRateConfigGroupByOutputType = {
+    id: string
+    hourlyRate: number
+    dailyRate: number
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: AdRateConfigCountAggregateOutputType | null
+    _avg: AdRateConfigAvgAggregateOutputType | null
+    _sum: AdRateConfigSumAggregateOutputType | null
+    _min: AdRateConfigMinAggregateOutputType | null
+    _max: AdRateConfigMaxAggregateOutputType | null
+  }
+
+  type GetAdRateConfigGroupByPayload<T extends AdRateConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdRateConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdRateConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdRateConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], AdRateConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdRateConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hourlyRate?: boolean
+    dailyRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["adRateConfig"]>
+
+  export type AdRateConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hourlyRate?: boolean
+    dailyRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["adRateConfig"]>
+
+  export type AdRateConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    hourlyRate?: boolean
+    dailyRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["adRateConfig"]>
+
+  export type AdRateConfigSelectScalar = {
+    id?: boolean
+    hourlyRate?: boolean
+    dailyRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AdRateConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "hourlyRate" | "dailyRate" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["adRateConfig"]>
+
+  export type $AdRateConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdRateConfig"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      hourlyRate: number
+      dailyRate: number
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["adRateConfig"]>
+    composites: {}
+  }
+
+  type AdRateConfigGetPayload<S extends boolean | null | undefined | AdRateConfigDefaultArgs> = $Result.GetResult<Prisma.$AdRateConfigPayload, S>
+
+  type AdRateConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdRateConfigFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdRateConfigCountAggregateInputType | true
+    }
+
+  export interface AdRateConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdRateConfig'], meta: { name: 'AdRateConfig' } }
+    /**
+     * Find zero or one AdRateConfig that matches the filter.
+     * @param {AdRateConfigFindUniqueArgs} args - Arguments to find a AdRateConfig
+     * @example
+     * // Get one AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdRateConfigFindUniqueArgs>(args: SelectSubset<T, AdRateConfigFindUniqueArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdRateConfig that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdRateConfigFindUniqueOrThrowArgs} args - Arguments to find a AdRateConfig
+     * @example
+     * // Get one AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdRateConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, AdRateConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdRateConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigFindFirstArgs} args - Arguments to find a AdRateConfig
+     * @example
+     * // Get one AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdRateConfigFindFirstArgs>(args?: SelectSubset<T, AdRateConfigFindFirstArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdRateConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigFindFirstOrThrowArgs} args - Arguments to find a AdRateConfig
+     * @example
+     * // Get one AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdRateConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, AdRateConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdRateConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdRateConfigs
+     * const adRateConfigs = await prisma.adRateConfig.findMany()
+     * 
+     * // Get first 10 AdRateConfigs
+     * const adRateConfigs = await prisma.adRateConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adRateConfigWithIdOnly = await prisma.adRateConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdRateConfigFindManyArgs>(args?: SelectSubset<T, AdRateConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdRateConfig.
+     * @param {AdRateConfigCreateArgs} args - Arguments to create a AdRateConfig.
+     * @example
+     * // Create one AdRateConfig
+     * const AdRateConfig = await prisma.adRateConfig.create({
+     *   data: {
+     *     // ... data to create a AdRateConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdRateConfigCreateArgs>(args: SelectSubset<T, AdRateConfigCreateArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdRateConfigs.
+     * @param {AdRateConfigCreateManyArgs} args - Arguments to create many AdRateConfigs.
+     * @example
+     * // Create many AdRateConfigs
+     * const adRateConfig = await prisma.adRateConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdRateConfigCreateManyArgs>(args?: SelectSubset<T, AdRateConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AdRateConfigs and returns the data saved in the database.
+     * @param {AdRateConfigCreateManyAndReturnArgs} args - Arguments to create many AdRateConfigs.
+     * @example
+     * // Create many AdRateConfigs
+     * const adRateConfig = await prisma.adRateConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AdRateConfigs and only return the `id`
+     * const adRateConfigWithIdOnly = await prisma.adRateConfig.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AdRateConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, AdRateConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AdRateConfig.
+     * @param {AdRateConfigDeleteArgs} args - Arguments to delete one AdRateConfig.
+     * @example
+     * // Delete one AdRateConfig
+     * const AdRateConfig = await prisma.adRateConfig.delete({
+     *   where: {
+     *     // ... filter to delete one AdRateConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdRateConfigDeleteArgs>(args: SelectSubset<T, AdRateConfigDeleteArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdRateConfig.
+     * @param {AdRateConfigUpdateArgs} args - Arguments to update one AdRateConfig.
+     * @example
+     * // Update one AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdRateConfigUpdateArgs>(args: SelectSubset<T, AdRateConfigUpdateArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdRateConfigs.
+     * @param {AdRateConfigDeleteManyArgs} args - Arguments to filter AdRateConfigs to delete.
+     * @example
+     * // Delete a few AdRateConfigs
+     * const { count } = await prisma.adRateConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdRateConfigDeleteManyArgs>(args?: SelectSubset<T, AdRateConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdRateConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdRateConfigs
+     * const adRateConfig = await prisma.adRateConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdRateConfigUpdateManyArgs>(args: SelectSubset<T, AdRateConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdRateConfigs and returns the data updated in the database.
+     * @param {AdRateConfigUpdateManyAndReturnArgs} args - Arguments to update many AdRateConfigs.
+     * @example
+     * // Update many AdRateConfigs
+     * const adRateConfig = await prisma.adRateConfig.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AdRateConfigs and only return the `id`
+     * const adRateConfigWithIdOnly = await prisma.adRateConfig.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AdRateConfigUpdateManyAndReturnArgs>(args: SelectSubset<T, AdRateConfigUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AdRateConfig.
+     * @param {AdRateConfigUpsertArgs} args - Arguments to update or create a AdRateConfig.
+     * @example
+     * // Update or create a AdRateConfig
+     * const adRateConfig = await prisma.adRateConfig.upsert({
+     *   create: {
+     *     // ... data to create a AdRateConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdRateConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdRateConfigUpsertArgs>(args: SelectSubset<T, AdRateConfigUpsertArgs<ExtArgs>>): Prisma__AdRateConfigClient<$Result.GetResult<Prisma.$AdRateConfigPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdRateConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigCountArgs} args - Arguments to filter AdRateConfigs to count.
+     * @example
+     * // Count the number of AdRateConfigs
+     * const count = await prisma.adRateConfig.count({
+     *   where: {
+     *     // ... the filter for the AdRateConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdRateConfigCountArgs>(
+      args?: Subset<T, AdRateConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdRateConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdRateConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdRateConfigAggregateArgs>(args: Subset<T, AdRateConfigAggregateArgs>): Prisma.PrismaPromise<GetAdRateConfigAggregateType<T>>
+
+    /**
+     * Group by AdRateConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdRateConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdRateConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdRateConfigGroupByArgs['orderBy'] }
+        : { orderBy?: AdRateConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdRateConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdRateConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdRateConfig model
+   */
+  readonly fields: AdRateConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdRateConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdRateConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdRateConfig model
+   */
+  interface AdRateConfigFieldRefs {
+    readonly id: FieldRef<"AdRateConfig", 'String'>
+    readonly hourlyRate: FieldRef<"AdRateConfig", 'Float'>
+    readonly dailyRate: FieldRef<"AdRateConfig", 'Float'>
+    readonly isActive: FieldRef<"AdRateConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"AdRateConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"AdRateConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdRateConfig findUnique
+   */
+  export type AdRateConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which AdRateConfig to fetch.
+     */
+    where: AdRateConfigWhereUniqueInput
+  }
+
+  /**
+   * AdRateConfig findUniqueOrThrow
+   */
+  export type AdRateConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which AdRateConfig to fetch.
+     */
+    where: AdRateConfigWhereUniqueInput
+  }
+
+  /**
+   * AdRateConfig findFirst
+   */
+  export type AdRateConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which AdRateConfig to fetch.
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdRateConfigs to fetch.
+     */
+    orderBy?: AdRateConfigOrderByWithRelationInput | AdRateConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdRateConfigs.
+     */
+    cursor?: AdRateConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdRateConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdRateConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdRateConfigs.
+     */
+    distinct?: AdRateConfigScalarFieldEnum | AdRateConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AdRateConfig findFirstOrThrow
+   */
+  export type AdRateConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which AdRateConfig to fetch.
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdRateConfigs to fetch.
+     */
+    orderBy?: AdRateConfigOrderByWithRelationInput | AdRateConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdRateConfigs.
+     */
+    cursor?: AdRateConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdRateConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdRateConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdRateConfigs.
+     */
+    distinct?: AdRateConfigScalarFieldEnum | AdRateConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AdRateConfig findMany
+   */
+  export type AdRateConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which AdRateConfigs to fetch.
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdRateConfigs to fetch.
+     */
+    orderBy?: AdRateConfigOrderByWithRelationInput | AdRateConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdRateConfigs.
+     */
+    cursor?: AdRateConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdRateConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdRateConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdRateConfigs.
+     */
+    distinct?: AdRateConfigScalarFieldEnum | AdRateConfigScalarFieldEnum[]
+  }
+
+  /**
+   * AdRateConfig create
+   */
+  export type AdRateConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AdRateConfig.
+     */
+    data: XOR<AdRateConfigCreateInput, AdRateConfigUncheckedCreateInput>
+  }
+
+  /**
+   * AdRateConfig createMany
+   */
+  export type AdRateConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdRateConfigs.
+     */
+    data: AdRateConfigCreateManyInput | AdRateConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdRateConfig createManyAndReturn
+   */
+  export type AdRateConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * The data used to create many AdRateConfigs.
+     */
+    data: AdRateConfigCreateManyInput | AdRateConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdRateConfig update
+   */
+  export type AdRateConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AdRateConfig.
+     */
+    data: XOR<AdRateConfigUpdateInput, AdRateConfigUncheckedUpdateInput>
+    /**
+     * Choose, which AdRateConfig to update.
+     */
+    where: AdRateConfigWhereUniqueInput
+  }
+
+  /**
+   * AdRateConfig updateMany
+   */
+  export type AdRateConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdRateConfigs.
+     */
+    data: XOR<AdRateConfigUpdateManyMutationInput, AdRateConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which AdRateConfigs to update
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * Limit how many AdRateConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdRateConfig updateManyAndReturn
+   */
+  export type AdRateConfigUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * The data used to update AdRateConfigs.
+     */
+    data: XOR<AdRateConfigUpdateManyMutationInput, AdRateConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which AdRateConfigs to update
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * Limit how many AdRateConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdRateConfig upsert
+   */
+  export type AdRateConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AdRateConfig to update in case it exists.
+     */
+    where: AdRateConfigWhereUniqueInput
+    /**
+     * In case the AdRateConfig found by the `where` argument doesn't exist, create a new AdRateConfig with this data.
+     */
+    create: XOR<AdRateConfigCreateInput, AdRateConfigUncheckedCreateInput>
+    /**
+     * In case the AdRateConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdRateConfigUpdateInput, AdRateConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * AdRateConfig delete
+   */
+  export type AdRateConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
+    /**
+     * Filter which AdRateConfig to delete.
+     */
+    where: AdRateConfigWhereUniqueInput
+  }
+
+  /**
+   * AdRateConfig deleteMany
+   */
+  export type AdRateConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdRateConfigs to delete
+     */
+    where?: AdRateConfigWhereInput
+    /**
+     * Limit how many AdRateConfigs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdRateConfig without action
+   */
+  export type AdRateConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdRateConfig
+     */
+    select?: AdRateConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdRateConfig
+     */
+    omit?: AdRateConfigOmit<ExtArgs> | null
   }
 
 
@@ -42343,6 +43630,12 @@ export namespace Prisma {
     requestedStart: 'requestedStart',
     requestedEnd: 'requestedEnd',
     status: 'status',
+    paymentMethod: 'paymentMethod',
+    amountPaid: 'amountPaid',
+    proofOfTransferUrl: 'proofOfTransferUrl',
+    durationType: 'durationType',
+    durationValue: 'durationValue',
+    activeUntil: 'activeUntil',
     reviewComment: 'reviewComment',
     reviewedBy: 'reviewedBy',
     createdAt: 'createdAt',
@@ -42350,6 +43643,18 @@ export namespace Prisma {
   };
 
   export type AdApplicationScalarFieldEnum = (typeof AdApplicationScalarFieldEnum)[keyof typeof AdApplicationScalarFieldEnum]
+
+
+  export const AdRateConfigScalarFieldEnum: {
+    id: 'id',
+    hourlyRate: 'hourlyRate',
+    dailyRate: 'dailyRate',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AdRateConfigScalarFieldEnum = (typeof AdRateConfigScalarFieldEnum)[keyof typeof AdRateConfigScalarFieldEnum]
 
 
   export const CommissionConfigScalarFieldEnum: {
@@ -43019,6 +44324,34 @@ export namespace Prisma {
    * Reference to a field of type 'AdApplicationStatus[]'
    */
   export type ListEnumAdApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdApplicationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'AdPaymentMethod'
+   */
+  export type EnumAdPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdPaymentMethod'>
+    
+
+
+  /**
+   * Reference to a field of type 'AdPaymentMethod[]'
+   */
+  export type ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdPaymentMethod[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'AdDurationType'
+   */
+  export type EnumAdDurationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdDurationType'>
+    
+
+
+  /**
+   * Reference to a field of type 'AdDurationType[]'
+   */
+  export type ListEnumAdDurationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdDurationType[]'>
     
 
 
@@ -44641,6 +45974,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
     requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    paymentMethod?: EnumAdPaymentMethodNullableFilter<"AdApplication"> | $Enums.AdPaymentMethod | null
+    amountPaid?: FloatNullableFilter<"AdApplication"> | number | null
+    proofOfTransferUrl?: StringNullableFilter<"AdApplication"> | string | null
+    durationType?: EnumAdDurationTypeNullableFilter<"AdApplication"> | $Enums.AdDurationType | null
+    durationValue?: IntNullableFilter<"AdApplication"> | number | null
+    activeUntil?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     reviewComment?: StringNullableFilter<"AdApplication"> | string | null
     reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
     createdAt?: DateTimeFilter<"AdApplication"> | Date | string
@@ -44665,6 +46004,12 @@ export namespace Prisma {
     requestedStart?: SortOrder
     requestedEnd?: SortOrderInput | SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    amountPaid?: SortOrderInput | SortOrder
+    proofOfTransferUrl?: SortOrderInput | SortOrder
+    durationType?: SortOrderInput | SortOrder
+    durationValue?: SortOrderInput | SortOrder
+    activeUntil?: SortOrderInput | SortOrder
     reviewComment?: SortOrderInput | SortOrder
     reviewedBy?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -44692,6 +46037,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
     requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    paymentMethod?: EnumAdPaymentMethodNullableFilter<"AdApplication"> | $Enums.AdPaymentMethod | null
+    amountPaid?: FloatNullableFilter<"AdApplication"> | number | null
+    proofOfTransferUrl?: StringNullableFilter<"AdApplication"> | string | null
+    durationType?: EnumAdDurationTypeNullableFilter<"AdApplication"> | $Enums.AdDurationType | null
+    durationValue?: IntNullableFilter<"AdApplication"> | number | null
+    activeUntil?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     reviewComment?: StringNullableFilter<"AdApplication"> | string | null
     reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
     createdAt?: DateTimeFilter<"AdApplication"> | Date | string
@@ -44716,13 +46067,21 @@ export namespace Prisma {
     requestedStart?: SortOrder
     requestedEnd?: SortOrderInput | SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    amountPaid?: SortOrderInput | SortOrder
+    proofOfTransferUrl?: SortOrderInput | SortOrder
+    durationType?: SortOrderInput | SortOrder
+    durationValue?: SortOrderInput | SortOrder
+    activeUntil?: SortOrderInput | SortOrder
     reviewComment?: SortOrderInput | SortOrder
     reviewedBy?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: AdApplicationCountOrderByAggregateInput
+    _avg?: AdApplicationAvgOrderByAggregateInput
     _max?: AdApplicationMaxOrderByAggregateInput
     _min?: AdApplicationMinOrderByAggregateInput
+    _sum?: AdApplicationSumOrderByAggregateInput
   }
 
   export type AdApplicationScalarWhereWithAggregatesInput = {
@@ -44744,10 +46103,75 @@ export namespace Prisma {
     requestedStart?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
     requestedEnd?: DateTimeNullableWithAggregatesFilter<"AdApplication"> | Date | string | null
     status?: EnumAdApplicationStatusWithAggregatesFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    paymentMethod?: EnumAdPaymentMethodNullableWithAggregatesFilter<"AdApplication"> | $Enums.AdPaymentMethod | null
+    amountPaid?: FloatNullableWithAggregatesFilter<"AdApplication"> | number | null
+    proofOfTransferUrl?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
+    durationType?: EnumAdDurationTypeNullableWithAggregatesFilter<"AdApplication"> | $Enums.AdDurationType | null
+    durationValue?: IntNullableWithAggregatesFilter<"AdApplication"> | number | null
+    activeUntil?: DateTimeNullableWithAggregatesFilter<"AdApplication"> | Date | string | null
     reviewComment?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
     reviewedBy?: StringNullableWithAggregatesFilter<"AdApplication"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"AdApplication"> | Date | string
+  }
+
+  export type AdRateConfigWhereInput = {
+    AND?: AdRateConfigWhereInput | AdRateConfigWhereInput[]
+    OR?: AdRateConfigWhereInput[]
+    NOT?: AdRateConfigWhereInput | AdRateConfigWhereInput[]
+    id?: StringFilter<"AdRateConfig"> | string
+    hourlyRate?: FloatFilter<"AdRateConfig"> | number
+    dailyRate?: FloatFilter<"AdRateConfig"> | number
+    isActive?: BoolFilter<"AdRateConfig"> | boolean
+    createdAt?: DateTimeFilter<"AdRateConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"AdRateConfig"> | Date | string
+  }
+
+  export type AdRateConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdRateConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AdRateConfigWhereInput | AdRateConfigWhereInput[]
+    OR?: AdRateConfigWhereInput[]
+    NOT?: AdRateConfigWhereInput | AdRateConfigWhereInput[]
+    hourlyRate?: FloatFilter<"AdRateConfig"> | number
+    dailyRate?: FloatFilter<"AdRateConfig"> | number
+    isActive?: BoolFilter<"AdRateConfig"> | boolean
+    createdAt?: DateTimeFilter<"AdRateConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"AdRateConfig"> | Date | string
+  }, "id">
+
+  export type AdRateConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AdRateConfigCountOrderByAggregateInput
+    _avg?: AdRateConfigAvgOrderByAggregateInput
+    _max?: AdRateConfigMaxOrderByAggregateInput
+    _min?: AdRateConfigMinOrderByAggregateInput
+    _sum?: AdRateConfigSumOrderByAggregateInput
+  }
+
+  export type AdRateConfigScalarWhereWithAggregatesInput = {
+    AND?: AdRateConfigScalarWhereWithAggregatesInput | AdRateConfigScalarWhereWithAggregatesInput[]
+    OR?: AdRateConfigScalarWhereWithAggregatesInput[]
+    NOT?: AdRateConfigScalarWhereWithAggregatesInput | AdRateConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AdRateConfig"> | string
+    hourlyRate?: FloatWithAggregatesFilter<"AdRateConfig"> | number
+    dailyRate?: FloatWithAggregatesFilter<"AdRateConfig"> | number
+    isActive?: BoolWithAggregatesFilter<"AdRateConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"AdRateConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AdRateConfig"> | Date | string
   }
 
   export type CommissionConfigWhereInput = {
@@ -47831,6 +49255,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -47854,6 +49284,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     reviewedBy?: string | null
     createdAt?: Date | string
@@ -47875,6 +49311,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47898,6 +49340,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47920,6 +49368,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     reviewedBy?: string | null
     createdAt?: Date | string
@@ -47941,6 +49395,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47962,8 +49422,77 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdRateConfigCreateInput = {
+    id?: string
+    hourlyRate?: number
+    dailyRate?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdRateConfigUncheckedCreateInput = {
+    id?: string
+    hourlyRate?: number
+    dailyRate?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdRateConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    hourlyRate?: FloatFieldUpdateOperationsInput | number
+    dailyRate?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdRateConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    hourlyRate?: FloatFieldUpdateOperationsInput | number
+    dailyRate?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdRateConfigCreateManyInput = {
+    id?: string
+    hourlyRate?: number
+    dailyRate?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AdRateConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    hourlyRate?: FloatFieldUpdateOperationsInput | number
+    dailyRate?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AdRateConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    hourlyRate?: FloatFieldUpdateOperationsInput | number
+    dailyRate?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -51244,6 +52773,20 @@ export namespace Prisma {
     not?: NestedEnumAdApplicationStatusFilter<$PrismaModel> | $Enums.AdApplicationStatus
   }
 
+  export type EnumAdPaymentMethodNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdPaymentMethod | EnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel> | $Enums.AdPaymentMethod | null
+  }
+
+  export type EnumAdDurationTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdDurationType | EnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel> | $Enums.AdDurationType | null
+  }
+
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
@@ -51265,10 +52808,21 @@ export namespace Prisma {
     requestedStart?: SortOrder
     requestedEnd?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    amountPaid?: SortOrder
+    proofOfTransferUrl?: SortOrder
+    durationType?: SortOrder
+    durationValue?: SortOrder
+    activeUntil?: SortOrder
     reviewComment?: SortOrder
     reviewedBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type AdApplicationAvgOrderByAggregateInput = {
+    amountPaid?: SortOrder
+    durationValue?: SortOrder
   }
 
   export type AdApplicationMaxOrderByAggregateInput = {
@@ -51287,6 +52841,12 @@ export namespace Prisma {
     requestedStart?: SortOrder
     requestedEnd?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    amountPaid?: SortOrder
+    proofOfTransferUrl?: SortOrder
+    durationType?: SortOrder
+    durationValue?: SortOrder
+    activeUntil?: SortOrder
     reviewComment?: SortOrder
     reviewedBy?: SortOrder
     createdAt?: SortOrder
@@ -51309,10 +52869,21 @@ export namespace Prisma {
     requestedStart?: SortOrder
     requestedEnd?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    amountPaid?: SortOrder
+    proofOfTransferUrl?: SortOrder
+    durationType?: SortOrder
+    durationValue?: SortOrder
+    activeUntil?: SortOrder
     reviewComment?: SortOrder
     reviewedBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type AdApplicationSumOrderByAggregateInput = {
+    amountPaid?: SortOrder
+    durationValue?: SortOrder
   }
 
   export type EnumAdApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -51323,6 +52894,63 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
     _max?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumAdPaymentMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdPaymentMethod | EnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdPaymentMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.AdPaymentMethod | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel>
+    _max?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel>
+  }
+
+  export type EnumAdDurationTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdDurationType | EnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdDurationTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.AdDurationType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel>
+  }
+
+  export type AdRateConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdRateConfigAvgOrderByAggregateInput = {
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+  }
+
+  export type AdRateConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdRateConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AdRateConfigSumOrderByAggregateInput = {
+    hourlyRate?: SortOrder
+    dailyRate?: SortOrder
   }
 
   export type CommissionConfigCountOrderByAggregateInput = {
@@ -54075,6 +55703,14 @@ export namespace Prisma {
     set?: $Enums.AdApplicationStatus
   }
 
+  export type NullableEnumAdPaymentMethodFieldUpdateOperationsInput = {
+    set?: $Enums.AdPaymentMethod | null
+  }
+
+  export type NullableEnumAdDurationTypeFieldUpdateOperationsInput = {
+    set?: $Enums.AdDurationType | null
+  }
+
   export type UserUpdateOneWithoutAdApplicationsNestedInput = {
     create?: XOR<UserCreateWithoutAdApplicationsInput, UserUncheckedCreateWithoutAdApplicationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAdApplicationsInput
@@ -55072,6 +56708,20 @@ export namespace Prisma {
     not?: NestedEnumAdApplicationStatusFilter<$PrismaModel> | $Enums.AdApplicationStatus
   }
 
+  export type NestedEnumAdPaymentMethodNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdPaymentMethod | EnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel> | $Enums.AdPaymentMethod | null
+  }
+
+  export type NestedEnumAdDurationTypeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdDurationType | EnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel> | $Enums.AdDurationType | null
+  }
+
   export type NestedEnumAdApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
@@ -55080,6 +56730,26 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
     _max?: NestedEnumAdApplicationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAdPaymentMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdPaymentMethod | EnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdPaymentMethod[] | ListEnumAdPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdPaymentMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.AdPaymentMethod | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel>
+    _max?: NestedEnumAdPaymentMethodNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAdDurationTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AdDurationType | EnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAdDurationTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.AdDurationType | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel>
+    _max?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumNotificationTypeFilter<$PrismaModel = never> = {
@@ -55672,6 +57342,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -55693,6 +57369,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     reviewedBy?: string | null
     createdAt?: Date | string
@@ -55724,6 +57406,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -55746,6 +57434,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -56243,6 +57937,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFilter<"AdApplication"> | Date | string
     requestedEnd?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     status?: EnumAdApplicationStatusFilter<"AdApplication"> | $Enums.AdApplicationStatus
+    paymentMethod?: EnumAdPaymentMethodNullableFilter<"AdApplication"> | $Enums.AdPaymentMethod | null
+    amountPaid?: FloatNullableFilter<"AdApplication"> | number | null
+    proofOfTransferUrl?: StringNullableFilter<"AdApplication"> | string | null
+    durationType?: EnumAdDurationTypeNullableFilter<"AdApplication"> | $Enums.AdDurationType | null
+    durationValue?: IntNullableFilter<"AdApplication"> | number | null
+    activeUntil?: DateTimeNullableFilter<"AdApplication"> | Date | string | null
     reviewComment?: StringNullableFilter<"AdApplication"> | string | null
     reviewedBy?: StringNullableFilter<"AdApplication"> | string | null
     createdAt?: DateTimeFilter<"AdApplication"> | Date | string
@@ -62261,6 +63961,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     reviewedBy?: string | null
     createdAt?: Date | string
@@ -62283,6 +63989,12 @@ export namespace Prisma {
     requestedStart?: Date | string
     requestedEnd?: Date | string | null
     status?: $Enums.AdApplicationStatus
+    paymentMethod?: $Enums.AdPaymentMethod | null
+    amountPaid?: number | null
+    proofOfTransferUrl?: string | null
+    durationType?: $Enums.AdDurationType | null
+    durationValue?: number | null
+    activeUntil?: Date | string | null
     reviewComment?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -62588,6 +64300,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -62609,6 +64327,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -62630,6 +64354,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -62651,6 +64381,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -62673,6 +64409,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -62694,6 +64436,12 @@ export namespace Prisma {
     requestedStart?: DateTimeFieldUpdateOperationsInput | Date | string
     requestedEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAdApplicationStatusFieldUpdateOperationsInput | $Enums.AdApplicationStatus
+    paymentMethod?: NullableEnumAdPaymentMethodFieldUpdateOperationsInput | $Enums.AdPaymentMethod | null
+    amountPaid?: NullableFloatFieldUpdateOperationsInput | number | null
+    proofOfTransferUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    durationType?: NullableEnumAdDurationTypeFieldUpdateOperationsInput | $Enums.AdDurationType | null
+    durationValue?: NullableIntFieldUpdateOperationsInput | number | null
+    activeUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewComment?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

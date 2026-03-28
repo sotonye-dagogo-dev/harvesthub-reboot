@@ -43,6 +43,24 @@
   - [ ] Add a clear footer link text like “Apply to Advertise” in `components/layout/Footer` or equivalent
   - [ ] Add tests: route accessibility + form submit behavior + footer link presence
 
+- [ ] Fix role-based dashboard routing for admin/vendor:
+  - [ ] Create `app/admin/dashboard/page.tsx` and `app/vendor/dashboard/page.tsx` or redirect to existing indexed pages
+  - [ ] Validate route exists in `lib/rbac/routeConfig.ts` and `components/layout/Sidebar.tsx`/`lib/navigation.ts`
+  - [ ] Add route existence audit and fail-safe nav filter to avoid broken links
+
+- [ ] Enhance ad application flow (payment + duration pricing):
+  - [ ] Extend `AdApplication` model (Prisma + types) with `paymentMethod`, `proofOfTransferUrl`, `amountPaid`, `durationType`, `durationValue`, `approvedBy`, etc.
+  - [ ] Add admin rate config model `AdRateConfig` (per-hour and per-day rates) and endpoints under `/api/admin/ads/rates`
+  - [ ] Update `app/advertise/page.tsx` to capture payment method and proof-of-transfer upload (and price estimate)
+  - [ ] Update admin review page to show payment info and set active duration based on price and rates
+  - [ ] Add tests for rates, payments, and timeline computation.
+
+- [ ] Resolve signup validation and role option bugs:
+  - [ ] Add `Worker` to role options in `app/signup/components/UserSelect.tsx` and any supporting UserType union/type definitions
+  - [ ] Add `Worker` to applicable role-to-dashboard route mapping
+  - [ ] Investigate and fix intermittent ‘fill all required fields’ error in signup workflow (likely a form state/partial/validator or stage skip bug)
+  - [ ] Add regression test coverage for signup step progression and validation state
+
 ---
 
 ## Backlog

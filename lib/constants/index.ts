@@ -89,6 +89,7 @@ export enum Campus {
 }
 
 export enum Position {
+    WORKER = 'WORKER',
     HOD = 'HOD',
     ASST_HOD = 'ASST_HOD',
     SUB_TEAM_LEADER = 'SUB_TEAM_LEADER',
@@ -266,6 +267,17 @@ export enum AdStatus {
     REJECTED = 'REJECTED',
 }
 
+export enum AdPaymentMethod {
+    BANK_TRANSFER = 'BANK_TRANSFER',
+    CARD = 'CARD',
+    USSD = 'USSD',
+}
+
+export enum AdDurationType {
+    HOURLY = 'HOURLY',
+    DAILY = 'DAILY',
+}
+
 export enum AdPaymentStatus {
     PENDING = 'PENDING',
     VERIFIED = 'VERIFIED',
@@ -354,6 +366,7 @@ export const CAMPUS_LOCATIONS = [
 // ============================================================================
 
 export const POSITION_OPTIONS = [
+    { value: Position.WORKER, label: 'Worker' },
     { value: Position.HOD, label: 'HOD' },
     { value: Position.ASST_HOD, label: 'Ass. HOD' },
     { value: Position.SUB_TEAM_LEADER, label: 'Sub Team Leader' },
