@@ -208,6 +208,8 @@ export default function AdminAdsPage() {
             </label>
             <input
               type="number"
+              title="Hourly rate in NGN"
+              placeholder="Hourly rate"
               className="w-full rounded-ds-md border border-ds-border-base p-2"
               value={rateConfig?.hourlyRate ?? 0}
               onChange={(e) =>
@@ -224,6 +226,8 @@ export default function AdminAdsPage() {
             </label>
             <input
               type="number"
+              title="Daily rate in NGN"
+              placeholder="Daily rate"
               className="w-full rounded-ds-md border border-ds-border-base p-2"
               value={rateConfig?.dailyRate ?? 0}
               onChange={(e) =>

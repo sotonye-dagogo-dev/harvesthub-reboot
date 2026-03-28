@@ -28,7 +28,6 @@ interface FormValues {
 export default function AdvertisePage() {
   const [loading, setLoading] = useState(false);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
-  const [proofFile, setProofFile] = useState<File | null>(null);
   const router = useRouter();
 
   const onFinish = async (values: FormValues) => {
@@ -133,7 +132,14 @@ export default function AdvertisePage() {
             <Input />
           </Form.Item>
           <Form.Item name="linkUrl" label="Call-to-Action Link">
-            <Input />
+            <Input placeholder="https://example.com" />
+          </Form.Item>
+          <Form.Item
+            name="schedule"
+            label="Preferred Schedule"
+            rules={[{ required: true, message: "Select start/end dates" }]}
+          >
+            <RangePicker />
           </Form.Item>
           <Form.Item name="position" label="Preferred Position" rules={[{ required: true }]}>
             <Select>
