@@ -1242,7 +1242,7 @@ export const db = {
     reviews: reviewDb,
     banners: bannerDb,
     adApplications: adApplicationDb,
-    adRateConfig: usePrisma ? (prismaAdapter.adRateConfig ?? missingAdapter('adRateConfig')) : mockAdRateConfigDb as any,
+    adRateConfig: usePrisma ? (prismaAdapter.adRateConfigDb ?? missingAdapter('adRateConfig')) : mockAdRateConfigDb as any,
     addresses: addressDb,
     stats: dbStats,
 };
