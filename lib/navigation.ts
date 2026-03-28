@@ -25,6 +25,7 @@ const labelMap: Record<string, string> = {
     privacy: 'Privacy',
     help: 'Help',
     contact: 'Contact',
+    advertise: 'Advertise',
     forgotPassword: 'Forgot Password',
     checkout: 'Checkout',
     adminPublicContent: 'Public Content',

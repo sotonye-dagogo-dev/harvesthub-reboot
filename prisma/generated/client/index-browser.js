@@ -358,8 +358,23 @@ exports.Prisma.AdApplicationScalarFieldEnum = {
   requestedStart: 'requestedStart',
   requestedEnd: 'requestedEnd',
   status: 'status',
+  paymentMethod: 'paymentMethod',
+  amountPaid: 'amountPaid',
+  proofOfTransferUrl: 'proofOfTransferUrl',
+  durationType: 'durationType',
+  durationValue: 'durationValue',
+  activeUntil: 'activeUntil',
   reviewComment: 'reviewComment',
   reviewedBy: 'reviewedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdRateConfigScalarFieldEnum = {
+  id: 'id',
+  hourlyRate: 'hourlyRate',
+  dailyRate: 'dailyRate',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -837,8 +852,23 @@ exports.BannerTheme = exports.$Enums.BannerTheme = {
 
 exports.AdApplicationStatus = exports.$Enums.AdApplicationStatus = {
   PENDING: 'PENDING',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.AdPaymentMethod = exports.$Enums.AdPaymentMethod = {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  CARD: 'CARD',
+  USSD: 'USSD'
+};
+
+exports.AdDurationType = exports.$Enums.AdDurationType = {
+  HOURLY: 'HOURLY',
+  DAILY: 'DAILY'
 };
 
 exports.NotificationType = exports.$Enums.NotificationType = {
@@ -944,6 +974,7 @@ exports.Prisma.ModelName = {
   Review: 'Review',
   Banner: 'Banner',
   AdApplication: 'AdApplication',
+  AdRateConfig: 'AdRateConfig',
   CommissionConfig: 'CommissionConfig',
   Notification: 'Notification',
   PushSubscription: 'PushSubscription',

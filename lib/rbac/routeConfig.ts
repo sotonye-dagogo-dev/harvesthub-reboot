@@ -29,6 +29,7 @@ export const routeConfig: RouteConfig[] = [
     { path: '/admin/settings', labelKey: 'adminSettings', featureKey: 'admin-settings', public: false, roles: [UserRole.ADMIN] },
     { path: '/vendor/dashboard', labelKey: 'dashboard', featureKey: 'vendor-dashboard', public: false, roles: [UserRole.VENDOR] },
     { path: '/vendor/products', labelKey: 'products', featureKey: 'vendor-products', public: false, roles: [UserRole.VENDOR] },
+    { path: '/advertise', labelKey: 'advertise', featureKey: 'advertise', public: true },
     { path: '/profile', labelKey: 'profile', featureKey: 'profile', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
     { path: '/store-settings', labelKey: 'storeSettings', featureKey: 'store-settings', public: false, roles: [UserRole.VENDOR] },
     { path: '/login', labelKey: 'login', featureKey: 'auth', public: true },

@@ -489,7 +489,13 @@ export interface AdApplication {
     theme?: 'BUSINESS' | 'CHURCH' | 'EVENT' | 'PROMOTION' | null;
     requestedStart: Timestamp;
     requestedEnd?: Timestamp | null;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    status: 'PENDING' | 'PENDING_PAYMENT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED';
+    paymentMethod?: 'BANK_TRANSFER' | 'CARD' | 'USSD' | null;
+    amountPaid?: number | null;
+    proofOfTransferUrl?: URL | null;
+    durationType?: 'HOURLY' | 'DAILY' | null;
+    durationValue?: number | null;
+    activeUntil?: Timestamp | null;
     reviewComment?: string | null;
     reviewedBy?: ID | null;
     createdAt: Timestamp;

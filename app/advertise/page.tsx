@@ -20,10 +20,14 @@ interface FormValues {
   position: BannerPosition;
   theme: BannerTheme;
   schedule: [dayjs.Dayjs, dayjs.Dayjs] | null;
+  paymentMethod: "BANK_TRANSFER" | "CARD" | "USSD";
+  amountPaid: number;
+  proofOfTransferUrl?: string;
 }
 
 export default function AdvertisePage() {
   const [loading, setLoading] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
   const router = useRouter();
 
   const onFinish = async (values: FormValues) => {
@@ -44,6 +48,9 @@ export default function AdvertisePage() {
         theme: values.theme,
         requestedStart: requestedStart?.toISOString(),
         requestedEnd: requestedEnd?.toISOString(),
+        paymentMethod: values.paymentMethod,
+        amountPaid: values.amountPaid,
+        proofOfTransferUrl: proofUrl,
       };
 
       const res = await fetch("/api/ad-applications", {
@@ -125,7 +132,14 @@ export default function AdvertisePage() {
             <Input />
           </Form.Item>
           <Form.Item name="linkUrl" label="Call-to-Action Link">
-            <Input />
+            <Input placeholder="https://example.com" />
+          </Form.Item>
+          <Form.Item
+            name="schedule"
+            label="Preferred Schedule"
+            rules={[{ required: true, message: "Select start/end dates" }]}
+          >
+            <RangePicker />
           </Form.Item>
           <Form.Item name="position" label="Preferred Position" rules={[{ required: true }]}>
             <Select>
@@ -143,11 +157,43 @@ export default function AdvertisePage() {
             </Select>
           </Form.Item>
           <Form.Item
-            name="schedule"
-            label="Preferred Schedule"
-            rules={[{ required: true, message: "Select start & end dates" }]}
+            name="paymentMethod"
+            label="Payment Method"
+            rules={[{ required: true, message: "Please select a payment method" }]}
           >
-            <RangePicker />
+            <Select>
+              <Select.Option value="BANK_TRANSFER">Bank Transfer</Select.Option>
+              <Select.Option value="CARD">Card</Select.Option>
+              <Select.Option value="USSD">USSD</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="amountPaid"
+            label="Amount Paid (NGN)"
+            rules={[
+              { required: true, message: "Please enter amount paid" },
+              {
+                type: "number",
+                min: 100,
+                message: "Minimum payment is 100 NGN",
+              },
+            ]}
+          >
+            <Input type="number" min={100} />
+          </Form.Item>
+
+          <Form.Item
+            name="proofOfTransferUrl"
+            label="Proof of Payment URL"
+            rules={[{ required: true, message: "Please upload proof of transfer" }]}
+          >
+            <Input
+              value={proofUrl || ""}
+              onChange={(e) => setProofUrl(e.target.value)}
+              placeholder="Upload a screenshot URL or file URL"
+              className="rounded-ds-md"
+            />
           </Form.Item>
 
           <Form.Item>

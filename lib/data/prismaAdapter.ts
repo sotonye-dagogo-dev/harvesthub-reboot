@@ -284,6 +284,18 @@ export const adApplicationDb = {
         return true;
     },
 } satisfies CrudAdapter<any, any, any>;
+
+export const adRateConfigDb = {
+    findAll: async () => withPrismaReconnect(() => prisma.adRateConfig.findMany()),
+    findById: async (id: string) => withPrismaReconnect(() => prisma.adRateConfig.findUnique({ where: { id } })),
+    create: async (data: any) => withPrismaReconnect(() => prisma.adRateConfig.create({ data })),
+    update: async (id: string, data: any) => withPrismaReconnect(() => prisma.adRateConfig.update({ where: { id }, data })),
+    delete: async (id: string) => {
+        await withPrismaReconnect(() => prisma.adRateConfig.delete({ where: { id } }));
+        return true;
+    },
+} satisfies CrudAdapter<any, any, any>;
+
 export const vendorDb = {
     findAll: async (filters?: any) => {
         const where: any = {};
@@ -373,6 +385,7 @@ const prismaAdapter = {
     productDb,
     bannerDb,
     adApplicationDb,
+    adRateConfigDb,
     orderDb,
     buyerDb,
     vendorDb,

@@ -256,8 +256,23 @@ enum ReviewStatus {
 
 enum AdApplicationStatus {
   PENDING
+  PENDING_PAYMENT
+  PENDING_APPROVAL
   APPROVED
   REJECTED
+  ACTIVE
+  EXPIRED
+}
+
+enum AdPaymentMethod {
+  BANK_TRANSFER
+  CARD
+  USSD
+}
+
+enum AdDurationType {
+  HOURLY
+  DAILY
 }
 
 enum AvailabilityRequestStatus {
@@ -786,8 +801,16 @@ model AdApplication {
   requestedStart DateTime            @default(now())
   requestedEnd   DateTime?
   status         AdApplicationStatus @default(PENDING)
-  reviewComment  String?
-  reviewedBy     String?
+
+  paymentMethod      AdPaymentMethod? @default(BANK_TRANSFER)
+  amountPaid         Float?
+  proofOfTransferUrl String?
+  durationType       AdDurationType?  @default(DAILY)
+  durationValue      Int?             @default(1)
+  activeUntil        DateTime?
+
+  reviewComment String?
+  reviewedBy    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -799,6 +822,17 @@ model AdApplication {
   @@index([userId])
   @@index([status])
   @@map("ad_applications")
+}
+
+model AdRateConfig {
+  id         String   @id @default(cuid())
+  hourlyRate Float    @default(0)
+  dailyRate  Float    @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("ad_rate_config")
 }
 
 // ── Commission Configuration (per-category defaults, admin-managed) ──
