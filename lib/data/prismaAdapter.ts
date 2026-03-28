@@ -294,7 +294,6 @@ export const adRateConfigDb = {
         await withPrismaReconnect(() => prisma.adRateConfig.delete({ where: { id } }));
         return true;
     },
-    getActive: async () => withPrismaReconnect(() => prisma.adRateConfig.findFirst({ where: { isActive: true } })),
 } satisfies CrudAdapter<any, any, any>;
 
 export const vendorDb = {

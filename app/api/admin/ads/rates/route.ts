@@ -6,7 +6,8 @@ import { UserRole } from '@/lib/constants';
 
 export async function GET() {
     try {
-        const rateConfig = await db.adRateConfig.getActive();
+        const rateConfigs = await db.adRateConfig.findAll();
+        const rateConfig = rateConfigs.find((config: any) => config.isActive);
         if (!rateConfig) {
             return NextResponse.json({ success: false, error: 'Rate config not found' }, { status: 404 });
         }
