@@ -1069,7 +1069,7 @@ const mockAdRateConfigDb = {
             ...adRateConfigs[index],
             ...data,
             updatedAt: new Date(),
-        };
+        } as typeof adRateConfigs[number];
         return adRateConfigs[index];
     },
 };

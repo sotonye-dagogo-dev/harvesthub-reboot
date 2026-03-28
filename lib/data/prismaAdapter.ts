@@ -380,6 +380,7 @@ const prismaAdapter = {
     productDb,
     bannerDb,
     adApplicationDb,
+    adRateConfigDb,
     orderDb,
     buyerDb,
     vendorDb,

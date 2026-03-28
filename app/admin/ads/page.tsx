@@ -211,7 +211,10 @@ export default function AdminAdsPage() {
               className="w-full rounded-ds-md border border-ds-border-base p-2"
               value={rateConfig?.hourlyRate ?? 0}
               onChange={(e) =>
-                setRateConfig((prev) => ({ ...prev, hourlyRate: Number(e.target.value) }))
+                setRateConfig((prev) => {
+                  const base = prev ?? { hourlyRate: 0, dailyRate: 0 };
+                  return { ...base, hourlyRate: Number(e.target.value) };
+                })
               }
             />
           </div>
@@ -224,7 +227,10 @@ export default function AdminAdsPage() {
               className="w-full rounded-ds-md border border-ds-border-base p-2"
               value={rateConfig?.dailyRate ?? 0}
               onChange={(e) =>
-                setRateConfig((prev) => ({ ...prev, dailyRate: Number(e.target.value) }))
+                setRateConfig((prev) => {
+                  const base = prev ?? { hourlyRate: 0, dailyRate: 0 };
+                  return { ...base, dailyRate: Number(e.target.value) };
+                })
               }
             />
           </div>
