@@ -28,8 +28,17 @@ export function PublicContentAdminPanel() {
   const fetchContent = async () => {
     setLoading(true);
     try {
-      const data = await fetchJson<PublicContentItem[]>("/api/admin/public-content");
-      if (data) setItems(data);
+      const data = await fetchJson<PublicContentItem[] | { success: boolean; data: PublicContentItem[] }>(
+        "/api/admin/public-content"
+      );
+
+      if (Array.isArray(data)) {
+        setItems(data);
+      } else if (data && Array.isArray((data as { data?: PublicContentItem[] }).data)) {
+        setItems((data as { data: PublicContentItem[] }).data);
+      } else {
+        setItems([]);
+      }
     } catch (e: any) {
       setError(e?.message ?? "Failed to load public content");
     } finally {
