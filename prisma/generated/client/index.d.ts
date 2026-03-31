@@ -44590,7 +44590,6 @@ export namespace Prisma {
     email?: string
     resetToken?: string
     emailVerificationToken?: string
-    registrationSequence?: number
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
@@ -44605,6 +44604,7 @@ export namespace Prisma {
     status?: EnumUserStatusFilter<"User"> | $Enums.UserStatus
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     emailVerificationExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    registrationSequence?: IntNullableFilter<"User"> | number | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     buyer?: XOR<BuyerNullableScalarRelationFilter, BuyerWhereInput> | null
@@ -44621,7 +44621,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationListRelationFilter
     proofOfTransfers?: ProofOfTransferListRelationFilter
     voucherRedemptions?: VoucherRedemptionListRelationFilter
-  }, "id" | "email" | "resetToken" | "emailVerificationToken" | "registrationSequence">
+  }, "id" | "email" | "resetToken" | "emailVerificationToken">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder

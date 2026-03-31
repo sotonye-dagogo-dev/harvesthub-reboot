@@ -11,7 +11,7 @@ interface FormValues {
 }
 
 interface SecurityInfoProps {
-  onNext: () => Promise<void>;
+  onNext: (securityData: Pick<FormValues, "password" | "agreement">) => Promise<void>;
   updateFormData: (data: FormValues) => void;
   formData: FormValues;
 }
@@ -95,11 +95,11 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
       const submissionData = { ...values };
       delete submissionData.confirmPassword;
 
-      // Update the form data
+      // Update the shared form data context before registration
       updateFormData(submissionData);
 
-      // Call the registration API
-      await onNext();
+      // Call the registration API with the most recently validated security values
+      await onNext({ password: submissionData.password, agreement: submissionData.agreement });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Registration failed. Please try again.";
@@ -112,12 +112,8 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">
-          Security Information
-        </h3>
-        <p className="text-sm text-ds-text-secondary">
-          Create a strong password for your account
-        </p>
+        <h3 className="text-2xl font-bold text-ds-text-primary mb-2">Security Information</h3>
+        <p className="text-sm text-ds-text-secondary">Create a strong password for your account</p>
       </div>
 
       {/* Error Alert */}
@@ -178,9 +174,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
 
         <Form.Item
           name="confirmPassword"
-          label={
-            <span className="text-ds-text-primary font-medium">Confirm Password</span>
-          }
+          label={<span className="text-ds-text-primary font-medium">Confirm Password</span>}
           dependencies={["password"]}
           rules={[
             { required: true, message: "Please confirm your password" },
@@ -194,7 +188,11 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
             }),
           ]}
         >
-          <Input.Password size="large" placeholder="Confirm your password" className="rounded-ds-md" />
+          <Input.Password
+            size="large"
+            placeholder="Confirm your password"
+            className="rounded-ds-md"
+          />
         </Form.Item>
 
         <Form.Item
@@ -211,7 +209,10 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
         >
           <Checkbox>
             I agree to the{" "}
-            <Link href="/terms" className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium">
+            <Link
+              href="/terms"
+              className="text-ds-text-brand hover:text-ds-palette-purple-700 font-medium"
+            >
               Terms & Conditions
             </Link>
           </Checkbox>

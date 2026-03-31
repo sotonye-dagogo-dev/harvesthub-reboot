@@ -8,49 +8,125 @@ import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
 import { sendVerifyEmail } from '@/lib/services/email';
 import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory } from '@/lib/constants';
+import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender } from '@/lib/constants';
+import { randomUUID as uuidv4 } from 'crypto';
+
+const isValidEnumValue = <T extends readonly string[]>(value: unknown, enumValues: T): value is T[number] =>
+    typeof value === 'string' && (enumValues as readonly string[]).includes(value);
 
 export async function POST(request: NextRequest) {
+    let body: any = null;
     try {
         const ip = request.headers.get('x-forwarded-for') || 'unknown';
         const rl = await rateLimitStrict(ip);
         if (!rl.success) return getRateLimitResponse(rl);
 
-        const body = await request.json();
+        body = await request.json();
         const {
-            email, password, firstName, lastName, phoneNumber, role,
-            dateOfBirth, gender,
-            storeName, storeDescription, category, whatsappNumber, campus,
-            position, isChurchAffiliated, verificationDocuments,
-            businessAddress, bankName, accountName, accountNumber,
+            email,
+            password,
+            firstName,
+            lastName,
+            phoneNumber,
+            role,
+            dateOfBirth,
+            gender,
+            storeName,
+            storeDescription,
+            category,
+            whatsappNumber,
+            campus,
+            position,
+            isChurchAffiliated,
+            verificationDocuments,
+            businessAddress,
+            bankName,
+            accountName,
+            accountNumber,
+            agreeToTerms,
         } = body;
 
         if (!email || !password || !firstName || !lastName || !phoneNumber || !role) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { success: false, error: 'Missing required fields' },
                 { status: 400 }
             );
         }
 
-        if (!['BUYER', 'VENDOR'].includes(role)) {
+        if (role !== UserRole.BUYER && role !== UserRole.VENDOR) {
             return NextResponse.json(
-                { error: 'Invalid role. Must be BUYER or VENDOR' },
+                { success: false, error: 'Invalid role. Must be BUYER or VENDOR' },
                 { status: 400 }
             );
         }
+
+        if (agreeToTerms !== true) {
+            return NextResponse.json(
+                { success: false, error: 'Terms & Conditions must be accepted' },
+                { status: 400 }
+            );
+        }
+
+        if (role === UserRole.VENDOR) {
+            if (!storeName || !category || !whatsappNumber || !campus) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Missing required vendor fields: storeName, category, whatsappNumber, campus',
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (!isValidEnumValue(category, Object.values(VendorCategory) as readonly string[])) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid vendor category' },
+                    { status: 400 }
+                );
+            }
+
+            if (!isValidEnumValue(campus, Object.values(Campus) as readonly string[])) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid campus value' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        if (gender && !isValidEnumValue(gender, Object.values(Gender) as readonly string[])) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid gender value' },
+                { status: 400 }
+            );
+        }
+
+        let parsedDateOfBirth: Date | undefined;
+        if (dateOfBirth) {
+            const maybeDate = new Date(dateOfBirth);
+            if (Number.isNaN(maybeDate.getTime())) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid dateOfBirth value' },
+                    { status: 400 }
+                );
+            }
+            parsedDateOfBirth = maybeDate;
+        }
+
+        const companyCategory = (category || VendorCategory.OTHERS) as VendorCategory;
+        const vendorCampus = (campus || Campus.IKEJA) as Campus;
 
         const existingUser = await prisma.user.findUnique({
             where: { email: email.toLowerCase().trim() },
         });
         if (existingUser) {
             return NextResponse.json(
-                { error: 'User with this email already exists' },
+                { success: false, error: 'User with this email already exists' },
                 { status: 409 }
             );
         }
 
         const passwordHash = await hashPassword(password);
-        const verificationToken = crypto.randomUUID();
+        const verificationToken = uuidv4();
         const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         // Use a transaction to create user + role profile + wallet atomically
@@ -70,7 +146,8 @@ export async function POST(request: NextRequest) {
                     isActive: true,
                     emailVerificationToken: verificationToken,
                     emailVerificationExpiry,
-                    registrationSequence: roleCount + 1,
+                    // registrationSequence is optional and can collide across roles in older schemas.
+                    // We avoid forcing unique sequence here to prevent P2002 conflicts on parallel signups.
                 },
             });
 
@@ -79,11 +156,11 @@ export async function POST(request: NextRequest) {
                 data: { userId: user.id },
             });
 
-            if (role === 'BUYER') {
+            if (role === UserRole.BUYER) {
                 await tx.buyer.create({
                     data: {
                         userId: user.id,
-                        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+                        dateOfBirth: parsedDateOfBirth,
                         gender: gender || undefined,
                         preferences: { notifications: { email: true, sms: true, push: true } },
                     },
@@ -100,21 +177,17 @@ export async function POST(request: NextRequest) {
                         },
                     });
                 }
-            } else if (role === 'VENDOR') {
-                if (!storeName || !category || !whatsappNumber || !campus) {
-                    throw new Error('VALIDATION:Missing required vendor fields: storeName, category, whatsappNumber, campus');
-                }
-
-                const commissionRate = CATEGORY_COMMISSION_DEFAULTS[category as VendorCategory] ?? COMMISSION_RATES.DEFAULT;
+            } else if (role === UserRole.VENDOR) {
+                const commissionRate = CATEGORY_COMMISSION_DEFAULTS[companyCategory] ?? COMMISSION_RATES.DEFAULT;
 
                 await tx.vendor.create({
                     data: {
                         userId: user.id,
                         storeName,
                         storeDescription: storeDescription || null,
-                        category,
+                        category: companyCategory,
                         whatsappNumber,
-                        campus,
+                        campus: vendorCampus,
                         position: position || undefined,
                         status: 'PENDING',
                         isChurchAffiliated: isChurchAffiliated || false,
@@ -166,6 +239,7 @@ export async function POST(request: NextRequest) {
         // Important: Do not log the user in until email is verified.
         return NextResponse.json(
             {
+                success: true,
                 message: 'Registration successful. Please verify your email address before logging in.',
                 needsEmailVerification: true,
                 user: {
@@ -186,13 +260,49 @@ export async function POST(request: NextRequest) {
         // Handle validation errors thrown from transaction
         if (error instanceof Error && error.message.startsWith('VALIDATION:')) {
             return NextResponse.json(
-                { error: error.message.replace('VALIDATION:', '') },
+                { success: false, error: error.message.replace('VALIDATION:', '') },
                 { status: 400 }
             );
         }
-        console.error('Registration error:', error);
+
+        if (error && typeof error === 'object' && 'code' in error) {
+            const pError = error as Prisma.PrismaClientKnownRequestError;
+            if (pError.code === 'P2002') {
+                const fields = Array.isArray(pError.meta?.target)
+                    ? (pError.meta.target as string[]).join(', ')
+                    : typeof pError.meta?.target === 'string'
+                        ? (pError.meta.target as string)
+                        : 'unknown field';
+
+                let message = 'A user with this email or details already exists.';
+                if (fields.includes('registrationSequence')) {
+                    message = 'Registration sequence conflict detected. Please retry the signup flow.';
+                } else if (fields.includes('email')) {
+                    message = 'A user with this email already exists.';
+                }
+
+                console.warn('P2002 conflict', { email: body?.email, role: body?.role, fieldTarget: fields });
+
+                return NextResponse.json(
+                    { success: false, error: message, details: fields },
+                    { status: 409 }
+                );
+            }
+            if (pError.code === 'P2023') {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid input value provided for a field.' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        console.error('Registration error:', {
+            email: body?.email,
+            role: body?.role,
+            error,
+        });
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

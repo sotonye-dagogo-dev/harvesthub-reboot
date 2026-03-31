@@ -83,9 +83,10 @@
 
 1. Always show loading or skeleton UI for async actions.
 2. Use clear, actionable error messages and offer a retry path.
-3. Require confirmation for destructive actions (delete, cancel order).
-4. Mobile-first design: ensure all pages work at 320px width.
-5. Keep interactions consistent across buyer/vendor/admin experiences.
+3. Ensure multi-step signup form does not drop fields between stages; submit the merged state object from the last step.
+4. Require confirmation for destructive actions (delete, cancel order).
+5. Mobile-first design: ensure all pages work at 320px width.
+6. Keep interactions consistent across buyer/vendor/admin experiences.
 
 ---
 

@@ -124,6 +124,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 > **Section summary:** Log of major architectural changes. See also memory/architecture-history.md for full details.
 
-| Date       | Change                                             | Reason                                           |
-| ---------- | -------------------------------------------------- | ------------------------------------------------ |
-| 2026-03-15 | Initialized `.ai-system` & documented architecture | Bootstrapped AI-guided workflow for MyHarvestHub |
+| Date       | Change                                             | Reason                                                             |
+| ---------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 2026-03-15 | Initialized `.ai-system` & documented architecture | Bootstrapped AI-guided workflow for MyHarvestHub                   |
+| 2026-03-31 | Hardened signup flow and dashboard route mapping   | Fix `Missing required fields` signup bug and unify role dashboards |

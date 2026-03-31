@@ -418,7 +418,7 @@ model User {
   emailVerificationExpiry DateTime?
 
   // Tracks user registration order for milestone features (e.g., first 1000 vendors/buyers)
-  registrationSequence Int? @unique
+  registrationSequence Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

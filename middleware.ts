@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { UserRole } from "@/lib/constants";
+import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { getRoutePolicy } from "@/lib/rbac/policies";
 import { verifyAccessToken } from "@/lib/utils/jwt";
 
@@ -59,20 +60,6 @@ export async function middleware(request: NextRequest) {
     }
 
     return NextResponse.next();
-}
-
-// Helper to determine dashboard route by role
-function getDashboardRoute(role: string): string {
-    switch (role) {
-        case UserRole.ADMIN:
-            return "/admin/dashboard";
-        case UserRole.VENDOR:
-            return "/vendor/dashboard";
-        case UserRole.BUYER:
-            return "/";
-        default:
-            return "/";
-    }
 }
 
 // Configure which routes to run middleware on

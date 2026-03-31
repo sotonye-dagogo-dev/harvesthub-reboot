@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form, Input, Button, Select, DatePicker, message, Card } from "antd";
 import dayjs from "dayjs";
-import { BannerTheme, BannerPosition } from "@/lib/constants";
+import { BannerTheme, BannerPosition, AD_BANNER_DIMENSIONS } from "@/lib/constants";
 
 const { RangePicker } = DatePicker;
 
@@ -79,6 +79,19 @@ export default function AdvertisePage() {
         <p className="mt-2 text-ds-text-secondary">
           Share your brand, offer or event in the top banner slot on HarvestHub.
         </p>
+
+        <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4">
+          <h2 className="text-lg font-semibold">Image Guidelines</h2>
+          <p className="text-sm text-ds-text-secondary mt-1">
+            Top banner: {AD_BANNER_DIMENSIONS.topBanner.recommended.width}x{AD_BANNER_DIMENSIONS.topBanner.recommended.height} (ratio {AD_BANNER_DIMENSIONS.topBanner.recommended.ratio}).
+            Minimum {AD_BANNER_DIMENSIONS.topBanner.min.width}x{AD_BANNER_DIMENSIONS.topBanner.min.height}.
+          </p>
+          <p className="text-sm text-ds-text-secondary">
+            Hero banner: {AD_BANNER_DIMENSIONS.heroBanner.recommended.width}x{AD_BANNER_DIMENSIONS.heroBanner.recommended.height} (ratio {AD_BANNER_DIMENSIONS.heroBanner.recommended.ratio}).
+            Minimum {AD_BANNER_DIMENSIONS.heroBanner.min.width}x{AD_BANNER_DIMENSIONS.heroBanner.min.height}.
+          </p>
+          <p className="text-sm text-ds-text-secondary">File size: max 1MB, prefer WebP/AVIF.</p>
+        </div>
 
         <Form
           layout="vertical"

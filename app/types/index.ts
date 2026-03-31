@@ -13,6 +13,7 @@ export interface UserFormData {
     storeName?: string;
     storeType?: StoreType;
     storeCategory?: string;
+    whatsappNumber?: string;
     campus?: string;
     position?: string;
     storeDescription?: string;
@@ -34,6 +35,7 @@ export interface UserFormData {
     }[];
     password?: string;
     agreement?: boolean;
+    isChurchAffiliated?: boolean;
 }
 
 export interface FormComponentProps {
