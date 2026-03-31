@@ -15,9 +15,27 @@ export async function GET(req: NextRequest) {
         if (!rl.success) return getRateLimitResponse(rl);
 
         const searchParams = new URL(req.url).searchParams;
-        const status = searchParams.get('status') ?? undefined;
+        const rawStatus = searchParams.get('status');
 
-        const applications = await db.adApplications.findAll({ status });
+        const validStatuses = ['PENDING', 'PENDING_PAYMENT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'ACTIVE', 'EXPIRED'];
+        let status: string | undefined = undefined;
+        if (rawStatus) {
+            const normalized = rawStatus.toUpperCase();
+            if (!validStatuses.includes(normalized)) {
+                return NextResponse.json({ success: false, error: 'Invalid status filter' }, { status: 400 });
+            }
+            status = normalized;
+        }
+
+        let applications;
+        try {
+            applications = await db.adApplications.findAll({ status });
+        } catch (innerError) {
+            console.error('GET /api/ad-applications database error:', innerError);
+            // If database access fails, return a safe empty response for admin UIs.
+            return NextResponse.json({ success: false, error: 'Failed to fetch ad applications (database error)' }, { status: 500 });
+        }
+
         return NextResponse.json({ success: true, applications });
     } catch (error) {
         console.error('GET /api/ad-applications error:', error);

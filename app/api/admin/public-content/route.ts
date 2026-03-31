@@ -11,9 +11,25 @@ export async function GET(request: Request) {
         }
 
         const url = new URL(request.url);
-        const status = url.searchParams.get('status') as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null;
+        const rawStatus = url.searchParams.get('status');
 
-        const content = await listPublicContent(status ?? undefined);
+        let status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined;
+        if (rawStatus) {
+            const normalized = rawStatus.toUpperCase();
+            if (!['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(normalized)) {
+                return NextResponse.json({ success: false, error: 'Invalid status filter' }, { status: 400 });
+            }
+            status = normalized as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+        }
+
+        let content;
+        try {
+            content = await listPublicContent(status);
+        } catch (innerError) {
+            console.error('[Admin public-content GET] listPublicContent failed:', innerError);
+            return NextResponse.json({ success: false, error: 'Failed to fetch public content' }, { status: 500 });
+        }
+
         return NextResponse.json({ success: true, data: content });
     } catch (error) {
         console.error('[Admin public-content GET]', error);

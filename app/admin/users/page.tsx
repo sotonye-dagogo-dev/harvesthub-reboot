@@ -28,7 +28,12 @@ export default function AdminUsersPage() {
         const res = await fetch("/api/users");
         if (!res.ok) return;
         const json = await res.json();
-        if (mounted && Array.isArray(json.data)) setUsers(json.data);
+        const usersPayload = Array.isArray(json.users)
+          ? json.users
+          : Array.isArray(json.data)
+            ? json.data
+            : [];
+        if (mounted) setUsers(usersPayload);
       } catch (e) {
         if (!mounted) return;
         if (!useMockData) {

@@ -43,9 +43,19 @@ export async function getPublicContentBySlug(slug: string): Promise<PublicConten
         return cached as PublicContentItem;
     }
 
-    const content = await (prisma as any).publicContent.findUnique({
-        where: { slug },
-    });
+    let content;
+    try {
+        content = await (prisma as any).publicContent.findUnique({
+            where: { slug },
+        });
+    } catch (error) {
+        console.error('[getPublicContentBySlug] Prisma query error:', error);
+        if (!isMockDataEnabled()) {
+            const mock = await loadMockData();
+            return mock?.publicContent.find((item) => item.slug === slug) ?? null;
+        }
+        throw error;
+    }
 
     if (!content) return null;
 
@@ -60,13 +70,24 @@ export async function listPublicContent(status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIV
         return status ? list.filter((item) => item.status === status) : list;
     }
 
-    const content = await (prisma as any).publicContent.findMany({
-        where: status ? { status } : {},
-        orderBy: { createdAt: 'desc' },
-    });
+    let content;
+    try {
+        content = await (prisma as any).publicContent.findMany({
+            where: status ? { status } : {},
+            orderBy: { createdAt: 'desc' },
+        });
 
-    await setCachedPublicContentList(content as unknown as Record<string, unknown>[]);
-    return content as PublicContentItem[];
+        await setCachedPublicContentList(content as unknown as Record<string, unknown>[]);
+        return content as PublicContentItem[];
+    } catch (error) {
+        console.error('[listPublicContent] Prisma query error:', error);
+        if (!isMockDataEnabled()) {
+            const mock = await loadMockData();
+            const list = mock?.publicContent ?? [];
+            return status ? list.filter((item) => item.status === status) : list;
+        }
+        throw error;
+    }
 }
 
 export async function upsertPublicContent(data: {
