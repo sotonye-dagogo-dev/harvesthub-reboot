@@ -575,6 +575,7 @@ export interface UserFormData {
     storeName?: string;
     storeType?: 'retail' | 'wholesale' | 'manufacturing' | 'service';
     storeCategory?: string;
+    whatsappNumber?: string;
     campus?: string;
     position?: string;
     storeDescription?: string;
@@ -583,6 +584,7 @@ export interface UserFormData {
     accountName?: string;
     accountNumber?: string;
     serviceCategory?: string;
+    isChurchAffiliated?: boolean;
     serviceLocation?: string;
     username?: string;
     bio?: string;

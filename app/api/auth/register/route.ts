@@ -27,14 +27,31 @@ export async function POST(request: NextRequest) {
 
         if (!email || !password || !firstName || !lastName || !phoneNumber || !role) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { success: false, error: 'Missing required fields' },
                 { status: 400 }
             );
         }
 
         if (!['BUYER', 'VENDOR'].includes(role)) {
             return NextResponse.json(
-                { error: 'Invalid role. Must be BUYER or VENDOR' },
+                { success: false, error: 'Invalid role. Must be BUYER or VENDOR' },
+                { status: 400 }
+            );
+        }
+
+        if (!body.agreeToTerms) {
+            return NextResponse.json(
+                { success: false, error: 'Terms & Conditions must be accepted' },
+                { status: 400 }
+            );
+        }
+
+        if (role === 'VENDOR' && (!storeName || !category || !whatsappNumber || !campus)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Missing required vendor fields: storeName, category, whatsappNumber or campus',
+                },
                 { status: 400 }
             );
         }
@@ -44,7 +61,7 @@ export async function POST(request: NextRequest) {
         });
         if (existingUser) {
             return NextResponse.json(
-                { error: 'User with this email already exists' },
+                { success: false, error: 'User with this email already exists' },
                 { status: 409 }
             );
         }
@@ -166,6 +183,7 @@ export async function POST(request: NextRequest) {
         // Important: Do not log the user in until email is verified.
         return NextResponse.json(
             {
+                success: true,
                 message: 'Registration successful. Please verify your email address before logging in.',
                 needsEmailVerification: true,
                 user: {
@@ -186,13 +204,13 @@ export async function POST(request: NextRequest) {
         // Handle validation errors thrown from transaction
         if (error instanceof Error && error.message.startsWith('VALIDATION:')) {
             return NextResponse.json(
-                { error: error.message.replace('VALIDATION:', '') },
+                { success: false, error: error.message.replace('VALIDATION:', '') },
                 { status: 400 }
             );
         }
         console.error('Registration error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { success: false, error: 'Internal server error' },
             { status: 500 }
         );
     }

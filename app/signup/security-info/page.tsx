@@ -19,33 +19,54 @@ export default function SecurityInfoPage() {
     }
   }, [formData, router]);
 
-  const handleNext = async () => {
+  const handleNext = async (securityData: { password: string; agreement: boolean }) => {
     try {
-      // Submit registration to API
-      await register({
-        email: formData.email!,
-        password: formData.password!,
-        firstName: formData.firstName!,
-        lastName: formData.lastName!,
-        phoneNumber: formData.phoneNumber!,
-        role: formData.userType === "vendor" ? UserRole.VENDOR : UserRole.BUYER,
-        // Vendor-specific fields (using available form data)
-        ...(formData.userType === "vendor" && {
+      const role = formData.userType === "vendor" ? UserRole.VENDOR : UserRole.BUYER;
+
+      if (!securityData.agreement) {
+        throw new Error("You must accept the Terms & Conditions to continue.");
+      }
+
+      // Validate essential signup fields before calling API, this is a defensive secondary check.
+      if (
+        !formData.email ||
+        !securityData.password ||
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.phoneNumber
+      ) {
+        throw new Error("Missing required fields. Please re-check your information and try again.");
+      }
+
+      // Build registration payload with the latest security values.
+      const payload = {
+        email: formData.email,
+        password: securityData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        role,
+        agreeToTerms: securityData.agreement,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+
+        ...(role === UserRole.VENDOR && {
           storeName: formData.storeName,
           storeDescription: formData.storeDescription || formData.bio,
-          category: (formData.storeCategory || "OTHERS") as VendorCategory,
-          whatsappNumber: formData.phoneNumber!,
-          campus: (formData.campus || "IKEJA") as Campus,
+          category: (formData.storeCategory || VendorCategory.OTHERS) as VendorCategory,
+          whatsappNumber: formData.whatsappNumber || formData.phoneNumber,
+          campus: (formData.campus || Campus.IKEJA) as Campus,
           position: formData.position ? (formData.position as Position) : undefined,
-          isChurchAffiliated: false,
+          isChurchAffiliated: formData.isChurchAffiliated || false,
           verificationDocuments: formData.verificationDocuments,
+          businessAddress: formData.businessAddress,
+          bankName: formData.bankName,
+          accountName: formData.accountName,
+          accountNumber: formData.accountNumber,
         }),
-        // Buyer-specific fields (minimal for now)
-        ...(formData.userType === "buyer" && {
-          dateOfBirth: undefined,
-          gender: undefined,
-        }),
-      });
+      };
+
+      await register(payload);
 
       // Redirect to verify email page
       router.push("/verify-email");

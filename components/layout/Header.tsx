@@ -16,6 +16,7 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { Button, ThemeToggle } from "@/components/ui";
 import { useCart } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
@@ -34,9 +35,7 @@ export function Header() {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path);
 
   const getDashboardLink = () => {
-    if (user?.role === "ADMIN") return "/admin/dashboard";
-    if (user?.role === "VENDOR") return "/vendor/dashboard";
-    return "/profile";
+    return getDashboardRoute(user?.role);
   };
 
   return (

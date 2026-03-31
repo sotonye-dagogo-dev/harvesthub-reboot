@@ -32,7 +32,7 @@ const serwist = new Serwist({
         request.destination === "document" && !url.pathname.startsWith("/api/"),
       handler: new NetworkFirst({
         cacheName: "pages-cache",
-        networkTimeoutSeconds: 3,
+        networkTimeoutSeconds: 6,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 64,

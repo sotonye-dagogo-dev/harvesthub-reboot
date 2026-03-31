@@ -60,6 +60,10 @@
   - [ ] Add `Worker` to applicable role-to-dashboard route mapping
   - [ ] Investigate and fix intermittent ‘fill all required fields’ error in signup workflow (likely a form state/partial/validator or stage skip bug)
   - [ ] Add regression test coverage for signup step progression and validation state
+- [x] Fix `SecurityInfo` race condition where `updateFormData` is not flushed before calling `register`; pass final payload explicitly to API call
+- [x] Harden `/api/auth/register` input validation to use zod schemas and reject malformed requests (include `confirmPassword`, `agreeToTerms` checks)
+- [x] Add a fallback catch for service worker `no-response` on `/signup/*` route navigation and document offline handling behavior
+- [x] Verify dashboard route links in `Header`, `Sidebar`, and `middleware` for all roles to avoid broken or unauthorized navigation
 
 ---
 
