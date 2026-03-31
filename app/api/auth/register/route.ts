@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
                     message = 'A user with this email already exists.';
                 }
 
-                console.warn('P2002 conflict', { email, role, fieldTarget: fields });
+                console.warn('P2002 conflict', { email: body?.email, role: body?.role, fieldTarget: fields });
 
                 return NextResponse.json(
                     { success: false, error: message, details: fields },
