@@ -378,6 +378,29 @@ export const POSITION_OPTIONS = [
     { value: Position.DISTRICT_PASTOR, label: 'District Pastor' },
 ] as const;
 
+export const AD_BANNER_DIMENSIONS = {
+    topBanner: {
+        recommended: {
+            width: 1920,
+            height: 300,
+            ratio: '6.4:1',
+            note: 'Use a wide landscape image that spans full width (for top site banners).',
+        },
+        min: { width: 1600, height: 250 },
+        max: { width: 2560, height: 400 },
+    },
+    heroBanner: {
+        recommended: {
+            width: 1600,
+            height: 640,
+            ratio: '2.5:1',
+            note: 'Optimized for hero section display with clear focal areas.',
+        },
+        min: { width: 1200, height: 480 },
+        max: { width: 2100, height: 840 },
+    },
+} as const;
+
 // ============================================================================
 // PICKUP SERVICES
 // ============================================================================

@@ -267,8 +267,17 @@ export async function POST(request: NextRequest) {
         if (error && typeof error === 'object' && 'code' in error) {
             const pError = error as Prisma.PrismaClientKnownRequestError;
             if (pError.code === 'P2002') {
+                const fields = Array.isArray(pError.meta?.target)
+                    ? (pError.meta.target as string[]).join(', ')
+                    : 'unknown field';
+                let message = 'A user with this email or details already exists.';
+                if (fields.includes('registrationSequence')) {
+                    message = 'Registration race condition detected. Please retry the signup flow.';
+                } else if (fields.includes('email')) {
+                    message = 'A user with this email already exists.';
+                }
                 return NextResponse.json(
-                    { success: false, error: 'A user with this email or details already exists.' },
+                    { success: false, error: message, details: fields },
                     { status: 409 }
                 );
             }
