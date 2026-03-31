@@ -146,7 +146,8 @@ export async function POST(request: NextRequest) {
                     isActive: true,
                     emailVerificationToken: verificationToken,
                     emailVerificationExpiry,
-                    registrationSequence: roleCount + 1,
+                    // registrationSequence is optional and can collide across roles in older schemas.
+                    // We avoid forcing unique sequence here to prevent P2002 conflicts on parallel signups.
                 },
             });
 
@@ -269,13 +270,19 @@ export async function POST(request: NextRequest) {
             if (pError.code === 'P2002') {
                 const fields = Array.isArray(pError.meta?.target)
                     ? (pError.meta.target as string[]).join(', ')
-                    : 'unknown field';
+                    : typeof pError.meta?.target === 'string'
+                        ? (pError.meta.target as string)
+                        : 'unknown field';
+
                 let message = 'A user with this email or details already exists.';
                 if (fields.includes('registrationSequence')) {
-                    message = 'Registration race condition detected. Please retry the signup flow.';
+                    message = 'Registration sequence conflict detected. Please retry the signup flow.';
                 } else if (fields.includes('email')) {
                     message = 'A user with this email already exists.';
                 }
+
+                console.warn('P2002 conflict', { email, role, fieldTarget: fields });
+
                 return NextResponse.json(
                     { success: false, error: message, details: fields },
                     { status: 409 }
