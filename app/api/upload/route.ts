@@ -14,6 +14,7 @@ import {
 import { UserRole } from '@/lib/constants';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { randomUUID } from 'node:crypto';
 
 type FolderType =
     | 'product'
@@ -102,7 +103,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const allowGuestUpload = folderType === 'ad' || folderType === 'payment-proof' || folderType === 'bug-report';
+        // Guest uploads are only allowed for explicitly scoped flows.
+        // Signup profile/verification-doc uploads must skip persistence until account creation completes.
+        const allowGuestUpload =
+            folderType === 'ad' ||
+            folderType === 'payment-proof' ||
+            folderType === 'bug-report' ||
+            ((folderType === 'profile' || folderType === 'verification-doc') && skipPersistence);
 
         // ── Auth ──────────────────────────────────────────────────────
         const { cookies } = await import('next/headers');
@@ -130,11 +137,20 @@ export async function POST(request: NextRequest) {
         }
 
         if (
-            ['product', 'vendor-logo', 'vendor-banner', 'verification-doc'].includes(folderType) &&
+            ['product', 'vendor-logo', 'vendor-banner'].includes(folderType) &&
             payload?.role !== UserRole.VENDOR &&
             payload?.role !== UserRole.ADMIN
         ) {
             return apiError('Only vendors or admins can upload vendor images', 403);
+        }
+
+        if (
+            folderType === 'verification-doc' &&
+            payload &&
+            payload.role !== UserRole.VENDOR &&
+            payload.role !== UserRole.ADMIN
+        ) {
+            return apiError('Only vendors or admins can upload verification documents', 403);
         }
 
         const normalizedGuestUploadId = rawGuestUploadId
@@ -142,10 +158,9 @@ export async function POST(request: NextRequest) {
             .slice(0, 48);
 
         // Fall back to a deterministic guest bucket for unauthenticated ad-related uploads.
-        const effectiveUserId =
-            userId ||
-            payload?.userId ||
-            (normalizedGuestUploadId ? `guest-${normalizedGuestUploadId}` : 'guest-public');
+        const fallbackGuestScope = normalizedGuestUploadId || randomUUID().slice(0, 12);
+
+        const effectiveUserId = userId || payload?.userId || `guest-${fallbackGuestScope}`;
 
         const folder = resolveFolder(folderType, vendorId, effectiveUserId);
         if (!folder) {

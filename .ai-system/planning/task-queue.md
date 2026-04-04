@@ -237,7 +237,7 @@
   - [x] Keep bank-transfer + proof upload as feature-flagged fallback during migration.
   - [x] Add deprecation path/flags and observability for fallback usage until full gateway cutover.
 - [ ] Run cleanup and bulk deletion of obsolete files/routes/components.
-  - [ ] Identify duplicate legacy wrappers, dead components, unused assets/scripts, and route aliases safe to remove.
+  - [x] Identify and remove duplicate legacy route wrappers in `app/admin/*` and `app/vendor/*` (middleware redirects retained for compatibility).
   - [ ] Delete in controlled batches with import/route validation after each batch.
   - [ ] Update architecture maps and dependency index docs after cleanup.
 - [ ] Final production-readiness verification and documentation closure.
@@ -273,6 +273,7 @@
   - [x] Add structured verbose server-side logging (sanitized payload + Prisma error mapping + correlation context).
   - [x] Return actionable validation and failure messages without leaking sensitive data.
 - [x] Enforce Cloudinary-first upload governance platform-wide.
+  - [x] Fix unauthenticated signup upload failures by allowing scoped guest uploads for `profile` and `verification-doc` when `skipPersistence=true`.
   - [x] Replace raw screenshot/image URL entry paths (including bug report flow) with managed upload workflow.
   - [x] Reject unsupported raw URL payloads for upload-managed fields.
   - [x] Standardize upload metadata contract across forms and APIs.

@@ -39,6 +39,70 @@
 
 ---
 
+## Session 19 — 2026-04-04
+
+**Goal:**
+Resolve registration-stage upload failures returning `POST /api/upload 401 Unauthorized`.
+
+**Completed:**
+
+- Traced signup upload flow to `/api/upload` for `folderType=profile` and `folderType=verification-doc` during unauthenticated registration steps.
+- Updated upload API auth gating to allow guest-scoped uploads for signup profile and verification documents only when `skipPersistence=true`.
+- Updated verification-doc role checks to allow guest uploads pre-auth while preserving vendor/admin-only enforcement for authenticated document uploads.
+- Added randomized guest scope fallback for unauthenticated uploads to avoid all guest media collapsing into a single shared scope.
+- Re-ran TypeScript check successfully (`npx tsc --noEmit`).
+
+**Files Modified:**
+
+- app/api/upload/route.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Verify end-to-end signup uploads on deployed test environment and continue broader upload governance cleanup in one pass.
+
+**Notes / Blockers:**
+
+- This fix is server-side and does not require frontend payload changes for current signup components because they already submit `skipPersistence=true`.
+
+---
+
+## Session 18 — 2026-04-04
+
+**Goal:**
+Address route/dead-link audit findings locally and perform legacy route wrapper cleanup.
+
+**Completed:**
+
+- Added npm automation scripts for local route/dead-link auditing (`audit:routes`, `audit:sidebar-routes`, `audit:dead-links`).
+- Fixed route-policy gaps by adding explicit policy entries for referenced pages (cart, favourites, bug-report, cookies, notifications settings, and signup step routes).
+- Removed deprecated `/register` policy references and sitemap entry; aligned middleware and RBAC policy tests.
+- Removed legacy redirect-only page trees under `app/admin/*` and `app/vendor/*` while retaining middleware compatibility redirects.
+- Improved audit scripts to parse current sidebar link sets and reduce false positives for route-grouped pages.
+- Re-ran local validations: route/dead-link audit passes cleanly; TypeScript noEmit passes after clearing stale `.next` artifacts.
+
+**Files Modified:**
+
+- package.json
+- scripts/auditRoutes.ts
+- scripts/auditSidebarRoutes.ts
+- lib/rbac/routeConfig.ts
+- lib/rbac/policies.ts
+- middleware.ts
+- app/sitemap.ts
+- lib/**tests**/rbac-policies.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Continue broader cleanup batches (unused assets/components/routes) with the same validate-after-each-batch workflow.
+
+**Notes / Blockers:**
+
+- `npx tsc --noEmit` initially surfaced stale `.next/types` references for deleted admin/vendor routes; resolved by clearing `.next` and re-running typecheck.
+
+---
+
 ## Session 18 — 2026-04-04
 
 **Goal:**
@@ -76,7 +140,7 @@ Execute the cloud adjustment corrective queue to stabilize signup roles/validati
 - app/signup/security-info/page.tsx
 - app/api/auth/register/route.ts
 - app/verify-email/page.tsx
-- app/_styles/globals.css
+- app/\_styles/globals.css
 - app/api/upload/route.ts
 - lib/services/cloudinary.ts
 - components/ui/ImageUpload.tsx
