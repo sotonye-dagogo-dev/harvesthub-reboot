@@ -8,9 +8,14 @@ export function getRoutePolicy(pathname: string): RoutePolicy | null {
   const route = getRouteConfig(pathname);
   if (!route) return null;
 
+  const isAuthRoute =
+    route.path === '/login' ||
+    route.path === '/signup' ||
+    route.path.startsWith('/signup/');
+
   const policy: RoutePolicy = {
     ...route,
-    authRoute: route.path === '/login' || route.path === '/signup' || route.path === '/register',
+    authRoute: isAuthRoute,
   };
 
   return policy;

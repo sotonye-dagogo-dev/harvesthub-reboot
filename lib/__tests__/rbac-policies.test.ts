@@ -17,7 +17,8 @@ describe('rbac route policies', () => {
 
   it('marks auth routes for redirect behavior', () => {
     expect(getRoutePolicy('/login')).toMatchObject({ authRoute: true, public: true });
-    expect(getRoutePolicy('/register')).toMatchObject({ authRoute: true, public: true });
+    expect(getRoutePolicy('/signup')).toMatchObject({ authRoute: true, public: true });
+    expect(getRoutePolicy('/signup/user-info')).toMatchObject({ authRoute: true, public: true });
   });
 
   it('returns null for unknown routes so middleware can enforce authentication', () => {

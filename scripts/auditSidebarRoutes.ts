@@ -15,15 +15,22 @@ function getAppPagePaths(): Set<string> {
     const root = join(process.cwd(), 'app');
     const files = walk(root);
     const paths = new Set<string>();
+
+    const normalizeRoute = (route: string): string => {
+        const cleanedSegments = route
+            .split('/')
+            .filter(Boolean)
+            .filter((segment) => !segment.startsWith('(') && !segment.endsWith(')'));
+
+        if (cleanedSegments.length === 0) return '/';
+        return `/${cleanedSegments.join('/')}`;
+    };
+
     for (const file of files) {
         const rel = file.slice(root.length).replace(/\\/g, '/');
         if (rel.endsWith('/page.tsx')) {
             const route = rel.replace('/page.tsx', '');
-            paths.add(route === '' ? '/' : route);
-        }
-        if (rel.endsWith('/layout.tsx')) {
-            const route = rel.replace('/layout.tsx', '');
-            paths.add(route === '' ? '/' : route);
+            paths.add(normalizeRoute(route));
         }
     }
     return paths;
@@ -32,14 +39,23 @@ function getAppPagePaths(): Set<string> {
 function getSidebarLinks(): Set<string> {
     const path = join(process.cwd(), 'components', 'layout', 'Sidebar.tsx');
     const content = readFileSync(path, 'utf8');
-    const regex = /href: "([^"]+)"/g;
     const set = new Set<string>();
-    let m: RegExpExecArray | null;
-    while ((m = regex.exec(content)) !== null) {
-        const path = m[1]?.trim();
-        if (!path) continue;
-        set.add(path);
+
+    const setBlockRegex = /const\s+(ADMIN_LINKS|VENDOR_LINKS)\s*=\s*new Set\(\[([\s\S]*?)\]\);/g;
+    let blockMatch: RegExpExecArray | null;
+
+    while ((blockMatch = setBlockRegex.exec(content)) !== null) {
+        const setBody = blockMatch[2] || '';
+        const pathRegex = /"([^"]+)"/g;
+        let pathMatch: RegExpExecArray | null;
+
+        while ((pathMatch = pathRegex.exec(setBody)) !== null) {
+            const routePath = pathMatch[1]?.trim();
+            if (!routePath || !routePath.startsWith('/')) continue;
+            set.add(routePath);
+        }
     }
+
     return set;
 }
 
@@ -54,8 +70,14 @@ function run() {
     missing.forEach(x => console.log(' ', x));
 
     console.log('Deprecated pages (exists but not in sidebar):');
-    const notInSidebar = [...pages].filter(x => !sider.has(x) && x.startsWith('/admin'));
+    const notInSidebar = [...pages].filter(
+        (x) => !sider.has(x) && (x === '/admin' || x.startsWith('/admin/') || x === '/vendor' || x.startsWith('/vendor/'))
+    );
     notInSidebar.forEach(x => console.log(' ', x));
+
+    if (missing.length === 0) {
+        console.log('OK: all sidebar links map to existing app pages.');
+    }
 }
 
 run();
