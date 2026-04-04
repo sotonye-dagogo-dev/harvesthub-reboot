@@ -170,6 +170,9 @@ enum Campus {
 }
 
 enum Position {
+  MEMBER
+  NON_MEMBER
+  WORKER
   HOD
   ASST_HOD
   SUB_TEAM_LEADER

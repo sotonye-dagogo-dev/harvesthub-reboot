@@ -408,6 +408,42 @@
   color: rgb(var(--ds-text-primary)) !important;
 }
 
+.dark .ant-select-selector {
+  background-color: rgb(var(--ds-surface-raised)) !important;
+  border-color: rgb(var(--ds-border-base)) !important;
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
+.dark .ant-select-open .ant-select-selector,
+.dark .ant-select-focused .ant-select-selector {
+  border-color: rgb(var(--ds-border-focus)) !important;
+  box-shadow: 0 0 0 2px rgba(var(--ds-focus-ring), 0.35) !important;
+}
+
+.dark .ant-select-selection-item,
+.dark .ant-select-selection-search-input,
+.dark .ant-select-selection-placeholder {
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
+.dark .ant-select-dropdown {
+  background-color: rgb(var(--ds-surface-raised)) !important;
+  border: 1px solid rgb(var(--ds-border-base)) !important;
+}
+
+.dark .ant-select-item {
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
+.dark .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: rgba(var(--ds-brand-primary), 0.22) !important;
+}
+
+.dark .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(var(--ds-brand-primary), 0.32) !important;
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
 .dark .ant-notification-notice-message {
   color: rgb(var(--ds-text-primary)) !important;
 }

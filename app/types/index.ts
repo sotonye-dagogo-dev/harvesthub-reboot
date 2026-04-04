@@ -1,6 +1,6 @@
 // Common types for signup process
 
-export type UserType = 'buyer' | 'vendor' | 'worker';
+export type UserType = 'buyer' | 'vendor';
 export type Stage = 'selection' | 'user-info' | 'store-info' | 'verification-docs' | 'account-info' | 'security-info';
 export type StoreType = 'retail' | 'wholesale' | 'manufacturing' | 'service';
 
@@ -30,9 +30,12 @@ export interface UserFormData {
         url: string;
     } | null;
     verificationDocuments?: {
+        documentType?: 'ID' | 'BUSINESS_REGISTRATION' | 'UTILITY_BILL';
         filename: string;
         url: string;
+        publicId?: string;
     }[];
+    idType?: string;
     password?: string;
     agreement?: boolean;
     isChurchAffiliated?: boolean;

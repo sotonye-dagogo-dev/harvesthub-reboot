@@ -27,6 +27,27 @@
 
 ## Decisions
 
+## Cloud Adjustment Execution: Signup + Upload Contract Enforcement
+
+**Decision:** Enforce strict buyer/vendor-only signup role selection while keeping church position values (`MEMBER`, `NON_MEMBER`, `WORKER`) available through the `Position` enum; require vendor `businessAddress` and all three verification documents at signup; and enforce Cloudinary-managed URLs for upload-governed fields in bug-report and ad-application APIs.
+**Date:** 2026-04-04
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The cloud adjustment queue required elimination of role drift (`Worker` as signup role), full requiredness parity across UI/client/API for vendor verification fields, and closure of raw image URL paths in governed flows. Implementing these together avoids inconsistent validation outcomes and prevents runtime/DB enum mismatch during vendor registration.
+
+**Alternatives Considered:**
+
+- Keep legacy signup role fallback for `worker` (rejected: conflicts with locked product decision and stage logic).
+- Allow optional vendor verification docs or raw screenshot URLs in some flows (rejected: breaks requiredness parity and upload governance).
+- Enforce Cloudinary only at UI layer (rejected: API-level enforcement is required for security and consistency).
+
+**Implications:**
+
+- Prisma enum migration is required in environments where `Position` lacks `MEMBER`/`NON_MEMBER`/`WORKER`.
+- Signup and settings changes must preserve cross-step draft state for `idType` and uploaded document metadata.
+- Any new upload-managed fields should follow the same “upload-first + Cloudinary URL validation” contract.
+
 ## Post-Cloud Signup + Upload Governance Correction Contract
 
 **Decision:** Enforce corrected product contract after cloud review: remove `Worker` as signup user role, keep `Member`/`Non-Member` valid as church position values without enum drift, require all three vendor verification documents plus required signup `businessAddress` (always editable post-auth), and standardize image evidence fields on Cloudinary-managed upload flows (deprecate raw URL inputs).

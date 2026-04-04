@@ -18,6 +18,13 @@ interface VerificationFields {
   businessRegistrationNumber?: string;
 }
 
+type VerificationDocument = {
+  documentType: "ID" | "BUSINESS_REGISTRATION" | "UTILITY_BILL";
+  filename: string;
+  url: string;
+  publicId?: string;
+};
+
 export default function VerificationDocs({ onNext, updateFormData, formData }: FormComponentProps) {
   const [form] = Form.useForm<VerificationFields>();
   const [idFileList, setIdFileList] = useState<UploadFile[]>([]);
@@ -27,19 +34,62 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (formData?.idType) {
+      form.setFieldValue("idType", formData.idType);
+    }
     // Restore previous state if going back
     if (formData?.verificationDocuments && formData.verificationDocuments.length > 0) {
-      const restored = formData.verificationDocuments.map((doc, i) => ({
+      const docs = formData.verificationDocuments as VerificationDocument[];
+      const restored = docs.map((doc, i) => ({
         uid: `restored-${i}`,
         name: doc.filename,
         status: "done" as const,
         url: doc.url,
       }));
-      setIdFileList(restored.slice(0, 1));
-      if (restored.length > 1) setBizFileList(restored.slice(1, 2));
-      if (restored.length > 2) setUtilityFileList(restored.slice(2, 3));
+      const idDoc = docs.find((doc) => doc.documentType === "ID");
+      const bizDoc = docs.find((doc) => doc.documentType === "BUSINESS_REGISTRATION");
+      const utilityDoc = docs.find((doc) => doc.documentType === "UTILITY_BILL");
+
+      if (idDoc) {
+        setIdFileList([
+          {
+            uid: "restored-id",
+            name: idDoc.filename,
+            status: "done",
+            url: idDoc.url,
+          },
+        ]);
+      } else {
+        setIdFileList(restored.slice(0, 1));
+      }
+
+      if (bizDoc) {
+        setBizFileList([
+          {
+            uid: "restored-biz",
+            name: bizDoc.filename,
+            status: "done",
+            url: bizDoc.url,
+          },
+        ]);
+      } else if (restored.length > 1) {
+        setBizFileList(restored.slice(1, 2));
+      }
+
+      if (utilityDoc) {
+        setUtilityFileList([
+          {
+            uid: "restored-utility",
+            name: utilityDoc.filename,
+            status: "done",
+            url: utilityDoc.url,
+          },
+        ]);
+      } else if (restored.length > 2) {
+        setUtilityFileList(restored.slice(2, 3));
+      }
     }
-  }, [formData?.verificationDocuments]);
+  }, [form, formData?.idType, formData?.verificationDocuments]);
 
   const validateFile = (file: File): boolean => {
     const allowed = ["image/jpeg", "image/png", "application/pdf"];
@@ -79,55 +129,73 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   };
 
   const onFinish = async (values: VerificationFields) => {
-    if (idFileList.length === 0) {
-      message.error("Please upload a valid ID document");
+    if (idFileList.length === 0 || bizFileList.length === 0 || utilityFileList.length === 0) {
+      message.error(
+        "Please upload all required documents: valid ID, business registration certificate, and utility bill"
+      );
       return;
     }
 
     setSubmitting(true);
     try {
       setUploading(true);
-      // Simulate upload delay (in production, this would upload to Cloudinary)
-      await new Promise<void>((resolve) => setTimeout(resolve, 800));
+      const uploadDocument = async (
+        docType: VerificationDocument["documentType"],
+        file: UploadFile,
+        fallbackPrefix: string
+      ): Promise<VerificationDocument> => {
+        if (file.originFileObj) {
+          const uploadData = new FormData();
+          uploadData.append("file", file.originFileObj);
+          uploadData.append("folderType", "verification-doc");
+          uploadData.append("skipPersistence", "true");
+
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: uploadData,
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || !payload?.url) {
+            throw new Error(payload?.error || "Failed to upload verification document");
+          }
+
+          return {
+            documentType: docType,
+            filename: `${fallbackPrefix}_${file.name}`,
+            url: payload.url,
+            publicId: payload.publicId,
+          };
+        }
+
+        if (file.url) {
+          return {
+            documentType: docType,
+            filename: file.name,
+            url: file.url,
+          };
+        }
+
+        throw new Error("Missing file data for required document");
+      };
+
+      const docs: VerificationDocument[] = [];
+      const idFile = idFileList[0];
+      const bizFile = bizFileList[0];
+      const utilityFile = utilityFileList[0];
+      if (!idFile || !bizFile || !utilityFile) {
+        throw new Error("Missing required verification files");
+      }
+
+      docs.push(await uploadDocument("ID", idFile, values.idType));
+      docs.push(await uploadDocument("BUSINESS_REGISTRATION", bizFile, "BUSINESS_REGISTRATION"));
+      docs.push(await uploadDocument("UTILITY_BILL", utilityFile, "UTILITY_BILL"));
+
       setUploading(false);
-
-      const docs: { filename: string; url: string }[] = [];
-
-      // ID document
-      if (idFileList[0]?.originFileObj) {
-        docs.push({
-          filename: `${values.idType}_${idFileList[0].name}`,
-          url: URL.createObjectURL(idFileList[0].originFileObj),
-        });
-      } else if (idFileList[0]?.url) {
-        docs.push({ filename: idFileList[0].name, url: idFileList[0].url });
-      }
-
-      // Business registration (optional)
-      if (bizFileList.length > 0) {
-        if (bizFileList[0]?.originFileObj) {
-          docs.push({
-            filename: `BIZ_REG_${bizFileList[0].name}`,
-            url: URL.createObjectURL(bizFileList[0].originFileObj),
-          });
-        } else if (bizFileList[0]?.url) {
-          docs.push({ filename: bizFileList[0].name, url: bizFileList[0].url });
-        }
-      }
-
-      // Utility bill (optional)
-      if (utilityFileList.length > 0) {
-        if (utilityFileList[0]?.originFileObj) {
-          docs.push({
-            filename: `UTILITY_BILL_${utilityFileList[0].name}`,
-            url: URL.createObjectURL(utilityFileList[0].originFileObj),
-          });
-        } else if (utilityFileList[0]?.url) {
-          docs.push({ filename: utilityFileList[0].name, url: utilityFileList[0].url });
-        }
-      }
-
-      updateFormData({ verificationDocuments: docs } as Partial<FormComponentProps["formData"]>);
+      updateFormData({
+        idType: values.idType,
+        verificationDocuments: docs,
+      } as Partial<FormComponentProps["formData"]>);
       onNext();
     } catch (error) {
       console.error("Error uploading documents:", error);
@@ -194,13 +262,15 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           </p>
         </Form.Item>
 
-        {/* Business Registration (Optional) */}
+        {/* Business Registration (Required) */}
         <Form.Item
           label={
             <span className="text-ds-text-primary font-medium">
-              Business Registration Certificate (Optional)
+              Business Registration Certificate{" "}
+              <span className="text-ds-status-error-text">*</span>
             </span>
           }
+          required
         >
           <Upload
             listType="picture-card"
@@ -222,9 +292,14 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           </p>
         </Form.Item>
 
-        {/* Utility Bill (Optional) */}
+        {/* Utility Bill (Required) */}
         <Form.Item
-          label={<span className="text-ds-text-primary font-medium">Utility Bill (Optional)</span>}
+          label={
+            <span className="text-ds-text-primary font-medium">
+              Utility Bill <span className="text-ds-status-error-text">*</span>
+            </span>
+          }
+          required
         >
           <Upload
             listType="picture-card"

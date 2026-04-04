@@ -29,6 +29,33 @@
 
 ---
 
+## 2026-04-04 — Cloud Adjustment Execution: Signup Contract + Upload Governance
+
+**Summary:**
+Completed the cloud adjustment corrective implementation slice across signup, vendor verification requiredness, upload governance, and related UX/accessibility reliability fixes. Signup now enforces buyer/vendor role-only selection, position enum parity is synchronized with Prisma, and governed screenshot/image fields now use Cloudinary-first upload contracts with API rejection of unsupported raw URLs.
+
+**Completed:**
+
+- Removed `Worker` from signup role selection/types/stage filtering while preserving position-level usage.
+- Added Prisma `Position` enum parity (`MEMBER`, `NON_MEMBER`, `WORKER`) and created migration `20260404170500_position_enum_member_non_member_worker`.
+- Required vendor `businessAddress` and all three verification docs (ID + business registration + utility bill) across signup UI and register API validation.
+- Fixed signup state persistence for `idType`, profile image restoration, and verification docs restoration via draft state.
+- Hardened register diagnostics with correlation ID, sanitized logging, and Prisma error mapping.
+- Improved verify-email messaging with explicit inbox instructions and recipient context.
+- Added dark-mode Select focus/active/selected contrast overrides.
+- Migrated bug-report screenshot flow and public ad-application uploads to managed Cloudinary upload-first paths.
+- Added API-side Cloudinary URL enforcement for bug report/ad-application upload-managed fields.
+- Exposed editable vendor `businessAddress` in store settings API/UI post-auth.
+
+**Key Changes:**
+
+- Upload-managed fields now follow a shared contract: upload first via `/api/upload`, then submit canonical Cloudinary URL (+ metadata) to domain API.
+- Vendor onboarding now has strict requiredness parity between visible labels, client checks, and server validation.
+- Position enum/runtime constants are synchronized to avoid registration/runtime drift for `Member` and `Non-Member`.
+
+**Next Sprint Focus:**
+Run local DB-backed `prisma migrate dev`, execute final parallel validation sweep, and complete PR finalization.
+
 ## 2026-04-04 — Post-Cloud Correction Alignment + Handoff Refresh
 
 **Summary:**

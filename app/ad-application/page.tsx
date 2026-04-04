@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 type ApplyFormState = {
   name: string;
@@ -16,6 +17,8 @@ type ApplyFormState = {
   durationValue: string;
   amountPaid: string;
   proofOfTransferUrl: string;
+  imagePublicId?: string;
+  proofPublicId?: string;
 };
 
 const initialState: ApplyFormState = {
@@ -32,6 +35,8 @@ const initialState: ApplyFormState = {
   durationValue: "1",
   amountPaid: "",
   proofOfTransferUrl: "",
+  imagePublicId: "",
+  proofPublicId: "",
 };
 
 export default function AdApplicationPage() {
@@ -87,8 +92,8 @@ export default function AdApplicationPage() {
       </p>
 
       <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4 text-sm text-ds-text-secondary">
-        Include a valid banner image URL and proof-of-transfer URL. Applications are reviewed in the
-        order they are received.
+        Upload your banner image and proof-of-transfer using the managed uploader below. Applications
+        are reviewed in the order they are received.
       </div>
 
       {error ? (
@@ -158,13 +163,22 @@ export default function AdApplicationPage() {
         />
         <input
           aria-label="Banner Image URL"
-          type="url"
+          type="hidden"
           required
-          className="w-full rounded-ds-md border border-ds-border-base px-3 py-2"
           value={form.imageUrl}
           onChange={(e) => updateField("imageUrl", e.target.value)}
-          placeholder="Banner Image URL"
         />
+        <div className="rounded-ds-md border border-ds-border-base p-3">
+          <p className="mb-2 text-sm font-medium text-ds-text-primary">Banner Image *</p>
+          <ImageUpload
+            folderType="ad"
+            skipPersistence
+            onUploaded={(result) => {
+              updateField("imageUrl", result.url);
+              updateField("imagePublicId", result.publicId);
+            }}
+          />
+        </div>
         <input
           aria-label="Destination Link URL"
           type="url"
@@ -223,13 +237,22 @@ export default function AdApplicationPage() {
         />
         <input
           aria-label="Proof of Transfer URL"
-          type="url"
+          type="hidden"
           required
-          className="w-full rounded-ds-md border border-ds-border-base px-3 py-2"
           value={form.proofOfTransferUrl}
           onChange={(e) => updateField("proofOfTransferUrl", e.target.value)}
-          placeholder="Proof of Transfer URL"
         />
+        <div className="rounded-ds-md border border-ds-border-base p-3">
+          <p className="mb-2 text-sm font-medium text-ds-text-primary">Proof of Transfer *</p>
+          <ImageUpload
+            folderType="payment-proof"
+            skipPersistence
+            onUploaded={(result) => {
+              updateField("proofOfTransferUrl", result.url);
+              updateField("proofPublicId", result.publicId);
+            }}
+          />
+        </div>
 
         <button
           type="submit"

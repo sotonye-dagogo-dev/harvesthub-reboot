@@ -14,6 +14,7 @@ const createAdApplicationSchema = z.object({
     title: z.string().trim().min(2, 'Title is required'),
     description: z.string().trim().min(5, 'Description is required'),
     imageUrl: z.string().trim().url('A valid image URL is required'),
+    imagePublicId: z.string().trim().optional().nullable(),
     linkUrl: z.string().trim().url().optional().nullable(),
     position: z.enum(['TOP', 'HERO', 'SIDEBAR']).optional(),
     theme: z.enum(['BUSINESS', 'CHURCH', 'EVENT', 'PROMOTION']).optional(),
@@ -22,6 +23,7 @@ const createAdApplicationSchema = z.object({
     paymentMethod: z.enum(['BANK_TRANSFER', 'CARD', 'USSD']),
     amountPaid: z.coerce.number().positive('Amount paid must be greater than zero'),
     proofOfTransferUrl: z.string().trim().url('A valid proof of payment URL is required'),
+    proofPublicId: z.string().trim().optional().nullable(),
     durationType: z.enum(['HOURLY', 'DAILY']).optional(),
     durationValue: z.coerce.number().int().min(1).optional(),
 });
@@ -39,6 +41,12 @@ export async function POST(req: NextRequest) {
         }
 
         const data = parsedBody.data;
+        if (!data.imageUrl.startsWith('https://res.cloudinary.com/')) {
+            return apiError('Banner image must be uploaded via managed Cloudinary flow.', 400);
+        }
+        if (!data.proofOfTransferUrl.startsWith('https://res.cloudinary.com/')) {
+            return apiError('Proof of transfer must be uploaded via managed Cloudinary flow.', 400);
+        }
         const rateConfig = await db.adRateConfig.getActive();
         if (!rateConfig) {
             return apiError('Ad pricing is unavailable. Please try again later.', 503);

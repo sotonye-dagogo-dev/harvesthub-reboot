@@ -30,6 +30,16 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
     if (formData?.username) {
       form.setFieldsValue(formData as FormValues);
     }
+    if (formData?.profilePicture?.url) {
+      setFileList([
+        {
+          uid: "restored-profile",
+          name: formData.profilePicture.filename || "profile-picture",
+          status: "done",
+          url: formData.profilePicture.url,
+        },
+      ]);
+    }
   }, [form, formData]);
 
   const handleFileChange = ({ fileList: newFileList }: UploadChangeParam): void => {
@@ -65,14 +75,25 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
       // Simulate upload for profile picture
       if (fileList.length > 0 && fileList[0]?.originFileObj) {
         setUploading(true);
-        // In a real app, this would be an actual upload
-        await new Promise<void>((resolve) => setTimeout(resolve, 800));
+        const uploadData = new FormData();
+        uploadData.append("file", fileList[0].originFileObj);
+        uploadData.append("folderType", "profile");
+        uploadData.append("skipPersistence", "true");
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload?.url) {
+          throw new Error(payload?.error || "Failed to upload profile picture");
+        }
         setUploading(false);
 
         // Add file info to form data
         values.profilePicture = {
           filename: fileList[0]?.name || "profile",
-          url: URL.createObjectURL(fileList[0].originFileObj),
+          url: payload.url,
         };
       }
 

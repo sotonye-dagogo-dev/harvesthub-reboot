@@ -11,7 +11,9 @@ type FolderType =
   | "profile"
   | "banner"
   | "ad"
-  | "payment-proof";
+  | "payment-proof"
+  | "verification-doc"
+  | "bug-report";
 
 interface Props {
   folderType: FolderType;

@@ -78,6 +78,7 @@ export default function StoreSettingsFeature() {
           email: settings.email || user?.email || prev.email,
           phone: settings.phone || user?.phoneNumber || prev.phone,
           whatsapp: settings.whatsapp || prev.whatsapp,
+          address: settings.businessAddress || prev.address,
           allowsPickup: settings.allowsPickup ?? prev.allowsPickup,
           allowsDelivery: settings.allowsDelivery ?? prev.allowsDelivery,
           businessHoursStart: settings.businessHoursStart || prev.businessHoursStart,
@@ -119,6 +120,7 @@ export default function StoreSettingsFeature() {
           campus: formData.campus,
           phone: formData.phone,
           whatsapp: formData.whatsapp,
+          businessAddress: formData.address,
           allowsPickup: formData.allowsPickup,
           allowsDelivery: formData.allowsDelivery,
           businessHoursStart: formData.businessHoursStart,
@@ -279,7 +281,7 @@ export default function StoreSettingsFeature() {
           <MapPin className="h-5 w-5 text-ds-text-brand" />
           Location & Contact
         </h2>
-        <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Campus Location
@@ -310,17 +312,27 @@ export default function StoreSettingsFeature() {
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-              WhatsApp
-            </label>
-            <AntInput
-              value={formData.whatsapp}
-              onChange={(e) => handleChange("whatsapp", e.target.value)}
-              placeholder="WhatsApp number"
-            />
+            <div>
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                WhatsApp
+              </label>
+              <AntInput
+                value={formData.whatsapp}
+                onChange={(e) => handleChange("whatsapp", e.target.value)}
+                placeholder="WhatsApp number"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                Business Address
+              </label>
+              <AntInput
+                value={formData.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                placeholder="Street address, city, state"
+              />
+            </div>
           </div>
-        </div>
       </Card>
 
       <Card>

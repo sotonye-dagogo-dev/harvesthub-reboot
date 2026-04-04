@@ -251,29 +251,29 @@
 
 > **Section summary:** Locked corrective implementation queue after post-cloud review audit.
 
-- [ ] Deprecate `Worker` as signup role across UI/types/flow logic and preserve it only as church position where applicable.
-- [ ] Ensure `Member` and `Non-Member` position values are valid end-to-end without vendor registration/runtime failures.
-  - [ ] Align Prisma enum + constants + payload validation for `Position` and add migration if schema changes.
-  - [ ] Regenerate Prisma client and validate registration success paths.
-- [ ] Enforce vendor verification requiredness parity.
-  - [ ] Require all 3 vendor verification uploads: ID, business registration certificate, and utility bill.
-  - [ ] Make vendor `businessAddress` required at signup and required in server validation.
-  - [ ] Remove misleading optional labels from required fields in form UI.
-- [ ] Preserve signup-entered values across stage navigation and restore correctly from draft state.
-  - [ ] Fix `idType` persistence and restoration.
-  - [ ] Fix profile-picture and document upload state retention between steps.
-- [ ] Confirm and patch post-auth editability/viewability for signup-originated fields in profile/store settings.
-  - [ ] Ensure `businessAddress` remains editable post-auth.
-  - [ ] Expose/edit vendor-relevant fields through vendor settings APIs/UI where missing.
-- [ ] Improve verify-email UX clarity.
-  - [ ] Add concise instruction copy to click the email link.
-  - [ ] Display recipient email context in resend/no-token flows.
-- [ ] Fix dark-mode select active/focus contrast across key forms and error states.
-- [ ] Harden vendor registration diagnostics.
-  - [ ] Add structured verbose server-side logging (sanitized payload + Prisma error mapping + correlation context).
-  - [ ] Return actionable validation and failure messages without leaking sensitive data.
-- [ ] Enforce Cloudinary-first upload governance platform-wide.
-  - [ ] Replace raw screenshot/image URL entry paths (including bug report flow) with managed upload workflow.
-  - [ ] Reject unsupported raw URL payloads for upload-managed fields.
-  - [ ] Standardize upload metadata contract across forms and APIs.
-- [ ] Re-verify service readiness posture for Resend, Cloudinary, Upstash, Prisma, wallet, and payment paths with production-safe feature-flag behavior.
+- [x] Deprecate `Worker` as signup role across UI/types/flow logic and preserve it only as church position where applicable.
+- [x] Ensure `Member` and `Non-Member` position values are valid end-to-end without vendor registration/runtime failures.
+  - [x] Align Prisma enum + constants + payload validation for `Position` and add migration if schema changes.
+  - [x] Regenerate Prisma client and validate registration success paths.
+- [x] Enforce vendor verification requiredness parity.
+  - [x] Require all 3 vendor verification uploads: ID, business registration certificate, and utility bill.
+  - [x] Make vendor `businessAddress` required at signup and required in server validation.
+  - [x] Remove misleading optional labels from required fields in form UI.
+- [x] Preserve signup-entered values across stage navigation and restore correctly from draft state.
+  - [x] Fix `idType` persistence and restoration.
+  - [x] Fix profile-picture and document upload state retention between steps.
+- [x] Confirm and patch post-auth editability/viewability for signup-originated fields in profile/store settings.
+  - [x] Ensure `businessAddress` remains editable post-auth.
+  - [x] Expose/edit vendor-relevant fields through vendor settings APIs/UI where missing.
+- [x] Improve verify-email UX clarity.
+  - [x] Add concise instruction copy to click the email link.
+  - [x] Display recipient email context in resend/no-token flows.
+- [x] Fix dark-mode select active/focus contrast across key forms and error states.
+- [x] Harden vendor registration diagnostics.
+  - [x] Add structured verbose server-side logging (sanitized payload + Prisma error mapping + correlation context).
+  - [x] Return actionable validation and failure messages without leaking sensitive data.
+- [x] Enforce Cloudinary-first upload governance platform-wide.
+  - [x] Replace raw screenshot/image URL entry paths (including bug report flow) with managed upload workflow.
+  - [x] Reject unsupported raw URL payloads for upload-managed fields.
+  - [x] Standardize upload metadata contract across forms and APIs.
+- [x] Re-verify service readiness posture for Resend, Cloudinary, Upstash, Prisma, wallet, and payment paths with production-safe feature-flag behavior.

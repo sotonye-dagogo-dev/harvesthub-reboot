@@ -49,6 +49,28 @@ export default function SecurityInfoPage() {
         throw new Error("Missing required fields. Please re-check your information and try again.");
       }
 
+      if (role === UserRole.VENDOR) {
+        const docs = formData.verificationDocuments || [];
+        const requiredDocTypes = ["ID", "BUSINESS_REGISTRATION", "UTILITY_BILL"];
+        const hasAllRequiredDocs = requiredDocTypes.every((requiredType) =>
+          docs.some((doc: any) => doc?.documentType === requiredType)
+        );
+
+        if (!formData.businessAddress?.trim()) {
+          throw new Error("Business address is required for vendor signup.");
+        }
+
+        if (!formData.idType) {
+          throw new Error("Please select your ID type before continuing.");
+        }
+
+        if (!hasAllRequiredDocs) {
+          throw new Error(
+            "Please upload all required verification documents: valid ID, business registration certificate, and utility bill."
+          );
+        }
+      }
+
       // Build registration payload with the latest security values.
       const payload = {
         email: formData.email,
@@ -71,6 +93,7 @@ export default function SecurityInfoPage() {
           position: formData.position ? (formData.position as Position) : undefined,
           isChurchAffiliated: formData.isChurchAffiliated || false,
           verificationDocuments: formData.verificationDocuments,
+          idType: formData.idType,
           businessAddress: formData.businessAddress,
           bankName: formData.bankName,
           accountName: formData.accountName,
@@ -81,7 +104,7 @@ export default function SecurityInfoPage() {
       await register(payload);
 
       // Redirect to verify email page
-      router.push("/verify-email");
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
       console.error("Registration failed:", error);
       // Error will be handled by SecurityInfo component
