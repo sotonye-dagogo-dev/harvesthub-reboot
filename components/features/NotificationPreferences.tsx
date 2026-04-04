@@ -11,7 +11,7 @@
 "use client";
 
 import { SectionLoader } from "@/components/ui";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Switch, Button, message, TimePicker } from "antd";
 import { Bell, Mail, Smartphone, Clock } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
@@ -23,6 +23,23 @@ interface NotificationPreference {
   inApp: boolean;
   email: boolean;
   push: boolean;
+}
+
+interface ApiNotificationPreferences {
+  orderConfirmed: boolean;
+  orderReady: boolean;
+  orderDelivered: boolean;
+  orderCancelled: boolean;
+  paymentSuccess: boolean;
+  paymentFailed: boolean;
+  deliveryUpdates: boolean;
+  vendorMessages: boolean;
+  lowStock: boolean;
+  newProducts: boolean;
+  promotions: boolean;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  pushNotifications?: boolean;
 }
 
 const defaultPreferences: NotificationPreference[] = [
@@ -94,33 +111,63 @@ export function NotificationPreferences() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Fetch preferences on mount
-  useEffect(() => {
-    fetchPreferences();
-  }, []);
+  const toUiPreferences = (api: ApiNotificationPreferences): NotificationPreference[] => [
+    { type: "ORDER_CONFIRMED", enabled: api.orderConfirmed, inApp: api.orderConfirmed, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_READY", enabled: api.orderReady, inApp: api.orderReady, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_DELIVERED", enabled: api.orderDelivered, inApp: api.orderDelivered, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_CANCELLED", enabled: api.orderCancelled, inApp: api.orderCancelled, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PAYMENT_SUCCESS", enabled: api.paymentSuccess, inApp: api.paymentSuccess, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PAYMENT_FAILED", enabled: api.paymentFailed, inApp: api.paymentFailed, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "DELIVERY_UPDATE", enabled: api.deliveryUpdates, inApp: api.deliveryUpdates, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "VENDOR_MESSAGE", enabled: api.vendorMessages, inApp: api.vendorMessages, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "LOW_STOCK", enabled: api.lowStock, inApp: api.lowStock, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "NEW_PRODUCT", enabled: api.newProducts, inApp: api.newProducts, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PROMOTION", enabled: api.promotions, inApp: api.promotions, email: api.emailNotifications, push: api.pushNotifications ?? true },
+  ];
 
-  const fetchPreferences = async () => {
+  const toApiPreferences = (ui: NotificationPreference[]): ApiNotificationPreferences => {
+    const findByType = (type: NotificationType) => ui.find((item) => item.type === type);
+    return {
+      orderConfirmed: findByType("ORDER_CONFIRMED")?.enabled ?? true,
+      orderReady: findByType("ORDER_READY")?.enabled ?? true,
+      orderDelivered: findByType("ORDER_DELIVERED")?.enabled ?? true,
+      orderCancelled: findByType("ORDER_CANCELLED")?.enabled ?? true,
+      paymentSuccess: findByType("PAYMENT_SUCCESS")?.enabled ?? true,
+      paymentFailed: findByType("PAYMENT_FAILED")?.enabled ?? true,
+      deliveryUpdates: findByType("DELIVERY_UPDATE")?.enabled ?? true,
+      vendorMessages: findByType("VENDOR_MESSAGE")?.enabled ?? true,
+      lowStock: findByType("LOW_STOCK")?.enabled ?? true,
+      newProducts: findByType("NEW_PRODUCT")?.enabled ?? false,
+      promotions: findByType("PROMOTION")?.enabled ?? false,
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: ui.some((item) => item.push),
+    };
+  };
+
+  const fetchPreferences = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/notifications/preferences");
       const data = await res.json();
 
       if (data.success && data.preferences) {
-        setPreferences(data.preferences.notificationTypes || defaultPreferences);
-        setQuietHoursEnabled(data.preferences.quietHoursEnabled || false);
-        if (data.preferences.quietHoursStart) {
-          setQuietHoursStart(dayjs(data.preferences.quietHoursStart, "HH:mm"));
-        }
-        if (data.preferences.quietHoursEnd) {
-          setQuietHoursEnd(dayjs(data.preferences.quietHoursEnd, "HH:mm"));
-        }
+        setPreferences(toUiPreferences(data.preferences as ApiNotificationPreferences));
+        setQuietHoursEnabled(false);
+        setQuietHoursStart(dayjs("22:00", "HH:mm"));
+        setQuietHoursEnd(dayjs("08:00", "HH:mm"));
       }
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch preferences on mount
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -128,12 +175,7 @@ export function NotificationPreferences() {
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notificationTypes: preferences,
-          quietHoursEnabled,
-          quietHoursStart: quietHoursStart?.format("HH:mm"),
-          quietHoursEnd: quietHoursEnd?.format("HH:mm"),
-        }),
+        body: JSON.stringify(toApiPreferences(preferences)),
       });
 
       if (res.ok) {
@@ -265,6 +307,9 @@ export function NotificationPreferences() {
         <Button type="primary" size="large" onClick={handleSave} loading={saving}>
           Save Preferences
         </Button>
+        <p className="ml-3 text-xs text-ds-text-secondary">
+          Critical order/payment/delivery emails remain enabled for account safety.
+        </p>
       </div>
     </div>
   );

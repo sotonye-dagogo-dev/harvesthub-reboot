@@ -249,3 +249,33 @@ Migration direction:
 | 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings |
 | 2026-04-01 | Added public ad-application intake route                  | Enable unauthenticated ad submissions with validated/rate-limited backend intake |
 | 2026-04-01 | Enforced vendor-scoped analytics KPI computation          | Prevent vendor dashboards from showing platform-wide aggregate metrics |
+
+### Email Change + Reverification Flow
+
+```
+1. Authenticated user submits a new email from profile security settings.
+2. API (`POST /api/users/me/change-email`) validates identity, uniqueness, and rate-limit constraints.
+3. API stores a prefixed verification token carrying pending-email context and marks account unverified.
+4. Verification email is delivered to the new address and user follows `/verify-email?token=...`.
+5. `/api/auth/verify-email` detects email-change token, updates canonical email, clears token fields, clears auth cookies, and returns a login redirect instruction.
+```
+
+### Help Content Route-Safe Flow
+
+```
+1. Help index page renders topics/quick links from `lib/config/siteContent.ts`.
+2. Topic routes resolve via `/help/[slug]` against the same config to avoid orphan slugs.
+3. Topic page attempts to hydrate detail body from public-content (`help-{slug}`) for admin-editable rich text.
+4. If no content is published, page falls back to a safe support/contact guidance state.
+```
+
+### Vendor Verification Order-Gating Flow
+
+```
+1. Checkout loads vendor status and displays a warning for unverified vendors.
+2. Buyer must explicitly acknowledge warning before order submission.
+3. Orders API enforces server-side acknowledgement requirement for unverified vendors.
+4. Order status-history captures verification/acknowledgement context for audit visibility.
+```
+
+| 2026-04-04 | Added email-change reverification + bug-report/settings/help-flow hardening | Close cloud continuation queue for account security, config-driven UX surfaces, and operations reliability |

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
@@ -26,6 +26,8 @@ export default function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] = useState<Partial<AddressFormData> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("WALLET");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [vendorVerificationAcknowledged, setVendorVerificationAcknowledged] = useState(false);
+  const [vendorStatus, setVendorStatus] = useState<string | null>(null);
 
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 : 0;
   const total = totalPrice + deliveryFee;
@@ -34,6 +36,69 @@ export default function CheckoutPage() {
     () => items.some((item) => item.isService),
     [items]
   );
+  const hasMultipleVendors = useMemo(() => {
+    const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
+    return vendorIds.size > 1;
+  }, [items]);
+  const [hasAnyUnverifiedVendor, setHasAnyUnverifiedVendor] = useState(false);
+  const hasUnverifiedVendorItems =
+    hasMultipleVendors ? hasAnyUnverifiedVendor : !!vendorStatus && vendorStatus !== "APPROVED";
+
+  useEffect(() => {
+    const vendorId = items[0]?.vendorId;
+    if (!vendorId || hasMultipleVendors) {
+      setVendorStatus(null);
+      return;
+    }
+
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/vendors/${vendorId}`);
+        const data = await res.json();
+        if (!active) return;
+        setVendorStatus(data?.vendor?.status || null);
+      } catch (error) {
+        console.error("Failed to load vendor status for checkout", error);
+        if (!active) return;
+        setVendorStatus(null);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [hasMultipleVendors, items]);
+
+  useEffect(() => {
+    if (!hasMultipleVendors) {
+      setHasAnyUnverifiedVendor(false);
+      return;
+    }
+
+    const vendorIds = Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean)));
+    let active = true;
+    (async () => {
+      try {
+        const statuses = await Promise.all(
+          vendorIds.map(async (vendorId) => {
+            const res = await fetch(`/api/vendors/${vendorId}`);
+            const data = await res.json();
+            return data?.vendor?.status || null;
+          })
+        );
+        if (!active) return;
+        setHasAnyUnverifiedVendor(statuses.some((status) => status && status !== "APPROVED"));
+      } catch {
+        if (!active) return;
+        setHasAnyUnverifiedVendor(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [hasMultipleVendors, items]);
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
@@ -55,7 +120,6 @@ export default function CheckoutPage() {
         throw new Error("Unable to determine vendor for this order");
       }
 
-      const hasMultipleVendors = items.some((item) => item.vendorId !== vendorId);
       if (hasMultipleVendors) {
         throw new Error("Please checkout one vendor at a time");
       }
@@ -116,6 +180,7 @@ export default function CheckoutPage() {
             paymentMethod === "CARD" && paymentReference
               ? `${paymentReference}-success`
               : undefined,
+          vendorVerificationAcknowledged,
         }),
       });
       const orderData = await orderRes.json().catch(() => ({}));
@@ -175,6 +240,27 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="space-y-6 lg:col-span-2">
+          {hasUnverifiedVendorItems && (
+            <Card>
+              <div className="rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-4">
+                <p className="text-sm font-semibold text-ds-status-warning-text">
+                  Some items are from an unverified vendor
+                </p>
+                <p className="mt-1 text-xs text-ds-text-secondary">
+                  You can still proceed, but please acknowledge this vendor verification warning.
+                </p>
+                <label className="mt-3 flex items-start gap-2 text-sm text-ds-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={vendorVerificationAcknowledged}
+                    onChange={(e) => setVendorVerificationAcknowledged(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  I understand and want to continue with this order.
+                </label>
+              </div>
+            </Card>
+          )}
           {/* Order Items */}
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
@@ -372,6 +458,7 @@ export default function CheckoutPage() {
               className="mt-6"
               onClick={handlePlaceOrder}
               loading={isPlacingOrder}
+              disabled={hasUnverifiedVendorItems && !vendorVerificationAcknowledged}
             >
               <CheckCircle className="mr-2 h-5 w-5" />
               {PLATFORM_DEFAULTS.PAYMENTS_ENABLED ? "Place Order" : "Place Order (Pay Later)"}

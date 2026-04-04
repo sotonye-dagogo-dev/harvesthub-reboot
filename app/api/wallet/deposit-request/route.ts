@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { getPaymentFallbackTelemetry } from '@/lib/services/payments';
 
 export async function POST(req: NextRequest) {
   return withApiHandler('POST /api/wallet/deposit-request', async () => {
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
       message: 'Deposit request submitted. It will be credited once verified by admin.',
       transaction: result.transaction,
       proof: result.proof,
+      fallbackTelemetry: getPaymentFallbackTelemetry(),
     });
   });
 }

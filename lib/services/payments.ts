@@ -39,6 +39,12 @@ export type VerifyPaymentResult = {
   message: string;
 };
 
+export type PaymentFallbackTelemetry = {
+  bankTransferFallbackEnabled: boolean;
+  deprecationDays: number;
+  usedAt: string;
+};
+
 function normalizeAmount(amount: number): number {
   if (!Number.isFinite(amount)) return 0;
   return Math.round(amount * 100) / 100;
@@ -111,5 +117,13 @@ export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPa
         : status === 'FAILED'
           ? 'Stub verification marked as failed.'
           : 'Stub verification is pending. Replace with provider API verification.',
+  };
+}
+
+export function getPaymentFallbackTelemetry(): PaymentFallbackTelemetry {
+  return {
+    bankTransferFallbackEnabled: env.paymentFallbackBankTransfer,
+    deprecationDays: env.paymentFallbackDeprecationDays,
+    usedAt: new Date().toISOString(),
   };
 }

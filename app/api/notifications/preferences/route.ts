@@ -27,7 +27,26 @@ export async function GET(_req: NextRequest) {
             });
         }
 
-        return apiSuccess({ preferences: prefs });
+        return apiSuccess({
+            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
+            preferences: {
+                orderConfirmed: prefs.orderUpdates,
+                orderReady: prefs.orderUpdates,
+                orderDelivered: prefs.orderUpdates,
+                orderCancelled: prefs.orderUpdates,
+                paymentSuccess: prefs.orderUpdates,
+                paymentFailed: prefs.orderUpdates,
+                deliveryUpdates: prefs.orderUpdates,
+                vendorMessages: prefs.vendorMessages,
+                lowStock: prefs.orderUpdates,
+                newProducts: prefs.promotions,
+                promotions: prefs.promotions,
+                emailNotifications: prefs.emailNotifications,
+                smsNotifications: prefs.smsNotifications,
+                pushNotifications: prefs.pushNotifications,
+                orderUpdates: prefs.orderUpdates,
+            },
+        });
     });
 }
 
@@ -40,14 +59,44 @@ export async function PUT(req: NextRequest) {
         if (!rl.success) return getRateLimitResponse(rl);
 
         const body = await req.json();
-        const allowedFields = [
-            'emailNotifications', 'smsNotifications', 'pushNotifications',
-            'orderUpdates', 'promotions', 'vendorMessages',
-        ];
-        const updateData: Record<string, boolean> = {};
-        for (const key of allowedFields) {
-            if (typeof body[key] === 'boolean') updateData[key] = body[key];
-        }
+        const incoming = body as Record<string, unknown>;
+
+        const orderUpdates =
+            typeof incoming.orderUpdates === 'boolean'
+                ? incoming.orderUpdates
+                : [
+                    incoming.orderConfirmed,
+                    incoming.orderReady,
+                    incoming.orderDelivered,
+                    incoming.orderCancelled,
+                    incoming.paymentSuccess,
+                    incoming.paymentFailed,
+                    incoming.deliveryUpdates,
+                    incoming.lowStock,
+                ].some((value) => value === true);
+
+        const promotions =
+            typeof incoming.promotions === 'boolean'
+                ? incoming.promotions
+                : incoming.newProducts === true || incoming.promotions === true;
+
+        const updateData: Record<string, boolean> = {
+            emailNotifications:
+                typeof incoming.emailNotifications === 'boolean' ? incoming.emailNotifications : true,
+            smsNotifications:
+                typeof incoming.smsNotifications === 'boolean' ? incoming.smsNotifications : false,
+            pushNotifications:
+                typeof incoming.pushNotifications === 'boolean' ? incoming.pushNotifications : true,
+            orderUpdates,
+            promotions,
+            vendorMessages:
+                typeof incoming.vendorMessages === 'boolean' ? incoming.vendorMessages : true,
+        };
+
+        // Mandatory critical channel remains enabled regardless of optional settings.
+        // Security/reliability requirement: order/payment/delivery critical communications must
+        // always remain reachable by email even if users disable optional notification channels.
+        updateData.emailNotifications = true;
 
         const prefs = await prisma.notificationPreference.upsert({
             where: { userId: user.userId },
@@ -55,6 +104,25 @@ export async function PUT(req: NextRequest) {
             update: updateData,
         });
 
-        return apiSuccess({ preferences: prefs });
+        return apiSuccess({
+            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
+            preferences: {
+                orderConfirmed: prefs.orderUpdates,
+                orderReady: prefs.orderUpdates,
+                orderDelivered: prefs.orderUpdates,
+                orderCancelled: prefs.orderUpdates,
+                paymentSuccess: prefs.orderUpdates,
+                paymentFailed: prefs.orderUpdates,
+                deliveryUpdates: prefs.orderUpdates,
+                vendorMessages: prefs.vendorMessages,
+                lowStock: prefs.orderUpdates,
+                newProducts: prefs.promotions,
+                promotions: prefs.promotions,
+                emailNotifications: prefs.emailNotifications,
+                smsNotifications: prefs.smsNotifications,
+                pushNotifications: prefs.pushNotifications,
+                orderUpdates: prefs.orderUpdates,
+            },
+        });
     });
 }

@@ -20,6 +20,10 @@ const envSchema = z.object({
   VAPID_SUBJECT: z.string().optional(),
   EMAIL_RETRY_ATTEMPTS: z.string().optional(),
   EMAIL_RETRY_BASE_DELAY_MS: z.string().optional(),
+  PAYSTACK_WEBHOOK_SECRET: z.string().optional(),
+  PAYSTACK_WEBHOOKS_ENABLED: z.string().optional(),
+  PAYMENT_FALLBACK_BANK_TRANSFER: z.string().optional(),
+  PAYMENT_FALLBACK_DEPRECATION_DAYS: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -70,6 +74,10 @@ export const env = {
   vapidSubject: raw.VAPID_SUBJECT,
   emailRetryAttempts: toPositiveInt(raw.EMAIL_RETRY_ATTEMPTS, 3),
   emailRetryBaseDelayMs: toPositiveInt(raw.EMAIL_RETRY_BASE_DELAY_MS, 500),
+  paystackWebhookSecret: raw.PAYSTACK_WEBHOOK_SECRET,
+  paystackWebhooksEnabled: toBoolean(raw.PAYSTACK_WEBHOOKS_ENABLED, false),
+  paymentFallbackBankTransfer: toBoolean(raw.PAYMENT_FALLBACK_BANK_TRANSFER, true),
+  paymentFallbackDeprecationDays: toPositiveInt(raw.PAYMENT_FALLBACK_DEPRECATION_DAYS, 30),
 } as const;
 
 export type EnvConfig = typeof env;

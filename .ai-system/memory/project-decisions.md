@@ -395,3 +395,67 @@
 - Cloud session must begin by reading `.ai-system` docs and the temporary handoff plan before coding.
 - Work execution is required to follow queued order with validation gates and checkpoint updates after each workstream.
 - Architecture, decisions, queue status, and dev-history updates are part of delivery, not optional post-work cleanup.
+
+## Email-Change Reverification Reuses Verify-Email Pipeline
+
+**Decision:** Implement email-change confirmation as a tokenized reverification path using the existing `/verify-email` client + `/api/auth/verify-email` API, with a token prefix (`email-change:`) that encodes the pending email and triggers email mutation on successful verification.
+**Date:** 2026-04-04
+**Made by:** AI cloud continuation session
+
+**Reason:** Reusing the existing verification pipeline reduces risk and avoids duplicating token lifecycle logic while still supporting secure email mutation and explicit post-change re-authentication.
+
+**Alternatives Considered:** Separate dedicated verify-email-change endpoint (more code surface and duplicated verification concerns) or immediate email update without reverification (higher account takeover risk).
+
+**Implications:**
+
+- Email changes now require a successful verification link click before the canonical email is updated.
+- Auth cookies are cleared after email mutation to force a fresh login with new identity credentials.
+- Profile security UX must communicate that email change is pending until verification completes.
+
+## Notification Preferences API Compatibility Contract
+
+**Decision:** Keep `/api/notifications/preferences` as the backend source of truth, but normalize it to accept/return the field shape consumed by current notification settings UIs while preserving mandatory critical email delivery behavior in service fan-out.
+**Date:** 2026-04-04
+**Made by:** AI cloud continuation session
+
+**Reason:** Existing UI pages use a richer preference shape than persisted DB columns; normalizing at API boundary prevents breaking clients and allows gradual UI convergence.
+
+**Alternatives Considered:** Rewrite all settings UIs immediately to DB shape (higher regression risk for current sprint) or leave mismatch unresolved (settings appear saved but do not control behavior correctly).
+
+**Implications:**
+
+- Settings pages can reliably load/save preferences without contract drift.
+- Critical system notifications (order/payment/delivery) continue to send email even when optional channels are disabled.
+- Future schema expansions should preserve API-level normalization to avoid UI breakage.
+
+## Bug-Report API Normalization for User/Admin Flows
+
+**Decision:** Normalize bug-report API payloads to map UI-facing fields (`subject/details/priority/adminNotes`) to persisted Prisma fields (`title/description/severity/metadata`) at route boundaries.
+**Date:** 2026-04-04
+**Made by:** AI cloud continuation session
+
+**Reason:** User submission and admin triage pages were built against a UI-first contract that diverged from DB naming, causing CRUD reliability issues.
+
+**Alternatives Considered:** Refactor all frontend bug-report screens to DB field names (larger UI churn) or keep mixed mappings per page (fragile and error-prone).
+
+**Implications:**
+
+- Bug-report lifecycle now remains stable across submit/list/detail/status/notes flows.
+- Admin operations pages receive consistent normalized records regardless of DB internals.
+- Additional bug metadata can be introduced in JSON without breaking UI contracts.
+
+## Config-Driven Footer and Help Surfaces
+
+**Decision:** Centralize footer/help navigation and descriptive content in `lib/config/siteContent.ts` and consume it in layout/page components instead of hardcoded strings/links.
+**Date:** 2026-04-04
+**Made by:** AI cloud continuation session
+
+**Reason:** Hardcoded content and route references made navigation hard to audit and increased dead-link risk during route migrations.
+
+**Alternatives Considered:** Leave content hardcoded in each component (continued drift) or move immediately to fully DB-driven runtime content for every section (higher implementation cost in this slice).
+
+**Implications:**
+
+- Public navigation/help content is now easier to audit and update in one place.
+- `/help/[slug]` route-safe subpages can be driven by config slugs and optionally enriched by public-content entries.
+- Next step can migrate this config source to admin-managed persisted content with minimal component churn.

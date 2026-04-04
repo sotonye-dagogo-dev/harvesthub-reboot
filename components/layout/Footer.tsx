@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin, ArrowUp } from "lucide-react";
+import { footerConfig } from "@/lib/config/siteContent";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -31,10 +32,7 @@ export function Footer() {
           {/* About Section */}
           <div>
             <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">About MyHarvestHub</h3>
-            <p className="text-sm text-ds-text-secondary">
-              Your trusted marketplace connecting buyers with quality vendors across Lagos and
-              beyond.
-            </p>
+             <p className="text-sm text-ds-text-secondary">{footerConfig.about}</p>
             <div className="mt-4 flex gap-3">
               <a
                 href="https://www.instagram.com/myharvesthub?igsh=eTllY20wMjA0NHhj&utm_source=qr"
@@ -74,46 +72,16 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/products"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Browse Products
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/vendors"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Find Vendors
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/signup"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Become a Vendor
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/ad-application"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Apply to Advertise
-                </Link>
-              </li>
+               {footerConfig.quickLinks.map((link) => (
+                 <li key={link.href}>
+                   <Link
+                     href={link.href}
+                     className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                   >
+                     {link.label}
+                   </Link>
+                 </li>
+               ))}
             </ul>
           </div>
 
@@ -121,46 +89,16 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">Support</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/help"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/faqs"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/bug-report"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-                >
-                  Report a Bug
-                </Link>
-              </li>
+               {footerConfig.supportLinks.map((link) => (
+                 <li key={link.href}>
+                   <Link
+                     href={link.href}
+                     className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                   >
+                     {link.label}
+                   </Link>
+                 </li>
+               ))}
             </ul>
           </div>
 
@@ -170,24 +108,24 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2 text-ds-text-secondary">
                 <MapPin className="h-5 w-5 flex-shrink-0" />
-                <span>Lekki, Lagos, Nigeria</span>
+                 <span>{footerConfig.contact.address}</span>
               </li>
               <li className="flex items-center gap-2 text-ds-text-secondary">
                 <Phone className="h-5 w-5 flex-shrink-0" />
                 <a
-                  href="tel:+2347012037766"
+                   href={`tel:${footerConfig.contact.phone.replace(/\s+/g, "")}`}
                   className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
                 >
-                  +234 701 203 7766
+                   {footerConfig.contact.phone}
                 </a>
               </li>
               <li className="flex items-center gap-2 text-ds-text-secondary">
                 <Mail className="h-5 w-5 flex-shrink-0" />
                 <a
-                  href="mailto:support@myharvesthub.org"
+                   href={`mailto:${footerConfig.contact.email}`}
                   className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
                 >
-                  support@myharvesthub.org
+                   {footerConfig.contact.email}
                 </a>
               </li>
             </ul>
@@ -212,24 +150,15 @@ export function Footer() {
               </p>
             </div>
             <div className="flex gap-6">
-              <Link
-                href="/terms"
-                className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
-              >
-                Terms
-              </Link>
-              <Link
-                href="/privacy"
-                className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/cookies"
-                className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
-              >
-                Cookies
-              </Link>
+               {footerConfig.legalLinks.map((link) => (
+                 <Link
+                   key={link.href}
+                   href={link.href}
+                   className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
+                 >
+                   {link.label}
+                 </Link>
+               ))}
             </div>
           </div>
         </div>

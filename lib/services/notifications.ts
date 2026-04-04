@@ -57,6 +57,20 @@ function shouldDeliverType(
   }
 }
 
+const MANDATORY_EMAIL_TYPES = new Set<NotificationType>([
+  'ORDER_CONFIRMED',
+  'ORDER_READY',
+  'ORDER_DELIVERED',
+  'ORDER_CANCELLED',
+  'PAYMENT_SUCCESS',
+  'PAYMENT_FAILED',
+  'DELIVERY_UPDATE',
+]);
+
+function isMandatorySystemEmail(type: NotificationType): boolean {
+  return MANDATORY_EMAIL_TYPES.has(type);
+}
+
 function toAbsoluteLink(pathOrUrl: string): string {
   if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
     return pathOrUrl;
@@ -137,7 +151,12 @@ export async function dispatchNotification(
     inAppCreated = true;
   }
 
-  if (requestedChannels.email && featureFlags.enableEmail && (preferences?.emailNotifications ?? true)) {
+  const canSendEmail =
+    requestedChannels.email &&
+    featureFlags.enableEmail &&
+    ((preferences?.emailNotifications ?? true) || isMandatorySystemEmail(type));
+
+  if (canSendEmail) {
     const actionLink = link ? toAbsoluteLink(link) : null;
     const emailResult = await sendEmail({
       to: recipient.email,

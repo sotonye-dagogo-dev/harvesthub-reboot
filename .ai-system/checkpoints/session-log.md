@@ -1152,3 +1152,50 @@ Solidify public content admin API + caching layer, and ensure core tests cleanly
 
 px tsc --noEmit).\n\n**Files Modified:**\n- app/(buyer)/_ (moved to root and removed)\n- app/admin/_ (deleted route duplicates)\n- app/vendor/\* (deleted route duplicates, updated store-settings redirect)\n- app/store-settings/page.tsx\n- components/features/StoreSettingsPage.tsx\n- components/features/ProductsContent.tsx\n- app/products/page.tsx\n- .ai-system/checkpoints/session-log.md\n\n**Next Task:**\n- Add automated route guard tests for unified endpoints (/orders, /profile, /wallet, /products, /dashboard, /analytics, /store-settings).\n- Re-run
 px vitest --run and document existing unrelated failures in JWT/misc schemas (these failures are pre-existing).\n\n**Notes / Blockers:**\n- Current test failures are in jwt.utils.test.ts and misc.schemas.test.ts, unrelated to routing refactor.\n
+
+## Session 15 — 2026-04-04 (Cloud Continuation)
+
+**Goal:**
+Execute the cloud continuation queue for signup reliability, email-change reverification, settings/notification wiring, bug-report CRUD hardening, config-driven help/navigation, and payment fallback scaffolding.
+
+**Completed:**
+
+- Ran baseline stabilization checks (`npm run lint`, `npx tsc --noEmit`, targeted Vitest) and confirmed clean baseline after dependency install.
+- Added signup reliability updates:
+  - Worker role option in signup selection/type unions.
+  - Signup state persistence in `FormDataProvider` local draft.
+  - Security step now passes full validated payload including `confirmPassword` to prevent intermittent required-field failures.
+- Implemented secure email-change reverification:
+  - Added `POST /api/users/me/change-email`.
+  - Extended verify-email token processing for email-change tokens.
+  - Added profile security UX for requesting email change.
+  - Added safe auth cookie clearing after email mutation.
+- Hardened bug-report end-to-end compatibility:
+  - API now maps UI payload shape (`subject/details/priority`) to DB shape.
+  - Admin list/detail/update endpoints now return normalized UI-compatible payloads and support status/admin-notes updates.
+- Wired notification preferences to backend behavior:
+  - Preferences API now accepts existing settings-page payloads and returns UI-compatible shape.
+  - Mandatory system-critical email delivery enforced in notification fan-out service.
+  - NotificationPreferences feature now uses normalized API payload mapping.
+- Added config-driven content/navigation/help primitives:
+  - Introduced `lib/config/siteContent.ts`.
+  - Footer and help center now consume shared config.
+  - Added dynamic help subpage route `app/help/[slug]/page.tsx` with public-content backing.
+- Added vendor verification order-gating:
+  - Checkout now fetches vendor status and requires buyer acknowledgement when unverified.
+  - Orders API enforces acknowledgement requirement for unverified vendors.
+- Added payment migration scaffolding:
+  - Added webhook endpoint `POST /api/payments/webhook`.
+  - Added payment fallback/deprecation env + feature flags.
+  - Added fallback telemetry usage in order and deposit-request flows.
+
+**Validation:**
+
+- `npm run lint` ✅
+- `npx tsc --noEmit` ✅
+- `npx vitest run app/signup/__tests__/layout.test.tsx lib/services/__tests__/payments.test.ts components/__tests__/Footer.test.tsx` ✅
+
+**Notes / Known Risks:**
+
+- Full API wrapper standardization across every route and full high-risk regression matrix still need exhaustive completion beyond this session slice.
+- `lib/utils/jwt.ts` retains debug logging that predates this session; not modified in this slice.

@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
 
   const [formData, setFormData] = useState({
@@ -90,6 +91,10 @@ export default function ProfilePage() {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
+  });
+  const [emailData, setEmailData] = useState({
+    newEmail: "",
+    confirmEmail: "",
   });
 
   const handleSaveProfile = async () => {
@@ -172,6 +177,41 @@ export default function ProfilePage() {
       message.error(errMessage);
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    if (!emailData.newEmail || !emailData.confirmEmail) {
+      message.error("Please fill in both email fields");
+      return;
+    }
+    if (emailData.newEmail.trim().toLowerCase() !== emailData.confirmEmail.trim().toLowerCase()) {
+      message.error("Email addresses do not match");
+      return;
+    }
+    if (emailData.newEmail.trim().toLowerCase() === formData.email.trim().toLowerCase()) {
+      message.error("New email must be different from your current email");
+      return;
+    }
+
+    setSavingEmail(true);
+    try {
+      const res = await fetch("/api/users/me/change-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: emailData.newEmail.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to start email change process");
+      }
+      message.success("Verification link sent to your new email address");
+      setEmailData({ newEmail: "", confirmEmail: "" });
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to request email change";
+      message.error(errMessage);
+    } finally {
+      setSavingEmail(false);
     }
   };
 
@@ -471,6 +511,48 @@ export default function ProfilePage() {
               <Button onClick={handleChangePassword} loading={savingPassword}>
                 Change Password
               </Button>
+            </div>
+
+            <div className="mt-8 border-t border-ds-border-base pt-6">
+              <h3 className="mb-2 text-lg font-semibold text-ds-text-primary">Change Email</h3>
+              <p className="mb-4 text-sm text-ds-text-secondary">
+                We&apos;ll send a verification link to your new email. You&apos;ll need to verify it to complete the change.
+              </p>
+
+              <div className="max-w-md space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    Current Email
+                  </label>
+                  <CustomInput value={formData.email} disabled className="bg-ds-surface-sunken" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    New Email
+                  </label>
+                  <CustomInput
+                    type="email"
+                    value={emailData.newEmail}
+                    onChange={(e) => setEmailData((prev) => ({ ...prev, newEmail: e.target.value }))}
+                    prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    Confirm New Email
+                  </label>
+                  <CustomInput
+                    type="email"
+                    value={emailData.confirmEmail}
+                    onChange={(e) => setEmailData((prev) => ({ ...prev, confirmEmail: e.target.value }))}
+                    prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
+                  />
+                </div>
+
+                <Button onClick={handleChangeEmail} loading={savingEmail}>
+                  Send Verification Link
+                </Button>
+              </div>
             </div>
           </Card>
         )}
