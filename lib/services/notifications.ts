@@ -57,16 +57,18 @@ function shouldDeliverType(
   }
 }
 
+const MANDATORY_EMAIL_TYPES = new Set<NotificationType>([
+  'ORDER_CONFIRMED',
+  'ORDER_READY',
+  'ORDER_DELIVERED',
+  'ORDER_CANCELLED',
+  'PAYMENT_SUCCESS',
+  'PAYMENT_FAILED',
+  'DELIVERY_UPDATE',
+]);
+
 function isMandatorySystemEmail(type: NotificationType): boolean {
-  return (
-    type === 'ORDER_CONFIRMED' ||
-    type === 'ORDER_READY' ||
-    type === 'ORDER_DELIVERED' ||
-    type === 'ORDER_CANCELLED' ||
-    type === 'PAYMENT_SUCCESS' ||
-    type === 'PAYMENT_FAILED' ||
-    type === 'DELIVERY_UPDATE'
-  );
+  return MANDATORY_EMAIL_TYPES.has(type);
 }
 
 function toAbsoluteLink(pathOrUrl: string): string {

@@ -582,3 +582,28 @@ Implemented the first execution slice of the modernization plan with focused, pr
 **Next Sprint Focus:**
 
 - Add targeted tests for config + RBAC policies and finish remaining modernization tasks (UI refresh breadth, cache invalidation tests, push delivery trigger paths).
+
+## 2026-04-04 — Cloud Continuation: Signup/Auth/Settings/Operations Hardening
+
+**Summary:**
+Completed a major cloud continuation slice to stabilize interrupted refactor work and implement key production-readiness requirements around signup reliability, email-change reverification, bug-report lifecycle compatibility, notification preference wiring, config-driven content surfaces, vendor verification order gating, and payment fallback scaffolding.
+
+**Completed:**
+
+- Signup: added Worker role selection support, persisted signup draft state globally, and fixed security-step payload consistency to prevent intermittent required-field failures.
+- Auth: introduced secure email-change reverification flow (`/api/users/me/change-email` + verify token handling + profile UX).
+- Notifications/settings: normalized `/api/notifications/preferences` request/response mapping to existing settings pages and enforced mandatory critical email channel behavior in notification dispatch.
+- Operations/bug reports: normalized bug-report API contracts for both user submission and admin triage/update pages.
+- Content/navigation/help: introduced `lib/config/siteContent.ts`, moved footer/help content to config-driven rendering, and added route-safe help subpages (`/help/[slug]`) backed by public content.
+- Vendor verification policy: added checkout warning/acknowledgement UX and server-side order gating for unverified vendors.
+- Payments: added webhook scaffold endpoint and fallback deprecation telemetry/config primitives to support staged Paystack migration.
+
+**Validation Run:**
+
+- `npm run lint` ✅
+- `npx tsc --noEmit` ✅
+- `npx vitest run app/signup/__tests__/layout.test.tsx lib/services/__tests__/payments.test.ts components/__tests__/Footer.test.tsx` ✅
+
+**Notes:**
+
+- Remaining queue closure includes full API wrapper standardization and expanded high-risk regression matrix beyond targeted suites.

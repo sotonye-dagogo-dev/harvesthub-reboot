@@ -94,7 +94,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
       // Update the shared form data context before registration
       updateFormData(values);
 
-      // Call the registration API with the most recently validated security values
+      // Call the registration API with the most recently validated security payload
       await onNext(values);
     } catch (err) {
       const errorMessage =

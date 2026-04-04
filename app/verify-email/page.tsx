@@ -42,7 +42,7 @@ export default function VerifyEmailPage() {
         setMessage((err instanceof Error && err.message) || "Network error");
       }
     })();
-  }, [token]);
+  }, [router, token]);
 
   useEffect(() => {
     if (status !== "success") {

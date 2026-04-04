@@ -36,11 +36,17 @@ export default function CheckoutPage() {
     () => items.some((item) => item.isService),
     [items]
   );
-  const hasUnverifiedVendorItems = !!vendorStatus && vendorStatus !== "APPROVED";
+  const hasMultipleVendors = useMemo(() => {
+    const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
+    return vendorIds.size > 1;
+  }, [items]);
+  const [hasAnyUnverifiedVendor, setHasAnyUnverifiedVendor] = useState(false);
+  const hasUnverifiedVendorItems =
+    hasMultipleVendors ? hasAnyUnverifiedVendor : !!vendorStatus && vendorStatus !== "APPROVED";
 
   useEffect(() => {
     const vendorId = items[0]?.vendorId;
-    if (!vendorId) {
+    if (!vendorId || hasMultipleVendors) {
       setVendorStatus(null);
       return;
     }
@@ -49,10 +55,11 @@ export default function CheckoutPage() {
     (async () => {
       try {
         const res = await fetch(`/api/vendors/${vendorId}`);
-        const data = await res.json().catch(() => ({}));
+        const data = await res.json();
         if (!active) return;
         setVendorStatus(data?.vendor?.status || null);
-      } catch {
+      } catch (error) {
+        console.error("Failed to load vendor status for checkout", error);
         if (!active) return;
         setVendorStatus(null);
       }
@@ -61,7 +68,37 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [items]);
+  }, [hasMultipleVendors, items]);
+
+  useEffect(() => {
+    if (!hasMultipleVendors) {
+      setHasAnyUnverifiedVendor(false);
+      return;
+    }
+
+    const vendorIds = Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean)));
+    let active = true;
+    (async () => {
+      try {
+        const statuses = await Promise.all(
+          vendorIds.map(async (vendorId) => {
+            const res = await fetch(`/api/vendors/${vendorId}`);
+            const data = await res.json();
+            return data?.vendor?.status || null;
+          })
+        );
+        if (!active) return;
+        setHasAnyUnverifiedVendor(statuses.some((status) => status && status !== "APPROVED"));
+      } catch {
+        if (!active) return;
+        setHasAnyUnverifiedVendor(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [hasMultipleVendors, items]);
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
@@ -83,7 +120,6 @@ export default function CheckoutPage() {
         throw new Error("Unable to determine vendor for this order");
       }
 
-      const hasMultipleVendors = items.some((item) => item.vendorId !== vendorId);
       if (hasMultipleVendors) {
         throw new Error("Please checkout one vendor at a time");
       }

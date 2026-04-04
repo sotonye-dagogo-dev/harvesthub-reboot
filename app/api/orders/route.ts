@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { PLATFORM_DEFAULTS, UserRole } from '@/lib/constants';
-import { verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
+import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 import { dispatchNotification } from '@/lib/services/notifications';
 import { PaymentMethod, PaymentStatus, Prisma } from '../../../prisma/generated/client';
 
@@ -128,6 +128,9 @@ export async function POST(req: NextRequest) {
             paymentAuditNote = `Payment verified via ${gateway} (ref: ${paymentReference}).`;
         } else if (paymentMethod === PaymentMethod.WALLET && PLATFORM_DEFAULTS.PAYMENTS_ENABLED) {
             paymentAuditNote = 'Wallet payment selected.';
+        } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
+            const fallback = getPaymentFallbackTelemetry();
+            paymentAuditNote = `Bank transfer fallback used (deprecates in ${fallback.deprecationDays} day(s)).`;
         }
 
         // Use Prisma for all order operations (no mock fallback)

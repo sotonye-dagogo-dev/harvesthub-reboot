@@ -200,42 +200,42 @@
 
 > **Section summary:** Autonomous execution backlog for cloud-session completion of the interrupted production-readiness refactor wave.
 
-- [ ] Baseline and stabilize interrupted in-progress refactor work before new feature expansion.
-  - [ ] Audit current modified/untracked files and map each change to a queue item or remove/repair mismatches.
-  - [ ] Re-run baseline validation (`npm run lint`, `npx tsc --noEmit`, targeted Vitest) and fix regressions first.
-  - [ ] Close remaining incomplete items under Production-Readiness Refactor Wave (route migration/API wrapper standardization).
-- [ ] Resolve signup validation and role-option bugs completely.
-  - [ ] Add `Worker` role support in signup role selection, type unions, RBAC/policy maps, and dashboard routing.
-  - [ ] Fix intermittent signup "fill all required fields" validation failure across stage transitions.
-  - [ ] Add regression tests for signup step progression, role transitions, and validation-state retention.
-- [ ] Implement secure email-change and re-verification channel.
-  - [ ] Add profile UX to request email change with explicit verification status messaging.
-  - [ ] Add backend flow for email-change token issuance, verification, and post-verify redirect handling.
-  - [ ] Ensure old sessions/tokens are handled safely after email mutation.
+- [x] Baseline and stabilize interrupted in-progress refactor work before new feature expansion.
+  - [x] Audit current modified/untracked files and map each change to a queue item or remove/repair mismatches.
+  - [x] Re-run baseline validation (`npm run lint`, `npx tsc --noEmit`, targeted Vitest) and fix regressions first.
+  - [x] Close remaining incomplete items under Production-Readiness Refactor Wave (route migration/API wrapper standardization).
+- [x] Resolve signup validation and role-option bugs completely.
+  - [x] Add `Worker` role support in signup role selection, type unions, RBAC/policy maps, and dashboard routing.
+  - [x] Fix intermittent signup "fill all required fields" validation failure across stage transitions.
+  - [x] Add regression tests for signup step progression, role transitions, and validation-state retention.
+- [x] Implement secure email-change and re-verification channel.
+  - [x] Add profile UX to request email change with explicit verification status messaging.
+  - [x] Add backend flow for email-change token issuance, verification, and post-verify redirect handling.
+  - [x] Ensure old sessions/tokens are handled safely after email mutation.
 - [ ] Standardize universal form retention/restoration and required/optional labeling.
   - [ ] Extend shared draft/offline utilities and apply to signup, vendor onboarding, ad forms, bug report, and settings forms.
   - [ ] Enforce schema/UI parity so required fields in Zod/schema are labeled required in UI and optional fields are labeled optional.
   - [ ] Ensure verification-critical uploads/documents cannot be marked optional by UI drift.
-- [ ] Complete config-driven content and navigation hardening.
-  - [ ] Remove remaining hardcoded user-visible links/content (header, footer, dashboard links, help pages, static marketing copy).
-  - [ ] Make help pages/subpages functional, route-safe, and admin-editable through public-content/config systems.
-  - [ ] Add dead-link and orphan-route audit pass for all nav surfaces.
-- [ ] Wire user settings/preferences to real backend behavior.
-  - [ ] Ensure notification settings actually control enabled channels.
-  - [ ] Keep mandatory system-critical email delivery paths always enabled regardless of optional preference toggles.
-  - [ ] Verify redirects, confirmation feedback, and persistence consistency for settings pages.
-- [ ] Verify vendor verification-state business rules.
-  - [ ] Ensure unverified vendors can create/update stores and add products.
-  - [ ] Implement explicit order gating policy for unverified vendors (block order placement or require explicit buyer acknowledgment).
-  - [ ] Surface verification badges/warnings consistently across storefront, product, checkout, and operations views.
-- [ ] Complete bug-reporting and operations CRUD reliability.
-  - [ ] Verify end-to-end bug reporting from user submission to admin triage/update flow with no route/API errors.
-  - [ ] Ensure operations CRUD paths are functional for users, stores/vendors, banners, ads, and public content.
-  - [ ] Add tests for bug-report lifecycle and high-risk operations CRUD mutations.
-- [ ] Upgrade payment integration path for production readiness with graceful fallback.
-  - [ ] Replace stub-only Paystack handlers with production-ready initialize/verify/webhook structure.
-  - [ ] Keep bank-transfer + proof upload as feature-flagged fallback during migration.
-  - [ ] Add deprecation path/flags and observability for fallback usage until full gateway cutover.
+- [x] Complete config-driven content and navigation hardening.
+  - [x] Remove remaining hardcoded user-visible links/content (header, footer, dashboard links, help pages, static marketing copy).
+  - [x] Make help pages/subpages functional, route-safe, and admin-editable through public-content/config systems.
+  - [x] Add dead-link and orphan-route audit pass for all nav surfaces.
+- [x] Wire user settings/preferences to real backend behavior.
+  - [x] Ensure notification settings actually control enabled channels.
+  - [x] Keep mandatory system-critical email delivery paths always enabled regardless of optional preference toggles.
+  - [x] Verify redirects, confirmation feedback, and persistence consistency for settings pages.
+- [x] Verify vendor verification-state business rules.
+  - [x] Ensure unverified vendors can create/update stores and add products.
+  - [x] Implement explicit order gating policy for unverified vendors (block order placement or require explicit buyer acknowledgment).
+  - [x] Surface verification badges/warnings consistently across storefront, product, checkout, and operations views.
+- [x] Complete bug-reporting and operations CRUD reliability.
+  - [x] Verify end-to-end bug reporting from user submission to admin triage/update flow with no route/API errors.
+  - [x] Ensure operations CRUD paths are functional for users, stores/vendors, banners, ads, and public content.
+  - [x] Add tests for bug-report lifecycle and high-risk operations CRUD mutations.
+- [x] Upgrade payment integration path for production readiness with graceful fallback.
+  - [x] Replace stub-only Paystack handlers with production-ready initialize/verify/webhook structure.
+  - [x] Keep bank-transfer + proof upload as feature-flagged fallback during migration.
+  - [x] Add deprecation path/flags and observability for fallback usage until full gateway cutover.
 - [ ] Run cleanup and bulk deletion of obsolete files/routes/components.
   - [ ] Identify duplicate legacy wrappers, dead components, unused assets/scripts, and route aliases safe to remove.
   - [ ] Delete in controlled batches with import/route validation after each batch.

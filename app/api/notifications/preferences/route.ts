@@ -28,6 +28,7 @@ export async function GET(_req: NextRequest) {
         }
 
         return apiSuccess({
+            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
             preferences: {
                 orderConfirmed: prefs.orderUpdates,
                 orderReady: prefs.orderUpdates,
@@ -93,6 +94,8 @@ export async function PUT(req: NextRequest) {
         };
 
         // Mandatory critical channel remains enabled regardless of optional settings.
+        // Security/reliability requirement: order/payment/delivery critical communications must
+        // always remain reachable by email even if users disable optional notification channels.
         updateData.emailNotifications = true;
 
         const prefs = await prisma.notificationPreference.upsert({
@@ -102,6 +105,7 @@ export async function PUT(req: NextRequest) {
         });
 
         return apiSuccess({
+            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
             preferences: {
                 orderConfirmed: prefs.orderUpdates,
                 orderReady: prefs.orderUpdates,

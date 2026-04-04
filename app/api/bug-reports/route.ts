@@ -15,10 +15,7 @@ const CATEGORY_VALUES = new Set(['UI_ISSUE', 'PAYMENT', 'ORDER', 'ACCOUNT', 'PER
 
 function normalizeStatus(input: unknown): string {
     const value = typeof input === 'string' ? input.toUpperCase() : '';
-    if (value === 'OPEN' || value === 'IN_PROGRESS' || value === 'RESOLVED' || value === 'CLOSED') {
-        return value;
-    }
-    return 'OPEN';
+    return STATUS_VALUES.has(value) ? value : 'OPEN';
 }
 
 function normalizePriority(input: unknown): string {
@@ -77,12 +74,7 @@ export async function GET(req: NextRequest) {
                 select: { id: true, firstName: true, lastName: true, email: true },
             })
             : [];
-        const userMap = new Map(users.map((u: { id: string }) => [u.id, u]));
-
-        const statsMap = (stats as Array<{ status: string; _count: { id: number } }>).reduce<Record<string, number>>(
-            (acc, s) => ({ ...acc, [normalizeStatus(s.status)]: s._count.id }),
-            {}
-        );
+        const userMap = new Map(users.map((u) => [u.id, u]));
 
         return apiSuccess({
             reports: reports.map((r: any) => {
@@ -104,13 +96,22 @@ export async function GET(req: NextRequest) {
                     reporter: r.userId ? userMap.get(r.userId) ?? null : null,
                 };
             }),
-            stats: {
-                total,
-                open: statsMap.OPEN ?? 0,
-                inProgress: statsMap.IN_PROGRESS ?? 0,
-                resolved: statsMap.RESOLVED ?? 0,
-                closed: statsMap.CLOSED ?? 0,
-            },
+            stats: (() => {
+                const normalizedStats = (stats as Array<{ status: string; _count: { id: number } }>).reduce<Record<string, number>>(
+                    (acc, s) => {
+                        acc[normalizeStatus(s.status)] = s._count.id;
+                        return acc;
+                    },
+                    {}
+                );
+                return {
+                    total,
+                    open: normalizedStats.OPEN ?? 0,
+                    inProgress: normalizedStats.IN_PROGRESS ?? 0,
+                    resolved: normalizedStats.RESOLVED ?? 0,
+                    closed: normalizedStats.CLOSED ?? 0,
+                };
+            })(),
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
     });

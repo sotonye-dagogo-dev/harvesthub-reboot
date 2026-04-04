@@ -22,6 +22,35 @@ interface FormDataContextType {
 
 const FormDataContext = createContext<FormDataContextType | undefined>(undefined);
 const SIGNUP_FORM_DRAFT_KEY = "myharvesthub.signup.form-data.v1";
+const SIGNUP_DRAFT_ALLOWED_KEYS: (keyof UserFormData)[] = [
+  "email",
+  "firstName",
+  "lastName",
+  "phoneNumber",
+  "dateOfBirth",
+  "gender",
+  "userType",
+  "storeName",
+  "storeType",
+  "storeCategory",
+  "whatsappNumber",
+  "campus",
+  "position",
+  "storeDescription",
+  "businessAddress",
+  "bankName",
+  "accountName",
+  "accountNumber",
+  "serviceCategory",
+  "isChurchAffiliated",
+  "serviceLocation",
+  "username",
+  "bio",
+  "profilePicture",
+  "verificationDocuments",
+  "password",
+  "agreement",
+];
 
 export function useFormData(): FormDataContextType {
   const context = useContext(FormDataContext);
@@ -34,10 +63,20 @@ export function useFormData(): FormDataContextType {
 export function FormDataProvider({ children }: { children: ReactNode }): ReactElement {
   const [formData, setFormData] = useState<Partial<UserFormData>>({});
 
+  const sanitizeDraft = (draft: Partial<UserFormData>): Partial<UserFormData> => {
+    const safeDraft: Partial<UserFormData> = {};
+    for (const key of SIGNUP_DRAFT_ALLOWED_KEYS) {
+      if (draft[key] !== undefined) {
+        (safeDraft as Record<string, unknown>)[key] = draft[key];
+      }
+    }
+    return safeDraft;
+  };
+
   useEffect(() => {
     const draft = loadLocalDraft<Partial<UserFormData>>(SIGNUP_FORM_DRAFT_KEY);
     if (draft) {
-      setFormData(draft);
+      setFormData(sanitizeDraft(draft));
     }
   }, []);
 

@@ -11,7 +11,7 @@
 "use client";
 
 import { SectionLoader } from "@/components/ui";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Switch, Button, message, TimePicker } from "antd";
 import { Bell, Mail, Smartphone, Clock } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
@@ -126,31 +126,26 @@ export function NotificationPreferences() {
   ];
 
   const toApiPreferences = (ui: NotificationPreference[]): ApiNotificationPreferences => {
-    const byType = Object.fromEntries(ui.map((item) => [item.type, item])) as Record<NotificationType, NotificationPreference>;
+    const findByType = (type: NotificationType) => ui.find((item) => item.type === type);
     return {
-      orderConfirmed: byType.ORDER_CONFIRMED?.enabled ?? true,
-      orderReady: byType.ORDER_READY?.enabled ?? true,
-      orderDelivered: byType.ORDER_DELIVERED?.enabled ?? true,
-      orderCancelled: byType.ORDER_CANCELLED?.enabled ?? true,
-      paymentSuccess: byType.PAYMENT_SUCCESS?.enabled ?? true,
-      paymentFailed: byType.PAYMENT_FAILED?.enabled ?? true,
-      deliveryUpdates: byType.DELIVERY_UPDATE?.enabled ?? true,
-      vendorMessages: byType.VENDOR_MESSAGE?.enabled ?? true,
-      lowStock: byType.LOW_STOCK?.enabled ?? true,
-      newProducts: byType.NEW_PRODUCT?.enabled ?? false,
-      promotions: byType.PROMOTION?.enabled ?? false,
+      orderConfirmed: findByType("ORDER_CONFIRMED")?.enabled ?? true,
+      orderReady: findByType("ORDER_READY")?.enabled ?? true,
+      orderDelivered: findByType("ORDER_DELIVERED")?.enabled ?? true,
+      orderCancelled: findByType("ORDER_CANCELLED")?.enabled ?? true,
+      paymentSuccess: findByType("PAYMENT_SUCCESS")?.enabled ?? true,
+      paymentFailed: findByType("PAYMENT_FAILED")?.enabled ?? true,
+      deliveryUpdates: findByType("DELIVERY_UPDATE")?.enabled ?? true,
+      vendorMessages: findByType("VENDOR_MESSAGE")?.enabled ?? true,
+      lowStock: findByType("LOW_STOCK")?.enabled ?? true,
+      newProducts: findByType("NEW_PRODUCT")?.enabled ?? false,
+      promotions: findByType("PROMOTION")?.enabled ?? false,
       emailNotifications: true,
       smsNotifications: false,
       pushNotifications: ui.some((item) => item.push),
     };
   };
 
-  // Fetch preferences on mount
-  useEffect(() => {
-    fetchPreferences();
-  }, []);
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/notifications/preferences");
@@ -167,7 +162,12 @@ export function NotificationPreferences() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch preferences on mount
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -307,6 +307,9 @@ export function NotificationPreferences() {
         <Button type="primary" size="large" onClick={handleSave} loading={saving}>
           Save Preferences
         </Button>
+        <p className="ml-3 text-xs text-ds-text-secondary">
+          Critical order/payment/delivery emails remain enabled for account safety.
+        </p>
       </div>
     </div>
   );

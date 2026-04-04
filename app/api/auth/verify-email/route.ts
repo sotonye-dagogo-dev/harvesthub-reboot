@@ -12,7 +12,7 @@ function parseEmailChangeToken(token: string): { nextEmail: string; tokenId: str
     if (!encodedEmail || !tokenId) return null;
     try {
         const nextEmail = Buffer.from(encodedEmail, 'base64url').toString('utf8').trim().toLowerCase();
-        if (!nextEmail || !nextEmail.includes('@')) return null;
+        if (!nextEmail || !nextEmail.includes('@') || nextEmail.length > 254) return null;
         return { nextEmail, tokenId };
     } catch {
         return null;
@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
                 },
             });
 
+            // Force explicit re-authentication after email mutation so any existing session/token
+            // bound to the old email identity cannot continue as if unchanged.
             await clearAuthCookies();
 
             return NextResponse.json({
