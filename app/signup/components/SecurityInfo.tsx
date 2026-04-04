@@ -11,7 +11,7 @@ interface FormValues {
 }
 
 interface SecurityInfoProps {
-  onNext: (securityData: Pick<FormValues, "password" | "agreement">) => Promise<void>;
+  onNext: (securityData: FormValues) => Promise<void>;
   updateFormData: (data: FormValues) => void;
   formData: FormValues;
 }
@@ -91,15 +91,11 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
     setError(null);
 
     try {
-      // Remove confirmPassword from submission data
-      const submissionData = { ...values };
-      delete submissionData.confirmPassword;
-
       // Update the shared form data context before registration
-      updateFormData(submissionData);
+      updateFormData(values);
 
       // Call the registration API with the most recently validated security values
-      await onNext({ password: submissionData.password, agreement: submissionData.agreement });
+      await onNext(values);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Registration failed. Please try again.";

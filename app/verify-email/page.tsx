@@ -29,6 +29,10 @@ export default function VerifyEmailPage() {
         if (res.ok && data.success) {
           setStatus("success");
           setMessage(data.message || "Email verified successfully.");
+          if (data.redirectTo) {
+            router.push(data.redirectTo);
+            return;
+          }
         } else {
           setStatus("error");
           setMessage(data.error || "Verification failed.");

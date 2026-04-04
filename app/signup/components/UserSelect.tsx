@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { UserType, FormComponentProps } from "@/app/types";
-import { ShoppingBag, Store } from "lucide-react";
+import { Briefcase, ShoppingBag, Store } from "lucide-react";
 
 interface UserOption {
   name: UserType;
   title: string;
   description: string;
-  icon: "buyer" | "vendor";
+  icon: "buyer" | "vendor" | "worker";
   features: string[];
 }
 
@@ -20,6 +20,13 @@ const options: UserOption[] = [
     description: "Shop from trusted vendors and enjoy flexible delivery options",
     icon: "buyer",
     features: ["Browse products", "Secure payments", "Church pickup or delivery", "Wallet system"],
+  },
+  {
+    name: "worker",
+    title: "Worker Account",
+    description: "Join as a church worker with buyer experience and worker-specific onboarding",
+    icon: "worker",
+    features: ["Buyer dashboard access", "Worker role onboarding", "Church service participation"],
   },
   {
     name: "vendor",
@@ -57,10 +64,11 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
       </div>
 
       {/* Account Type Cards */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {options.map((option) => {
           const isSelected = selectedType === option.name;
-          const IconComponent = option.icon === "buyer" ? ShoppingBag : Store;
+          const IconComponent =
+            option.icon === "buyer" ? ShoppingBag : option.icon === "worker" ? Briefcase : Store;
           return (
             <button
               key={option.name}

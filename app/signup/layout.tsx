@@ -42,7 +42,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
 
   const activeStages = useMemo(
     () =>
-      formData.userType === "buyer"
+      formData.userType === "buyer" || formData.userType === "worker"
         ? ALL_STAGES.filter((stage) => stage !== "store-info" && stage !== "verification-docs")
         : ALL_STAGES,
     [formData.userType]

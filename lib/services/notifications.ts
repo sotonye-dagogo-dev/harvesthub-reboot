@@ -57,6 +57,18 @@ function shouldDeliverType(
   }
 }
 
+function isMandatorySystemEmail(type: NotificationType): boolean {
+  return (
+    type === 'ORDER_CONFIRMED' ||
+    type === 'ORDER_READY' ||
+    type === 'ORDER_DELIVERED' ||
+    type === 'ORDER_CANCELLED' ||
+    type === 'PAYMENT_SUCCESS' ||
+    type === 'PAYMENT_FAILED' ||
+    type === 'DELIVERY_UPDATE'
+  );
+}
+
 function toAbsoluteLink(pathOrUrl: string): string {
   if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
     return pathOrUrl;
@@ -137,7 +149,12 @@ export async function dispatchNotification(
     inAppCreated = true;
   }
 
-  if (requestedChannels.email && featureFlags.enableEmail && (preferences?.emailNotifications ?? true)) {
+  const canSendEmail =
+    requestedChannels.email &&
+    featureFlags.enableEmail &&
+    ((preferences?.emailNotifications ?? true) || isMandatorySystemEmail(type));
+
+  if (canSendEmail) {
     const actionLink = link ? toAbsoluteLink(link) : null;
     const emailResult = await sendEmail({
       to: recipient.email,

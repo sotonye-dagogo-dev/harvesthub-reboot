@@ -19,12 +19,23 @@ export default function SecurityInfoPage() {
     }
   }, [formData, router]);
 
-  const handleNext = async (securityData: { password: string; agreement: boolean }) => {
+  const handleNext = async (securityData: {
+    password: string;
+    confirmPassword?: string;
+    agreement: boolean;
+  }) => {
     try {
-      const role = formData.userType === "vendor" ? UserRole.VENDOR : UserRole.BUYER;
+      const role =
+        formData.userType === "vendor"
+          ? UserRole.VENDOR
+          : UserRole.BUYER;
 
       if (!securityData.agreement) {
         throw new Error("You must accept the Terms & Conditions to continue.");
+      }
+
+      if (!securityData.confirmPassword || securityData.password !== securityData.confirmPassword) {
+        throw new Error("Passwords do not match.");
       }
 
       // Validate essential signup fields before calling API, this is a defensive secondary check.
@@ -42,6 +53,7 @@ export default function SecurityInfoPage() {
       const payload = {
         email: formData.email,
         password: securityData.password,
+        confirmPassword: securityData.confirmPassword,
         firstName: formData.firstName,
         lastName: formData.lastName,
         phoneNumber: formData.phoneNumber,

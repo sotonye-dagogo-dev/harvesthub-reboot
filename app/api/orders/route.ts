@@ -137,6 +137,18 @@ export async function POST(req: NextRequest) {
         const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
         if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
 
+        const vendorVerified = vendor.status === 'APPROVED';
+        if (!vendorVerified && body.vendorVerificationAcknowledged !== true) {
+            return NextResponse.json(
+                {
+                    error: 'Vendor is currently unverified. Buyer acknowledgment is required before placing this order.',
+                    code: 'VENDOR_UNVERIFIED_ACK_REQUIRED',
+                    vendorStatus: vendor.status,
+                },
+                { status: 409 }
+            );
+        }
+
         // Validate products and calculate totals
         let subtotal = 0;
         const orderItems: { product: { connect: { id: string } }; productName: string; productImage: string; quantity: number; price: number; subtotal: number; selectedVariants: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined }[] = [];
@@ -181,6 +193,8 @@ export async function POST(req: NextRequest) {
                 paymentReference: paymentReference || null,
                 paymentGateway: paymentGateway || null,
                 verificationStatus: gatewayVerification?.status || null,
+                vendorVerification: vendor.status,
+                vendorVerificationAcknowledged: body.vendorVerificationAcknowledged === true,
             },
         ];
 

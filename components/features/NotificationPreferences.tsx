@@ -25,6 +25,23 @@ interface NotificationPreference {
   push: boolean;
 }
 
+interface ApiNotificationPreferences {
+  orderConfirmed: boolean;
+  orderReady: boolean;
+  orderDelivered: boolean;
+  orderCancelled: boolean;
+  paymentSuccess: boolean;
+  paymentFailed: boolean;
+  deliveryUpdates: boolean;
+  vendorMessages: boolean;
+  lowStock: boolean;
+  newProducts: boolean;
+  promotions: boolean;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  pushNotifications?: boolean;
+}
+
 const defaultPreferences: NotificationPreference[] = [
   { type: "ORDER_CONFIRMED", enabled: true, inApp: true, email: true, push: true },
   { type: "ORDER_READY", enabled: true, inApp: true, email: true, push: true },
@@ -94,6 +111,40 @@ export function NotificationPreferences() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const toUiPreferences = (api: ApiNotificationPreferences): NotificationPreference[] => [
+    { type: "ORDER_CONFIRMED", enabled: api.orderConfirmed, inApp: api.orderConfirmed, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_READY", enabled: api.orderReady, inApp: api.orderReady, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_DELIVERED", enabled: api.orderDelivered, inApp: api.orderDelivered, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "ORDER_CANCELLED", enabled: api.orderCancelled, inApp: api.orderCancelled, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PAYMENT_SUCCESS", enabled: api.paymentSuccess, inApp: api.paymentSuccess, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PAYMENT_FAILED", enabled: api.paymentFailed, inApp: api.paymentFailed, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "DELIVERY_UPDATE", enabled: api.deliveryUpdates, inApp: api.deliveryUpdates, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "VENDOR_MESSAGE", enabled: api.vendorMessages, inApp: api.vendorMessages, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "LOW_STOCK", enabled: api.lowStock, inApp: api.lowStock, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "NEW_PRODUCT", enabled: api.newProducts, inApp: api.newProducts, email: api.emailNotifications, push: api.pushNotifications ?? true },
+    { type: "PROMOTION", enabled: api.promotions, inApp: api.promotions, email: api.emailNotifications, push: api.pushNotifications ?? true },
+  ];
+
+  const toApiPreferences = (ui: NotificationPreference[]): ApiNotificationPreferences => {
+    const byType = Object.fromEntries(ui.map((item) => [item.type, item])) as Record<NotificationType, NotificationPreference>;
+    return {
+      orderConfirmed: byType.ORDER_CONFIRMED?.enabled ?? true,
+      orderReady: byType.ORDER_READY?.enabled ?? true,
+      orderDelivered: byType.ORDER_DELIVERED?.enabled ?? true,
+      orderCancelled: byType.ORDER_CANCELLED?.enabled ?? true,
+      paymentSuccess: byType.PAYMENT_SUCCESS?.enabled ?? true,
+      paymentFailed: byType.PAYMENT_FAILED?.enabled ?? true,
+      deliveryUpdates: byType.DELIVERY_UPDATE?.enabled ?? true,
+      vendorMessages: byType.VENDOR_MESSAGE?.enabled ?? true,
+      lowStock: byType.LOW_STOCK?.enabled ?? true,
+      newProducts: byType.NEW_PRODUCT?.enabled ?? false,
+      promotions: byType.PROMOTION?.enabled ?? false,
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: ui.some((item) => item.push),
+    };
+  };
+
   // Fetch preferences on mount
   useEffect(() => {
     fetchPreferences();
@@ -106,14 +157,10 @@ export function NotificationPreferences() {
       const data = await res.json();
 
       if (data.success && data.preferences) {
-        setPreferences(data.preferences.notificationTypes || defaultPreferences);
-        setQuietHoursEnabled(data.preferences.quietHoursEnabled || false);
-        if (data.preferences.quietHoursStart) {
-          setQuietHoursStart(dayjs(data.preferences.quietHoursStart, "HH:mm"));
-        }
-        if (data.preferences.quietHoursEnd) {
-          setQuietHoursEnd(dayjs(data.preferences.quietHoursEnd, "HH:mm"));
-        }
+        setPreferences(toUiPreferences(data.preferences as ApiNotificationPreferences));
+        setQuietHoursEnabled(false);
+        setQuietHoursStart(dayjs("22:00", "HH:mm"));
+        setQuietHoursEnd(dayjs("08:00", "HH:mm"));
       }
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
@@ -128,12 +175,7 @@ export function NotificationPreferences() {
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notificationTypes: preferences,
-          quietHoursEnabled,
-          quietHoursStart: quietHoursStart?.format("HH:mm"),
-          quietHoursEnd: quietHoursEnd?.format("HH:mm"),
-        }),
+        body: JSON.stringify(toApiPreferences(preferences)),
       });
 
       if (res.ok) {

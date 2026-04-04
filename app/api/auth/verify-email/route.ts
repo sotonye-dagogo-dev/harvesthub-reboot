@@ -4,6 +4,20 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { clearAuthCookies } from '@/lib/utils/cookies';
+
+function parseEmailChangeToken(token: string): { nextEmail: string; tokenId: string } | null {
+    if (!token.startsWith('email-change:')) return null;
+    const [, encodedEmail, tokenId] = token.split(':');
+    if (!encodedEmail || !tokenId) return null;
+    try {
+        const nextEmail = Buffer.from(encodedEmail, 'base64url').toString('utf8').trim().toLowerCase();
+        if (!nextEmail || !nextEmail.includes('@')) return null;
+        return { nextEmail, tokenId };
+    } catch {
+        return null;
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -33,6 +47,39 @@ export async function POST(req: NextRequest) {
                 { success: false, error: 'Verification token has expired. Please request a new one.' },
                 { status: 400 }
             );
+        }
+
+        const emailChangeToken = parseEmailChangeToken(token);
+
+        if (emailChangeToken) {
+            const { nextEmail } = emailChangeToken;
+
+            const existing = await prisma.user.findUnique({ where: { email: nextEmail } });
+            if (existing && existing.id !== user.id) {
+                return NextResponse.json(
+                    { success: false, error: 'Email address is already in use by another account.' },
+                    { status: 409 }
+                );
+            }
+
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    email: nextEmail,
+                    emailVerified: true,
+                    emailVerificationToken: null,
+                    emailVerificationExpiry: null,
+                },
+            });
+
+            await clearAuthCookies();
+
+            return NextResponse.json({
+                success: true,
+                message: 'Email changed and verified successfully. Please log in again.',
+                requiresReauth: true,
+                redirectTo: '/login?emailChanged=1',
+            });
         }
 
         await prisma.user.update({

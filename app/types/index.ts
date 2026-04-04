@@ -1,6 +1,6 @@
 // Common types for signup process
 
-export type UserType = 'buyer' | 'vendor';
+export type UserType = 'buyer' | 'vendor' | 'worker';
 export type Stage = 'selection' | 'user-info' | 'store-info' | 'verification-docs' | 'account-info' | 'security-info';
 export type StoreType = 'retail' | 'wholesale' | 'manufacturing' | 'service';
 

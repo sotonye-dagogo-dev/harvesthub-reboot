@@ -8,6 +8,7 @@ import type { UserFormData } from "@/lib/types";
 import { AuthProvider } from "@/lib/contexts/AuthContext";
 import { NotificationProvider } from "@/lib/contexts/NotificationContext";
 import ToastProvider from "@/lib/contexts/ToastContext";
+import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -20,6 +21,7 @@ interface FormDataContextType {
 }
 
 const FormDataContext = createContext<FormDataContextType | undefined>(undefined);
+const SIGNUP_FORM_DRAFT_KEY = "myharvesthub.signup.form-data.v1";
 
 export function useFormData(): FormDataContextType {
   const context = useContext(FormDataContext);
@@ -32,12 +34,24 @@ export function useFormData(): FormDataContextType {
 export function FormDataProvider({ children }: { children: ReactNode }): ReactElement {
   const [formData, setFormData] = useState<Partial<UserFormData>>({});
 
+  useEffect(() => {
+    const draft = loadLocalDraft<Partial<UserFormData>>(SIGNUP_FORM_DRAFT_KEY);
+    if (draft) {
+      setFormData(draft);
+    }
+  }, []);
+
   const updateFormData = (newData: Partial<UserFormData>): void => {
-    setFormData((prevData) => ({ ...prevData, ...newData }));
+    setFormData((prevData) => {
+      const merged = { ...prevData, ...newData };
+      saveLocalDraft(SIGNUP_FORM_DRAFT_KEY, merged);
+      return merged;
+    });
   };
 
   const resetFormData = (): void => {
     setFormData({});
+    clearLocalDraft(SIGNUP_FORM_DRAFT_KEY);
   };
 
   return (
