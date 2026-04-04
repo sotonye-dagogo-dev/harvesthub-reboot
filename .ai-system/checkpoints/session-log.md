@@ -39,6 +39,38 @@
 
 ---
 
+## Session 17 — 2026-04-04
+
+**Goal:**
+Align cloud continuation artifacts with post-cloud audit corrections and locked client decisions before the next cloud implementation run.
+
+**Completed:**
+
+- Updated cloud temporary execution plan with locked decisions: remove Worker signup role, require all 3 vendor verification documents, require/editable businessAddress lifecycle, and Cloudinary-first upload governance.
+- Added a dedicated Cloud Session Adjustment Queue in `.ai-system/planning/task-queue.md` for corrective implementation items discovered in post-cloud review.
+- Updated project-level acceptance criteria in `.ai-system/planning/project-plan.md` to remove Worker role expectation and enforce requiredness/upload parity.
+- Added/updated project decision and history context so future cloud execution follows the corrected contract.
+- Prepared a cloud kickoff prompt aligned to the updated plan and addendum queue.
+
+**Files Modified:**
+
+- .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+
+**Next Task:**
+Run the next cloud implementation session against the updated temp plan and adjustment queue, then execute quality gates plus Prisma migration/client generation if enum/schema changes are introduced.
+
+**Notes / Blockers:**
+
+- If `prisma/schema.prisma` is changed for `Position` parity, migration execution is required after cloud implementation.
+- Upload governance cleanup should prioritize bug report screenshot flow and any other remaining raw image URL inputs.
+
+---
+
 ## Session 16 — 2026-04-04
 
 **Goal:**

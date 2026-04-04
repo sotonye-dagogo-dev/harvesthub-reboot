@@ -29,6 +29,28 @@
 
 ---
 
+## 2026-04-04 — Post-Cloud Correction Alignment + Handoff Refresh
+
+**Summary:**
+Performed a corrective planning pass after cloud-session review to lock product decisions that supersede earlier assumptions. Updated cloud handoff artifacts now encode final requirements for signup role behavior, vendor verification requiredness, business-address lifecycle, and platform-wide Cloudinary-first upload governance.
+
+**Completed:**
+
+- Updated cloud temp plan with a locked-decision section and revised architecture/data-flow/risk/task definitions.
+- Added cloud adjustment queue tasks in `.ai-system/planning/task-queue.md` for corrective implementation.
+- Updated `.ai-system/planning/project-plan.md` acceptance criteria to reflect no Worker signup role and required upload parity.
+- Logged session checkpoint and decision updates for cloud-session execution consistency.
+- Prepared an implementation-ready cloud kickoff prompt aligned to corrected requirements.
+
+**Key Changes:**
+
+- `Worker` is now explicitly deprecated as signup role; `Member`/`Non-Member` remain valid church position options.
+- Vendor verification docs are required as a full set (ID + business registration + utility bill), with required `businessAddress` that stays editable post-auth.
+- Raw image URL entry points are now designated for migration to managed Cloudinary upload paths.
+
+**Next Sprint Focus:**
+Execute the Cloud Session Adjustment Queue end-to-end and complete validation gates (including migration/client regeneration if Prisma enum schema changes).
+
 ## 2026-04-04 — Cloud Session Handoff Planning Package
 
 **Summary:**

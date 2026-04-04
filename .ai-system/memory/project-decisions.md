@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Post-Cloud Signup + Upload Governance Correction Contract
+
+**Decision:** Enforce corrected product contract after cloud review: remove `Worker` as signup user role, keep `Member`/`Non-Member` valid as church position values without enum drift, require all three vendor verification documents plus required signup `businessAddress` (always editable post-auth), and standardize image evidence fields on Cloudinary-managed upload flows (deprecate raw URL inputs).
+**Date:** 2026-04-04
+**Made by:** AI planning session (GitHub Copilot) with explicit user confirmation
+
+**Reason:** Post-cloud audit identified regressions/drift against intended behavior (Worker role exposure, requiredness/label mismatch, persistence issues, and raw screenshot URL paths). A locked corrective contract is required so the next cloud execution does not reintroduce ambiguous assumptions.
+
+**Alternatives Considered:**
+
+- Keep Worker as a selectable signup role (rejected: conflicts with intended product model and backend role scope).
+- Keep mixed required/optional verification doc behavior (rejected: misleading UX and validation confusion).
+- Keep raw image URL fallback in bug report/media fields (rejected: weak upload governance and inconsistent asset lifecycle).
+
+**Implications:**
+
+- Cloud implementation must prioritize enum/schema parity and run Prisma migration + client generation if schema changes are made.
+- Form labels, validation schema, API validation, and DB constraints must remain aligned for requiredness-critical fields.
+- Upload flows across bug report and similar forms should converge on a single managed Cloudinary pipeline.
+
 ## Centralized RBAC & Config-Driven Architecture
 
 **Decision:** Introduce a centralized, declarative RBAC policy registry and a typed configuration layer to replace hardcoded route lists and scattered `process.env` usage.

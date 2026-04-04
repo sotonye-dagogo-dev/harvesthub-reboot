@@ -20,9 +20,16 @@
 
 ### Remaining Work Themes
 
-- Signup/role validation defects (`Worker` role, intermittent required-field bug, regression tests).
+- Signup/role validation defects (remove `Worker` as signup role, required-field parity, regression tests).
 - Production-readiness finishers (dead-link audit, route consolidation closure, API standardization closure, cleanup).
-- New follow-up requirements from product direction (email-change reverify channel, universal form retention, config-driven content/nav/help, payment fallback deprecation path, operations CRUD reliability).
+- New follow-up requirements from product direction (email-change reverify channel, universal form retention, config-driven content/nav/help, payment fallback deprecation path, operations CRUD reliability, cloudinary-first upload governance).
+
+### Confirmed Product Decisions (Locked for Cloud Execution)
+
+- Vendor signup verification requires all three documents: valid ID, business registration certificate, and utility bill.
+- `Worker` is not a signup role. `Member` and `Non-Member` must remain valid selectable values for church position without runtime or database breakage.
+- Vendor `businessAddress` is required at signup and remains editable post-auth in vendor settings.
+- Raw screenshot/image URL fields are deprecated in user flows; image evidence should use managed upload paths via Cloudinary.
 
 ---
 
@@ -45,6 +52,7 @@ Primary modules affected:
 - Routing and guard surface: `app/`, `middleware.ts`, `lib/rbac/routeConfig.ts`, `lib/navigation.ts`.
 - Auth/account lifecycle: `app/profile/*`, `app/verify-email/*`, `app/api/auth/*`, `app/api/users/*`.
 - Shared form infrastructure: `lib/utils/localDraft.ts`, `lib/utils/offlineQueue.ts`, feature form components.
+- Upload/asset pipeline: `app/api/upload/*`, bug report/ad/payment-proof forms, and Cloudinary service bindings.
 - Content/config system: public content data/service layers, footer/header/help/dash nav consumers.
 - Operations area: `app/(operations)/operations/*` and related APIs for users/vendors/banners/ads/bug reports.
 - Payments: `app/api/payments/*`, order/wallet mutation routes, payment services.
@@ -64,6 +72,7 @@ Expected additions (create only if missing):
 - Email change + reverification service endpoints (request token, confirm token, redirect-safe completion).
 - Shared form schema/label mapper utility (required/optional parity between Zod/schema and UI labels).
 - Universal form draft binding helper (light wrapper around local draft and optional offline queue replay).
+- Shared upload-field adapter to normalize cloud upload selection, preview, persistence, and server payload shape across forms.
 - Help center config/content resolver for admin-editable help pages/subpages.
 - Payment gateway production integration scaffolding for Paystack webhooks/verification (with feature-flagged fallback support).
 - Cleanup inventory script/report for obsolete directories/files before bulk deletion.
@@ -88,6 +97,14 @@ Expected additions (create only if missing):
 4. Submission payload is validated server-side with matching schema.
 5. Errors map back to field-level UI consistently.
 
+### Platform Upload Asset Governance (Cloudinary-First)
+
+1. Any screenshot/image field requests a managed upload via `/api/upload` with scoped intent.
+2. Upload service validates file type/size, stores in Cloudinary, and returns canonical asset metadata.
+3. Forms persist only canonical asset references (not ad-hoc raw URLs) in draft and submit payloads.
+4. APIs reject unsupported raw URL payloads for upload-managed fields and return explicit validation errors.
+5. Bug report, ad application, and other image-driven flows share the same upload contract and telemetry.
+
 ### Config-Driven Content + Navigation
 
 1. UI requests nav/content/help definitions from config/public-content layer.
@@ -109,6 +126,7 @@ Expected additions (create only if missing):
 - Maintain semantic DS tokens (avoid ad-hoc palette classes in shared primitives).
 - Required fields should be labeled explicitly; optional labels only where truly optional.
 - Persist user inputs across refresh/navigation for long forms (signup/vendor/ad/bug report).
+- Replace free-text image URL entry points with clear upload-first controls and predictable success/error states.
 - Keep loading/skeleton states stable to prevent layout shifts and icon/image flash.
 - Remove duplicate layout artifacts (double header/footer) and unify route chrome behavior.
 - Keep mobile-first usability and accessible interactions (focus states, keyboard support, clear error copy).
@@ -120,8 +138,10 @@ Expected additions (create only if missing):
 - Interrupted local diff may include overlapping/unverified changes; stabilization must come first.
 - Email-change flow can create account lockout if token/session revocation rules are inconsistent.
 - Schema/UI mismatch can persist if field metadata is not centralized.
+- Prisma enum drift (especially `Position`) can continue causing vendor registration failures if schema and constants are not synchronized.
 - Config-driven migration can temporarily break links if route aliases are removed too early.
 - Payment webhook replay/idempotency errors can duplicate order/wallet mutations.
+- Mixed upload strategies (raw URL + managed uploads) can create inconsistent moderation/security behavior and broken assets.
 - Bulk deletion can remove still-referenced files if dependency audit is incomplete.
 - Vendor verification policy must avoid blocking store setup while still protecting buyers at checkout.
 
@@ -142,13 +162,15 @@ Cloud-session execution tasks are now in:
 Task groups included there:
 
 - Baseline stabilization of interrupted refactor work.
-- Signup + role bug completion with Worker support.
+- Signup + role bug completion with `Worker` removed as signup role and `Position` enum parity restored.
+- Vendor verification docs + requiredness parity (`ID + Business Registration + Utility Bill` required) and editable `businessAddress` lifecycle.
 - Secure email-change/reverify channel.
 - Universal form retention + schema/UI required-label parity.
 - Config-driven links/content/help completion.
 - Preferences wiring + mandatory system-notification behavior.
 - Vendor verification-state policy enforcement.
 - Bug-report and operations CRUD hardening.
+- Platform-wide upload governance hardening: migrate raw image URL paths to Cloudinary-managed upload flow.
 - Paystack production handler upgrade with feature-flag fallback.
 - Bulk obsolete file/route cleanup and final production-readiness verification.
 
@@ -160,8 +182,10 @@ When implementation lands, update architecture docs for:
 
 - Email-change + re-verification flow (new sequence under auth/account flows).
 - Universal form retention/restore flow and schema-label parity strategy.
+- Position enum synchronization decision (`Member`/`Non-Member` support) and migration note.
 - Config-driven help/content/navigation data flow and cache invalidation points.
 - Vendor verification-state order gating behavior.
+- Cloudinary-first upload asset pipeline and field-level rejection policy for raw URLs.
 - Paystack production webhook/verification flow plus fallback feature-flag behavior.
 - Cleanup milestone in architecture history (legacy route/component removal completion).
 
@@ -191,6 +215,7 @@ When implementation lands, update architecture docs for:
    - `npm run lint`
    - `npx tsc --noEmit`
    - targeted + high-risk Vitest suites
+   - if Prisma enum/schema changes were made, create and apply a migration (`prisma migrate dev`) and regenerate Prisma client
    - route/dead-link sanity checks
 7. End only when queue items are marked accurately and residual risks are explicitly documented.
 
@@ -200,5 +225,8 @@ When implementation lands, update architecture docs for:
 
 - Cloud Session Continuation Queue items are completed or explicitly marked blocked with reason.
 - No critical route/API/auth/payment/signup regressions remain.
+- Vendor signup accepts valid `Member`/`Non-Member` position selections without backend/database errors.
+- Vendor verification enforces all three required documents and `businessAddress` remains editable post-auth.
+- Upload-managed flows no longer rely on raw screenshot/image URLs where Cloudinary upload pipeline is expected.
 - All changed behavior is test-backed at least by targeted regression coverage.
 - `.ai-system` artifacts reflect final state accurately.

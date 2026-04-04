@@ -94,12 +94,14 @@ Stabilize and complete the in-progress refactor wave while implementing missing 
 **Acceptance Criteria:**
 
 - Role-aware routing is consistent and no dead links remain across header, footer, dashboards, and operations areas.
-- Signup supports all expected roles (including Worker), no intermittent required-field failures, and has regression coverage.
+- Signup deprecates `Worker` as a user role, keeps `Member`/`Non-Member` as valid position options end-to-end, and has regression coverage for stage/state reliability.
 - Users can safely change email and re-verify through a secure redirect-based flow.
-- Required vs optional UI labels are schema-consistent across major forms; draft retention/restoration is universal and non-blocking.
+- Required vs optional UI labels are schema-consistent across major forms; vendor verification enforces required ID + business registration + utility bill uploads; draft retention/restoration is universal and non-blocking.
+- Vendor `businessAddress` is required at signup and remains editable post-auth in vendor settings/profile surfaces.
 - Help/public content and user-visible links are config-driven and admin-editable.
 - Vendor verification status rules are explicit and enforced without blocking store setup/product creation.
 - Bug reporting works from submission through admin triage; operations CRUD flows are functional for key domains.
+- Upload-managed flows are Cloudinary-first and no longer rely on raw screenshot/image URL entry for governed fields.
 - Paystack integration path is production-ready with webhook-capable handlers; bank-transfer screenshot flow remains controlled by a feature flag fallback.
 - Full quality gate passes (lint, typecheck, targeted/full tests, route audit) and `.ai-system` docs are synchronized.
 

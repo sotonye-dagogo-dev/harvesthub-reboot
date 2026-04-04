@@ -205,7 +205,7 @@
   - [x] Re-run baseline validation (`npm run lint`, `npx tsc --noEmit`, targeted Vitest) and fix regressions first.
   - [x] Close remaining incomplete items under Production-Readiness Refactor Wave (route migration/API wrapper standardization).
 - [x] Resolve signup validation and role-option bugs completely.
-  - [x] Add `Worker` role support in signup role selection, type unions, RBAC/policy maps, and dashboard routing.
+  - [x] (Superseded) Prior cloud run added `Worker` signup role support; replaced by post-review correction below.
   - [x] Fix intermittent signup "fill all required fields" validation failure across stage transitions.
   - [x] Add regression tests for signup step progression, role transitions, and validation-state retention.
 - [x] Implement secure email-change and re-verification channel.
@@ -244,3 +244,36 @@
   - [ ] Execute full regression matrix (lint, typecheck, tests, route audit, key E2E smoke checks).
   - [ ] Update `.ai-system/checkpoints/session-log.md`, `.ai-system/summaries/dev-history.md`, `.ai-system/memory/project-decisions.md`, and architecture docs.
   - [ ] Mark completed queue items and record remaining risks/gaps explicitly.
+
+---
+
+## Cloud Session Adjustment Queue (2026-04-04 Addendum)
+
+> **Section summary:** Locked corrective implementation queue after post-cloud review audit.
+
+- [ ] Deprecate `Worker` as signup role across UI/types/flow logic and preserve it only as church position where applicable.
+- [ ] Ensure `Member` and `Non-Member` position values are valid end-to-end without vendor registration/runtime failures.
+  - [ ] Align Prisma enum + constants + payload validation for `Position` and add migration if schema changes.
+  - [ ] Regenerate Prisma client and validate registration success paths.
+- [ ] Enforce vendor verification requiredness parity.
+  - [ ] Require all 3 vendor verification uploads: ID, business registration certificate, and utility bill.
+  - [ ] Make vendor `businessAddress` required at signup and required in server validation.
+  - [ ] Remove misleading optional labels from required fields in form UI.
+- [ ] Preserve signup-entered values across stage navigation and restore correctly from draft state.
+  - [ ] Fix `idType` persistence and restoration.
+  - [ ] Fix profile-picture and document upload state retention between steps.
+- [ ] Confirm and patch post-auth editability/viewability for signup-originated fields in profile/store settings.
+  - [ ] Ensure `businessAddress` remains editable post-auth.
+  - [ ] Expose/edit vendor-relevant fields through vendor settings APIs/UI where missing.
+- [ ] Improve verify-email UX clarity.
+  - [ ] Add concise instruction copy to click the email link.
+  - [ ] Display recipient email context in resend/no-token flows.
+- [ ] Fix dark-mode select active/focus contrast across key forms and error states.
+- [ ] Harden vendor registration diagnostics.
+  - [ ] Add structured verbose server-side logging (sanitized payload + Prisma error mapping + correlation context).
+  - [ ] Return actionable validation and failure messages without leaking sensitive data.
+- [ ] Enforce Cloudinary-first upload governance platform-wide.
+  - [ ] Replace raw screenshot/image URL entry paths (including bug report flow) with managed upload workflow.
+  - [ ] Reject unsupported raw URL payloads for upload-managed fields.
+  - [ ] Standardize upload metadata contract across forms and APIs.
+- [ ] Re-verify service readiness posture for Resend, Cloudinary, Upstash, Prisma, wallet, and payment paths with production-safe feature-flag behavior.
