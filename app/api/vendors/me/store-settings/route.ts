@@ -28,6 +28,7 @@ type StoreSettingsPayload = {
     processingTime?: string;
     returnPolicy?: string;
     shippingPolicy?: string;
+    businessAddress?: string;
 };
 
 export async function GET() {
@@ -81,6 +82,7 @@ export async function GET() {
                 processingTime: (settings.processingTime as string) || '1-2 days',
                 returnPolicy: (policies.returnPolicy as string) || '',
                 shippingPolicy: (policies.shippingPolicy as string) || '',
+                businessAddress: (asRecord(vendor.businessVerification).businessAddress as string) || '',
             },
         });
     } catch (error) {
@@ -109,10 +111,11 @@ export async function PUT(req: NextRequest) {
         const campus = body.campus;
         const phone = body.phone?.trim() || '';
         const whatsapp = body.whatsapp?.trim() || '';
+        const businessAddress = body.businessAddress?.trim() || '';
 
-        if (!storeName || !category || !campus || !whatsapp) {
+        if (!storeName || !category || !campus || !whatsapp || !businessAddress) {
             return NextResponse.json(
-                { error: 'storeName, category, campus, and whatsapp are required.' },
+                { error: 'storeName, category, campus, whatsapp, and businessAddress are required.' },
                 { status: 400 }
             );
         }
@@ -135,6 +138,7 @@ export async function PUT(req: NextRequest) {
 
         const existingSettings = asRecord(existingVendor.storeSettings);
         const existingPolicies = asRecord(existingSettings.policies);
+        const existingVerification = asRecord(existingVendor.businessVerification);
 
         const mergedSettings = {
             ...existingSettings,
@@ -160,6 +164,10 @@ export async function PUT(req: NextRequest) {
                     category: parsedCategory,
                     campus: parsedCampus,
                     whatsappNumber: whatsapp,
+                    businessVerification: {
+                        ...existingVerification,
+                        businessAddress,
+                    },
                     storeSettings: mergedSettings,
                 },
             });
@@ -198,6 +206,7 @@ export async function PUT(req: NextRequest) {
                 processingTime: (settings.processingTime as string) || '1-2 days',
                 returnPolicy: (policies.returnPolicy as string) || '',
                 shippingPolicy: (policies.shippingPolicy as string) || '',
+                businessAddress,
             },
         });
     } catch (error) {

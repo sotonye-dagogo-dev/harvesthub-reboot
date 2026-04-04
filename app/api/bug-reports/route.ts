@@ -128,7 +128,14 @@ export async function POST(req: NextRequest) {
         const description = String(body.description || body.details || '').trim();
         const category = normalizeCategory(body.category);
         const severity = normalizePriority(body.severity || body.priority);
-        const screenshot = typeof body.screenshot === 'string' ? body.screenshot : body.screenshotUrl;
+        const screenshot = typeof body.screenshotUrl === 'string'
+            ? body.screenshotUrl
+            : typeof body.screenshot === 'string'
+                ? body.screenshot
+                : null;
+        const screenshotPublicId = typeof body.screenshotPublicId === 'string'
+            ? body.screenshotPublicId
+            : undefined;
         const email =
             typeof body.email === 'string' && body.email.trim().length > 0
                 ? body.email.trim().toLowerCase()
@@ -137,6 +144,14 @@ export async function POST(req: NextRequest) {
 
         if (!title || !description) {
             return apiError('Title and description are required', 400);
+        }
+
+        if (
+            typeof screenshot === 'string' &&
+            screenshot.length > 0 &&
+            !screenshot.startsWith('https://res.cloudinary.com/')
+        ) {
+            return apiError('Screenshot must be uploaded through the managed Cloudinary upload flow.', 400);
         }
 
         const report = await prisma.bugReport.create({
@@ -149,6 +164,7 @@ export async function POST(req: NextRequest) {
                 metadata: {
                     ...(metadataInput as Record<string, unknown>),
                     email,
+                    ...(screenshotPublicId ? { screenshotPublicId } : {}),
                 },
                 status: BugReportStatus.OPEN,
                 userId: user?.userId ?? null,

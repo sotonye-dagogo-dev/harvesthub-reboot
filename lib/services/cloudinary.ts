@@ -77,6 +77,14 @@ export function getPaymentProofFolder(userId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/payments/${userId}`;
 }
 
+export function getVerificationDocFolder(userId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/verification-docs/${userId}`;
+}
+
+export function getBugReportFolder(userId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/bug-reports/${userId}`;
+}
+
 export function getVendorContentFolder(vendorId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/vendor-content/${vendorId}`;
 }

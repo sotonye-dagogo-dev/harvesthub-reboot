@@ -39,6 +39,68 @@
 
 ---
 
+## Session 18 — 2026-04-04
+
+**Goal:**
+Execute the cloud adjustment corrective queue to stabilize signup roles/validation/state persistence, enforce Cloudinary-first upload flows, and complete required documentation and verification gates.
+
+**Completed:**
+
+- Removed `Worker` from signup role flow and type/stage logic (`buyer`/`vendor` only), while preserving church position support via `Position.WORKER`.
+- Aligned position handling end-to-end by adding `MEMBER`, `NON_MEMBER`, and `WORKER` to Prisma `Position` enum and creating migration `20260404170500_position_enum_member_non_member_worker`.
+- Enforced requiredness parity for vendor signup: `businessAddress` required in UI + API validation, and verification docs now require all three (`ID`, `BUSINESS_REGISTRATION`, `UTILITY_BILL`).
+- Migrated signup image/document upload fields to Cloudinary-first upload flow for profile and verification docs; added `verification-doc` upload intent and draft-safe restoration for `idType`, profile picture, and document states.
+- Hardened `/api/auth/register` diagnostics with correlation ID, sanitized logging, and explicit Prisma error mapping.
+- Improved verify-email UX with clear “check your inbox” instructions and visible recipient context in resend/no-token flows.
+- Added accessible dark-mode Select focus/active/selected contrast overrides.
+- Migrated bug-report screenshot flow to managed `/api/upload` + Cloudinary URLs and enforced raw URL rejection for bug report/ad-application APIs.
+- Extended vendor store settings API/UI to expose and persist editable `businessAddress` post-auth.
+- Re-verified payment/service-readiness posture via existing feature flags (`enablePaystackWebhooks`, `enableBankTransferFallback`) without changing fallback behavior.
+- Validation executed:
+  - `npm run lint` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run app/signup/__tests__/layout.test.tsx app/ad-application/__tests__/page.test.tsx components/__tests__/ImageUpload.test.tsx lib/services/__tests__/payments.test.ts` ✅
+  - `npx prisma generate` ✅
+  - `npx prisma migrate dev --name add-position-member-nonmember-worker` ⚠️ blocked in cloud due missing datasource URL env (`DIRECT_URL`/`DATABASE_URL`).
+
+**Files Modified:**
+
+- app/signup/components/UserSelect.tsx
+- app/signup/layout.tsx
+- app/types/index.ts
+- lib/types.ts
+- app/signup/components/StoreInfo.tsx
+- app/signup/components/VerificationDocs.tsx
+- app/signup/components/AccountInfo.tsx
+- app/providers.tsx
+- app/signup/security-info/page.tsx
+- app/api/auth/register/route.ts
+- app/verify-email/page.tsx
+- app/_styles/globals.css
+- app/api/upload/route.ts
+- lib/services/cloudinary.ts
+- components/ui/ImageUpload.tsx
+- app/bug-report/BugReportForm.tsx
+- app/api/bug-reports/route.ts
+- app/ad-application/page.tsx
+- app/api/ads/apply/route.ts
+- app/api/ad-applications/route.ts
+- app/api/vendors/me/store-settings/route.ts
+- components/features/StoreSettingsPage.tsx
+- prisma/schema.prisma
+- prisma/migrations/20260404170500_position_enum_member_non_member_worker/migration.sql
+- .ai-system/planning/task-queue.md
+
+**Next Task:**
+Run `prisma migrate dev` locally with configured `DIRECT_URL`/`DATABASE_URL`, then execute final parallel validation + PR finalization.
+
+**Notes / Blockers:**
+
+- Route/dead-link script is not defined in package scripts; no automated route-audit command available in this repo.
+- `lib/__tests__/auth.schemas.test.ts` has pre-existing failing expectations unrelated to this implementation slice and was excluded from the targeted critical-path suite.
+
+---
+
 ## Session 17 — 2026-04-04
 
 **Goal:**

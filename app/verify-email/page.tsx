@@ -9,11 +9,18 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const search = useSearchParams();
   const token = search.get("token") || "";
+  const emailFromQuery = search.get("email") || "";
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>(emailFromQuery.toLowerCase());
   const [resendLoading, setResendLoading] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(4);
+
+  useEffect(() => {
+    if (emailFromQuery) {
+      setEmail(emailFromQuery.toLowerCase());
+    }
+  }, [emailFromQuery]);
 
   useEffect(() => {
     if (!token) return;
@@ -94,6 +101,14 @@ export default function VerifyEmailPage() {
   return (
     <main className="mx-auto mt-12 max-w-lg px-4">
       <h1 className="text-2xl font-bold mb-4">Verify your email</h1>
+      <p className="mb-3 text-sm text-ds-text-secondary">
+        Check your inbox and click the verification link we sent to complete your signup.
+      </p>
+      {email ? (
+        <p className="mb-4 text-sm text-ds-text-secondary">
+          Verification email recipient: <span className="font-semibold text-ds-text-primary">{email}</span>
+        </p>
+      ) : null}
       {status === "loading" && <p className="text-ds-text-secondary">Verifying...</p>}
       {status === "success" && (
         <div className="mb-4 space-y-2">
@@ -112,8 +127,8 @@ export default function VerifyEmailPage() {
       {status === "error" && <p className="mb-4 text-red-500">{message}</p>}
       {!token && (
         <p className="text-ds-text-secondary mb-4">
-          No verification token found in the URL. If you didn&apos;t receive an email, enter your
-          address below to resend the verification link.
+          No verification token found in the URL. If you didn&apos;t receive an email, confirm the
+          recipient address below and resend the verification link.
         </p>
       )}
 

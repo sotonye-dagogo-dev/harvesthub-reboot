@@ -571,7 +571,7 @@ export interface UserFormData {
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
 
     // Signup flow specific fields (matching app/types/index.ts)
-    userType?: 'buyer' | 'vendor' | 'worker';
+    userType?: 'buyer' | 'vendor';
     storeName?: string;
     storeType?: 'retail' | 'wholesale' | 'manufacturing' | 'service';
     storeCategory?: string;
@@ -593,9 +593,12 @@ export interface UserFormData {
         url: string;
     } | null;
     verificationDocuments?: {
+        documentType?: 'ID' | 'BUSINESS_REGISTRATION' | 'UTILITY_BILL';
         filename: string;
         url: string;
+        publicId?: string;
     }[];
+    idType?: string;
     password?: string;
     agreement?: boolean;
 }

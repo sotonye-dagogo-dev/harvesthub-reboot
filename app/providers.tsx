@@ -48,6 +48,7 @@ const SIGNUP_DRAFT_ALLOWED_KEYS: (keyof UserFormData)[] = [
   "bio",
   "profilePicture",
   "verificationDocuments",
+  "idType",
   "password",
   "agreement",
 ];

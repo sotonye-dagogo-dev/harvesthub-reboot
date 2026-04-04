@@ -8,6 +8,8 @@ import {
     getBannerFolder,
     getAdFolder,
     getPaymentProofFolder,
+    getVerificationDocFolder,
+    getBugReportFolder,
 } from '@/lib/services/cloudinary';
 import { UserRole } from '@/lib/constants';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -20,7 +22,9 @@ type FolderType =
     | 'profile'
     | 'banner'
     | 'ad'
-    | 'payment-proof';
+    | 'payment-proof'
+    | 'verification-doc'
+    | 'bug-report';
 
 const VALID_FOLDER_TYPES: FolderType[] = [
     'product',
@@ -30,6 +34,8 @@ const VALID_FOLDER_TYPES: FolderType[] = [
     'banner',
     'ad',
     'payment-proof',
+    'verification-doc',
+    'bug-report',
 ];
 
 /** Maximum upload sizes in MB per folder type */
@@ -41,6 +47,8 @@ const MAX_SIZE_MB: Record<FolderType, number> = {
     banner: 10,
     ad: 10,
     'payment-proof': 5,
+    'verification-doc': 5,
+    'bug-report': 5,
 };
 
 function resolveFolder(
@@ -63,6 +71,10 @@ function resolveFolder(
             return userId ? getAdFolder(userId) : null;
         case 'payment-proof':
             return userId ? getPaymentProofFolder(userId) : null;
+        case 'verification-doc':
+            return userId ? getVerificationDocFolder(userId) : null;
+        case 'bug-report':
+            return userId ? getBugReportFolder(userId) : null;
         default:
             return null;
     }
@@ -90,7 +102,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const allowGuestUpload = folderType === 'ad' || folderType === 'payment-proof';
+        const allowGuestUpload = folderType === 'ad' || folderType === 'payment-proof' || folderType === 'bug-report';
 
         // ── Auth ──────────────────────────────────────────────────────
         const { cookies } = await import('next/headers');
@@ -118,7 +130,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (
-            ['product', 'vendor-logo', 'vendor-banner'].includes(folderType) &&
+            ['product', 'vendor-logo', 'vendor-banner', 'verification-doc'].includes(folderType) &&
             payload?.role !== UserRole.VENDOR &&
             payload?.role !== UserRole.ADMIN
         ) {

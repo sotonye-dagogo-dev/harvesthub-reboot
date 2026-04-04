@@ -104,8 +104,9 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ```
 1. Profile page loads/saves via `/api/users/[id]/profile` and `/api/users/[id]/password`.
 2. Store settings page loads/saves via `/api/vendors/me/store-settings`.
-3. APIs validate requester identity and update Prisma records.
-4. Client surfaces success/error feedback and refreshes auth state where needed.
+3. Store settings include editable vendor `businessAddress` persisted in `businessVerification`.
+4. APIs validate requester identity and update Prisma records.
+5. Client surfaces success/error feedback and refreshes auth state where needed.
 ```
 
 ### Ad Application Upload + Offline Flow
@@ -116,6 +117,8 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. Client stores draft data in localStorage and queues submission if offline.
 4. On reconnect, queued payloads replay to `/api/ad-applications`.
 5. API validates payload with Zod and persists via data adapter.
+6. Upload-managed ad fields are expected to be Cloudinary-managed URLs produced by `/api/upload`.
+```
 
 ### Public Ad Application Flow
 
@@ -123,7 +126,27 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 1. Unauthenticated users open `/ad-application` from footer CTA or direct link.
 2. Client form submits campaign + payment-proof metadata to `/api/ads/apply`.
 3. API enforces IP rate limiting and schema validation.
-4. Application is persisted with pending-payment review status for operations moderation.
+4. API rejects unsupported non-Cloudinary URLs for upload-managed image/proof fields.
+5. Application is persisted with pending-payment review status for operations moderation.
+```
+
+### Signup Verification + Position Parity Flow
+
+```
+1. Signup role selection allows only buyer/vendor account types.
+2. Vendor path requires `businessAddress`, selected `idType`, and all three verification uploads (ID, business registration, utility bill).
+3. Verification/profile uploads use `/api/upload` and persist Cloudinary asset references in draft state.
+4. Register API validates church `position` against synchronized enum values (`MEMBER`, `NON_MEMBER`, `WORKER`, leadership roles).
+5. Vendor record stores verification docs + business address in `businessVerification` JSON.
+```
+
+### Bug Report Screenshot Upload Flow
+
+```
+1. Bug report form uploads screenshots through `/api/upload` (`folderType=bug-report`) before submit.
+2. Client submits canonical screenshot URL (+ optional publicId metadata) to `/api/bug-reports`.
+3. API rejects unsupported raw/non-Cloudinary screenshot URLs for governed upload fields.
+4. Report persists with screenshot URL and metadata for operations triage.
 ```
 
 ### Vendor Analytics Scoping Flow
@@ -133,7 +156,6 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. If current role is vendor, client resolves current vendor profile by `userId`.
 3. KPI computations are scoped to vendor-owned orders/products only.
 4. Admin role continues to consume platform-wide aggregates from same feature shell.
-```
 ```
 
 ### Payment Verification Enforcement Flow
@@ -279,3 +301,4 @@ Migration direction:
 ```
 
 | 2026-04-04 | Added email-change reverification + bug-report/settings/help-flow hardening | Close cloud continuation queue for account security, config-driven UX surfaces, and operations reliability |
+| 2026-04-04 | Enforced signup role/position parity + Cloudinary-first governed uploads | Remove Worker signup role drift, require vendor verification contract, and harden image evidence ingestion |
