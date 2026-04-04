@@ -28,7 +28,7 @@ export function Button({
     primary:
       "bg-ds-brand-primary text-ds-text-inverse hover:bg-ds-brand-primary-hover focus:ring-ds-focus-ring",
     secondary:
-      "bg-ds-palette-neutral-600 text-ds-text-inverse hover:bg-ds-palette-neutral-700 focus:ring-ds-palette-neutral-500",
+      "border border-ds-border-base bg-ds-surface-base text-ds-text-primary hover:bg-ds-surface-sunken focus:ring-ds-focus-ring",
     outline:
       "border-2 border-ds-border-brand text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",
     ghost: "text-ds-text-brand hover:bg-ds-brand-surface focus:ring-ds-focus-ring",

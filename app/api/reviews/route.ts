@@ -2,15 +2,16 @@
  * GET /api/reviews — List reviews with filters
  * POST /api/reviews — Create a review
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { Prisma, ReviewStatus, OrderStatus } from '../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function GET(req: NextRequest) {
-    try {
+    return withApiHandler('GET /api/reviews', async () => {
         const rl = await rateLimitByIP(req);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -44,23 +45,19 @@ export async function GET(req: NextRequest) {
             ...r,
         }));
 
-        return NextResponse.json({
-            success: true,
+        return apiSuccess({
             reviews: enriched,
             averageRating: avgAgg._avg?.rating ?? 0,
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
-    } catch (error) {
-        console.error('GET /api/reviews error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+    });
 }
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/reviews', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Buyers only' }, { status: 403 });
+        if (!user) return apiError('Unauthorized', 401);
+        if (user.role !== UserRole.BUYER) return apiError('Buyers only', 403);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -69,23 +66,23 @@ export async function POST(req: NextRequest) {
         const { productId, orderId, rating, comment, images } = body;
 
         if (!productId || !rating) {
-            return NextResponse.json({ error: 'productId and rating are required' }, { status: 400 });
+            return apiError('productId and rating are required', 400);
         }
         if (rating < 1 || rating > 5) {
-            return NextResponse.json({ error: 'Rating must be 1-5' }, { status: 400 });
+            return apiError('Rating must be 1-5', 400);
         }
 
         const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
-        if (!buyer) return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
+        if (!buyer) return apiError('Buyer not found', 404);
 
         const product = await prisma.product.findUnique({ where: { id: productId } });
-        if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        if (!product) return apiError('Product not found', 404);
 
         // Check for duplicate review
         const existing = await prisma.review.findFirst({
             where: { buyerId: buyer.id, productId },
         });
-        if (existing) return NextResponse.json({ error: 'You have already reviewed this product' }, { status: 409 });
+        if (existing) return apiError('You have already reviewed this product', 409);
 
         // Verify purchase
         let verifiedPurchase = false;
@@ -130,9 +127,6 @@ export async function POST(req: NextRequest) {
             data: { averageRating: ratingAgg._avg.rating ?? 0, totalReviews: ratingAgg._count },
         });
 
-        return NextResponse.json({ success: true, review }, { status: 201 });
-    } catch (error) {
-        console.error('POST /api/reviews error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ review }, 201);
+    });
 }

@@ -108,7 +108,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/advertise"
+                  href="/ad-application"
                   className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
                 >
                   Apply to Advertise

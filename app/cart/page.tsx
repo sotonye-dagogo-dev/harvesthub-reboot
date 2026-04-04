@@ -30,9 +30,9 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-ds-text-primary">
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-ds-text-primary sm:text-3xl">
           Shopping Cart ({totalItems} {totalItems === 1 ? "item" : "items"})
         </h1>
         <Button variant="outline" onClick={clearCart}>
@@ -40,9 +40,9 @@ export default function CartPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4 lg:col-span-2">
           {items.map((item) => (
             <CartItemComponent
               key={item.productId}
@@ -61,7 +61,7 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-24">
+          <Card className="sticky top-20 lg:top-24">
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Order Summary
             </h2>

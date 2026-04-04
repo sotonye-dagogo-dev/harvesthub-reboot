@@ -39,6 +39,547 @@
 
 ---
 
+## Session 16 — 2026-04-04
+
+**Goal:**
+Prepare a cloud-session handoff package that audits current progress, defines all remaining work, and provides an autonomous execution plan aligned with `.ai-system` governance.
+
+**Completed:**
+
+- Audited current refactor state from live `.ai-system` planning docs and working-tree diff snapshot.
+- Identified remaining incomplete queue areas (signup defects, PWA/testing gaps, production-readiness closure work).
+- Added a dedicated cloud-session continuation task block in `.ai-system/planning/task-queue.md` covering follow-up directives and production-readiness requirements.
+- Added a formal feature-spec section to `.ai-system/planning/project-plan.md` with objective, acceptance criteria, and rollout order.
+- Created a temporary execution handoff plan for cloud usage at `.ai-system/planning/cloud-session-temp-plan-2026-04-04.md`.
+- Logged cloud-session execution governance decision in `.ai-system/memory/project-decisions.md`.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+
+**Next Task:**
+Start cloud session using the handoff prompt and execute the Cloud Session Continuation Queue from top to bottom with validation gates and `.ai-system` synchronization after each workstream.
+
+**Notes / Blockers:**
+
+- Working tree is heavily modified from prior interrupted sessions; cloud execution must begin with baseline stabilization and validation before introducing additional feature slices.
+- Do not skip architecture/design doc updates while implementing flow-level changes.
+
+---
+
+## Session 15 — 2026-04-03
+
+**Goal:**
+Complete the queued ad application payment + duration pricing enhancement with server-side enforcement and admin review timeline computation.
+
+**Completed:**
+
+- Added shared pricing/timeline utility module `lib/utils/adPricing.ts` for duration normalization, expected amount calculation, payment sufficiency checks, and `activeUntil` computation.
+- Updated `POST /api/ads/apply` to fetch active ad rates, enforce minimum required amount by duration, and persist normalized duration fields.
+- Updated `POST /api/ad-applications` with the same pricing enforcement logic for consistent intake behavior.
+- Updated `PATCH /api/ad-applications/[id]` to validate approval against current rate config, compute `activeUntil`, and set banner end date from computed timeline when creating banners.
+- Updated `app/advertise/page.tsx` to capture duration type/value and show a live estimated amount from configured rates.
+- Updated `app/ad-application/page.tsx` to include duration type/value in submission payload.
+- Enhanced `app/(operations)/operations/ads/page.tsx` to display payment, duration, estimated amount, and computed active-until details in admin review UI.
+- Added focused test coverage for pricing and timeline helpers in `lib/utils/__tests__/adPricing.test.ts`.
+
+**Files Modified:**
+
+- lib/utils/adPricing.ts
+- lib/utils/**tests**/adPricing.test.ts
+- app/api/ads/apply/route.ts
+- app/api/ad-applications/route.ts
+- app/api/ad-applications/[id]/route.ts
+- app/advertise/page.tsx
+- app/ad-application/page.tsx
+- app/(operations)/operations/ads/page.tsx
+- .ai-system/planning/task-queue.md
+
+**Next Task:**
+Continue with the next unchecked up-next block: resolve signup validation + Worker role option gaps and add regression coverage for signup step progression.
+
+**Notes / Blockers:**
+
+- Targeted validation is green:
+  - `npx vitest run lib/utils/__tests__/adPricing.test.ts app/ad-application/__tests__/page.test.tsx`
+  - `npx tsc --noEmit`
+  - `npm run lint`
+- Full-suite tests are not yet run in this session.
+
+## Session 14 — 2026-04-01
+
+**Goal:**
+Complete remaining up-next flow items for public ad application accessibility and vendor/admin analytics/dashboard routing continuity.
+
+**Completed:**
+
+- Added a public ad application page at `app/ad-application/page.tsx` with full submission form fields.
+- Added public submission endpoint `app/api/ads/apply/route.ts` with zod payload validation and IP-based rate limiting.
+- Updated footer CTA to route “Apply to Advertise” to `/ad-application`.
+- Confirmed route policy coverage keeps `/ad-application` publicly accessible in `lib/rbac/routeConfig.ts`.
+- Tightened vendor analytics scope in `components/features/AnalyticsFeature.tsx` so vendor users only see store-scoped orders/products/revenue metrics.
+- Added regression tests for ad-application submit behavior, footer CTA target, and RBAC public-route assertion.
+- Resolved strict TypeScript test issues in new tests and re-validated with typecheck and focused vitest runs.
+
+**Files Modified:**
+
+- app/ad-application/page.tsx
+- app/api/ads/apply/route.ts
+- components/features/AnalyticsFeature.tsx
+- components/layout/Footer.tsx
+- lib/rbac/routeConfig.ts
+- app/ad-application/**tests**/page.test.tsx
+- components/**tests**/Footer.test.tsx
+- lib/**tests**/rbac-policies.test.ts
+
+**Next Task:**
+Continue with the next open up-next queue item: enhance ad application payment/rate/duration workflow (admin rates, timeline computation, and review UX completeness).
+
+**Notes / Blockers:**
+
+- Focused validation is green (`npx tsc --noEmit` and targeted vitest suites).
+- Full-suite regression run remains pending and should be executed before merge.
+
+## Session 13 — 2026-04-01
+
+**Goal:**
+Execute the next grouped-route migration slice by introducing canonical operations routes and compatibility redirects for legacy role-prefixed paths.
+
+**Completed:**
+
+- Added canonical operations route group at `app/(operations)/operations/*` with wrappers for admin/vendor management pages.
+- Added shared operations layout powered by `RoleDashboardShell` and extended shell support for dynamic admin/vendor sidebar selection.
+- Added middleware redirects from `/admin/*` and `/vendor/*` to canonical operations or unified routes (`/store-settings`, `/dashboard`).
+- Migrated navigation policy registry from legacy admin/vendor URLs to `/operations/*` routes.
+- Updated sidebar route filtering/icon mapping to consume operations and unified routes.
+- Updated dashboard utilities and conversion flows to use role-neutral `/dashboard` redirects.
+- Updated email CTA links and order-notification links away from vendor-prefixed paths.
+- Updated route-policy/navigation tests to match operations namespace behavior.
+
+**Files Modified:**
+
+- components/layout/RoleDashboardShell.tsx
+- app/(operations)/operations/layout.tsx
+- app/(operations)/operations/dashboard/page.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/users/[id]/page.tsx
+- app/(operations)/operations/vendors/page.tsx
+- app/(operations)/operations/vendors/[id]/page.tsx
+- app/(operations)/operations/ads/page.tsx
+- app/(operations)/operations/banners/page.tsx
+- app/(operations)/operations/bug-reports/page.tsx
+- app/(operations)/operations/public-content/page.tsx
+- app/(operations)/operations/settings/page.tsx
+- app/(operations)/operations/vendor-content/page.tsx
+- app/(operations)/operations/marketing-content/page.tsx
+- middleware.ts
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- components/layout/Sidebar.tsx
+- lib/utils/dashboard.ts
+- app/dashboard/page.tsx
+- app/become-vendor/page.tsx
+- app/api/users/me/convert-to-vendor/route.ts
+- app/api/orders/route.ts
+- app/admin/users/[id]/page.tsx
+- app/admin/vendors/[id]/page.tsx
+- app/admin/error.tsx
+- app/vendor/error.tsx
+- lib/emails/WelcomeEmail.tsx
+- lib/emails/VendorApproval.tsx
+- lib/emails/AvailabilityRequest.tsx
+- lib/emails/LowStockAlert.tsx
+- app/robots.ts
+- lib/**tests**/rbac-policies.test.ts
+- lib/**tests**/navigation.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+
+**Next Task:**
+Replace operations wrapper re-exports with shared feature components so legacy `/admin/*` and `/vendor/*` route files can be removed entirely without code duplication.
+
+**Notes / Blockers:**
+
+- Legacy route files still exist as implementation hosts and are accessed through compatibility redirects.
+- Full regression testing for operations redirects and sidebar role views is still pending.
+
+**Continuation Update (same session):**
+
+- Removed remaining dashboard dependency on legacy route files by making `app/(operations)/operations/dashboard/page.tsx` self-contained.
+- Converted `app/admin/dashboard/page.tsx` and `app/vendor/dashboard/page.tsx` into compatibility redirects to `/operations/dashboard`.
+- Made `app/(operations)/operations/public-content/page.tsx` self-contained and converted `app/admin/public-content/page.tsx` into redirect.
+- Made `app/(operations)/operations/ads/page.tsx` and `app/(operations)/operations/banners/page.tsx` self-contained; converted `app/admin/ads/page.tsx` and `app/admin/banners/page.tsx` to redirects.
+- Made `app/(operations)/operations/settings/page.tsx` and `app/(operations)/operations/vendor-content/page.tsx` self-contained; converted `app/admin/settings/page.tsx` and `app/admin/vendor-content/page.tsx` to redirects.
+- Re-ran lint + typecheck after continuation changes (both passing).
+
+**Continuation Update (same session, final wrapper batch):**
+
+- Made the remaining operations pages self-contained by removing re-export wrappers:
+  - `app/(operations)/operations/bug-reports/page.tsx`
+  - `app/(operations)/operations/marketing-content/page.tsx`
+  - `app/(operations)/operations/users/page.tsx`
+  - `app/(operations)/operations/users/[id]/page.tsx`
+  - `app/(operations)/operations/vendors/page.tsx`
+  - `app/(operations)/operations/vendors/[id]/page.tsx`
+- Converted corresponding legacy implementation pages into compatibility redirects:
+  - `app/admin/bug-reports/page.tsx`
+  - `app/vendor/marketing-content/page.tsx`
+  - `app/admin/users/page.tsx`
+  - `app/admin/users/[id]/page.tsx`
+  - `app/admin/vendors/page.tsx`
+  - `app/admin/vendors/[id]/page.tsx`
+- Validation completed after migration slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+  - `npx vitest run lib/__tests__/navigation.test.ts lib/__tests__/rbac-policies.test.ts` (pass)
+
+**Continuation Update (same session, notifications API standardization slice):**
+
+- Migrated notification endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`) for consistency and reduced duplicate `NextResponse.json` handling:
+  - `app/api/notifications/route.ts`
+  - `app/api/notifications/[id]/route.ts`
+  - `app/api/notifications/[id]/read/route.ts`
+  - `app/api/notifications/read-all/route.ts`
+  - `app/api/notifications/preferences/route.ts`
+- Preserved existing behavior while centralizing error wrapping and response envelope style.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, wallet API standardization slice):**
+
+- Migrated wallet endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`) to reduce repeated `NextResponse.json` branches:
+  - `app/api/wallet/route.ts`
+  - `app/api/wallet/balance/route.ts`
+  - `app/api/wallet/deposit/route.ts`
+  - `app/api/wallet/deposit-request/route.ts`
+  - `app/api/wallet/transactions/route.ts`
+  - `app/api/wallet/withdraw/route.ts`
+- Preserved wallet business behavior (auth, role checks, validation thresholds, rate-limits, cache invalidation) while standardizing response/error envelopes.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, cart API standardization slice):**
+
+- Migrated cart endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`) to remove repeated route-level `NextResponse.json` handling:
+  - `app/api/cart/route.ts`
+  - `app/api/cart/clear/route.ts`
+  - `app/api/cart/items/route.ts`
+  - `app/api/cart/items/[id]/route.ts`
+- Preserved cart behavior for buyer-only guards, product stock validation, quantity checks, subtotal recalculation, and ownership checks for update/delete operations.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, push API standardization slice):**
+
+- Migrated push subscription endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`):
+  - `app/api/push/subscribe/route.ts`
+  - `app/api/push/unsubscribe/route.ts`
+- Preserved subscription upsert/remove behavior while removing duplicated `NextResponse.json` error/success branching.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, availability-requests API standardization slice):**
+
+- Migrated availability request endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`):
+  - `app/api/availability-requests/route.ts`
+  - `app/api/availability-requests/[id]/route.ts`
+- Preserved role-filtered listing, buyer/vendor profile checks, request ownership checks, and vendor response transitions while removing duplicated `NextResponse.json` branching.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, reviews API standardization slice):**
+
+- Migrated reviews endpoints to shared API wrappers (`withApiHandler`, `apiSuccess`, `apiError`):
+  - `app/api/reviews/route.ts`
+  - `app/api/reviews/[id]/route.ts`
+  - `app/api/reviews/[id]/response/route.ts`
+  - `app/api/reviews/[id]/vote/route.ts`
+  - `app/api/reviews/[id]/flag/route.ts`
+- Preserved listing filters, buyer-only review creation, duplicate review protection, vendor response authorization, voting semantics, and moderation flag behavior while removing duplicated `NextResponse.json` branching.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, regression test tranche):**
+
+- Added regression coverage for production-readiness feature risks:
+  - `components/__tests__/ImageUpload.test.tsx` (ad upload payload wiring + success/error callback behavior)
+  - `lib/__tests__/localDraft.test.ts` (draft save/load/clear + invalid JSON handling)
+  - `lib/__tests__/offlineQueue.test.ts` (enqueue, replay success, retry/drop behavior, unknown handler failure)
+  - `app/signup/__tests__/layout.test.tsx` (buyer/vendor stage rendering and back navigation)
+- Validation after this tranche:
+  - `npx vitest run lib/__tests__/localDraft.test.ts lib/__tests__/offlineQueue.test.ts components/__tests__/ImageUpload.test.tsx app/signup/__tests__/layout.test.tsx` (pass)
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, UI design-system modernization slice 1):**
+
+- Modernized core flow UI consistency across signup/cart/checkout/button primitives:
+  - `app/signup/components/UserSelect.tsx` (token cleanup, focus-visible states, responsive title sizing, semantic inverse text, `Link` usage)
+  - `app/signup/page.tsx` (wider responsive container for two-card role selection)
+  - `app/cart/page.tsx` (responsive heading + spacing, improved summary sticky offsets)
+  - `app/checkout/page.tsx` (responsive heading + spacing, semantic service notice styling, improved summary sticky offsets)
+  - `components/ui/Button.tsx` (secondary variant moved from palette-hardcoded shades to semantic DS tokens)
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, UI design-system modernization slice 2):**
+
+- Completed remaining core-flow UI modernization scope for product browsing and dashboards:
+  - `components/features/ProductsContent.tsx` (responsive spacing, sticky filter panel at desktop, corrected product grid density at larger breakpoints)
+  - `app/(operations)/operations/dashboard/page.tsx` (responsive heading/grid + semantic card presentation with role-aware icon accents)
+  - `components/layout/Header.tsx` (search input accessibility label and mobile-friendly input sizing)
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, queue hygiene):**
+
+- Resolved duplicate open current-sprint queue entry for public-content model/caching by marking the duplicate line complete with clarification note (feature already delivered earlier this sprint).
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 1):**
+
+- Started the "Migrate mock backend to Prisma + PostgreSQL" up-next task by removing runtime direct mock fallbacks from client fetchers and high-impact pages.
+- Removed `NEXT_PUBLIC_USE_MOCK_DATA`/dynamic `mockData` fallback branches from:
+  - `lib/data/clientDataFetchers.ts`
+  - `app/(operations)/operations/banners/page.tsx`
+  - `app/(operations)/operations/users/page.tsx`
+  - `app/wallet/page.tsx`
+  - `app/favourites/page.tsx`
+- Behavior now degrades to empty/null states on API failure instead of silently switching runtime UI paths back to local mock datasets.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 2):**
+
+- Removed remaining runtime mock fallback branches from `lib/data/publicContent.ts` so public-content reads/writes rely on Prisma + cache paths only.
+- Updated read error behavior to degrade safely (`null`/`[]`) instead of switching to local mock datasets.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 3):**
+
+- Replaced `lib/data/dataFetchers.ts` with a Prisma-only server fetcher implementation and removed all `NEXT_PUBLIC_USE_MOCK_DATA` / `mockData.dev` runtime branches from that module.
+- Updated `lib/__tests__/publicContent.test.ts` to mock Prisma + cache modules directly (instead of relying on runtime mock-mode env behavior), so tests remain deterministic after fallback removal.
+- Validation after this slice:
+  - `npx vitest run lib/__tests__/publicContent.test.ts` (pass)
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 4):**
+
+- Phased out adapter/bootstrap runtime toggle behavior for strict Prisma-first execution:
+  - `lib/data/database.ts`: removed dependency on feature-flag toggle and pinned runtime adapter selection to Prisma (`usePrisma = true`) while preserving missing-adapter fail-fast behavior.
+  - `lib/db/prisma.ts`: updated bootstrap warning/comments to remove obsolete guidance about enabling runtime mock mode.
+- Reworked `lib/data/__tests__/database.test.ts` to mock `prismaAdapter` directly instead of relying on `USE_PRISMA=false`, so adapter-layer tests remain valid under Prisma-first selection.
+- Validation after this slice:
+  - `npx vitest run lib/data/__tests__/database.test.ts` (pass)
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 5):**
+
+- Removed remaining non-adapter runtime mock dependencies in core client flows:
+  - `components/features/SearchBar.tsx`: removed `NEXT_PUBLIC_USE_MOCK_DATA` and dynamic `mockData` fallback path for suggestions.
+  - `components/features/ProfilePage.tsx`: removed direct `mockAddresses` import and switched address state to API-backed loading.
+- Added `GET /api/users/[id]/addresses` route (`app/api/users/[id]/addresses/route.ts`) with auth + rate-limit checks and user/admin scope enforcement.
+- Validation after this slice:
+  - `npx vitest run lib/data/__tests__/database.test.ts lib/__tests__/publicContent.test.ts` (pass)
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 6):**
+
+- Closed adapter parity gap introduced by Prisma-first cutover:
+  - Added `getActive` to `lib/data/prismaAdapter.ts` `adRateConfigDb` so `/api/admin/ads/rates` PUT no longer depends on old mock-only helper shape.
+  - Extended `lib/data/adapterTypes.ts` `CrudAdapter` with optional `getActive` to keep adapter typings aligned.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/data/__tests__/database.test.ts lib/__tests__/publicContent.test.ts` (pass)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 7):**
+
+- Replaced `lib/data/database.ts` monolithic mock+toggle implementation with a slim Prisma-adapter facade:
+  - Removed in-file mock dataset state and CRUD scaffolding.
+  - Kept fail-fast `missingAdapter` proxy behavior and unified `db` export shape.
+- Updated `lib/data/__tests__/database.test.ts` for async adapter signatures (`create` password arg + awaited methods) and full mocked adapter key surface.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/data/__tests__/database.test.ts lib/__tests__/publicContent.test.ts` (pass)
+
+**Continuation Update (same session, mock-to-Prisma cutover slice 8):**
+
+- Deprecated compatibility env toggles in runtime config:
+  - Removed `USE_PRISMA` and `ENABLE_MOCK_BACKEND` from `lib/config/env.ts` schema/export.
+  - Removed corresponding entries from `lib/config/features.ts`.
+  - Updated `lib/__tests__/config-env.test.ts` assertions to reflect removed config fields.
+  - Updated `PRODUCTION.md` checklist by removing obsolete `USE_PRISMA=true` instruction.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/__tests__/config-env.test.ts lib/data/__tests__/database.test.ts lib/__tests__/publicContent.test.ts` (pass)
+
+**Continuation Update (same session, payment gateway stubs slice):**
+
+- Implemented first-pass payment integration stubs for Paystack + Flutterwave:
+  - Added `lib/services/payments.ts` with gateway-agnostic `initializePayment` and `verifyPayment` stub flows.
+  - Added `POST /api/payments/initialize` and `POST /api/payments/verify` routes under `app/api/payments/*` with zod payload validation, auth checks, and per-user rate limiting.
+  - Added test coverage in `lib/services/__tests__/payments.test.ts`.
+  - Extended config env surface with payment keys (`PAYSTACK_*`, `FLUTTERWAVE_*`) and updated `PRODUCTION.md` notes.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/services/__tests__/payments.test.ts lib/__tests__/config-env.test.ts` (pass)
+
+**Continuation Update (same session, payment wiring slice):**
+
+- Wired live client flows to the new payment stub endpoints:
+  - `app/checkout/page.tsx`: card checkout now calls `/api/payments/initialize` and opens returned authorization URL before continuing order placement flow.
+  - `app/wallet/page.tsx`: deposit flow now performs initialize -> verify -> `/api/wallet/deposit` with returned payment reference and updates local wallet/transaction state from API response.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/services/__tests__/payments.test.ts lib/__tests__/config-env.test.ts` (pass)
+
+**Continuation Update (same session, payment verification enforcement slice):**
+
+- Enforced server-side payment verification before payment-dependent persistence actions:
+  - `app/api/orders/route.ts`: card-order creation now requires payment gateway/reference when payments are enabled, re-verifies via payment service, maps verification to `paymentStatus`, and stores payment verification audit details in `statusHistory`.
+  - `app/api/wallet/deposit/route.ts`: deposit crediting now requires gateway/reference and verifies server-side before incrementing wallet balance; verification metadata is persisted in transaction description.
+  - `app/checkout/page.tsx`: card checkout now posts real order payloads to `/api/orders` with payment reference metadata instead of simulated local completion.
+  - `app/wallet/page.tsx`: deposit flow now forwards payment reference metadata to `/api/wallet/deposit` and relies on server verification as source of truth.
+- Fixed strict Prisma JSON typing issue in order creation by typing `statusHistory` payload as `Prisma.InputJsonValue`.
+- Validation after this slice:
+  - `npm run lint` (pass)
+  - `npx tsc --noEmit` (pass, `tsc_exit=0`)
+  - `npx vitest run lib/services/__tests__/payments.test.ts lib/__tests__/config-env.test.ts` (pass)
+
+**Continuation Update (same session, notifications integration slice):**
+
+- Implemented centralized notification fan-out service at `lib/services/notifications.ts`:
+  - Persists in-app notifications.
+  - Sends email notifications through existing Resend-backed `sendEmail` service (honoring user preference flags).
+  - Delivers web-push notifications through `lib/services/push.ts` for subscribed endpoints.
+- Wired payment/order domain mutations to this unified dispatcher:
+  - `app/api/orders/route.ts`: replaced direct in-transaction vendor notification insert with post-create dispatch for vendor + buyer channels (in-app/email/push where enabled).
+  - `app/api/wallet/deposit/route.ts`: now dispatches `PAYMENT_SUCCESS` notification after verified deposit persistence.
+- Hardened notifications API/client interoperability:
+  - `app/api/notifications/[id]/read/route.ts`: supports both `PUT` and `PATCH`.
+  - `app/api/notifications/read-all/route.ts`: supports `POST`, `PUT`, and `PATCH`.
+  - `lib/contexts/NotificationContext.tsx`: removed duplicate polling effect, normalized read/read-all verbs, added browser push-subscription sync + opt-in helper.
+  - `app/notifications/settings/page.tsx`: added "Enable Push" action using notification context push opt-in helper.
+- Validation after this slice:
+  - `npx tsc --noEmit` (pass)
+  - `npm run lint` (pass)
+  - `npx vitest run lib/services/__tests__/payments.test.ts lib/__tests__/config-env.test.ts` (pass)
+
+## Session 12 — 2026-04-01
+
+**Goal:**
+Run a production-readiness refactor wave focusing on API consistency, upload reliability, offline form retention, and signup/layout cleanup.
+
+**Completed:**
+
+- Added shared API wrappers in `lib/api/http.ts` and migrated ad-related endpoints to use them.
+- Added Zod validation for ad creation and ad-application payloads.
+- Refactored advertise flow to upload media (banner + payment proof) instead of manual URL input.
+- Added local draft persistence (`lib/utils/localDraft.ts`) and offline queue replay (`lib/utils/offlineQueue.ts`) for ad applications.
+- Updated `/api/upload` to support guest ad/payment-proof uploads with IP rate limiting and persistence opt-out.
+- Added shared `components/layout/RoleDashboardShell.tsx` and simplified admin/vendor layouts.
+- Updated RBAC route config to allow admin users to access vendor workspace routes where required.
+- Redesigned signup layout structure to remove duplicated logo rendering and improve consistency.
+- Synced architecture, queue, repo-map, dependency-graph, decisions, and dev-history docs.
+
+**Files Modified:**
+
+- lib/api/http.ts
+- lib/utils/localDraft.ts
+- lib/utils/offlineQueue.ts
+- app/api/ad-applications/route.ts
+- app/api/ad-applications/[id]/route.ts
+- app/api/ads/route.ts
+- app/api/ads/[id]/route.ts
+- app/api/upload/route.ts
+- components/ui/ImageUpload.tsx
+- app/advertise/page.tsx
+- components/layout/RoleDashboardShell.tsx
+- app/admin/layout.tsx
+- app/vendor/layout.tsx
+- app/signup/layout.tsx
+- lib/rbac/routeConfig.ts
+- .ai-system/agents/system-architecture.md
+- .ai-system/planning/task-queue.md
+- .ai-system/index/repo-map.md
+- .ai-system/index/dependency-graph.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Continue full route topology migration into grouped architecture (`(public)`, `(dashboard)`, `(operations)`) and standardize remaining API routes on shared wrappers.
+
+**Notes / Blockers:**
+
+- No database schema changes were made in this refactor slice.
+- Remaining exhaustive scope items are tracked in task queue under Production-Readiness Refactor Wave.
+
+## Session 8 — 2026-04-01
+
+**Goal:**
+Implement client-requested UX reliability, buyer-to-vendor conversion, auth polish, and profile/store editability updates.
+
+**Completed:**
+
+- Added buyer-to-vendor self-serve flow (`/become-vendor`) with backend conversion endpoint (`/api/users/me/convert-to-vendor`) and navigation entry points.
+- Removed login demo credentials from UI, normalized login email input to lowercase, and upgraded auth Suspense fallback to tokenized page loader.
+- Added verify-email success redirect with countdown and explicit login CTA.
+- Wired profile edits to `/api/users/[id]/profile` and password updates to `/api/users/[id]/password`.
+- Added vendor self-scoped store settings endpoint (`/api/vendors/me/store-settings`) and rewired `StoreSettingsPage` to real persistence.
+- Improved loading visuals by replacing image-icon skeleton in `app/loading.tsx` and using Next Image in signup layout.
+- Improved dark-mode contrast for secondary/placeholder/toast/notification text via design-token and CSS override updates.
+- Updated `.ai-system` planning/memory/architecture docs to reflect delivered architecture changes.
+
+**Files Modified:**
+
+- app/(auth)/login/page.tsx
+- app/verify-email/page.tsx
+- app/loading.tsx
+- app/signup/layout.tsx
+- app/become-vendor/page.tsx
+- app/api/users/me/convert-to-vendor/route.ts
+- app/api/vendors/me/store-settings/route.ts
+- components/layout/Header.tsx
+- components/features/ProfilePage.tsx
+- components/features/StoreSettingsPage.tsx
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- app/\_styles/globals.css
+- lib/theme/antd-theme.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+
+**Next Task:**
+Add regression tests for conversion flow, profile/store persistence, verify-email redirect, and dark-mode contrast plus optional further standardization of image loading primitives.
+
+**Notes / Blockers:**
+
+- No compile errors in changed TypeScript files.
+- Existing CSS compatibility warnings (`text-wrap`, `scrollbar-*`) predated this session and are not blockers.
+
 ## Session 1 — [YYYY-MM-DD]
 
 **Goal:**

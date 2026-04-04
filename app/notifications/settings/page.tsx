@@ -9,6 +9,7 @@ import { PageLoader } from "@/components/ui";
 import { useState, useEffect } from "react";
 import { Card, Switch, Button, message } from "antd";
 import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
+import { useNotifications } from "@/lib/contexts/NotificationContext";
 
 interface NotificationPreferences {
   orderConfirmed: boolean;
@@ -27,6 +28,7 @@ interface NotificationPreferences {
 }
 
 export default function NotificationSettingsPage() {
+  const { enablePushNotifications } = useNotifications();
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     orderConfirmed: true,
     orderReady: true,
@@ -44,6 +46,7 @@ export default function NotificationSettingsPage() {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [enablingPush, setEnablingPush] = useState(false);
 
   // Fetch preferences
   useEffect(() => {
@@ -92,6 +95,19 @@ export default function NotificationSettingsPage() {
 
   const updatePreference = (key: keyof NotificationPreferences, value: boolean) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const enableBrowserPush = async () => {
+    setEnablingPush(true);
+    try {
+      await enablePushNotifications();
+      message.success("Browser push notifications enabled");
+    } catch (error) {
+      console.error("Failed to enable browser push notifications:", error);
+      message.error("Unable to enable browser push notifications");
+    } finally {
+      setEnablingPush(false);
+    }
   };
 
   if (loading) {
@@ -337,6 +353,21 @@ export default function NotificationSettingsPage() {
                 checked={preferences.smsNotifications}
                 onChange={(checked) => updatePreference("smsNotifications", checked)}
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="h-5 w-5 text-ds-text-brand" />
+                <div>
+                  <div className="font-medium text-ds-text-primary">Browser Push Notifications</div>
+                  <div className="text-sm text-ds-text-secondary">
+                    Enable this browser to receive web push notifications
+                  </div>
+                </div>
+              </div>
+              <Button onClick={enableBrowserPush} loading={enablingPush}>
+                Enable Push
+              </Button>
             </div>
           </div>
         </Card>

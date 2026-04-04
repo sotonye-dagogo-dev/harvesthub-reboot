@@ -9,14 +9,13 @@ import { Input, Modal, message } from "antd";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { Wallet, Transaction } from "@/lib/types";
 
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
 export default function WalletPage() {
   const { user } = useAuth();
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [isProcessingDeposit, setIsProcessingDeposit] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
@@ -41,22 +40,8 @@ export default function WalletPage() {
         }
       } catch (e) {
         if (!mounted) return;
-
-        if (!useMockData) {
-          setUserWallet(null);
-          setUserTransactions([]);
-          return;
-        }
-
-        const m = await import("@/lib/data/mockData");
-        const wallet = (m.mockWallets ?? []).find((w: any) => w.userId === user?.id) ?? null;
-        const transactions = (m.mockTransactions ?? [])
-          .filter((t: any) => t.walletId === wallet?.id)
-          .sort(
-            (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        setUserWallet(wallet);
-        setUserTransactions(transactions);
+        setUserWallet(null);
+        setUserTransactions([]);
       }
     }
 
@@ -72,7 +57,7 @@ export default function WalletPage() {
     currentPage * itemsPerPage
   );
 
-  const handleDeposit = () => {
+  const handleDeposit = async () => {
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount < 100) {
       message.error("Minimum deposit amount is ₦100");
@@ -83,9 +68,53 @@ export default function WalletPage() {
       return;
     }
 
-    message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
-    setShowDepositModal(false);
-    setDepositAmount("");
+    setIsProcessingDeposit(true);
+    try {
+      const initializeRes = await fetch("/api/payments/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gateway: "PAYSTACK",
+          amount,
+          currency: "NGN",
+          metadata: { source: "wallet-deposit" },
+        }),
+      });
+      const initializeData = await initializeRes.json().catch(() => ({}));
+      if (!initializeRes.ok || !initializeData?.payment?.reference) {
+        throw new Error(initializeData?.error || "Unable to initialize payment");
+      }
+
+      const paymentReference = initializeData.payment.reference as string;
+
+      const depositRes = await fetch("/api/wallet/deposit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          description: "Wallet deposit via gateway stub",
+          paymentReference,
+          paymentGateway: "PAYSTACK",
+          paymentVerificationReference: `${paymentReference}-success`,
+        }),
+      });
+      const depositData = await depositRes.json().catch(() => ({}));
+      if (!depositRes.ok || !depositData?.wallet || !depositData?.transaction) {
+        throw new Error(depositData?.error || "Failed to complete wallet deposit");
+      }
+
+      setUserWallet(depositData.wallet as Wallet);
+      setUserTransactions((prev) => [depositData.transaction as Transaction, ...prev]);
+
+      message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
+      setShowDepositModal(false);
+      setDepositAmount("");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unable to process deposit";
+      message.error(errorMessage);
+    } finally {
+      setIsProcessingDeposit(false);
+    }
   };
 
   const handleWithdraw = () => {
@@ -261,6 +290,7 @@ export default function WalletPage() {
         open={showDepositModal}
         onOk={handleDeposit}
         onCancel={() => setShowDepositModal(false)}
+        confirmLoading={isProcessingDeposit}
       >
         <Input
           value={depositAmount}

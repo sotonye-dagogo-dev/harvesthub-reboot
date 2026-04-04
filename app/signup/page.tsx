@@ -18,7 +18,7 @@ export default function SignUp(): React.ReactElement {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="mx-auto w-full max-w-3xl">
       <UserSelect onNext={() => {}} updateFormData={handleSelection} formData={{}} />
     </div>
   );

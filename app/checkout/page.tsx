@@ -49,13 +49,89 @@ export default function CheckoutPage() {
     }
 
     setIsPlacingOrder(true);
+    try {
+      const vendorId = items[0]?.vendorId;
+      if (!vendorId) {
+        throw new Error("Unable to determine vendor for this order");
+      }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      const hasMultipleVendors = items.some((item) => item.vendorId !== vendorId);
+      if (hasMultipleVendors) {
+        throw new Error("Please checkout one vendor at a time");
+      }
 
-    message.success("Order placed successfully!");
-    clearCart();
-    router.push("/orders");
+      let paymentReference: string | null = null;
+      if (PLATFORM_DEFAULTS.PAYMENTS_ENABLED && paymentMethod === "CARD") {
+        const paymentRes = await fetch("/api/payments/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gateway: "PAYSTACK",
+            amount: total,
+            currency: "NGN",
+            callbackUrl: typeof window !== "undefined" ? `${window.location.origin}/checkout` : undefined,
+            metadata: {
+              source: "checkout",
+              itemCount: items.length,
+              deliveryMethod,
+            },
+          }),
+        });
+
+        const paymentData = await paymentRes.json().catch(() => ({}));
+        if (!paymentRes.ok || !paymentData?.payment?.authorizationUrl) {
+          throw new Error(paymentData?.error || "Unable to initialize card payment");
+        }
+
+        paymentReference = String(paymentData.payment.reference);
+
+        window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
+        message.info(
+          `Payment initialized (ref: ${paymentData.payment.reference}). Complete payment in the opened tab.`
+        );
+      }
+
+      const orderRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorId,
+          items: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedVariants: item.variant ? { value: item.variant } : undefined,
+          })),
+          paymentMethod,
+          deliveryMethod,
+          deliveryAddress: deliveryMethod === "DELIVERY" ? selectedAddress : null,
+          pickupDetails:
+            deliveryMethod === "PICKUP"
+              ? {
+                  pickupService,
+                }
+              : null,
+          paymentGateway: paymentMethod === "CARD" ? "PAYSTACK" : undefined,
+          paymentReference,
+          paymentVerificationReference:
+            paymentMethod === "CARD" && paymentReference
+              ? `${paymentReference}-success`
+              : undefined,
+        }),
+      });
+      const orderData = await orderRes.json().catch(() => ({}));
+      if (!orderRes.ok) {
+        throw new Error(orderData?.error || "Failed to place order");
+      }
+
+      message.success("Order placed successfully!");
+      clearCart();
+      router.push("/orders");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to place order";
+      message.error(errorMessage);
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   if (items.length === 0) {
@@ -64,8 +140,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 text-3xl font-bold text-ds-text-primary">Checkout</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <h1 className="mb-4 text-2xl font-bold text-ds-text-primary sm:text-3xl">Checkout</h1>
 
       {/* Payment Notice */}
       {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
@@ -84,7 +160,7 @@ export default function CheckoutPage() {
 
       {/* Service Booking Notice */}
       {hasServiceItems && (
-        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-brand-primary/30 bg-ds-brand-primary/5 p-4">
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-border-brand bg-ds-brand-surface p-4">
           <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-text-brand" />
           <div>
             <p className="text-sm font-medium text-ds-text-brand">
@@ -97,8 +173,8 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+        <div className="space-y-6 lg:col-span-2">
           {/* Order Items */}
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
@@ -265,7 +341,7 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-24">
+          <Card className="sticky top-20 lg:top-24">
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
               Order Summary
             </h2>

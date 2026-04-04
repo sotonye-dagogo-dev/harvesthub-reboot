@@ -216,10 +216,10 @@
 
     /* ---- Text (dark) ---- */
     --ds-text-primary: var(--ds-palette-neutral-200);
-    --ds-text-secondary: var(--ds-palette-neutral-400);
-    --ds-text-tertiary: var(--ds-palette-neutral-500);
-    --ds-text-placeholder: var(--ds-palette-neutral-500);
-    --ds-text-disabled: var(--ds-palette-neutral-600);
+    --ds-text-secondary: var(--ds-palette-neutral-300);
+    --ds-text-tertiary: var(--ds-palette-neutral-400);
+    --ds-text-placeholder: var(--ds-palette-neutral-400);
+    --ds-text-disabled: var(--ds-palette-neutral-500);
     --ds-text-inverse: var(--ds-palette-black);
     --ds-text-brand: var(--ds-palette-purple-400);
     --ds-text-link: var(--ds-palette-purple-400);
@@ -386,4 +386,32 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgb(var(--ds-brand-primary-light));
   }
+}
+
+/* ============================================================================
+   ANT DESIGN DARK-MODE READABILITY OVERRIDES
+   ============================================================================ */
+.dark .ant-input::placeholder,
+.dark .ant-input-password input::placeholder,
+.dark .ant-select-selection-placeholder,
+.dark .ant-picker-input > input::placeholder,
+.dark .ant-input-affix-wrapper input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(var(--ds-text-placeholder)) !important;
+  opacity: 1;
+}
+
+.dark .ant-message .ant-message-notice-content,
+.dark .ant-notification .ant-notification-notice {
+  background: rgb(var(--ds-surface-raised)) !important;
+  border: 1px solid rgb(var(--ds-border-base)) !important;
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
+.dark .ant-notification-notice-message {
+  color: rgb(var(--ds-text-primary)) !important;
+}
+
+.dark .ant-notification-notice-description {
+  color: rgb(var(--ds-text-secondary)) !important;
 }

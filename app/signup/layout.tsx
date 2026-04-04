@@ -1,11 +1,11 @@
 "use client";
 
-import { Image } from "antd";
-import { useState, ReactNode, cloneElement, isValidElement, useEffect } from "react";
+import { ReactNode, useMemo } from "react";
 import StageTracker from "./components/StageTracker";
 import { useRouter, usePathname } from "next/navigation";
-import React from "react";
 import { Footer } from "@/components/layout";
+import Image from "next/image";
+import { useFormData } from "@/app/providers";
 
 export type Stage =
   | "selection"
@@ -15,7 +15,7 @@ export type Stage =
   | "account-info"
   | "security-info";
 
-const stages: Stage[] = [
+const ALL_STAGES: Stage[] = [
   "selection",
   "user-info",
   "store-info",
@@ -28,170 +28,99 @@ interface SignupLayoutProps {
   children: ReactNode;
 }
 
-interface ChildProps {
-  onNext: () => void;
-  formData: Record<string, never>;
-  updateFormData: (data: Record<string, never>) => void;
-  currentStage: number;
+function getStageFromPath(pathname: string): Stage {
+  if (pathname === "/signup") return "selection";
+  const segment = pathname.split("/").pop() as Stage | undefined;
+  if (!segment) return "selection";
+  return ALL_STAGES.includes(segment) ? segment : "selection";
 }
 
 export default function SignupLayout({ children }: SignupLayoutProps) {
-  const [currentStage, setCurrentStage] = useState<number>(0);
-  const [formData, setFormData] = useState<Record<string, never>>({});
+  const { formData } = useFormData();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Update currentStage based on the pathname
-  useEffect(() => {
-    // Find the current stage based on URL path
-    const currentPath = pathname.split("/").pop();
-    const stageIndex = stages.findIndex(
-      (stage) => currentPath === stage || currentPath === stage.replace("-", "")
-    );
+  const activeStages = useMemo(
+    () =>
+      formData.userType === "buyer"
+        ? ALL_STAGES.filter((stage) => stage !== "store-info" && stage !== "verification-docs")
+        : ALL_STAGES,
+    [formData.userType]
+  );
 
-    if (stageIndex !== -1) {
-      setCurrentStage(stageIndex);
-    } else if (pathname === "/signup") {
-      // Default to selection stage if on base signup route
-      setCurrentStage(0);
-    }
-  }, [pathname]);
-
-  const handleNext = (): void => {
-    if (currentStage < stages.length - 1) {
-      // Check if user type is "buyer" and next stage would be "store-info"
-      if (
-        formData.userType === "buyer" &&
-        (stages[currentStage + 1] === "store-info" ||
-          stages[currentStage + 1] === "verification-docs")
-      ) {
-        // Skip vendor-only stages for buyer users
-        const skipCount = stages
-          .slice(currentStage + 1)
-          .findIndex((s) => s !== "store-info" && s !== "verification-docs");
-        const nextIndex = currentStage + 1 + skipCount;
-        setCurrentStage(nextIndex);
-        router.push(`/signup/${stages[nextIndex]}`);
-      } else {
-        setCurrentStage((prev) => prev + 1);
-        router.push(`/signup/${stages[currentStage + 1]}`);
-      }
-    } else {
-      router.push("/signup-success");
-    }
-  };
+  const currentStageKey = getStageFromPath(pathname);
+  const currentStage = Math.max(activeStages.indexOf(currentStageKey), 0);
 
   const handleBack = (): void => {
-    if (currentStage > 0) {
-      // Check if user type is "buyer" and current stage is "account-info"
-      // and previous stage would be "store-info"
-      if (
-        formData.userType === "buyer" &&
-        stages[currentStage] === "account-info" &&
-        (stages[currentStage - 1] === "store-info" ||
-          stages[currentStage - 1] === "verification-docs")
-      ) {
-        // Skip back past vendor-only stages for buyer users
-        const prevStages = stages.slice(0, currentStage);
-        const prevIndex = prevStages.findLastIndex(
-          (s) => s !== "store-info" && s !== "verification-docs"
-        );
-        setCurrentStage(prevIndex);
-        router.push(`/signup/${stages[prevIndex] === "selection" ? "" : stages[prevIndex]}`);
-      } else {
-        setCurrentStage((prev) => prev - 1);
-        router.push(
-          `/signup/${stages[currentStage - 1] === "selection" ? "" : stages[currentStage - 1]}`
-        );
-      }
+    if (currentStage <= 0) return;
+    const previousStage = activeStages[currentStage - 1];
+    if (!previousStage || previousStage === "selection") {
+      router.push("/signup");
+      return;
     }
+    router.push(`/signup/${previousStage}`);
   };
-
-  const updateFormData = (newData: Record<string, never>): void => {
-    setFormData((prev) => ({ ...prev, ...newData }));
-  };
-
-  // Clone children elements and add props
-  const childrenWithProps = React.Children.map(children, (child) => {
-    if (isValidElement(child)) {
-      return cloneElement(child as React.ReactElement<ChildProps>, {
-        onNext: handleNext,
-        formData,
-        updateFormData,
-        currentStage,
-      });
-    }
-    return child;
-  });
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <div className="flex flex-1 overflow-hidden">
-        {/* Left section with purple gradient background */}
-        <div className="relative hidden md:flex md:w-1/3 lg:w-1/2 bg-gradient-to-br from-ds-brand-primary to-ds-palette-purple-800 p-10 text-white overflow-y-auto">
-          <div className="splines-bg"></div>
-          <div className="w-full flex flex-col justify-stretch items-center z-ds-raised pb-16">
-            <div className="flex w-full items-start justify-between">
+        <aside className="relative hidden overflow-hidden bg-gradient-to-br from-ds-brand-primary via-ds-palette-purple-700 to-ds-palette-purple-900 text-white md:flex md:w-2/5 lg:w-1/2">
+          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-ds-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-ds-full bg-white/5 blur-3xl" />
+          <div className="relative z-ds-raised flex h-full w-full flex-col justify-between p-10">
+            <div className="inline-flex w-fit items-center gap-3 rounded-ds-lg border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-sm">
               <Image
                 src="/myharvesthublogo.png"
-                alt="MyHarvestHub Logo"
-                preview={false}
-                className="w-12 h-12 rounded-2xl object-contain md:w-14 md:h-14 self-start"
+                alt="MyHarvestHub"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-ds-md object-contain"
               />
-              <Image
-                src="/Rectangle16.svg"
-                alt="Abstract Rectangle"
-                preview={false}
-                className="w-12 h-12 rounded-xl md:w-16 md:h-16 self-end"
-              />
+              <span className="text-sm font-semibold tracking-wide">MyHarvestHub</span>
             </div>
-            <div className="max-w-md flex gap-2 h-full flex-col justify-end items-center">
-              <h3 className="text-[40px] leading-[44px]">Create Your Account</h3>
-              <p className="text-sm font-light">Join MyHarvestHub today and start your journey</p>
-              <Image
-                src="/Points.svg"
-                alt="Points"
-                preview={false}
-                className="w-20 h-20 self-start"
-              />
-            </div>
-          </div>
-        </div>
 
-        {/* Right section with sign up form */}
-        <div className="overflow-y-auto w-full md:w-2/3 lg:w-1/2 flex flex-col items-center gap-6 p-6 md:p-10">
-          <div className="w-fit py-4 self-start flex gap-1 flex-col justify-start items-start">
-            <h6 className="text-[20px] leading-[22px] text-ds-text-primary">Sign up to</h6>
+            <div className="max-w-md space-y-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/80">Create Account</p>
+              <h2 className="text-4xl font-bold leading-tight">
+                Launch your buyer and vendor journey from one account.
+              </h2>
+              <p className="text-sm text-white/85">
+                Set up your profile once, then shop, sell, and scale seamlessly across the platform.
+              </p>
+            </div>
+
             <Image
-              src="/myharvesthublogo.png"
-              alt="Logo"
-              preview={false}
-              className="w-12 h-12 rounded-2xl self-start md:w-14 md:h-14"
+              src="/Points.svg"
+              alt="Decorative points"
+              width={96}
+              height={96}
+              className="h-20 w-20 opacity-90"
             />
-            <p className="text-xs font-thin text-ds-text-secondary">
-              Join MyHarvestHub. Shop Smarter, Sell Smarter, Deliver Smarter!
-            </p>
           </div>
+        </aside>
 
-          <div className="w-full max-w-md flex flex-col justify-between items-center gap-4">
+        <section className="flex w-full flex-col items-center overflow-y-auto bg-ds-surface-base px-5 py-8 md:w-3/5 md:px-10 lg:w-1/2 lg:px-12">
+          <div className="w-full max-w-2xl space-y-5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-ds-text-tertiary">Welcome</p>
+              <h1 className="mt-2 text-3xl font-bold text-ds-text-primary">Set up your account</h1>
+              <p className="mt-1 text-sm text-ds-text-secondary">
+                Complete the steps below to finish onboarding.
+              </p>
+            </div>
+
             <StageTracker
               currentStage={currentStage}
-              stages={stages.filter(
-                (stage) =>
-                  !(
-                    formData.userType === "buyer" &&
-                    (stage === "store-info" || stage === "verification-docs")
-                  )
-              )}
+              stages={activeStages}
               onBack={handleBack}
               canGoBack={currentStage > 0}
             />
 
-            <div className="w-full max-w-md flex flex-col justify-between items-center gap-6">
-              {childrenWithProps}
+            <div className="rounded-ds-lg border border-ds-border-base bg-ds-surface-base p-4 shadow-ds-sm sm:p-6">
+              {children}
             </div>
           </div>
-        </div>
+        </section>
       </div>
       <Footer />
     </div>

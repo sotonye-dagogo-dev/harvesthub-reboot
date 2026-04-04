@@ -62,7 +62,7 @@ export function LowStockAlert({ firstName, storeName, products }: LowStockAlertP
       </Text>
 
       <Section style={{ textAlign: "center", margin: "24px 0" }}>
-        <Link href={`${appUrl}/vendor/products`} style={styles.button}>
+        <Link href={`${appUrl}/products`} style={styles.button}>
           Update Inventory
         </Link>
       </Section>

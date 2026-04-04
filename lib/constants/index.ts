@@ -89,6 +89,8 @@ export enum Campus {
 }
 
 export enum Position {
+    MEMBER = 'MEMBER',
+    NON_MEMBER = 'NON_MEMBER',
     WORKER = 'WORKER',
     HOD = 'HOD',
     ASST_HOD = 'ASST_HOD',
@@ -366,6 +368,8 @@ export const CAMPUS_LOCATIONS = [
 // ============================================================================
 
 export const POSITION_OPTIONS = [
+    { value: Position.MEMBER, label: 'Member' },
+    { value: Position.NON_MEMBER, label: 'Non-Member' },
     { value: Position.WORKER, label: 'Worker' },
     { value: Position.HOD, label: 'HOD' },
     { value: Position.ASST_HOD, label: 'Ass. HOD' },

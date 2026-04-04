@@ -168,7 +168,10 @@ export const antdDarkTheme: ThemeConfig = {
         colorBgElevated: DS_PALETTE.neutral[800],
         colorBorder: DS_PALETTE.neutral[700],
         colorText: DS_PALETTE.neutral[200],
-        colorTextSecondary: DS_PALETTE.neutral[400],
+        colorTextSecondary: DS_PALETTE.neutral[300],
+        colorTextTertiary: DS_PALETTE.neutral[400],
+        colorTextQuaternary: DS_PALETTE.neutral[500],
+        colorTextPlaceholder: DS_PALETTE.neutral[400],
     },
     components: {
         ...antdTheme.components,

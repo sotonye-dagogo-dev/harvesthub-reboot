@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  USE_PRISMA: z.string().optional(),
-  ENABLE_MOCK_BACKEND: z.string().optional(),
   ENABLE_EMAIL: z.string().optional(),
   ENABLE_PUSH_NOTIFICATIONS: z.string().optional(),
   ENABLE_REDIS_CACHE: z.string().optional(),
@@ -13,6 +11,10 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   NEXT_PUBLIC_EMAIL_FROM: z.string().optional(),
+  PAYSTACK_PUBLIC_KEY: z.string().optional(),
+  PAYSTACK_SECRET_KEY: z.string().optional(),
+  FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
+  FLUTTERWAVE_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_SUBJECT: z.string().optional(),
@@ -50,8 +52,6 @@ function toPositiveInt(value: string | undefined, fallback: number): number {
 
 export const env = {
   nodeEnv: raw.NODE_ENV,
-  usePrisma: toBoolean(raw.USE_PRISMA, raw.NODE_ENV === 'production'),
-  enableMockBackend: toBoolean(raw.ENABLE_MOCK_BACKEND, raw.NODE_ENV !== 'production'),
   enableEmail: toBoolean(raw.ENABLE_EMAIL, true),
   enablePushNotifications: toBoolean(raw.ENABLE_PUSH_NOTIFICATIONS, true),
   enableRedisCache: toBoolean(raw.ENABLE_REDIS_CACHE, true),
@@ -60,6 +60,10 @@ export const env = {
   upstashUrl: raw.UPSTASH_REDIS_REST_URL,
   upstashToken: raw.UPSTASH_REDIS_REST_TOKEN,
   resendApiKey: raw.RESEND_API_KEY,
+  paystackPublicKey: raw.PAYSTACK_PUBLIC_KEY,
+  paystackSecretKey: raw.PAYSTACK_SECRET_KEY,
+  flutterwavePublicKey: raw.FLUTTERWAVE_PUBLIC_KEY,
+  flutterwaveSecretKey: raw.FLUTTERWAVE_SECRET_KEY,
   emailFrom: raw.NEXT_PUBLIC_EMAIL_FROM || 'noreply@myharvesthub.ng',
   vapidPublicKey: raw.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
   vapidPrivateKey: raw.VAPID_PRIVATE_KEY,

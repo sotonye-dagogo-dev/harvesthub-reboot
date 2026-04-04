@@ -1,18 +1,19 @@
 /**
  * POST /api/cart/items — Add item to cart
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
 import { ListingType } from '../../../../prisma/generated/client';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/cart/items', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Buyers only' }, { status: 403 });
+        if (!user) return apiError('Unauthorized', 401);
+        if (user.role !== UserRole.BUYER) return apiError('Buyers only', 403);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -20,21 +21,21 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { productId, quantity = 1 } = body;
 
-        if (!productId) return NextResponse.json({ error: 'productId is required' }, { status: 400 });
-        if (typeof quantity !== 'number' || quantity < 1) return NextResponse.json({ error: 'Quantity must be at least 1' }, { status: 400 });
+        if (!productId) return apiError('productId is required', 400);
+        if (typeof quantity !== 'number' || quantity < 1) return apiError('Quantity must be at least 1', 400);
 
         const product = await prisma.product.findUnique({ where: { id: productId } });
-        if (!product || !product.isActive) return NextResponse.json({ error: 'Product not found or inactive' }, { status: 404 });
+        if (!product || !product.isActive) return apiError('Product not found or inactive', 404);
 
         // Services are capped at qty 1
         const effectiveQty = product.listingType === ListingType.SERVICE ? 1 : quantity;
 
         if (product.listingType !== ListingType.SERVICE && product.stock < effectiveQty) {
-            return NextResponse.json({ error: 'Insufficient stock', available: product.stock }, { status: 400 });
+            return apiError('Insufficient stock', 400, { available: product.stock });
         }
 
         const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
-        if (!buyer) return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
+        if (!buyer) return apiError('Buyer not found', 404);
 
         // Get or create cart
         let cart = await prisma.cart.findUnique({ where: { buyerId: buyer.id } });
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
         if (existing) {
             const newQty = product.listingType === ListingType.SERVICE ? 1 : existing.quantity + effectiveQty;
             if (product.listingType !== ListingType.SERVICE && product.stock < newQty) {
-                return NextResponse.json({ error: 'Insufficient stock for requested quantity', available: product.stock }, { status: 400 });
+                return apiError('Insufficient stock for requested quantity', 400, { available: product.stock });
             }
             await prisma.cartItem.update({
                 where: { id: existing.id },
@@ -83,9 +84,6 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true, cart: updatedCart });
-    } catch (error) {
-        console.error('POST /api/cart/items error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ cart: updatedCart });
+    });
 }

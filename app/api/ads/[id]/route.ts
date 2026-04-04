@@ -1,18 +1,19 @@
 ﻿/**
  * GET /api/ads/[id] � Ad detail (owner or admin)
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
 export async function GET(req: NextRequest, context: RouteContext) {
-    try {
+    return withApiHandler('GET /api/ads/[id]', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -21,15 +22,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
             where: { id },
             include: { payments: true },
         });
-        if (!ad) return NextResponse.json({ error: 'Ad not found' }, { status: 404 });
+        if (!ad) return apiError('Ad not found', 404);
 
         if (user.role !== UserRole.ADMIN && ad.advertiserId !== user.userId) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            return apiError('Forbidden', 403);
         }
 
-        return NextResponse.json({ success: true, ad });
-    } catch (error) {
-        console.error('GET /api/ads/[id] error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ ad });
+    });
 }

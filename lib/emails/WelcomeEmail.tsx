@@ -9,7 +9,7 @@ interface WelcomeEmailProps {
 
 export function WelcomeEmail({ firstName, role }: WelcomeEmailProps) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
-  const dashboardUrl = role === "VENDOR" ? `${appUrl}/vendor/dashboard` : appUrl;
+  const dashboardUrl = role === "VENDOR" ? `${appUrl}/operations/dashboard` : appUrl;
 
   return (
     <EmailLayout

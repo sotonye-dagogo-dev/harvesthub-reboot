@@ -2,17 +2,18 @@
  * PUT    /api/cart/items/[id] � Update cart item quantity
  * DELETE /api/cart/items/[id] � Remove item from cart
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
 export async function PUT(req: NextRequest, context: RouteContext) {
-    try {
+    return withApiHandler('PUT /api/cart/items/[id]', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -21,19 +22,19 @@ export async function PUT(req: NextRequest, context: RouteContext) {
             where: { id },
             include: { cart: true, product: true },
         });
-        if (!cartItem) return NextResponse.json({ error: 'Cart item not found' }, { status: 404 });
+        if (!cartItem) return apiError('Cart item not found', 404);
 
         const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
         if (!buyer || cartItem.cart.buyerId !== buyer.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            return apiError('Forbidden', 403);
         }
 
         const { quantity } = await req.json();
         if (!quantity || quantity < 1) {
-            return NextResponse.json({ error: 'Quantity must be at least 1' }, { status: 400 });
+            return apiError('Quantity must be at least 1', 400);
         }
         if (quantity > cartItem.product.stock) {
-            return NextResponse.json({ error: `Only ${cartItem.product.stock} available` }, { status: 400 });
+            return apiError(`Only ${cartItem.product.stock} available`, 400);
         }
 
         const updated = await prisma.cartItem.update({
@@ -42,17 +43,14 @@ export async function PUT(req: NextRequest, context: RouteContext) {
             include: { product: true },
         });
 
-        return NextResponse.json({ success: true, item: updated });
-    } catch (error) {
-        console.error('PUT /api/cart/items/[id] error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ item: updated });
+    });
 }
 
 export async function DELETE(req: NextRequest, context: RouteContext) {
-    try {
+    return withApiHandler('DELETE /api/cart/items/[id]', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -61,17 +59,14 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
             where: { id },
             include: { cart: true },
         });
-        if (!cartItem) return NextResponse.json({ error: 'Cart item not found' }, { status: 404 });
+        if (!cartItem) return apiError('Cart item not found', 404);
 
         const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
         if (!buyer || cartItem.cart.buyerId !== buyer.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            return apiError('Forbidden', 403);
         }
 
         await prisma.cartItem.delete({ where: { id } });
-        return NextResponse.json({ success: true, message: 'Item removed from cart' });
-    } catch (error) {
-        console.error('DELETE /api/cart/items/[id] error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ message: 'Item removed from cart' });
+    });
 }

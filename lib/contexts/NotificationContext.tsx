@@ -11,10 +11,24 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  enablePushNotifications: () => Promise<void>;
   refreshNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+}
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -52,7 +66,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const markAsRead = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/notifications/${id}/read`, {
-        method: "PATCH",
+        method: "PUT",
       });
 
       if (res.ok) {
@@ -67,7 +81,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const markAllAsRead = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications/read-all", {
-        method: "PATCH",
+        method: "POST",
       });
 
       if (res.ok) {
@@ -79,26 +93,81 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const deleteNotification = useCallback(
-    async (id: string) => {
-      try {
-        const res = await fetch(`/api/notifications/${id}`, {
-          method: "DELETE",
+  const deleteNotification = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/notifications/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        let removedUnread = false;
+        setNotifications((prev) => {
+          const target = prev.find((n) => n.id === id);
+          removedUnread = target?.isRead === false;
+          return prev.filter((n) => n.id !== id);
         });
 
-        if (res.ok) {
-          const wasUnread = notifications.find((n) => n.id === id)?.isRead === false;
-          setNotifications((prev) => prev.filter((n) => n.id !== id));
-          if (wasUnread) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
+        if (removedUnread) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
         }
-      } catch (error) {
-        console.error("Failed to delete notification:", error);
       }
-    },
-    [notifications]
-  );
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  }, []);
+
+  const syncPushSubscription = useCallback(async (requestPermission: boolean): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) return false;
+
+    let permission = Notification.permission;
+    if (requestPermission && permission !== "granted") {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== "granted") return false;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
+        });
+      }
+
+      const payload = subscription.toJSON();
+      const endpoint = payload.endpoint;
+      const p256dh = payload.keys?.p256dh;
+      const auth = payload.keys?.auth;
+
+      if (!endpoint || !p256dh || !auth) {
+        return false;
+      }
+
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          endpoint,
+          keys: { p256dh, auth },
+        }),
+      });
+
+      return res.ok;
+    } catch (error) {
+      console.warn("Push subscription sync failed:", error);
+      return false;
+    }
+  }, []);
+
+  const enablePushNotifications = useCallback(async () => {
+    await syncPushSubscription(true);
+  }, [syncPushSubscription]);
 
   const refreshNotifications = useCallback(() => {
     fetchNotifications();
@@ -107,8 +176,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Fetch on mount
   useEffect(() => {
     fetchNotifications();
-
-    // Poll for new notifications every 30 seconds (only if API is available)
     const interval = setInterval(() => {
       fetchNotifications();
     }, 30000);
@@ -116,14 +183,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Poll for new notifications every 30 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
+    syncPushSubscription(false).catch(() => {
+      // No-op: silent background sync for already-granted permissions.
+    });
+  }, [syncPushSubscription]);
 
   return (
     <NotificationContext.Provider
@@ -135,6 +199,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         markAsRead,
         markAllAsRead,
         deleteNotification,
+        enablePushNotifications,
         refreshNotifications,
       }}
     >

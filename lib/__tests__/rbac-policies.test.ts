@@ -5,13 +5,13 @@ import { getRoutePolicy } from '@/lib/rbac/policies';
 describe('rbac route policies', () => {
   it('matches exact and nested routes with most specific policy', () => {
     expect(getRoutePolicy('/')).toMatchObject({ public: true });
-    expect(getRoutePolicy('/admin/dashboard')).toMatchObject({
+    expect(getRoutePolicy('/operations/users')).toMatchObject({
       public: false,
       roles: [UserRole.ADMIN],
     });
-    expect(getRoutePolicy('/vendor/products/123')).toMatchObject({
+    expect(getRoutePolicy('/operations/marketing-content')).toMatchObject({
       public: false,
-      roles: [UserRole.VENDOR],
+      roles: [UserRole.VENDOR, UserRole.ADMIN],
     });
   });
 
@@ -31,10 +31,16 @@ describe('rbac route policies', () => {
     });
   });
 
-  it('adds store-settings route policy for vendor-only', () => {
+  it('adds store-settings route policy for vendor and admin', () => {
     expect(getRoutePolicy('/store-settings')).toMatchObject({
       public: false,
-      roles: [UserRole.VENDOR],
+      roles: [UserRole.VENDOR, UserRole.ADMIN],
+    });
+  });
+
+  it('keeps ad-application publicly accessible', () => {
+    expect(getRoutePolicy('/ad-application')).toMatchObject({
+      public: true,
     });
   });
 });

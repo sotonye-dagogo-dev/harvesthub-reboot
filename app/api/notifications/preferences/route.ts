@@ -2,15 +2,16 @@
  * GET /api/notifications/preferences — Get notification preferences
  * PUT /api/notifications/preferences — Update notification preferences
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function GET(_req: NextRequest) {
-    try {
+    return withApiHandler('GET /api/notifications/preferences', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -26,17 +27,14 @@ export async function GET(_req: NextRequest) {
             });
         }
 
-        return NextResponse.json({ success: true, preferences: prefs });
-    } catch (error) {
-        console.error('GET /api/notifications/preferences error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ preferences: prefs });
+    });
 }
 
 export async function PUT(req: NextRequest) {
-    try {
+    return withApiHandler('PUT /api/notifications/preferences', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -57,9 +55,6 @@ export async function PUT(req: NextRequest) {
             update: updateData,
         });
 
-        return NextResponse.json({ success: true, preferences: prefs });
-    } catch (error) {
-        console.error('PUT /api/notifications/preferences error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ preferences: prefs });
+    });
 }

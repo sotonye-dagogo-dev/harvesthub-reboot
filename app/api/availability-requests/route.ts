@@ -2,16 +2,17 @@
  * GET  /api/availability-requests — List requests (role-filtered)
  * POST /api/availability-requests — Create request (buyer only)
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function GET(req: NextRequest) {
-    try {
+    return withApiHandler('GET /api/availability-requests', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -24,11 +25,11 @@ export async function GET(req: NextRequest) {
 
         if (user.role === UserRole.BUYER) {
             const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
-            if (!buyer) return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
+            if (!buyer) return apiError('Buyer profile not found', 404);
             where.buyerId = buyer.id;
         } else if (user.role === UserRole.VENDOR) {
             const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
-            if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
+            if (!vendor) return apiError('Vendor profile not found', 404);
             where.vendorId = vendor.id;
         }
         // Admin sees all
@@ -49,35 +50,31 @@ export async function GET(req: NextRequest) {
             prisma.productAvailabilityRequest.count({ where }),
         ]);
 
-        return NextResponse.json({
-            success: true,
+        return apiSuccess({
             requests,
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
-    } catch (error) {
-        console.error('GET /api/availability-requests error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+    });
 }
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/availability-requests', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Only buyers can create requests' }, { status: 403 });
+        if (!user) return apiError('Unauthorized', 401);
+        if (user.role !== UserRole.BUYER) return apiError('Only buyers can create requests', 403);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
-        if (!buyer) return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
+        if (!buyer) return apiError('Buyer profile not found', 404);
 
         const { vendorId, items, buyerNote, expiresAt } = await req.json();
         if (!vendorId || !items || !Array.isArray(items) || items.length === 0) {
-            return NextResponse.json({ error: 'vendorId and items array are required' }, { status: 400 });
+            return apiError('vendorId and items array are required', 400);
         }
 
         const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
-        if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (!vendor) return apiError('Vendor not found', 404);
 
         const request = await prisma.productAvailabilityRequest.create({
             data: {
@@ -90,9 +87,6 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true, request }, { status: 201 });
-    } catch (error) {
-        console.error('POST /api/availability-requests error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ request }, 201);
+    });
 }

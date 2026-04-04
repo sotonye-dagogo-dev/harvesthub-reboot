@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 
 export default function VerifyEmailPage() {
+  const router = useRouter();
   const search = useSearchParams();
   const token = search.get("token") || "";
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [resendLoading, setResendLoading] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(4);
 
   useEffect(() => {
     if (!token) return;
@@ -35,6 +39,27 @@ export default function VerifyEmailPage() {
       }
     })();
   }, [token]);
+
+  useEffect(() => {
+    if (status !== "success") {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          router.push("/login?verified=1");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [router, status]);
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +91,20 @@ export default function VerifyEmailPage() {
     <main className="mx-auto mt-12 max-w-lg px-4">
       <h1 className="text-2xl font-bold mb-4">Verify your email</h1>
       {status === "loading" && <p className="text-ds-text-secondary">Verifying...</p>}
-      {status === "success" && <p className="mb-4 text-green-500">{message}</p>}
+      {status === "success" && (
+        <div className="mb-4 space-y-2">
+          <p className="text-green-600 dark:text-green-400">{message}</p>
+          <p className="text-sm text-ds-text-secondary">
+            Redirecting to sign in in {redirectCountdown}s...
+          </p>
+          <Link
+            href="/login?verified=1"
+            className="inline-flex rounded-ds-md bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
+          >
+            Continue to Login
+          </Link>
+        </div>
+      )}
       {status === "error" && <p className="mb-4 text-red-500">{message}</p>}
       {!token && (
         <p className="text-ds-text-secondary mb-4">
@@ -80,7 +118,7 @@ export default function VerifyEmailPage() {
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value.toLowerCase())}
           placeholder="you@example.com"
           className="w-full max-w-md rounded-md border border-ds-border-base bg-ds-surface-base p-2 text-sm dark:bg-ds-surface-sunken dark:text-ds-text-primary"
         />

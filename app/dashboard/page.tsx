@@ -16,10 +16,10 @@
  * and avoids hard-coding role-specific paths in nav components.
  *
  * ROUTES:
- *   - BUYER  → / (no separate buyer dashboard)
- *   - VENDOR → /vendor/analytics
- *   - ADMIN  → /admin/analytics
- *   - (unauthed) → /login
+ *   - BUYER  -> / (no separate buyer dashboard)
+ *   - VENDOR -> /analytics
+ *   - ADMIN  -> /analytics
+ *   - (unauthed) -> /login
  */
 "use client";
 

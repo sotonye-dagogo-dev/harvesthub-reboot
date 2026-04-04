@@ -288,6 +288,7 @@ export const adApplicationDb = {
 export const adRateConfigDb = {
     findAll: async () => withPrismaReconnect(() => prisma.adRateConfig.findMany()),
     findById: async (id: string) => withPrismaReconnect(() => prisma.adRateConfig.findUnique({ where: { id } })),
+    getActive: async () => withPrismaReconnect(() => prisma.adRateConfig.findFirst({ where: { isActive: true } })),
     create: async (data: any) => withPrismaReconnect(() => prisma.adRateConfig.create({ data })),
     update: async (id: string, data: any) => withPrismaReconnect(() => prisma.adRateConfig.update({ where: { id }, data })),
     delete: async (id: string) => {

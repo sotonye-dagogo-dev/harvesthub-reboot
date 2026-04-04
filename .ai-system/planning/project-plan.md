@@ -20,6 +20,9 @@
 - [ ] Consolidate role-based pages into single-page-per-feature (remove /buyer, /vendor, /admin page duplication)
 - [ ] Build dynamic role-aware routing provider and config-driven page rendering service
 - [ ] Migrate API route permissions to policy-driven router middleware
+- [x] Standardize ad-related API handlers with shared response envelope + validation
+- [x] Replace ad-media URL fields with upload-driven flow and offline draft/queue resilience
+- [x] De-duplicate admin/vendor shell layout via a shared role dashboard container
 
 ---
 
@@ -33,7 +36,7 @@
 - [ ] Wallet system (deposit, withdrawal, balance) with mock transactions
 - [ ] Order management dashboard (vendor + buyer views)
 - [ ] Promotional banners and campaigns
-- [ ] Role-based access control for routes and API endpoints
+- [x] Role-based access control for routes and API endpoints
 
 ---
 
@@ -46,7 +49,7 @@
 - [ ] Notifications system (in-app & email) and optional web push
 - [ ] Caching layer for public and frequently-read content (Redis + invalidation)
 - [ ] Cloud asset handling (upload metadata persistence, safe failure paths)
-- [ ] Analytics dashboards for vendors and admins
+- [x] Analytics dashboards for vendors and admins
 - [ ] Search and filtering improvements (categories, locations)
 
 ---
@@ -59,6 +62,7 @@
 - [ ] Accessibility audit and fixes (keyboard navigation, aria labels)
 - [ ] Performance profiling and bundle optimization
 - [ ] Error/empty/loading states refined across the app
+- [x] Core-flow design-system modernization across signup, product browsing, cart, checkout, and operations dashboard
 - [ ] Revisit all mock-backend logic for eventual Prisma migration
 
 ---
@@ -71,6 +75,45 @@
 - [ ] Security review (auth, input validation, secrets handling)
 - [ ] Deployment pipeline set up (GitHub Actions or CI/CD)
 - [ ] Documentation & onboarding docs complete
+
+---
+
+## Cloud Session Feature Spec - Production Readiness Completion (Planned 2026-04-04)
+
+> **Section summary:** Execution spec for the cloud session to complete interrupted refactor work and deliver production-ready behavior across critical platform flows.
+
+**Feature Objective:**
+Stabilize and complete the in-progress refactor wave while implementing missing production-critical behavior across signup, account security, content configuration, operations CRUD, payment handling, and route integrity.
+
+**Why This Is Needed:**
+
+- Current work is interrupted with a large in-progress diff and partially complete queue items.
+- Remaining hardcoded content/routes and incomplete flow wiring increase production risk.
+- Signup, notification preferences, verification policies, and payment/fallback behaviors need end-to-end reliability before launch.
+
+**Acceptance Criteria:**
+
+- Role-aware routing is consistent and no dead links remain across header, footer, dashboards, and operations areas.
+- Signup supports all expected roles (including Worker), no intermittent required-field failures, and has regression coverage.
+- Users can safely change email and re-verify through a secure redirect-based flow.
+- Required vs optional UI labels are schema-consistent across major forms; draft retention/restoration is universal and non-blocking.
+- Help/public content and user-visible links are config-driven and admin-editable.
+- Vendor verification status rules are explicit and enforced without blocking store setup/product creation.
+- Bug reporting works from submission through admin triage; operations CRUD flows are functional for key domains.
+- Paystack integration path is production-ready with webhook-capable handlers; bank-transfer screenshot flow remains controlled by a feature flag fallback.
+- Full quality gate passes (lint, typecheck, targeted/full tests, route audit) and `.ai-system` docs are synchronized.
+
+**Rollout Order:**
+
+1. Stabilize existing interrupted diff + close open refactor wave gaps.
+2. Fix signup/role validation defects and add tests.
+3. Implement email-change + re-verification flow.
+4. Apply universal form retention + schema/UI required-label alignment.
+5. Complete config-driven content/navigation/help implementation.
+6. Enforce settings/preferences behavior and vendor verification policy.
+7. Finalize bug-report and operations CRUD reliability.
+8. Harden payment integration with flagged fallback deprecation path.
+9. Perform bulk cleanup and final production-readiness verification.
 
 ---
 

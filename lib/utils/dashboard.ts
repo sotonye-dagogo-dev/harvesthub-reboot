@@ -3,9 +3,9 @@ import { UserRole } from '@/lib/constants';
 export function getDashboardRoute(role: string | null | undefined): string {
     switch (role) {
         case UserRole.ADMIN:
-            return '/admin/dashboard';
+            return '/operations/dashboard';
         case UserRole.VENDOR:
-            return '/vendor/dashboard';
+            return '/operations/dashboard';
         case UserRole.BUYER:
             return '/dashboard';
         default:

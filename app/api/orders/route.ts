@@ -6,8 +6,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { UserRole } from '@/lib/constants';
-import { Prisma } from '../../../prisma/generated/client';
+import { PLATFORM_DEFAULTS, UserRole } from '@/lib/constants';
+import { verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
+import { dispatchNotification } from '@/lib/services/notifications';
+import { PaymentMethod, PaymentStatus, Prisma } from '../../../prisma/generated/client';
 
 export async function GET(req: NextRequest) {
     try {
@@ -67,10 +69,65 @@ export async function POST(req: NextRequest) {
         if (!rl.success) return getRateLimitResponse(rl);
 
         const body = await req.json();
-        const { vendorId, items, paymentMethod, deliveryMethod, deliveryAddress, pickupDetails, notes } = body;
+        const {
+            vendorId,
+            items,
+            paymentMethod,
+            deliveryMethod,
+            deliveryAddress,
+            pickupDetails,
+            notes,
+            paymentGateway,
+            paymentReference,
+            paymentVerificationReference,
+        } = body;
 
         if (!vendorId || !items?.length || !paymentMethod || !deliveryMethod) {
             return NextResponse.json({ error: 'vendorId, items, paymentMethod, deliveryMethod are required' }, { status: 400 });
+        }
+
+        if (!Object.values(PaymentMethod).includes(paymentMethod as PaymentMethod)) {
+            return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
+        }
+
+        const requiresGatewayVerification =
+            PLATFORM_DEFAULTS.PAYMENTS_ENABLED && paymentMethod === PaymentMethod.CARD;
+
+        let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
+        let paymentAuditNote = 'Payment pending confirmation.';
+
+        if (requiresGatewayVerification) {
+            if (!paymentGateway || !paymentReference) {
+                return NextResponse.json(
+                    { error: 'paymentGateway and paymentReference are required for card payments' },
+                    { status: 400 }
+                );
+            }
+
+            const gateway = String(paymentGateway).toUpperCase() as SupportedPaymentGateway;
+            if (!['PAYSTACK', 'FLUTTERWAVE'].includes(gateway)) {
+                return NextResponse.json({ error: 'Unsupported payment gateway' }, { status: 400 });
+            }
+
+            const verificationReference = paymentVerificationReference || paymentReference;
+            gatewayVerification = await verifyPayment({
+                gateway,
+                reference: verificationReference,
+            });
+
+            if (gatewayVerification.status !== 'SUCCESS') {
+                return NextResponse.json(
+                    {
+                        error: 'Payment verification is not successful',
+                        verification: gatewayVerification,
+                    },
+                    { status: 400 }
+                );
+            }
+
+            paymentAuditNote = `Payment verified via ${gateway} (ref: ${paymentReference}).`;
+        } else if (paymentMethod === PaymentMethod.WALLET && PLATFORM_DEFAULTS.PAYMENTS_ENABLED) {
+            paymentAuditNote = 'Wallet payment selected.';
         }
 
         // Use Prisma for all order operations (no mock fallback)
@@ -107,6 +164,26 @@ export async function POST(req: NextRequest) {
 
         const deliveryFee = deliveryMethod === 'DELIVERY' ? 1500 : 0;
         const total = subtotal + deliveryFee;
+        const paymentStatus =
+            requiresGatewayVerification ||
+            (paymentMethod === PaymentMethod.WALLET && PLATFORM_DEFAULTS.PAYMENTS_ENABLED)
+                ? PaymentStatus.PAID
+                : PaymentStatus.PENDING;
+
+        const statusHistory: Array<Record<string, unknown>> = [
+            { status: 'PENDING', timestamp: new Date().toISOString(), note: 'Order created' },
+            {
+                status: 'PAYMENT_RECORDED',
+                timestamp: new Date().toISOString(),
+                note: paymentAuditNote,
+                paymentStatus,
+                paymentMethod,
+                paymentReference: paymentReference || null,
+                paymentGateway: paymentGateway || null,
+                verificationStatus: gatewayVerification?.status || null,
+            },
+        ];
+
         const orderNumber = `MHH-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
         const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -119,11 +196,12 @@ export async function POST(req: NextRequest) {
                     deliveryFee,
                     total,
                     paymentMethod,
+                    paymentStatus,
                     deliveryMethod,
                     deliveryAddress: deliveryAddress || null,
                     pickupDetails: pickupDetails || null,
-                    notes: notes || null,
-                    statusHistory: [{ status: 'PENDING', timestamp: new Date().toISOString(), note: 'Order created' }],
+                    notes: notes || paymentAuditNote,
+                    statusHistory: statusHistory as Prisma.InputJsonValue,
                     items: { create: orderItems },
                 },
                 include: { items: true, vendor: { select: { id: true, storeName: true } } },
@@ -146,19 +224,37 @@ export async function POST(req: NextRequest) {
                 data: { totalOrders: { increment: 1 }, totalSales: { increment: total } },
             });
 
-            // Create notification for vendor
-            await tx.notification.create({
-                data: {
-                    userId: vendor.userId,
-                    type: 'ORDER_CONFIRMED',
-                    title: 'New Order Received',
-                    message: `Order ${orderNumber} has been placed.`,
-                    link: `/vendor/orders`,
-                },
-            });
-
             return newOrder;
         });
+
+        const notificationMetadata = {
+            orderId: order.id,
+            orderNumber,
+            paymentMethod,
+            paymentStatus,
+            total,
+        } as Prisma.InputJsonValue;
+
+        await Promise.allSettled([
+            dispatchNotification({
+                userId: vendor.userId,
+                type: 'ORDER_CONFIRMED',
+                title: 'New Order Received',
+                message: `Order ${orderNumber} has been placed.`,
+                link: '/orders',
+                emailSubject: `New order received: ${orderNumber}`,
+                metadata: notificationMetadata,
+            }),
+            dispatchNotification({
+                userId: user.userId,
+                type: 'ORDER_CONFIRMED',
+                title: 'Order Placed Successfully',
+                message: `Your order ${orderNumber} has been placed successfully.`,
+                link: '/orders',
+                emailSubject: `Order ${orderNumber} confirmed`,
+                metadata: notificationMetadata,
+            }),
+        ]);
 
         return NextResponse.json({ success: true, order }, { status: 201 });
     } catch (error) {

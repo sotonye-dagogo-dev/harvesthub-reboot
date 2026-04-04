@@ -1,21 +1,22 @@
 /**
  * POST /api/push/subscribe — Store push subscription
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/push/subscribe', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const { endpoint, keys } = await req.json();
         if (!endpoint || !keys) {
-            return NextResponse.json({ error: 'endpoint and keys are required' }, { status: 400 });
+            return apiError('endpoint and keys are required', 400);
         }
 
         // Upsert by endpoint to avoid duplicates
@@ -35,9 +36,6 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        return NextResponse.json({ success: true, subscription }, { status: 201 });
-    } catch (error) {
-        console.error('POST /api/push/subscribe error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ subscription }, 201);
+    });
 }

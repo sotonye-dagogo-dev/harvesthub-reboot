@@ -5,8 +5,66 @@ import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { getRoutePolicy } from "@/lib/rbac/policies";
 import { verifyAccessToken } from "@/lib/utils/jwt";
 
+function getLegacyOperationsPath(pathname: string): string | null {
+    if (pathname === "/admin" || pathname === "/admin/dashboard") {
+        return "/operations/dashboard";
+    }
+    if (pathname === "/admin/users" || pathname.startsWith("/admin/users/")) {
+        return pathname.replace("/admin/users", "/operations/users");
+    }
+    if (pathname === "/admin/vendors" || pathname.startsWith("/admin/vendors/")) {
+        return pathname.replace("/admin/vendors", "/operations/vendors");
+    }
+    if (pathname === "/admin/banners") {
+        return "/operations/banners";
+    }
+    if (pathname === "/admin/ads") {
+        return "/operations/ads";
+    }
+    if (pathname === "/admin/public-content") {
+        return "/operations/public-content";
+    }
+    if (pathname === "/admin/bug-reports") {
+        return "/operations/bug-reports";
+    }
+    if (pathname === "/admin/settings") {
+        return "/operations/settings";
+    }
+    if (pathname === "/admin/vendor-content") {
+        return "/operations/vendor-content";
+    }
+
+    if (pathname === "/vendor" || pathname === "/vendor/dashboard") {
+        return "/operations/dashboard";
+    }
+    if (pathname === "/vendor/marketing-content") {
+        return "/operations/marketing-content";
+    }
+    if (pathname === "/vendor/store-settings") {
+        return "/store-settings";
+    }
+
+    if (pathname.startsWith("/admin/")) {
+        return "/operations/dashboard";
+    }
+
+    if (pathname.startsWith("/vendor/")) {
+        return "/operations/dashboard";
+    }
+
+    return null;
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+
+    const legacyPath = getLegacyOperationsPath(pathname);
+    if (legacyPath && legacyPath !== pathname) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = legacyPath;
+        return NextResponse.redirect(redirectUrl);
+    }
+
     const routePolicy = getRoutePolicy(pathname);
 
     // If the route is not explicitly declared, treat as public to avoid accidental redirect loops (e.g., /unauthorized)
