@@ -5,41 +5,20 @@
  * They call API routes which handle environment-aware data fetching
  */
 
-import type { Product, Vendor, Review } from '@/lib/types';
-
-// Enable mock data only when explicitly opted in (e.g., during local dev when backend is not available)
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
-
-let _cachedMockData: any = null;
-async function loadMockData() {
-    if (_cachedMockData) return _cachedMockData;
-    try {
-        const m = await import('./mockData.dev');
-        _cachedMockData = m;
-        return m;
-    } catch {
-        return null;
-    }
-}
 
 // ==================== BANNERS ====================
 
 export async function getBannersClient() {
     try {
         const res = await fetch('/api/banners?active=true');
-        if (!res.ok) {
-            const m = await loadMockData();
-            return useMockData ? m?.mockBanners ?? [] : [];
-        }
+        if (!res.ok) return [];
 
         const data = await res.json();
         if (data?.banners) return data.banners;
-        const m = await loadMockData();
-        return useMockData ? m?.mockBanners ?? [] : [];
+        return [];
     } catch (err) {
         console.error('getBannersClient error', err);
-        const m = await loadMockData();
-        return useMockData ? m?.mockBanners ?? [] : [];
+        return [];
     }
 }
 
@@ -69,12 +48,10 @@ export async function getProductsClient(filters?: {
         const data = await res.json();
         const list = data?.products ?? null;
         if (Array.isArray(list)) return list.slice(0, limit);
-        const m = await loadMockData();
-        return useMockData ? (m?.mockProducts ?? []).slice(0, limit) : [];
+        return [];
     } catch (err) {
         console.error('getProductsClient error', err);
-        const m = await loadMockData();
-        return useMockData ? (m?.mockProducts ?? []).slice(0, limit) : [];
+        return [];
     }
 }
 
@@ -92,12 +69,10 @@ export async function getProductByIdClient(id: string) {
         const data = await res.json();
         const product = data?.product ?? null;
         if (product) return product;
-        const m = await loadMockData();
-        return useMockData ? m?.mockProducts.find((p: any) => p.id === id) ?? null : null;
+        return null;
     } catch (err) {
         console.error('getProductByIdClient error', err);
-        const m = await loadMockData();
-        return useMockData ? (m?.mockProducts ?? []).find((p: Product) => p.id === id) ?? null : null;
+        return null;
     }
 }
 
@@ -111,12 +86,10 @@ export async function getVendorsClient(limit = 20) {
         const data = await res.json();
         const vendors = data?.vendors ?? null;
         if (Array.isArray(vendors)) return vendors;
-        const m = await loadMockData();
-        return useMockData ? m?.mockVendors ?? [] : [];
+        return [];
     } catch (err) {
         console.error('getVendorsClient error', err);
-        const m = await loadMockData();
-        return useMockData ? m?.mockVendors ?? [] : [];
+        return [];
     }
 }
 
@@ -158,12 +131,10 @@ export async function getVendorByIdClient(id: string) {
         const data = await res.json();
         const vendor = data?.vendor ?? null;
         if (vendor) return vendor;
-        const m = await loadMockData();
-        return useMockData ? (m?.mockVendors ?? []).find((v: Vendor) => v.id === id) ?? null : null;
+        return null;
     } catch (err) {
         console.error('getVendorByIdClient error', err);
-        const m = await loadMockData();
-        return useMockData ? (m?.mockVendors ?? []).find((v: Vendor) => v.id === id) ?? null : null;
+        return null;
     }
 }
 
@@ -178,12 +149,10 @@ export async function getOrdersClient() {
 
         const data = await res.json();
         if (Array.isArray(data?.orders)) return data.orders;
-        const m = await loadMockData();
-        return useMockData ? m?.mockOrders ?? [] : [];
+        return [];
     } catch (err) {
         console.error('getOrdersClient error', err);
-        const m = await loadMockData();
-        return useMockData ? m?.mockOrders ?? [] : [];
+        return [];
     }
 }
 
@@ -194,12 +163,10 @@ export async function getUsersClient() {
 
         const data = await res.json();
         if (Array.isArray(data?.data)) return data.data;
-        const m = await loadMockData();
-        return useMockData ? m?.mockUsers ?? [] : [];
+        return [];
     } catch (err) {
         console.error('getUsersClient error', err);
-        const m = await loadMockData();
-        return useMockData ? m?.mockUsers ?? [] : [];
+        return [];
     }
 }
 
@@ -227,11 +194,9 @@ export async function getReviewsByProductIdClient(productId: string) {
 
         const data = await res.json();
         if (Array.isArray(data?.reviews)) return data.reviews;
-        const m = await loadMockData();
-        return useMockData ? (m?.mockReviews ?? []).filter((r: Review) => r.productId === productId) : [];
+        return [];
     } catch (err) {
         console.error('getReviewsByProductIdClient error', err);
-        const m = await loadMockData();
-        return useMockData ? (m?.mockReviews ?? []).filter((r: Review) => r.productId === productId) : [];
+        return [];
     }
 }

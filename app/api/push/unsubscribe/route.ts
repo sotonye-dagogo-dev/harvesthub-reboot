@@ -1,34 +1,32 @@
 /**
  * POST /api/push/unsubscribe — Remove push subscription
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/push/unsubscribe', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const { endpoint } = await req.json();
         if (!endpoint) {
-            return NextResponse.json({ error: 'endpoint is required' }, { status: 400 });
+            return apiError('endpoint is required', 400);
         }
 
         const existing = await prisma.pushSubscription.findFirst({
             where: { endpoint, userId: user.userId },
         });
         if (!existing) {
-            return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+            return apiError('Subscription not found', 404);
         }
 
         await prisma.pushSubscription.delete({ where: { id: existing.id } });
-        return NextResponse.json({ success: true, message: 'Unsubscribed' });
-    } catch (error) {
-        console.error('POST /api/push/unsubscribe error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+        return apiSuccess({ message: 'Unsubscribed' });
+    });
 }

@@ -12,6 +12,7 @@ import {
   LogOut,
   Package,
   Heart,
+  Store,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -63,8 +64,9 @@ export function Header() {
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ds-text-placeholder sm:left-3 sm:h-5 sm:w-5" />
               <input
                 type="text"
+                aria-label="Search products and vendors"
                 placeholder="Search..."
-                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-1.5 pl-8 pr-3 text-xs placeholder:text-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:py-2 sm:pl-10 sm:pr-4 sm:text-sm dark:text-ds-text-primary"
+                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-2 pl-8 pr-3 text-sm placeholder:text-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:pl-10 sm:pr-4 dark:text-ds-text-primary"
               />
             </div>
           </div>
@@ -166,6 +168,22 @@ export function Header() {
                   <span className="hidden lg:block">{user.firstName}</span>
                 </Link>
 
+                {/* Buyer -> Vendor conversion */}
+                {user.role === "BUYER" && (
+                  <Link
+                    href="/become-vendor"
+                    className={cn(
+                      "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive("/become-vendor")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
+                  >
+                    <Store className="h-4 w-4" />
+                    <span className="hidden lg:block">Register Store</span>
+                  </Link>
+                )}
+
                 {/* Logout */}
                 <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1">
                   <LogOut className="h-4 w-4" />
@@ -190,8 +208,8 @@ export function Header() {
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-label="Toggle mobile menu"
-            aria-expanded={showMobileMenu}
             aria-controls="mobile-menu"
+            data-expanded={showMobileMenu ? "true" : "false"}
             className="rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
           >
             <Menu className="h-6 w-6" />
@@ -270,6 +288,17 @@ export function Header() {
                     <User className="h-5 w-5" />
                     Profile
                   </Link>
+
+                  {user.role === "BUYER" && (
+                    <Link
+                      href="/become-vendor"
+                      className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <Store className="h-5 w-5" />
+                      Register Store
+                    </Link>
+                  )}
 
                   {/* Logout */}
                   <button

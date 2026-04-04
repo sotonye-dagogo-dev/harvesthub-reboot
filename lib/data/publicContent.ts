@@ -12,32 +12,7 @@ type PublicContentItem = {
     updatedAt: Date;
 };
 
-let _cachedMockData: { publicContent: PublicContentItem[] } | null = null;
-
-async function loadMockData() {
-    if (_cachedMockData) return _cachedMockData;
-    try {
-        const m = await import('./mockData.dev');
-        _cachedMockData = { publicContent: (m as any).mockPublicContent ?? [] };
-        return _cachedMockData;
-    } catch {
-        return null;
-    }
-}
-
-function isMockDataEnabled() {
-    return (
-        process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
-        (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'false')
-    );
-}
-
 export async function getPublicContentBySlug(slug: string): Promise<PublicContentItem | null> {
-    if (isMockDataEnabled()) {
-        const mock = await loadMockData();
-        return mock?.publicContent.find((item) => item.slug === slug) ?? null;
-    }
-
     const cached = await getCachedPublicContentBySlug(slug);
     if (cached) {
         return cached as PublicContentItem;
@@ -50,11 +25,7 @@ export async function getPublicContentBySlug(slug: string): Promise<PublicConten
         });
     } catch (error) {
         console.error('[getPublicContentBySlug] Prisma query error:', error);
-        if (!isMockDataEnabled()) {
-            const mock = await loadMockData();
-            return mock?.publicContent.find((item) => item.slug === slug) ?? null;
-        }
-        throw error;
+        return null;
     }
 
     if (!content) return null;
@@ -64,12 +35,6 @@ export async function getPublicContentBySlug(slug: string): Promise<PublicConten
 }
 
 export async function listPublicContent(status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED') {
-    if (isMockDataEnabled()) {
-        const mock = await loadMockData();
-        const list = mock?.publicContent ?? [];
-        return status ? list.filter((item) => item.status === status) : list;
-    }
-
     let content;
     try {
         content = await (prisma as any).publicContent.findMany({
@@ -81,12 +46,7 @@ export async function listPublicContent(status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIV
         return content as PublicContentItem[];
     } catch (error) {
         console.error('[listPublicContent] Prisma query error:', error);
-        if (!isMockDataEnabled()) {
-            const mock = await loadMockData();
-            const list = mock?.publicContent ?? [];
-            return status ? list.filter((item) => item.status === status) : list;
-        }
-        throw error;
+        return [];
     }
 }
 
@@ -97,29 +57,6 @@ export async function upsertPublicContent(data: {
     metadata?: Record<string, unknown>;
     status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }) {
-    if (isMockDataEnabled()) {
-        const existing = await getPublicContentBySlug(data.slug);
-        if (existing) {
-            const updated = { ...existing, ...data, updatedAt: new Date() };
-            const mock = await loadMockData();
-            if (!mock) throw new Error('Mock data not available');
-            mock.publicContent = mock.publicContent.map((item) => (item.slug === data.slug ? updated : item));
-            return updated;
-        }
-
-        const newItem: PublicContentItem = {
-            id: `mock-${Date.now()}`,
-            ...data,
-            status: data.status ?? 'PUBLISHED',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
-        const mock = await loadMockData();
-        if (!mock) throw new Error('Mock data not available');
-        mock.publicContent.push(newItem);
-        return newItem;
-    }
-
     const saved = await (prisma as any).publicContent.upsert({
         where: { slug: data.slug },
         create: {
@@ -142,14 +79,6 @@ export async function upsertPublicContent(data: {
 }
 
 export async function deletePublicContent(slug: string) {
-    if (isMockDataEnabled()) {
-        const mock = await loadMockData();
-        if (!mock) return null;
-        const item = mock.publicContent.find((content) => content.slug === slug) ?? null;
-        mock.publicContent = mock.publicContent.filter((content) => content.slug !== slug);
-        return item;
-    }
-
     const existing = await (prisma as any).publicContent.findUnique({ where: { slug } });
     if (!existing) return null;
 

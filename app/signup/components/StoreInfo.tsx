@@ -18,7 +18,7 @@ interface VendorInfoFields {
   campus: string;
   position?: string;
   storeDescription: string;
-  businessAddress?: string;
+  businessAddress: string;
   bankName?: string;
   accountName?: string;
   accountNumber?: string;
@@ -218,8 +218,11 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
         <Form.Item
           name="businessAddress"
           label={
-            <span className="text-ds-text-primary font-medium">Business Address (Optional)</span>
+            <span className="text-ds-text-primary font-medium">
+              Business Address <span className="text-ds-status-error-text">*</span>
+            </span>
           }
+          rules={[{ required: true, message: "Please enter your business address" }]}
         >
           <Input size="large" placeholder="Street address, city, state" className="rounded-ds-md" />
         </Form.Item>

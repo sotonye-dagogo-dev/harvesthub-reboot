@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, PageLoader } from "@/components/ui";
 import { Upload, Camera, Store, MapPin, Percent, Info } from "lucide-react";
 import { Switch, Select, message, Input as AntInput } from "antd";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
@@ -13,6 +13,8 @@ export default function StoreSettingsFeature() {
   const { user } = useAuth();
 
   const [vendor, setVendor] = useState<any>(undefined);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const [formData, setFormData] = useState({
     storeName: "",
@@ -34,32 +36,64 @@ export default function StoreSettingsFeature() {
 
   useEffect(() => {
     let mounted = true;
+
+    if (!user) {
+      setLoadingSettings(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    if (user.role !== "VENDOR") {
+      setLoadingSettings(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
     async function loadVendor() {
+      setLoadingSettings(true);
       try {
-        const res = await fetch("/api/vendors?limit=50");
-        if (!res.ok) return;
+        const res = await fetch("/api/vendors/me/store-settings");
+        if (!res.ok) throw new Error("Failed to load store settings");
         const json = await res.json();
         if (!mounted) return;
-        const found = Array.isArray(json.vendors)
-          ? json.vendors.find((v: any) => v.userId === user?.id)
-          : null;
-        if (found) {
-          setVendor(found);
-          setFormData((prev) => ({
-            ...prev,
-            storeName: found.storeName || prev.storeName,
-            description: found.storeDescription || prev.description,
-            category: found.category || prev.category,
-            campus: found.campus || prev.campus,
-            whatsapp: found.whatsappNumber || prev.whatsapp,
-            allowsPickup: found.storeSettings?.allowsPickup ?? prev.allowsPickup,
-            allowsDelivery: found.storeSettings?.allowsDelivery ?? prev.allowsDelivery,
-            returnPolicy: found.storeSettings?.policies?.returnPolicy || prev.returnPolicy,
-            shippingPolicy: found.storeSettings?.policies?.shippingPolicy || prev.shippingPolicy,
-          }));
+
+        if (!json.success || !json.settings) {
+          throw new Error(json.error || "Unable to load store settings");
         }
-      } catch (e) {
-        // ignore fallback here
+
+        const settings = json.settings;
+        setVendor({
+          isChurchAffiliated: Boolean(settings.isChurchAffiliated),
+          commissionRate: settings.commissionRate,
+        });
+
+        setFormData((prev) => ({
+          ...prev,
+          storeName: settings.storeName || prev.storeName,
+          description: settings.description || prev.description,
+          category: settings.category || prev.category,
+          campus: settings.campus || prev.campus,
+          email: settings.email || user?.email || prev.email,
+          phone: settings.phone || user?.phoneNumber || prev.phone,
+          whatsapp: settings.whatsapp || prev.whatsapp,
+          address: settings.businessAddress || prev.address,
+          allowsPickup: settings.allowsPickup ?? prev.allowsPickup,
+          allowsDelivery: settings.allowsDelivery ?? prev.allowsDelivery,
+          businessHoursStart: settings.businessHoursStart || prev.businessHoursStart,
+          businessHoursEnd: settings.businessHoursEnd || prev.businessHoursEnd,
+          processingTime: settings.processingTime || prev.processingTime,
+          returnPolicy: settings.returnPolicy || prev.returnPolicy,
+          shippingPolicy: settings.shippingPolicy || prev.shippingPolicy,
+        }));
+      } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "Unable to load store settings";
+        message.error(errMessage);
+      } finally {
+        if (mounted) {
+          setLoadingSettings(false);
+        }
       }
     }
 
@@ -67,14 +101,48 @@ export default function StoreSettingsFeature() {
     return () => {
       mounted = false;
     };
-  }, [user?.id]);
+  }, [user]);
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    message.success("Store settings updated successfully!");
+  const handleSave = async () => {
+    setSavingSettings(true);
+    try {
+      const res = await fetch("/api/vendors/me/store-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeName: formData.storeName,
+          description: formData.description,
+          category: formData.category,
+          campus: formData.campus,
+          phone: formData.phone,
+          whatsapp: formData.whatsapp,
+          businessAddress: formData.address,
+          allowsPickup: formData.allowsPickup,
+          allowsDelivery: formData.allowsDelivery,
+          businessHoursStart: formData.businessHoursStart,
+          businessHoursEnd: formData.businessHoursEnd,
+          processingTime: formData.processingTime,
+          returnPolicy: formData.returnPolicy,
+          shippingPolicy: formData.shippingPolicy,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update store settings");
+      }
+
+      message.success("Store settings updated successfully!");
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to update store settings";
+      message.error(errMessage);
+    } finally {
+      setSavingSettings(false);
+    }
   };
 
   if (!user) {
@@ -94,6 +162,10 @@ export default function StoreSettingsFeature() {
     );
   }
 
+  if (loadingSettings) {
+    return <PageLoader minHeight="min-h-[360px]" message="Loading store settings..." />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -103,7 +175,9 @@ export default function StoreSettingsFeature() {
             Manage your store information and preferences
           </p>
         </div>
-        <Button onClick={handleSave}>Save Changes</Button>
+        <Button onClick={handleSave} loading={savingSettings}>
+          Save Changes
+        </Button>
       </div>
 
       <Card>
@@ -207,7 +281,7 @@ export default function StoreSettingsFeature() {
           <MapPin className="h-5 w-5 text-ds-text-brand" />
           Location & Contact
         </h2>
-        <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
               Campus Location
@@ -216,7 +290,10 @@ export default function StoreSettingsFeature() {
               value={formData.campus || undefined}
               onChange={(value) => handleChange("campus", value)}
               className="w-full"
-              options={CAMPUS_LOCATIONS.map((location) => ({ value: location, label: location }))}
+              options={CAMPUS_LOCATIONS.map((location) => ({
+                value: location.value,
+                label: location.label,
+              }))}
               placeholder="Select campus"
             />
           </div>
@@ -235,17 +312,27 @@ export default function StoreSettingsFeature() {
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-              WhatsApp
-            </label>
-            <AntInput
-              value={formData.whatsapp}
-              onChange={(e) => handleChange("whatsapp", e.target.value)}
-              placeholder="WhatsApp number"
-            />
+            <div>
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                WhatsApp
+              </label>
+              <AntInput
+                value={formData.whatsapp}
+                onChange={(e) => handleChange("whatsapp", e.target.value)}
+                placeholder="WhatsApp number"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                Business Address
+              </label>
+              <AntInput
+                value={formData.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                placeholder="Street address, city, state"
+              />
+            </div>
           </div>
-        </div>
       </Card>
 
       <Card>

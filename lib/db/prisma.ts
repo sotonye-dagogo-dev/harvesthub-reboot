@@ -37,7 +37,7 @@ function getPrismaDatabaseUrl(): string | undefined {
     }
 
     // If no database URL is provided, do not attempt to connect.
-    // The application can still work in development using mock data.
+    // The data layer will throw explicit configuration errors when used.
     return undefined;
 }
 
@@ -62,10 +62,9 @@ function createPrismaClient(): PrismaClient {
     }
 
     if (!databaseUrl) {
-        // Prisma is optional in development when using mock data.
-        // Return a no-op proxy that provides helpful errors when used.
+        // Return a no-op proxy that provides helpful errors when data access is attempted.
         const warning =
-            'Prisma is not configured: set DATABASE_URL (or DIRECT_URL) to a Postgres connection string, or enable mock mode with NEXT_PUBLIC_USE_MOCK_DATA=true.';
+            'Prisma is not configured: set DATABASE_URL (or DIRECT_URL) to a Postgres connection string. Runtime mock fallback is disabled.';
         console.warn(warning);
 
         const noop = async () => {

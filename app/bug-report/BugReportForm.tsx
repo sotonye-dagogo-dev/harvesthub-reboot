@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { BUG_REPORT_CATEGORIES, BUG_REPORT_PRIORITIES } from "@/lib/constants";
 import { Bug, Upload, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import Image from "next/image";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 export default function BugReportForm() {
     const { user } = useAuth();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     const [category, setCategory] = useState("");
     const [priority, setPriority] = useState("");
     const [subject, setSubject] = useState("");
@@ -17,40 +16,15 @@ export default function BugReportForm() {
     const [email, setEmail] = useState(user?.email ?? "");
     const [screenshot, setScreenshot] = useState<string | null>(null);
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+    const [screenshotPublicId, setScreenshotPublicId] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-            setError("Please upload an image file (PNG, JPG, etc.)");
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            setError("Image must be under 5MB");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result as string;
-            setScreenshot(result);
-            setScreenshotPreview(result);
-            setError(null);
-        };
-        reader.readAsDataURL(file);
-    };
-
     const removeScreenshot = () => {
         setScreenshot(null);
         setScreenshotPreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+        setScreenshotPublicId(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -68,7 +42,8 @@ export default function BugReportForm() {
                     subject,
                     details,
                     email,
-                    screenshot,
+                    screenshotUrl: screenshot,
+                    screenshotPublicId,
                 }),
             });
 
@@ -105,6 +80,7 @@ export default function BugReportForm() {
                         setDetails("");
                         setScreenshot(null);
                         setScreenshotPreview(null);
+                        setScreenshotPublicId(null);
                     }}
                     className="rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover"
                 >
@@ -253,23 +229,24 @@ export default function BugReportForm() {
                         </button>
                     </div>
                 ) : (
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex w-full items-center justify-center gap-2 rounded-ds-md border-2 border-dashed border-ds-border-base px-4 py-8 text-ds-text-secondary transition-colors hover:border-ds-border-brand hover:text-ds-text-brand"
-                    >
-                        <Upload className="h-5 w-5" />
-                        <span>Click to upload a screenshot (max 5MB)</span>
-                    </button>
+                    <div className="rounded-ds-md border-2 border-dashed border-ds-border-base p-4">
+                        <div className="mb-2 flex items-center gap-2 text-ds-text-secondary">
+                            <Upload className="h-5 w-5" />
+                            <span>Upload a screenshot (max 5MB)</span>
+                        </div>
+                        <ImageUpload
+                            folderType="bug-report"
+                            skipPersistence
+                            helpText="PNG/JPG screenshot uploaded via managed Cloudinary flow."
+                            onUploaded={(result) => {
+                                setScreenshot(result.url);
+                                setScreenshotPreview(result.cacheBustedUrl || result.url);
+                                setScreenshotPublicId(result.publicId);
+                                setError(null);
+                            }}
+                        />
+                    </div>
                 )}
-
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                />
             </div>
 
             {/* Submit */}

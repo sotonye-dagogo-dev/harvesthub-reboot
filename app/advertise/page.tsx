@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Form, Input, Button, Select, DatePicker, message, Card } from "antd";
+import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
 import { BannerTheme, BannerPosition, AD_BANNER_DIMENSIONS } from "@/lib/constants";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
+import { enqueueOfflineItem, replayOfflineQueue } from "@/lib/utils/offlineQueue";
 
 const { RangePicker } = DatePicker;
+const AD_APPLICATION_DRAFT_KEY = "myharvesthub.ad-application.draft.v1";
+const AD_APPLICATION_QUEUE_TYPE = "ad-application.submit";
+const GUEST_UPLOAD_ID_KEY = "myharvesthub.upload.guest-id.v1";
+
+type UploadMeta = { url: string; publicId: string };
 
 interface FormValues {
   name: string;
@@ -21,47 +29,195 @@ interface FormValues {
   theme: BannerTheme;
   schedule: [dayjs.Dayjs, dayjs.Dayjs] | null;
   paymentMethod: "BANK_TRANSFER" | "CARD" | "USSD";
+  durationType: "HOURLY" | "DAILY";
+  durationValue: number;
   amountPaid: number;
   proofOfTransferUrl?: string;
 }
 
+interface DraftPayload {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  companyName?: string;
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  position?: BannerPosition;
+  theme?: BannerTheme;
+  paymentMethod?: "BANK_TRANSFER" | "CARD" | "USSD";
+  durationType?: "HOURLY" | "DAILY";
+  durationValue?: number;
+  amountPaid?: number;
+  proofOfTransferUrl?: string;
+  requestedStart?: string;
+  requestedEnd?: string;
+  schedule?: [string, string] | null;
+  imagePublicId?: string;
+  proofPublicId?: string;
+}
+
 export default function AdvertisePage() {
+  const [form] = Form.useForm<FormValues>();
   const [loading, setLoading] = useState(false);
-  const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const [imageUpload, setImageUpload] = useState<UploadMeta | null>(null);
+  const [proofUpload, setProofUpload] = useState<UploadMeta | null>(null);
+  const [guestUploadId, setGuestUploadId] = useState("");
+  const [rateConfig, setRateConfig] = useState<{ hourlyRate: number; dailyRate: number } | null>(
+    null
+  );
   const router = useRouter();
 
+  const durationType = Form.useWatch("durationType", form) || "DAILY";
+  const durationValue = Form.useWatch("durationValue", form) || 1;
+  const estimatedAmount = rateConfig
+    ? (durationType === "HOURLY" ? rateConfig.hourlyRate : rateConfig.dailyRate) * durationValue
+    : null;
+
+  useEffect(() => {
+    let storedGuestId = window.localStorage.getItem(GUEST_UPLOAD_ID_KEY);
+    if (!storedGuestId) {
+      storedGuestId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      window.localStorage.setItem(GUEST_UPLOAD_ID_KEY, storedGuestId);
+    }
+    setGuestUploadId(storedGuestId);
+
+    const draft = loadLocalDraft<DraftPayload>(AD_APPLICATION_DRAFT_KEY);
+    if (draft) {
+      const schedule = draft.schedule
+        ? [dayjs(draft.schedule[0]), dayjs(draft.schedule[1])]
+        : undefined;
+
+      form.setFieldsValue({
+        ...draft,
+        schedule: schedule as [dayjs.Dayjs, dayjs.Dayjs] | undefined,
+      });
+
+      if (draft.imageUrl && draft.imagePublicId) {
+        setImageUpload({ url: draft.imageUrl, publicId: draft.imagePublicId });
+      }
+      if (draft.proofOfTransferUrl && draft.proofPublicId) {
+        setProofUpload({
+          url: draft.proofOfTransferUrl,
+          publicId: draft.proofPublicId,
+        });
+      }
+    }
+
+    const loadRates = async () => {
+      try {
+        const res = await fetch("/api/admin/ads/rates");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.rateConfig) return;
+        setRateConfig({
+          hourlyRate: Number(data.rateConfig.hourlyRate || 0),
+          dailyRate: Number(data.rateConfig.dailyRate || 0),
+        });
+      } catch {
+        // Keep form usable even if rates endpoint is unavailable.
+      }
+    };
+
+    loadRates();
+  }, [form]);
+
+  const saveDraft = (values: Partial<FormValues>) => {
+    const schedule = values.schedule
+      ? [values.schedule[0]?.toISOString(), values.schedule[1]?.toISOString()]
+      : null;
+
+    saveLocalDraft<DraftPayload>(AD_APPLICATION_DRAFT_KEY, {
+      ...values,
+      imageUrl: imageUpload?.url,
+      proofOfTransferUrl: proofUpload?.url,
+      imagePublicId: imageUpload?.publicId,
+      proofPublicId: proofUpload?.publicId,
+      schedule: schedule as [string, string] | null,
+    });
+  };
+
+  const submitApplication = async (body: DraftPayload) => {
+    const res = await fetch("/api/ad-applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to submit application");
+    }
+
+    return data;
+  };
+
+  useEffect(() => {
+    const replayQueue = async () => {
+      if (!navigator.onLine) return;
+
+      const { processed } = await replayOfflineQueue<DraftPayload>({
+        [AD_APPLICATION_QUEUE_TYPE]: async (payload) => {
+          await submitApplication(payload);
+        },
+      });
+
+      if (processed > 0) {
+        message.success(`Submitted ${processed} queued ad application(s).`);
+      }
+    };
+
+    replayQueue();
+    window.addEventListener("online", replayQueue);
+    return () => window.removeEventListener("online", replayQueue);
+  }, []);
+
   const onFinish = async (values: FormValues) => {
+    if (!imageUpload?.url || !proofUpload?.url) {
+      message.error("Please upload both your banner image and payment proof.");
+      return;
+    }
+
     setLoading(true);
     try {
       const [requestedStart, requestedEnd] = values.schedule || [];
 
-      const body = {
+      const payload: DraftPayload = {
         name: values.name,
         email: values.email,
         phoneNumber: values.phoneNumber,
         companyName: values.companyName,
         title: values.title,
         description: values.description,
-        imageUrl: values.imageUrl,
+        imageUrl: imageUpload.url,
         linkUrl: values.linkUrl,
         position: values.position,
         theme: values.theme,
         requestedStart: requestedStart?.toISOString(),
         requestedEnd: requestedEnd?.toISOString(),
         paymentMethod: values.paymentMethod,
+        durationType: values.durationType,
+        durationValue: values.durationValue,
         amountPaid: values.amountPaid,
-        proofOfTransferUrl: proofUrl,
+        proofOfTransferUrl: proofUpload.url,
+        imagePublicId: imageUpload.publicId,
+        proofPublicId: proofUpload.publicId,
       };
 
-      const res = await fetch("/api/ad-applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      if (!navigator.onLine) {
+        enqueueOfflineItem(AD_APPLICATION_QUEUE_TYPE, payload);
+        saveDraft(values);
+        message.warning(
+          "You are offline. Your application has been queued and will submit automatically once you are back online."
+        );
+        return;
+      }
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to submit application");
-
+      await submitApplication(payload);
+      clearLocalDraft(AD_APPLICATION_DRAFT_KEY);
       message.success("Ad application submitted successfully. Our team will review it shortly.");
       router.push("/");
     } catch (err: any) {
@@ -83,21 +239,41 @@ export default function AdvertisePage() {
         <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4">
           <h2 className="text-lg font-semibold">Image Guidelines</h2>
           <p className="text-sm text-ds-text-secondary mt-1">
-            Top banner: {AD_BANNER_DIMENSIONS.topBanner.recommended.width}x{AD_BANNER_DIMENSIONS.topBanner.recommended.height} (ratio {AD_BANNER_DIMENSIONS.topBanner.recommended.ratio}).
-            Minimum {AD_BANNER_DIMENSIONS.topBanner.min.width}x{AD_BANNER_DIMENSIONS.topBanner.min.height}.
+            Top banner: {AD_BANNER_DIMENSIONS.topBanner.recommended.width}x
+            {AD_BANNER_DIMENSIONS.topBanner.recommended.height} (ratio{" "}
+            {AD_BANNER_DIMENSIONS.topBanner.recommended.ratio}). Minimum{" "}
+            {AD_BANNER_DIMENSIONS.topBanner.min.width}x{AD_BANNER_DIMENSIONS.topBanner.min.height}.
           </p>
           <p className="text-sm text-ds-text-secondary">
-            Hero banner: {AD_BANNER_DIMENSIONS.heroBanner.recommended.width}x{AD_BANNER_DIMENSIONS.heroBanner.recommended.height} (ratio {AD_BANNER_DIMENSIONS.heroBanner.recommended.ratio}).
-            Minimum {AD_BANNER_DIMENSIONS.heroBanner.min.width}x{AD_BANNER_DIMENSIONS.heroBanner.min.height}.
+            Hero banner: {AD_BANNER_DIMENSIONS.heroBanner.recommended.width}x
+            {AD_BANNER_DIMENSIONS.heroBanner.recommended.height} (ratio{" "}
+            {AD_BANNER_DIMENSIONS.heroBanner.recommended.ratio}). Minimum{" "}
+            {AD_BANNER_DIMENSIONS.heroBanner.min.width}x{AD_BANNER_DIMENSIONS.heroBanner.min.height}
+            .
           </p>
           <p className="text-sm text-ds-text-secondary">File size: max 1MB, prefer WebP/AVIF.</p>
         </div>
 
+        <Alert
+          className="mt-4"
+          type="info"
+          showIcon
+          message="Draft and offline support enabled"
+          description="Your progress is saved locally as you type. If your network drops, submission is queued and retried automatically."
+        />
+
         <Form
+          form={form}
           layout="vertical"
           onFinish={onFinish}
+          onValuesChange={(_, allValues) => saveDraft(allValues)}
           className="mt-6"
-          initialValues={{ position: "TOP", theme: "BUSINESS" }}
+          initialValues={{
+            position: "TOP",
+            theme: "BUSINESS",
+            durationType: "DAILY",
+            durationValue: 1,
+          }}
         >
           <Form.Item
             name="name"
@@ -137,12 +313,25 @@ export default function AdvertisePage() {
           >
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item
-            name="imageUrl"
-            label="Image URL"
-            rules={[{ required: true, message: "Enter image URL" }]}
-          >
-            <Input />
+          <Form.Item label="Banner Image" required>
+            <ImageUpload
+              folderType="ad"
+              guestUploadId={guestUploadId}
+              skipPersistence
+              helpText="Upload the banner image to use in your advert application."
+              onUploaded={(result) => {
+                setImageUpload({ url: result.url, publicId: result.publicId });
+                form.setFieldsValue({ imageUrl: result.url });
+                saveDraft(form.getFieldsValue());
+              }}
+            />
+            <Form.Item
+              name="imageUrl"
+              noStyle
+              rules={[{ required: true, message: "Please upload your banner image" }]}
+            >
+              <Input type="hidden" />
+            </Form.Item>
           </Form.Item>
           <Form.Item name="linkUrl" label="Call-to-Action Link">
             <Input placeholder="https://example.com" />
@@ -181,32 +370,85 @@ export default function AdvertisePage() {
             </Select>
           </Form.Item>
 
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Form.Item
+              name="durationType"
+              label="Duration Type"
+              rules={[{ required: true, message: "Please select a duration type" }]}
+            >
+              <Select>
+                <Select.Option value="DAILY">Daily</Select.Option>
+                <Select.Option value="HOURLY">Hourly</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="durationValue"
+              label="Duration Value"
+              rules={[
+                { required: true, message: "Please enter duration value" },
+                {
+                  validator: (_, value) =>
+                    typeof value === "number" && value > 0
+                      ? Promise.resolve()
+                      : Promise.reject(new Error("Duration must be at least 1")),
+                },
+              ]}
+            >
+              <InputNumber className="w-full" min={1} />
+            </Form.Item>
+          </div>
+
+          <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3 text-sm text-ds-text-secondary">
+            <p className="font-medium text-ds-text-primary">Estimated Price</p>
+            {estimatedAmount !== null ? (
+              <p>
+                NGN {estimatedAmount.toLocaleString("en-NG")} ({durationValue}{" "}
+                {durationType === "HOURLY" ? "hour" : "day"}
+                {durationValue > 1 ? "s" : ""})
+              </p>
+            ) : (
+              <p>
+                Rate configuration unavailable. You can still submit, and admin will verify pricing.
+              </p>
+            )}
+          </div>
+
           <Form.Item
             name="amountPaid"
             label="Amount Paid (NGN)"
             rules={[
               { required: true, message: "Please enter amount paid" },
               {
-                type: "number",
-                min: 100,
-                message: "Minimum payment is 100 NGN",
+                validator: (_, value) =>
+                  typeof value === "number" && value >= 100
+                    ? Promise.resolve()
+                    : Promise.reject(new Error("Minimum payment is 100 NGN")),
               },
             ]}
           >
-            <Input type="number" min={100} />
+            <InputNumber className="w-full" min={100} />
           </Form.Item>
 
-          <Form.Item
-            name="proofOfTransferUrl"
-            label="Proof of Payment URL"
-            rules={[{ required: true, message: "Please upload proof of transfer" }]}
-          >
-            <Input
-              value={proofUrl || ""}
-              onChange={(e) => setProofUrl(e.target.value)}
-              placeholder="Upload a screenshot URL or file URL"
-              className="rounded-ds-md"
+          <Form.Item label="Proof of Payment" required>
+            <ImageUpload
+              folderType="payment-proof"
+              guestUploadId={guestUploadId}
+              skipPersistence
+              helpText="Upload payment confirmation screenshot or transfer receipt."
+              onUploaded={(result) => {
+                setProofUpload({ url: result.url, publicId: result.publicId });
+                form.setFieldsValue({ proofOfTransferUrl: result.url });
+                saveDraft(form.getFieldsValue());
+              }}
             />
+            <Form.Item
+              name="proofOfTransferUrl"
+              noStyle
+              rules={[{ required: true, message: "Please upload proof of transfer" }]}
+            >
+              <Input type="hidden" />
+            </Form.Item>
           </Form.Item>
 
           <Form.Item>

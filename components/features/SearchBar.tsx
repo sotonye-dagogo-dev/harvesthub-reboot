@@ -7,9 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { cn, formatCurrency } from "@/lib/utils";
-import { Product } from "@/lib/types";
-
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+import type { Product } from "@/lib/types";
 
 export interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -44,7 +42,7 @@ export function SearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Update suggestions as user types (call API, fallback to mock)
+  // Update suggestions as user types via API-backed search.
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -59,35 +57,10 @@ export function SearchBar({
         const list = Array.isArray(res) ? res : [];
         setSuggestions((list as Product[]).slice(0, 5));
         setShowDropdown(list.length > 0);
-      } catch (e) {
-        if (!useMockData) {
-          if (!mounted) return;
-          setSuggestions([]);
-          setShowDropdown(false);
-          return;
-        }
-
-        // Development fallback: filter local mock data dynamically
-        try {
-          const m = await import("@/lib/data/mockData");
-          const searchQuery = query.toLowerCase();
-          const filtered = (m.mockProducts ?? [])
-            .filter(
-              (product: Product) =>
-                product.isActive &&
-                (product.name.toLowerCase().includes(searchQuery) ||
-                  product.description?.toLowerCase().includes(searchQuery) ||
-                  product.category.toLowerCase().includes(searchQuery))
-            )
-            .slice(0, 5);
-          if (!mounted) return;
-          setSuggestions(filtered);
-          setShowDropdown(filtered.length > 0);
-        } catch (err) {
-          if (!mounted) return;
-          setSuggestions([]);
-          setShowDropdown(false);
-        }
+      } catch {
+        if (!mounted) return;
+        setSuggestions([]);
+        setShowDropdown(false);
       }
     }
     load();

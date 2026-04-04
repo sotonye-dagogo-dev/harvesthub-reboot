@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
     uploadImage,
     getProductFolder,
@@ -8,9 +8,12 @@ import {
     getBannerFolder,
     getAdFolder,
     getPaymentProofFolder,
+    getVerificationDocFolder,
+    getBugReportFolder,
 } from '@/lib/services/cloudinary';
 import { UserRole } from '@/lib/constants';
-import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 type FolderType =
     | 'product'
@@ -19,7 +22,9 @@ type FolderType =
     | 'profile'
     | 'banner'
     | 'ad'
-    | 'payment-proof';
+    | 'payment-proof'
+    | 'verification-doc'
+    | 'bug-report';
 
 const VALID_FOLDER_TYPES: FolderType[] = [
     'product',
@@ -29,6 +34,8 @@ const VALID_FOLDER_TYPES: FolderType[] = [
     'banner',
     'ad',
     'payment-proof',
+    'verification-doc',
+    'bug-report',
 ];
 
 /** Maximum upload sizes in MB per folder type */
@@ -40,6 +47,8 @@ const MAX_SIZE_MB: Record<FolderType, number> = {
     banner: 10,
     ad: 10,
     'payment-proof': 5,
+    'verification-doc': 5,
+    'bug-report': 5,
 };
 
 function resolveFolder(
@@ -62,6 +71,10 @@ function resolveFolder(
             return userId ? getAdFolder(userId) : null;
         case 'payment-proof':
             return userId ? getPaymentProofFolder(userId) : null;
+        case 'verification-doc':
+            return userId ? getVerificationDocFolder(userId) : null;
+        case 'bug-report':
+            return userId ? getBugReportFolder(userId) : null;
         default:
             return null;
     }
@@ -69,88 +82,76 @@ function resolveFolder(
 
 // POST /api/upload — Authenticated image upload
 export async function POST(request: NextRequest) {
-    try {
+    return withApiHandler('POST /api/upload', async () => {
+        const formData = await request.formData();
+        const file = formData.get('file') as File | null;
+        const folderType = formData.get('folderType') as FolderType | null;
+        const vendorId = (formData.get('vendorId') as string) || undefined;
+        const userId = (formData.get('userId') as string) || undefined;
+        const rawGuestUploadId = (formData.get('guestUploadId') as string) || '';
+        const skipPersistence = String(formData.get('skipPersistence') || 'false') === 'true';
+
+        if (!file || !(file instanceof File)) {
+            return apiError('No file provided', 400);
+        }
+
+        if (!folderType || !VALID_FOLDER_TYPES.includes(folderType)) {
+            return apiError(
+                `Invalid folderType. Must be one of: ${VALID_FOLDER_TYPES.join(', ')}`,
+                400
+            );
+        }
+
+        const allowGuestUpload = folderType === 'ad' || folderType === 'payment-proof' || folderType === 'bug-report';
+
         // ── Auth ──────────────────────────────────────────────────────
         const { cookies } = await import('next/headers');
         const { verifyToken } = await import('@/lib/utils/auth');
 
         const cookieStore = await cookies();
         const token = cookieStore.get('accessToken')?.value;
+        const payload = token ? await verifyToken(token) : null;
 
-        if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+        if (!payload && !allowGuestUpload) {
+            return apiError('Unauthorized', 401);
         }
 
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { error: 'Invalid token' },
-                { status: 401 }
-            );
-        }
-
-        const rl = await rateLimitByUser(payload.userId);
-        if (!rl.success) return getRateLimitResponse(rl);
-
-        // ── Parse multipart form data ────────────────────────────────
-        const formData = await request.formData();
-        const file = formData.get('file') as File | null;
-        const folderType = formData.get('folderType') as FolderType | null;
-        const vendorId = (formData.get('vendorId') as string) || undefined;
-        const userId = (formData.get('userId') as string) || undefined;
-
-        if (!file || !(file instanceof File)) {
-            return NextResponse.json(
-                { error: 'No file provided' },
-                { status: 400 }
-            );
-        }
-
-        if (!folderType || !VALID_FOLDER_TYPES.includes(folderType)) {
-            return NextResponse.json(
-                {
-                    error: `Invalid folderType. Must be one of: ${VALID_FOLDER_TYPES.join(', ')}`,
-                },
-                { status: 400 }
-            );
+        if (payload) {
+            const rl = await rateLimitByUser(payload.userId);
+            if (!rl.success) return getRateLimitResponse(rl);
+        } else {
+            const rl = await rateLimitByIP(request, { limit: 20, window: 60 });
+            if (!rl.success) return getRateLimitResponse(rl);
         }
 
         // ── Role-based validation ────────────────────────────────────
-        // Banner uploads are admin-only
-        if (folderType === 'banner' && payload.role !== UserRole.ADMIN) {
-            return NextResponse.json(
-                { error: 'Only admins can upload banners' },
-                { status: 403 }
-            );
+        if (folderType === 'banner' && payload?.role !== UserRole.ADMIN) {
+            return apiError('Only admins can upload banners', 403);
         }
 
-        // Vendor-specific uploads require vendor role (or admin)
         if (
-            ['product', 'vendor-logo', 'vendor-banner'].includes(folderType) &&
-            payload.role !== UserRole.VENDOR &&
-            payload.role !== UserRole.ADMIN
+            ['product', 'vendor-logo', 'vendor-banner', 'verification-doc'].includes(folderType) &&
+            payload?.role !== UserRole.VENDOR &&
+            payload?.role !== UserRole.ADMIN
         ) {
-            return NextResponse.json(
-                { error: 'Only vendors or admins can upload vendor images' },
-                { status: 403 }
-            );
+            return apiError('Only vendors or admins can upload vendor images', 403);
         }
 
-        // ── Resolve the Cloudinary folder ────────────────────────────
-        // Fall back to the authenticated user's ID when no explicit userId
-        const effectiveUserId = userId || payload.userId;
-        const folder = resolveFolder(folderType, vendorId, effectiveUserId);
+        const normalizedGuestUploadId = rawGuestUploadId
+            .replace(/[^a-zA-Z0-9_-]/g, '')
+            .slice(0, 48);
 
+        // Fall back to a deterministic guest bucket for unauthenticated ad-related uploads.
+        const effectiveUserId =
+            userId ||
+            payload?.userId ||
+            (normalizedGuestUploadId ? `guest-${normalizedGuestUploadId}` : 'guest-public');
+
+        const folder = resolveFolder(folderType, vendorId, effectiveUserId);
         if (!folder) {
-            return NextResponse.json(
-                {
-                    error:
-                        'Cannot resolve upload folder. Ensure vendorId or userId is provided for this folderType.',
-                },
-                { status: 400 }
+            return apiError(
+                'Cannot resolve upload folder. Ensure vendorId or userId is provided for this folderType.',
+                400
             );
         }
 
@@ -165,35 +166,35 @@ export async function POST(request: NextRequest) {
         const maxSizeMB = MAX_SIZE_MB[folderType];
         const result = await uploadImage(dataUri, folder, { maxSizeMB });
 
-        // Persist metadata to Prisma for supported folder types.
-        // Cloudinary upload success is not blocked by DB persistence failure.
+        // Persist metadata to Prisma only for authenticated + opted-in flows.
         const { persistUploadMetadata, getCacheBustedUrl } = await import('@/lib/services/asset');
 
         let persisted: { savedTo?: string; id?: string; error?: string } = { savedTo: 'none' };
-        try {
-            persisted = await persistUploadMetadata({
-                folderType,
-                vendorId,
-                userId,
-                effectiveUserId,
-                url: result.url,
-                publicId: result.publicId,
-                payloadRole: payload.role,
-                orderId: (formData.get('orderId') as string) || undefined,
-                amount: ((formData.get('amount') as string) ? Number(formData.get('amount')) : 0) || undefined,
-            });
-        } catch (e) {
-            persisted = {
-                savedTo: 'none',
-                error: e instanceof Error ? e.message : 'Unknown persistence error',
-            };
+        if (!skipPersistence && payload) {
+            try {
+                persisted = await persistUploadMetadata({
+                    folderType,
+                    vendorId,
+                    userId,
+                    effectiveUserId,
+                    url: result.url,
+                    publicId: result.publicId,
+                    payloadRole: payload.role,
+                    orderId: (formData.get('orderId') as string) || undefined,
+                    amount: ((formData.get('amount') as string) ? Number(formData.get('amount')) : 0) || undefined,
+                });
+            } catch (error) {
+                persisted = {
+                    savedTo: 'none',
+                    error: error instanceof Error ? error.message : 'Unknown persistence error',
+                };
+            }
         }
 
         const cacheBustedUrl = getCacheBustedUrl(result.url);
 
-        return NextResponse.json(
+        return apiSuccess(
             {
-                success: true,
                 url: result.url,
                 cacheBustedUrl,
                 publicId: result.publicId,
@@ -201,22 +202,9 @@ export async function POST(request: NextRequest) {
                 height: result.height,
                 format: result.format,
                 persisted,
+                guestUpload: !payload,
             },
-            { status: 201 }
+            201
         );
-    } catch (error) {
-        console.error('Upload error:', error);
-
-        const message =
-            error instanceof Error ? error.message : 'Upload failed';
-
-        // Return a 400 for validation errors, 500 for everything else
-        const isValidation =
-            message.includes('not allowed') ||
-            message.includes('exceeds') ||
-            message.includes('Invalid image');
-        const status = isValidation ? 400 : 500;
-
-        return NextResponse.json({ error: message }, { status });
-    }
+    });
 }

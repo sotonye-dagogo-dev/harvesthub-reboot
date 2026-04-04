@@ -116,8 +116,8 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
         <SearchBar
           onSearch={setSearchQuery}
           placeholder="Search for products..."
@@ -125,19 +125,21 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
         />
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <CategoryNav categories={categories} layout="horizontal" />
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
         <div className="lg:col-span-1">
-          <FilterSidebar
-            filters={filters}
-            onFilterChange={setFilters}
-            categories={categories}
-            vendors={vendorsWithProducts}
-            locations={locations}
-          />
+          <div className="lg:sticky lg:top-24">
+            <FilterSidebar
+              filters={filters}
+              onFilterChange={setFilters}
+              categories={categories}
+              vendors={vendorsWithProducts}
+              locations={locations}
+            />
+          </div>
         </div>
 
         <div className="lg:col-span-3">
@@ -153,7 +155,7 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
             />
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedProducts.map((product) => {
                   const vendor = vendors.find((v) => v.id === product.vendorId);
                   const avgRating =

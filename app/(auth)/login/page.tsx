@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Form, Input, Button, Alert, Divider, Checkbox } from "antd";
 import { MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { PageLoader } from "@/components/ui";
 
 const REMEMBER_ME_KEY = "myharvesthub_remember_me";
 
@@ -44,7 +45,7 @@ function LoginForm() {
 
     try {
       await login({
-        email: values.email,
+        email: values.email.toLowerCase().trim(),
         password: values.password,
         rememberMe: values.rememberMe,
       });
@@ -87,15 +88,20 @@ function LoginForm() {
         <Form.Item
           label="Email"
           name="email"
+          normalize={(value) => (typeof value === "string" ? value.toLowerCase() : value)}
           rules={[
             { required: true, message: "Please enter your email" },
             { type: "email", message: "Please enter a valid email" },
           ]}
         >
           <Input
+            type="email"
             prefix={<MailOutlined className="text-ds-text-placeholder" />}
             placeholder="your@email.com"
             autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
           />
         </Form.Item>
 
@@ -154,29 +160,16 @@ function LoginForm() {
         </Link>
       </div>
 
-      {/* Demo Credentials */}
-      <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-4 dark:bg-ds-brand-subtle">
-        <p className="mb-2 text-sm font-medium text-ds-palette-purple-900">Demo Credentials:</p>
-        <div className="space-y-1 text-xs text-ds-palette-purple-700 dark:text-ds-brand-muted">
-          <p>
-            <strong>Admin:</strong> admin@harvesthub.com / admin123
-          </p>
-          <p>
-            <strong>Vendor:</strong> vendor@harvesthub.com / vendor123
-          </p>
-          <p>
-            <strong>Buyer:</strong> buyer@harvesthub.com / buyer123
-          </p>
-        </div>
-      </div> 
+      {/*
+        Demo credentials are intentionally hidden in the UI.
+        Keep this section commented for local-only debugging if needed.
+      */}
     </div>
   );
 }
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={<div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-lg">Loading...</div>}
-    >
+    <Suspense fallback={<PageLoader minHeight="min-h-[320px]" message="Loading sign in..." />}>
       <LoginForm />
     </Suspense>
   );

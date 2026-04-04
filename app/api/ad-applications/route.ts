@@ -1,14 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { db } from '@/lib/data/database';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { z } from 'zod';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { estimateAdAmount, isPaymentSufficient, normalizeAdDuration } from '@/lib/utils/adPricing';
+
+const adApplicationStatusSchema = z.enum([
+    'PENDING',
+    'PENDING_PAYMENT',
+    'PENDING_APPROVAL',
+    'APPROVED',
+    'REJECTED',
+    'ACTIVE',
+    'EXPIRED',
+]);
+
+const createAdApplicationSchema = z.object({
+    userId: z.string().optional().nullable(),
+    name: z.string().trim().min(2, 'Name is required'),
+    email: z.string().trim().email('A valid email is required'),
+    phoneNumber: z.string().trim().min(7, 'Phone number is required'),
+    companyName: z.string().trim().optional().nullable(),
+    title: z.string().trim().min(2, 'Title is required'),
+    description: z.string().trim().min(5, 'Description is required'),
+    imageUrl: z.string().trim().url('A valid image URL is required'),
+    imagePublicId: z.string().trim().optional().nullable(),
+    linkUrl: z.string().trim().url().optional().nullable(),
+    position: z.enum(['TOP', 'HERO', 'SIDEBAR']).optional(),
+    theme: z.enum(['BUSINESS', 'CHURCH', 'EVENT', 'PROMOTION']).optional(),
+    requestedStart: z.string().datetime().optional(),
+    requestedEnd: z.string().datetime().optional().nullable(),
+    paymentMethod: z.enum(['BANK_TRANSFER', 'CARD', 'USSD']),
+    amountPaid: z.coerce.number().positive('Amount paid must be greater than zero'),
+    proofOfTransferUrl: z.string().trim().url('A valid proof of payment URL is required'),
+    proofPublicId: z.string().trim().optional().nullable(),
+    durationType: z.enum(['HOURLY', 'DAILY']).optional(),
+    durationValue: z.coerce.number().int().min(1).optional(),
+});
 
 export async function GET(req: NextRequest) {
-    try {
+    return withApiHandler('GET /api/ad-applications', async () => {
         const user = await getCurrentUser();
         if (!user || user.role !== UserRole.ADMIN) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+            return apiError('Unauthorized', 403);
         }
 
         const rl = await rateLimitByUser(user.userId);
@@ -17,14 +53,13 @@ export async function GET(req: NextRequest) {
         const searchParams = new URL(req.url).searchParams;
         const rawStatus = searchParams.get('status');
 
-        const validStatuses = ['PENDING', 'PENDING_PAYMENT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'ACTIVE', 'EXPIRED'];
         let status: string | undefined = undefined;
         if (rawStatus) {
-            const normalized = rawStatus.toUpperCase();
-            if (!validStatuses.includes(normalized)) {
-                return NextResponse.json({ success: false, error: 'Invalid status filter' }, { status: 400 });
+            const parsedStatus = adApplicationStatusSchema.safeParse(rawStatus.toUpperCase());
+            if (!parsedStatus.success) {
+                return apiError('Invalid status filter', 400);
             }
-            status = normalized;
+            status = parsedStatus.data;
         }
 
         let applications;
@@ -33,75 +68,81 @@ export async function GET(req: NextRequest) {
         } catch (innerError) {
             console.error('GET /api/ad-applications database error:', innerError);
             // If database access fails, return a safe empty response for admin UIs.
-            return NextResponse.json({ success: false, error: 'Failed to fetch ad applications (database error)' }, { status: 500 });
+            return apiError('Failed to fetch ad applications (database error)', 500);
         }
 
-        return NextResponse.json({ success: true, applications });
-    } catch (error) {
-        console.error('GET /api/ad-applications error:', error);
-        return NextResponse.json({ error: 'Failed to fetch ad applications' }, { status: 500 });
-    }
+        return apiSuccess({ applications });
+    });
 }
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/ad-applications', async () => {
         const rl = await rateLimitByIP(req);
         if (!rl.success) return getRateLimitResponse(rl);
 
-        const body = await req.json();
-        const {
-            userId,
-            name,
-            email,
-            phoneNumber,
-            companyName,
-            title,
-            description,
-            imageUrl,
-            linkUrl,
-            position,
-            theme,
-            requestedStart,
-            requestedEnd,
-            paymentMethod,
-            amountPaid,
-            proofOfTransferUrl,
-            durationType,
-            durationValue,
-        } = body;
+        const parsedBody = createAdApplicationSchema.safeParse(await req.json());
+        if (!parsedBody.success) {
+            return apiError('Invalid request payload', 400, {
+                details: parsedBody.error.flatten(),
+            });
+        }
 
-        if (!name || !email || !phoneNumber || !title || !description || !imageUrl || !paymentMethod || !amountPaid || !proofOfTransferUrl) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const data = parsedBody.data;
+        if (!data.imageUrl.startsWith('https://res.cloudinary.com/')) {
+            return apiError('Banner image must be uploaded via managed Cloudinary flow.', 400);
+        }
+        if (!data.proofOfTransferUrl.startsWith('https://res.cloudinary.com/')) {
+            return apiError('Proof of transfer must be uploaded via managed Cloudinary flow.', 400);
+        }
+        const rateConfig = await db.adRateConfig.getActive();
+        if (!rateConfig) {
+            return apiError('Ad pricing is unavailable. Please try again later.', 503);
+        }
+
+        const normalizedDuration = normalizeAdDuration(data.durationType, data.durationValue);
+        const expectedAmount = estimateAdAmount(
+            {
+                hourlyRate: rateConfig.hourlyRate,
+                dailyRate: rateConfig.dailyRate,
+            },
+            normalizedDuration.durationType,
+            normalizedDuration.durationValue
+        );
+
+        if (!isPaymentSufficient(data.amountPaid, expectedAmount)) {
+            return apiError('Amount paid is below the required rate for selected duration', 400, {
+                expectedAmount,
+                amountPaid: data.amountPaid,
+                durationType: normalizedDuration.durationType,
+                durationValue: normalizedDuration.durationValue,
+            });
         }
 
         const application = await db.adApplications.create({
-            userId: userId ?? null,
-            name,
-            email,
-            phoneNumber,
-            companyName: companyName ?? null,
-            title,
-            description,
-            imageUrl,
-            linkUrl: linkUrl ?? null,
-            position: position ?? 'TOP',
-            theme: theme ?? 'BUSINESS',
-            requestedStart: requestedStart ? new Date(requestedStart) : new Date(),
-            requestedEnd: requestedEnd ? new Date(requestedEnd) : null,
+            userId: data.userId ?? null,
+            name: data.name,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            companyName: data.companyName ?? null,
+            title: data.title,
+            description: data.description,
+            imageUrl: data.imageUrl,
+            linkUrl: data.linkUrl ?? null,
+            position: data.position ?? 'TOP',
+            theme: data.theme ?? 'BUSINESS',
+            requestedStart: data.requestedStart ? new Date(data.requestedStart) : new Date(),
+            requestedEnd: data.requestedEnd ? new Date(data.requestedEnd) : null,
             status: 'PENDING_PAYMENT',
-            paymentMethod,
-            amountPaid: Number(amountPaid),
-            proofOfTransferUrl,
-            durationType: durationType ?? 'DAILY',
-            durationValue: Number(durationValue ?? 1),
+            paymentMethod: data.paymentMethod,
+            amountPaid: data.amountPaid,
+            proofOfTransferUrl: data.proofOfTransferUrl,
+            durationType: normalizedDuration.durationType,
+            durationValue: normalizedDuration.durationValue,
             reviewComment: null,
             reviewedBy: null,
             activeUntil: null,
         });
 
-        return NextResponse.json({ success: true, application }, { status: 201 });
-    } catch (error) {
-        console.error('POST /api/ad-applications error:', error);
-        return NextResponse.json({ error: 'Failed to create ad application' }, { status: 500 });
-    }
+        return apiSuccess({ application, expectedAmount }, 201);
+    });
 }

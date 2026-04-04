@@ -94,6 +94,137 @@
 
 **Date:** 2026-03-25
 
+## [PublicContent tests failing after runtime mock fallback removal]
+
+**Symptom:**
+
+- `lib/__tests__/publicContent.test.ts` fails with `TypeError: prisma.publicContent.upsert is not a function` after removing runtime `mockData` fallback paths.
+
+**Root Cause:**
+
+- Tests depended on `NEXT_PUBLIC_USE_MOCK_DATA=true` runtime branching in `lib/data/publicContent.ts` rather than mocking the Prisma/cache dependencies directly.
+
+**Fix Applied:**
+
+- Reworked `lib/__tests__/publicContent.test.ts` to mock `@/lib/db/prisma` publicContent methods (`findUnique`, `findMany`, `upsert`, `delete`) and `@/lib/cache/contentCache` helpers.
+- Cleared in-memory mock stores and mock call state in `beforeEach` for deterministic runs.
+
+**Prevention:**
+
+- Data-layer tests should mock infrastructure modules (Prisma/cache/HTTP) explicitly, not rely on environment-driven fallback branches.
+- When removing fallback paths, update affected tests in the same change set.
+
+**Files Affected:**
+
+- lib/__tests__/publicContent.test.ts
+
+**Date:** 2026-04-01
+
+## [Adapter method added but interface typing not updated]
+
+**Symptom:**
+
+- TypeScript fails with: `Object literal may only specify known properties, and 'getActive' does not exist in type 'CrudAdapter<...>'` when adding new adapter methods.
+
+**Root Cause:**
+
+- `lib/data/prismaAdapter.ts` gained `adRateConfigDb.getActive`, but the shared `CrudAdapter` interface in `lib/data/adapterTypes.ts` did not include this optional method.
+
+**Fix Applied:**
+
+- Added optional `getActive` to `CrudAdapter` in `lib/data/adapterTypes.ts`.
+- Kept `adRateConfigDb.getActive` in Prisma adapter so API consumer shape stays consistent.
+
+**Prevention:**
+
+- When adding new adapter helper methods, update shared adapter interfaces in the same change set.
+- Run `npx tsc --noEmit` immediately after adapter-surface changes.
+
+**Files Affected:**
+
+- lib/data/prismaAdapter.ts
+- lib/data/adapterTypes.ts
+
+**Date:** 2026-04-01
+
+## [Config tests failing after compatibility env toggle removal]
+
+**Symptom:**
+
+- Env/config tests fail after deleting compatibility fields with errors/assertions referencing `env.usePrisma` and `env.enableMockBackend`.
+
+**Root Cause:**
+
+- `lib/__tests__/config-env.test.ts` still validated removed fields after runtime config surface was simplified.
+
+**Fix Applied:**
+
+- Updated tests to assert those deprecated fields are absent and to continue validating active config normalization behavior.
+
+**Prevention:**
+
+- When removing config keys, update tests/docs in the same commit.
+- Treat config schema, feature flags, and config tests as a single synchronized unit.
+
+**Files Affected:**
+
+- lib/config/env.ts
+- lib/config/features.ts
+- lib/__tests__/config-env.test.ts
+- PRODUCTION.md
+
+**Date:** 2026-04-01
+
+## [Prisma JSON input typing mismatch for order status history]
+
+**Symptom:**
+
+- TypeScript noEmit fails in `app/api/orders/route.ts` with `Type '{ ... }[]' is not assignable to type 'InputJsonValue | JsonNullValueInput | undefined'` when assigning `statusHistory` during order creation.
+
+**Root Cause:**
+
+- The route built a plain object-array payload for a Prisma JSON field, but strict typing inferred a structural type that did not satisfy Prisma's JSON input union without explicit typing.
+
+**Fix Applied:**
+
+- Typed/cast the constructed `statusHistory` payload as `Prisma.InputJsonValue` before passing it to Prisma create data.
+
+**Prevention:**
+
+- For Prisma JSON columns, construct payloads with explicit `Prisma.InputJsonValue` typing (or helper functions returning that type) in the same scope where data is composed.
+- Re-run `npx tsc --noEmit` immediately after modifying JSON-typed create/update payloads.
+
+**Files Affected:**
+
+- app/api/orders/route.ts
+
+**Date:** 2026-04-01
+
+## [Push subscription VAPID key typing mismatch in TypeScript]
+
+**Symptom:**
+
+- `npx tsc --noEmit` fails in `lib/contexts/NotificationContext.tsx` at `pushManager.subscribe` with `No overload matches this call` for `applicationServerKey`.
+
+**Root Cause:**
+
+- Strict DOM typing expected a `BufferSource`, while the helper return type resolved to a `Uint8Array<ArrayBufferLike>` signature that TypeScript did not accept directly in this code path.
+
+**Fix Applied:**
+
+- Cast the computed VAPID key payload to `BufferSource` when assigning `applicationServerKey` in `pushManager.subscribe`.
+
+**Prevention:**
+
+- For web-push subscription code under strict TypeScript, type `applicationServerKey` explicitly as `BufferSource` when building from base64 helpers.
+- Re-run `npx tsc --noEmit` immediately after editing service-worker/push subscription setup code.
+
+**Files Affected:**
+
+- lib/contexts/NotificationContext.tsx
+
+**Date:** 2026-04-01
+
 ---
 
 ## Known Error Patterns

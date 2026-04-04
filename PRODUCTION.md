@@ -9,8 +9,8 @@ This document lists minimal steps and environment variables required to deploy M
 
 2. Environment variables (see `.env.example`)
    - `DATABASE_URL`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `REDIS_URL`
+   - `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `FLUTTERWAVE_PUBLIC_KEY`, `FLUTTERWAVE_SECRET_KEY` (required once gateway calls are enabled)
    - `NEXT_PUBLIC_BASE_URL` — public host
-   - `USE_PRISMA=true` to enable Prisma adapters
 
 3. Secrets & security
    - Store secrets in your hosting provider's secret store (do NOT commit `.env`)

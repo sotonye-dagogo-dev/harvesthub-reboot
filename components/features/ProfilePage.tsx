@@ -4,17 +4,20 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, Input as CustomInput } from "@/components/ui";
 import { AddressForm } from "@/components/features";
-import { mockAddresses } from "@/lib/data/mockData";
 import { Tabs, Upload, message, Badge } from "antd";
 import { User, Mail, Phone, MapPin, Lock, Upload as UploadIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import type { Address } from "@/lib/types";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [editMode, setEditMode] = useState(false);
-
-  const userAddresses = mockAddresses.filter((a: any) => a.userId === user?.id);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [userAddresses, setUserAddresses] = useState<Address[]>([]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -25,15 +28,63 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phoneNumber: user.phoneNumber || "",
-        whatsappNumber: user.whatsappNumber || "",
-      });
+    if (!user) return;
+
+    let mounted = true;
+
+    setFormData({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      phoneNumber: user.phoneNumber || "",
+      whatsappNumber: user.whatsappNumber || "",
+    });
+
+    async function loadProfile() {
+      try {
+        const [profileRes, addressesRes] = await Promise.all([
+          fetch(`/api/users/${user?.id}/profile`),
+          fetch(`/api/users/${user?.id}/addresses`),
+        ]);
+
+        if (!mounted) return;
+
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          const profile = data?.profile;
+
+          if (profile) {
+            setFormData((prev) => ({
+              ...prev,
+              firstName: profile.firstName || "",
+              lastName: profile.lastName || "",
+              email: profile.email || "",
+              phoneNumber: profile.phoneNumber || "",
+            }));
+          }
+        }
+
+        if (addressesRes.ok) {
+          const addressesData = await addressesRes.json();
+          const addresses = Array.isArray(addressesData?.addresses)
+            ? (addressesData.addresses as Address[])
+            : [];
+          setUserAddresses(addresses);
+        } else {
+          setUserAddresses([]);
+        }
+      } catch {
+        // Keep local auth values as fallback.
+        if (!mounted) return;
+        setUserAddresses([]);
+      }
     }
+
+    loadProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   const [passwordData, setPasswordData] = useState({
@@ -41,13 +92,55 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [emailData, setEmailData] = useState({
+    newEmail: "",
+    confirmEmail: "",
+  });
 
-  const handleSaveProfile = () => {
-    message.success("Profile updated successfully");
-    setEditMode(false);
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setSavingProfile(true);
+    try {
+      const res = await fetch(`/api/users/${user.id}/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          phoneNumber: formData.phoneNumber.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update profile");
+      }
+
+      const updated = data.user;
+      if (updated) {
+        setFormData((prev) => ({
+          ...prev,
+          firstName: updated.firstName || prev.firstName,
+          lastName: updated.lastName || prev.lastName,
+          phoneNumber: updated.phoneNumber || prev.phoneNumber,
+        }));
+      }
+
+      await refreshUser();
+      message.success("Profile updated successfully");
+      setEditMode(false);
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to update profile";
+      message.error(errMessage);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (!user) return;
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       message.error("Passwords do not match");
       return;
@@ -57,12 +150,69 @@ export default function ProfilePage() {
       return;
     }
 
-    message.success("Password changed successfully");
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    setSavingPassword(true);
+    try {
+      const res = await fetch(`/api/users/${user.id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to change password");
+      }
+
+      message.success(data.message || "Password changed successfully");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to change password";
+      message.error(errMessage);
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    if (!emailData.newEmail || !emailData.confirmEmail) {
+      message.error("Please fill in both email fields");
+      return;
+    }
+    if (emailData.newEmail.trim().toLowerCase() !== emailData.confirmEmail.trim().toLowerCase()) {
+      message.error("Email addresses do not match");
+      return;
+    }
+    if (emailData.newEmail.trim().toLowerCase() === formData.email.trim().toLowerCase()) {
+      message.error("New email must be different from your current email");
+      return;
+    }
+
+    setSavingEmail(true);
+    try {
+      const res = await fetch("/api/users/me/change-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: emailData.newEmail.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to start email change process");
+      }
+      message.success("Verification link sent to your new email address");
+      setEmailData({ newEmail: "", confirmEmail: "" });
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to request email change";
+      message.error(errMessage);
+    } finally {
+      setSavingEmail(false);
+    }
   };
 
   const tabs = [
@@ -84,6 +234,14 @@ export default function ProfilePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-ds-text-primary">My Profile</h1>
         <p className="mt-2 text-ds-text-secondary">Manage your account information</p>
+        {user.role === "BUYER" && (
+          <Link
+            href="/become-vendor"
+            className="mt-3 inline-flex items-center rounded-ds-md bg-ds-brand-subtle px-3 py-2 text-sm font-medium text-ds-text-brand hover:bg-ds-brand-surface"
+          >
+            Want to sell too? Register your store
+          </Link>
+        )}
       </div>
 
       <Tabs
@@ -222,8 +380,14 @@ export default function ProfilePage() {
             <div className="mt-6 flex gap-3">
               {editMode ? (
                 <>
-                  <Button onClick={handleSaveProfile}>Save Changes</Button>
-                  <Button variant="outline" onClick={() => setEditMode(false)}>
+                  <Button onClick={handleSaveProfile} loading={savingProfile}>
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditMode(false)}
+                    disabled={savingProfile}
+                  >
                     Cancel
                   </Button>
                 </>
@@ -243,7 +407,7 @@ export default function ProfilePage() {
                 <p className="text-ds-text-secondary">No saved addresses yet</p>
               ) : (
                 <div className="space-y-3">
-                  {userAddresses.map((address: any) => (
+                  {userAddresses.map((address) => (
                     <div
                       key={address.id}
                       className="flex items-start justify-between rounded-ds-md border border-ds-border-base p-4"
@@ -344,7 +508,51 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <Button onClick={handleChangePassword}>Change Password</Button>
+              <Button onClick={handleChangePassword} loading={savingPassword}>
+                Change Password
+              </Button>
+            </div>
+
+            <div className="mt-8 border-t border-ds-border-base pt-6">
+              <h3 className="mb-2 text-lg font-semibold text-ds-text-primary">Change Email</h3>
+              <p className="mb-4 text-sm text-ds-text-secondary">
+                We&apos;ll send a verification link to your new email. You&apos;ll need to verify it to complete the change.
+              </p>
+
+              <div className="max-w-md space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    Current Email
+                  </label>
+                  <CustomInput value={formData.email} disabled className="bg-ds-surface-sunken" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    New Email
+                  </label>
+                  <CustomInput
+                    type="email"
+                    value={emailData.newEmail}
+                    onChange={(e) => setEmailData((prev) => ({ ...prev, newEmail: e.target.value }))}
+                    prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                    Confirm New Email
+                  </label>
+                  <CustomInput
+                    type="email"
+                    value={emailData.confirmEmail}
+                    onChange={(e) => setEmailData((prev) => ({ ...prev, confirmEmail: e.target.value }))}
+                    prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
+                  />
+                </div>
+
+                <Button onClick={handleChangeEmail} loading={savingEmail}>
+                  Send Verification Link
+                </Button>
+              </div>
             </div>
           </Card>
         )}

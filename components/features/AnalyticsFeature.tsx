@@ -17,6 +17,7 @@ import type { Order, Product, Vendor } from "@/lib/types";
 export function AnalyticsFeature() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const isVendor = user?.role === UserRole.VENDOR;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -67,25 +68,39 @@ export function AnalyticsFeature() {
   }, [isLoading, router, user]);
 
   const stats = useMemo(() => {
-    const totalRevenue = orders
+    const currentVendor = isVendor ? vendors.find((vendor) => vendor.userId === user?.id) : null;
+    const scopedOrders = currentVendor ? orders.filter((order) => order.vendorId === currentVendor.id) : orders;
+    const scopedProducts = currentVendor
+      ? products.filter((product) => product.vendorId === currentVendor.id)
+      : products;
+
+    const totalRevenue = scopedOrders
       .filter((o) => o.status === OrderStatus.DELIVERED)
       .reduce((sum, order) => sum + (order.total || 0), 0);
 
-    const totalOrders = orders.length;
-    const completedOrders = orders.filter((o) => o.status === OrderStatus.DELIVERED).length;
-    const pendingOrders = orders.filter((o) => o.status === OrderStatus.PENDING).length;
-    const cancelledOrders = orders.filter((o) => o.status === OrderStatus.CANCELLED).length;
+    const totalOrders = scopedOrders.length;
+    const completedOrders = scopedOrders.filter((o) => o.status === OrderStatus.DELIVERED).length;
+    const pendingOrders = scopedOrders.filter((o) => o.status === OrderStatus.PENDING).length;
+    const cancelledOrders = scopedOrders.filter((o) => o.status === OrderStatus.CANCELLED).length;
 
-    const activeVendors = vendors.filter((v) => v.status === VendorStatus.APPROVED).length;
-    const pendingVendors = vendors.filter((v) => v.status === VendorStatus.PENDING).length;
+    const activeVendors = isVendor
+      ? currentVendor
+        ? 1
+        : 0
+      : vendors.filter((v) => v.status === VendorStatus.APPROVED).length;
+    const pendingVendors = isVendor
+      ? currentVendor
+        ? 0
+        : 1
+      : vendors.filter((v) => v.status === VendorStatus.PENDING).length;
 
-    const totalProducts = products.length;
-    const activeProducts = products.filter((p) => p.isActive).length;
-    const outOfStock = products.filter((p) => p.stock === 0).length;
+    const totalProducts = scopedProducts.length;
+    const activeProducts = scopedProducts.filter((p) => p.isActive).length;
+    const outOfStock = scopedProducts.filter((p) => p.stock === 0).length;
 
-    const totalUsers = users.length;
-    const buyerCount = users.filter((u) => u.role === UserRole.BUYER).length;
-    const vendorCount = users.filter((u) => u.role === UserRole.VENDOR).length;
+    const totalUsers = isVendor ? 0 : users.length;
+    const buyerCount = isVendor ? 0 : users.filter((u) => u.role === UserRole.BUYER).length;
+    const vendorCount = isVendor ? 1 : users.filter((u) => u.role === UserRole.VENDOR).length;
 
     const averageOrderValue = completedOrders > 0 ? totalRevenue / completedOrders : 0;
 
@@ -106,7 +121,7 @@ export function AnalyticsFeature() {
       averageOrderValue,
       totalTransactions: 0,
     };
-  }, [orders, vendors, products, users]);
+  }, [isVendor, orders, products, user?.id, users, vendors]);
 
   if (isLoading) {
     return <div className="text-center py-12">Loading analytics ...</div>;
@@ -124,7 +139,11 @@ export function AnalyticsFeature() {
     <div className="space-y-6 container mx-auto px-4 py-8">
       <div>
         <h1 className="text-2xl font-bold text-ds-text-primary">Analytics</h1>
-        <p className="mt-1 text-ds-text-secondary">Overview of platform performance and key metrics.</p>
+        <p className="mt-1 text-ds-text-secondary">
+          {isVendor
+            ? "Overview of your store performance and order metrics."
+            : "Overview of platform performance and key metrics."}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -137,12 +156,16 @@ export function AnalyticsFeature() {
           <p className="text-2xl font-bold text-ds-status-info-text">{stats.totalOrders}</p>
         </Card>
         <Card>
-          <p className="text-sm text-ds-text-secondary">Active Vendors</p>
-          <p className="text-2xl font-bold text-ds-status-success-text">{stats.activeVendors}</p>
+          <p className="text-sm text-ds-text-secondary">Active Products</p>
+          <p className="text-2xl font-bold text-ds-status-success-text">{stats.activeProducts}</p>
         </Card>
         <Card>
-          <p className="text-sm text-ds-text-secondary">Total Users</p>
-          <p className="text-2xl font-bold text-ds-status-warning-text">{stats.totalUsers}</p>
+          <p className="text-sm text-ds-text-secondary">
+            {isVendor ? "Pending Orders" : "Total Users"}
+          </p>
+          <p className="text-2xl font-bold text-ds-status-warning-text">
+            {isVendor ? stats.pendingOrders : stats.totalUsers}
+          </p>
         </Card>
       </div>
     </div>

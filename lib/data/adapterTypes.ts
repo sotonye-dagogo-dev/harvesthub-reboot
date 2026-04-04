@@ -16,6 +16,7 @@ export interface CrudAdapter<
   findByProductId?: (...args: any[]) => AsyncOrSync<TEntity[]>;
   findByVendor?: (...args: any[]) => AsyncOrSync<TEntity[]>;
   findByVendorId?: (...args: any[]) => AsyncOrSync<TEntity[]>;
+  getActive?: (...args: any[]) => AsyncOrSync<TEntity | null | undefined>;
   count?: (...args: any[]) => AsyncOrSync<number>;
   create: (data: TCreate, ...extraArgs: TExtraArgs) => AsyncOrSync<TEntity>;
   update: (id: string, data: TUpdate) => AsyncOrSync<TEntity | null>;

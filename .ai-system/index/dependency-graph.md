@@ -33,6 +33,23 @@ components/ui/*
 lib/store/*
   → lib/data/database.ts (for mock persistence)
   → lib/utils/api.ts
+
+app/advertise/page.tsx
+  → components/ui/ImageUpload.tsx
+  → lib/utils/localDraft.ts
+  → lib/utils/offlineQueue.ts
+  → app/api/ad-applications/route.ts
+
+app/api/ad-applications/*
+  → lib/api/http.ts
+  → lib/middleware/rate-limit.ts
+  → lib/data/database.ts
+
+app/api/upload/route.ts
+  → lib/api/http.ts
+  → lib/services/cloudinary.ts
+  → lib/services/asset.ts
+  → lib/middleware/rate-limit.ts
 ```
 
 ---
@@ -102,9 +119,21 @@ lib/store/*
 
 > **Section summary:** Files and areas that are large, frequently changed, or important for analysis.
 
-- Generated Prisma client files (under `prisma/generated/` or build output) — very large; they dominate packed exports and analysis token counts.  
-- `lib/data/database.ts` — in-memory mock DB used across many endpoints; changing shape here affects many routes.  
+- Generated Prisma client files (under `prisma/generated/` or build output) — very large; they dominate packed exports and analysis token counts.
+- `lib/data/database.ts` — in-memory mock DB used across many endpoints; changing shape here affects many routes.
 - `app/api/*` — many independent route handlers; good candidates for API-level tests and contract verification.
+- `app/api/upload/route.ts` — mixed auth/guest upload logic and persistence toggles; high regression risk.
+- `app/advertise/page.tsx` — upload + draft + offline replay orchestration.
+
+---
+
+## Refactor Notes (2026-04-01)
+
+> **Section summary:** Standardization updates introduced by the production-readiness wave.
+
+- Introduced `lib/api/http.ts` as shared API envelope and handler wrapper for consistent success/error responses.
+- Added `lib/utils/localDraft.ts` for local form retention and `lib/utils/offlineQueue.ts` for queued online replay.
+- Added `components/layout/RoleDashboardShell.tsx` to consolidate admin/vendor shell logic and reduce duplication.
 
 ---
 

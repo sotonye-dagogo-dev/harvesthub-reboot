@@ -17,7 +17,7 @@ describe('buildNav', () => {
 
     it('includes admin links', () => {
         const nav = buildNav(UserRole.ADMIN);
-        expect(nav.some((item) => item.path === '/vendors')).toBe(true);
+        expect(nav.some((item) => item.path === '/operations/users')).toBe(true);
         expect(nav.some((item) => item.path === '/orders')).toBe(true);
     });
 });

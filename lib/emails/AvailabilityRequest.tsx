@@ -69,7 +69,7 @@ export function AvailabilityRequest({
       </Text>
 
       <Section style={{ textAlign: "center", margin: "24px 0" }}>
-        <Link href={`${appUrl}/vendor/orders?availability=${requestId}`} style={styles.button}>
+        <Link href={`${appUrl}/orders?availability=${requestId}`} style={styles.button}>
           Respond Now
         </Link>
       </Section>

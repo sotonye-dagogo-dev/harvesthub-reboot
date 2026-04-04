@@ -1,16 +1,17 @@
 /**
  * GET /api/wallet/transactions — List wallet transactions with filters
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { Prisma, TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function GET(req: NextRequest) {
-    try {
+    return withApiHandler('GET /api/wallet/transactions', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
         const status = searchParams.get('status') as TransactionStatus | null;
 
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
-        if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
+        if (!wallet) return apiError('Wallet not found', 404);
 
         const where: Prisma.TransactionWhereInput = { walletId: wallet.id };
         if (type && Object.values(TransactionType).includes(type)) where.type = type;
@@ -38,8 +39,7 @@ export async function GET(req: NextRequest) {
             prisma.transaction.count({ where }),
         ]);
 
-        return NextResponse.json({
-            success: true,
+        return apiSuccess({
             transactions,
             pagination: {
                 page,
@@ -48,8 +48,5 @@ export async function GET(req: NextRequest) {
                 totalPages: Math.ceil(total / limit),
             },
         });
-    } catch (error) {
-        console.error('GET /api/wallet/transactions error:', error);
-        return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
-    }
+    });
 }

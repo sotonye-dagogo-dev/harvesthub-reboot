@@ -1,9 +1,9 @@
 import { env } from '@/lib/config/env';
 
 export const featureFlags = {
-  usePrisma: env.usePrisma,
-  enableMockBackend: env.enableMockBackend,
   enableEmail: env.enableEmail,
   enablePushNotifications: env.enablePushNotifications,
   enableRedisCache: env.enableRedisCache,
+  enablePaystackWebhooks: env.paystackWebhooksEnabled,
+  enableBankTransferFallback: env.paymentFallbackBankTransfer,
 } as const;

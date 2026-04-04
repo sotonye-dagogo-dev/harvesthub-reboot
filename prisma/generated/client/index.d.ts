@@ -336,6 +336,9 @@ export type Campus = (typeof Campus)[keyof typeof Campus]
 
 
 export const Position: {
+  MEMBER: 'MEMBER',
+  NON_MEMBER: 'NON_MEMBER',
+  WORKER: 'WORKER',
   HOD: 'HOD',
   ASST_HOD: 'ASST_HOD',
   SUB_TEAM_LEADER: 'SUB_TEAM_LEADER',

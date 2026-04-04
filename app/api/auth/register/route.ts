@@ -8,7 +8,7 @@ import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
 import { sendVerifyEmail } from '@/lib/services/email';
 import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender } from '@/lib/constants';
+import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender, Position } from '@/lib/constants';
 import { randomUUID as uuidv4 } from 'crypto';
 
 const isValidEnumValue = <T extends readonly string[]>(value: unknown, enumValues: T): value is T[number] =>
@@ -16,6 +16,20 @@ const isValidEnumValue = <T extends readonly string[]>(value: unknown, enumValue
 
 export async function POST(request: NextRequest) {
     let body: any = null;
+    const correlationId = request.headers.get('x-correlation-id') || uuidv4();
+    const logBase = { route: 'POST /api/auth/register', correlationId };
+    const maskEmail = (email: unknown) => {
+        if (typeof email !== 'string' || !email.includes('@')) return 'unknown';
+        const [name, domain] = email.split('@');
+        if (!name || !domain) return 'unknown';
+        return `${name.slice(0, 2)}***@${domain}`;
+    };
+    const mapPrismaError = (error: Prisma.PrismaClientKnownRequestError) => {
+        if (error.code === 'P2002') return { status: 409, message: 'A user with this email or details already exists.' };
+        if (error.code === 'P2023') return { status: 400, message: 'Invalid input value provided for a field.' };
+        if (error.code === 'P2003') return { status: 400, message: 'Provided related reference is invalid.' };
+        return { status: 500, message: 'Internal server error' };
+    };
     try {
         const ip = request.headers.get('x-forwarded-for') || 'unknown';
         const rl = await rateLimitStrict(ip);
@@ -68,11 +82,11 @@ export async function POST(request: NextRequest) {
         }
 
         if (role === UserRole.VENDOR) {
-            if (!storeName || !category || !whatsappNumber || !campus) {
+            if (!storeName || !category || !whatsappNumber || !campus || !businessAddress?.trim()) {
                 return NextResponse.json(
                     {
                         success: false,
-                        error: 'Missing required vendor fields: storeName, category, whatsappNumber, campus',
+                        error: 'Missing required vendor fields: storeName, category, whatsappNumber, campus, businessAddress',
                     },
                     { status: 400 }
                 );
@@ -88,6 +102,47 @@ export async function POST(request: NextRequest) {
             if (!isValidEnumValue(campus, Object.values(Campus) as readonly string[])) {
                 return NextResponse.json(
                     { success: false, error: 'Invalid campus value' },
+                    { status: 400 }
+                );
+            }
+
+            if (
+                position &&
+                !isValidEnumValue(position, Object.values(Position) as readonly string[])
+            ) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid church position value' },
+                    { status: 400 }
+                );
+            }
+
+            const docs = Array.isArray(verificationDocuments) ? verificationDocuments : [];
+            const requiredDocTypes = ['ID', 'BUSINESS_REGISTRATION', 'UTILITY_BILL'];
+            const hasAllRequiredDocs = requiredDocTypes.every((requiredType) =>
+                docs.some((doc: Record<string, unknown>) => doc?.documentType === requiredType)
+            );
+
+            if (!hasAllRequiredDocs) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'All vendor verification documents are required: valid ID, business registration certificate, and utility bill.',
+                    },
+                    { status: 400 }
+                );
+            }
+
+            const hasUnsupportedDocUrl = docs.some((doc: Record<string, unknown>) => {
+                const url = typeof doc.url === 'string' ? doc.url : '';
+                return !url.startsWith('https://res.cloudinary.com/');
+            });
+
+            if (hasUnsupportedDocUrl) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Verification documents must use managed Cloudinary upload URLs.',
+                    },
                     { status: 400 }
                 );
             }
@@ -197,6 +252,7 @@ export async function POST(request: NextRequest) {
                                 ? verificationDocuments
                                 : undefined,
                             businessAddress: businessAddress || undefined,
+                            idType: body?.idType || undefined,
                             bankDetails:
                                 bankName || accountName || accountNumber
                                     ? {
@@ -233,7 +289,7 @@ export async function POST(request: NextRequest) {
 
         // Send verification email (non-blocking)
         sendVerifyEmail(result.email, result.firstName, verificationToken).catch((err) =>
-            console.error('Failed to send verification email:', err)
+            console.error('Failed to send verification email:', { ...logBase, error: err })
         );
 
         // Important: Do not log the user in until email is verified.
@@ -267,42 +323,33 @@ export async function POST(request: NextRequest) {
 
         if (error && typeof error === 'object' && 'code' in error) {
             const pError = error as Prisma.PrismaClientKnownRequestError;
-            if (pError.code === 'P2002') {
-                const fields = Array.isArray(pError.meta?.target)
-                    ? (pError.meta.target as string[]).join(', ')
-                    : typeof pError.meta?.target === 'string'
-                        ? (pError.meta.target as string)
-                        : 'unknown field';
-
-                let message = 'A user with this email or details already exists.';
-                if (fields.includes('registrationSequence')) {
-                    message = 'Registration sequence conflict detected. Please retry the signup flow.';
-                } else if (fields.includes('email')) {
-                    message = 'A user with this email already exists.';
-                }
-
-                console.warn('P2002 conflict', { email: body?.email, role: body?.role, fieldTarget: fields });
-
-                return NextResponse.json(
-                    { success: false, error: message, details: fields },
-                    { status: 409 }
-                );
-            }
-            if (pError.code === 'P2023') {
-                return NextResponse.json(
-                    { success: false, error: 'Invalid input value provided for a field.' },
-                    { status: 400 }
-                );
-            }
+            const fields = Array.isArray(pError.meta?.target)
+                ? (pError.meta.target as string[]).join(', ')
+                : typeof pError.meta?.target === 'string'
+                    ? (pError.meta.target as string)
+                    : 'unknown field';
+            const mapped = mapPrismaError(pError);
+            console.warn('register prisma error', {
+                ...logBase,
+                prismaCode: pError.code,
+                fieldTarget: fields,
+                role: body?.role,
+                email: maskEmail(body?.email),
+            });
+            return NextResponse.json(
+                { success: false, error: mapped.message, details: fields, correlationId },
+                { status: mapped.status }
+            );
         }
 
-        console.error('Registration error:', {
-            email: body?.email,
+        console.error('Registration error', {
+            ...logBase,
+            email: maskEmail(body?.email),
             role: body?.role,
             error,
         });
         return NextResponse.json(
-            { success: false, error: 'Internal server error' },
+            { success: false, error: 'Internal server error', correlationId },
             { status: 500 }
         );
     }

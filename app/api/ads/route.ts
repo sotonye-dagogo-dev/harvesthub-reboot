@@ -2,59 +2,62 @@
  * POST /api/ads — Submit a new advertisement
  * GET  /api/ads/active and /api/ads/my-ads are separate routes
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { z } from 'zod';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+
+const createAdSchema = z.object({
+    title: z.string().trim().min(2, 'Title is required'),
+    subtitle: z.string().trim().optional().nullable(),
+    ctaText: z.string().trim().optional().nullable(),
+    ctaLink: z.string().trim().url().optional().nullable(),
+    imageUrl: z.string().trim().url('A valid image URL is required'),
+    imagePublicId: z.string().trim().optional().nullable(),
+    dailyRate: z.coerce.number().positive('dailyRate must be a positive number'),
+    startDate: z.string().datetime('startDate must be a valid ISO datetime'),
+    duration: z.coerce.number().int().min(1, 'duration must be a positive integer (days)'),
+});
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/ads', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
-        const body = await req.json();
-        const { title, subtitle, ctaText, ctaLink, imageUrl, imagePublicId, dailyRate, startDate, duration } = body;
-
-        if (!title || !imageUrl || !dailyRate || !startDate || !duration) {
-            return NextResponse.json({ error: 'title, imageUrl, dailyRate, startDate, and duration are required' }, { status: 400 });
-        }
-        if (typeof dailyRate !== 'number' || dailyRate <= 0) {
-            return NextResponse.json({ error: 'dailyRate must be a positive number' }, { status: 400 });
-        }
-        if (typeof duration !== 'number' || duration < 1 || !Number.isInteger(duration)) {
-            return NextResponse.json({ error: 'duration must be a positive integer (days)' }, { status: 400 });
+        const parsedBody = createAdSchema.safeParse(await req.json());
+        if (!parsedBody.success) {
+            return apiError('Invalid request payload', 400, {
+                details: parsedBody.error.flatten(),
+            });
         }
 
-        const parsedStart = new Date(startDate);
-        if (isNaN(parsedStart.getTime())) {
-            return NextResponse.json({ error: 'startDate must be a valid date' }, { status: 400 });
-        }
+        const data = parsedBody.data;
+        const parsedStart = new Date(data.startDate);
 
         const endDate = new Date(parsedStart);
-        endDate.setDate(endDate.getDate() + duration);
+        endDate.setDate(endDate.getDate() + data.duration);
 
         const ad = await prisma.advertisement.create({
             data: {
                 advertiserId: user.userId,
-                title,
-                subtitle: subtitle ?? null,
-                ctaText: ctaText ?? null,
-                ctaLink: ctaLink ?? null,
-                imageUrl,
-                imagePublicId: imagePublicId ?? null,
-                dailyRate,
+                title: data.title,
+                subtitle: data.subtitle ?? null,
+                ctaText: data.ctaText ?? null,
+                ctaLink: data.ctaLink ?? null,
+                imageUrl: data.imageUrl,
+                imagePublicId: data.imagePublicId ?? null,
+                dailyRate: data.dailyRate,
                 startDate: parsedStart,
                 endDate,
                 totalPaid: 0,
             },
         });
 
-        return NextResponse.json({ success: true, ad }, { status: 201 });
-    } catch (error) {
-        console.error('POST /api/ads error:', error);
-        return NextResponse.json({ error: 'Failed to create ad' }, { status: 500 });
-    }
+        return apiSuccess({ ad }, 201);
+    });
 }

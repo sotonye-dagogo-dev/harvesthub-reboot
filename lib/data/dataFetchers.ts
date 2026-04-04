@@ -1,89 +1,40 @@
 /**
- * Environment-aware Data Fetchers
+ * Prisma-backed Data Fetchers
  *
- * This module provides functions to fetch data with environment awareness:
- * - Production (NODE_ENV=production): Fetches from database via Prisma
- * - Development (NODE_ENV=development): Fetches from mock data
- *
- * These fetchers should be used as the primary data source throughout the app
- * instead of directly importing from mockData.ts
+ * These fetchers are the server-side data access layer used across the app.
+ * They intentionally avoid runtime mock fallbacks so failures are explicit.
  */
 
 import { prisma } from '@/lib/db/prisma';
-import type { Banner, Product, Vendor, Order } from '@/lib/types';
-
-// Ensure mock data module is strongly typed so callbacks infer proper types.
-type MockData = typeof import('./mockData.dev');
-
-// Note: mock data is loaded dynamically only when `NEXT_PUBLIC_USE_MOCK_DATA` is enabled.
-// This avoids bundling large mock datasets into production builds.
-let _cachedMockData: MockData | null = null;
-async function loadMockData(): Promise<MockData | null> {
-    if (_cachedMockData) return _cachedMockData;
-    try {
-        // dynamic import ensures mock data is only included in bundles when explicitly enabled
-        // and when running in development.
-        const m = await import('./mockData.dev');
-        _cachedMockData = m;
-        return m;
-    } catch (err) {
-        return null;
-    }
-}
-
-// ==================== ENVIRONMENT CHECKS ====================
-
-const useMockData =
-    process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
-    (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'false');
+import type { Banner, Product, Vendor, Order, Review } from '@/lib/types';
 
 // ==================== BANNERS ====================
 
 export async function getBanners(): Promise<Banner[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockBanners ?? []) as Banner[];
-    }
-
     try {
-        const banners = await prisma.banner
-            .findMany({
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' },
-            });
+        const banners = await prisma.banner.findMany({
+            where: { isActive: true },
+            orderBy: { displayOrder: 'asc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return banners as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockBanners ?? [];
-        }
         return [];
     }
 }
 
 export async function getHeroBanners(): Promise<Banner[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockBanners ?? []).filter((b: Banner) => b.position === 'HERO' && b.isActive);
-    }
-
     try {
-        const banners = await prisma.banner
-            .findMany({
-                where: {
-                    isActive: true,
-                    position: 'HERO',
-                },
-                orderBy: { displayOrder: 'asc' },
-            });
+        const banners = await prisma.banner.findMany({
+            where: {
+                isActive: true,
+                position: 'HERO',
+            },
+            orderBy: { displayOrder: 'asc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return banners.filter((b) => b.position === 'HERO') as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return (m?.mockBanners ?? []).filter((b: Banner) => b.position === 'HERO');
-        }
         return [];
     }
 }
@@ -91,110 +42,68 @@ export async function getHeroBanners(): Promise<Banner[]> {
 // ==================== PRODUCTS ====================
 
 export async function getProducts(): Promise<Product[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockProducts ?? []) as Product[];
-    }
-
     try {
-        const products = await prisma.product
-            .findMany({
-                where: { isActive: true },
-                include: {
-                    vendor: true,
-                    reviews: true,
-                },
-                orderBy: { createdAt: 'desc' },
-            });
+        const products = await prisma.product.findMany({
+            where: { isActive: true },
+            include: {
+                vendor: true,
+                reviews: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockProducts ?? [];
-        }
         return [];
     }
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockProducts ?? []).filter((p: Product) => p.isFeatured && p.isActive).slice(0, limit);
-    }
-
     try {
-        const products = await prisma.product
-            .findMany({
-                where: { isFeatured: true, isActive: true },
-                include: {
-                    vendor: true,
-                    reviews: true,
-                },
-                take: limit,
-                orderBy: { createdAt: 'desc' },
-            });
+        const products = await prisma.product.findMany({
+            where: { isFeatured: true, isActive: true },
+            include: {
+                vendor: true,
+                reviews: true,
+            },
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return (m?.mockProducts ?? []).filter((p: Product) => p.isFeatured && p.isActive).slice(0, limit);
-        }
         return [];
     }
 }
 
 export async function getTrendingProducts(limit = 8): Promise<Product[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockProducts ?? [])
-            .filter((p: Product) => p.isActive)
-            .sort((a: Product, b: Product) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
-            .slice(0, limit);
-    }
-
     try {
-        const products = await prisma.product
-            .findMany({
-                where: { isActive: true },
-                include: {
-                    vendor: true,
-                    _count: { select: { reviews: true } },
-                    reviews: true,
-                },
-                take: limit,
-                orderBy: { reviews: { _count: 'desc' } },
-            });
+        const products = await prisma.product.findMany({
+            where: { isActive: true },
+            include: {
+                vendor: true,
+                _count: { select: { reviews: true } },
+                reviews: true,
+            },
+            take: limit,
+            orderBy: { reviews: { _count: 'desc' } },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return (m?.mockProducts ?? [])
-                .filter((p: Product) => p.isActive)
-                .sort((a: Product, b: Product) => (b.reviews?.length ?? 0) - (a.reviews?.length ?? 0))
-                .slice(0, limit);
-        }
         return [];
     }
 }
 
 export async function getProductById(id: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockProducts ?? []).find((p: any) => p.id === id) ?? null;
-    }
-
     try {
-        return await prisma.product
-            .findUnique({
-                where: { id },
-                include: {
-                    vendor: true,
-                    reviews: true,
-                },
-            });
+        return await prisma.product.findUnique({
+            where: { id },
+            include: {
+                vendor: true,
+                reviews: true,
+            },
+        });
     } catch {
         return null;
     }
@@ -203,35 +112,20 @@ export async function getProductById(id: string) {
 // ==================== VENDORS ====================
 
 export async function getVendors(): Promise<Vendor[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockVendors ?? []) as Vendor[];
-    }
-
     try {
-        const vendors = await prisma.vendor
-            .findMany({
-                where: { status: 'APPROVED' },
-                include: { user: true },
-                orderBy: { createdAt: 'desc' },
-            });
+        const vendors = await prisma.vendor.findMany({
+            where: { status: 'APPROVED' },
+            include: { user: true },
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return vendors as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockVendors ?? [];
-        }
         return [];
     }
 }
 
 export async function getVendorById(id: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockVendors ?? []).find((v: any) => v.id === id) ?? null;
-    }
-
     try {
         return await prisma.vendor.findUnique({
             where: { id },
@@ -246,11 +140,6 @@ export async function getVendorById(id: string) {
 }
 
 export async function getBuyerByUserId(userId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockBuyers ?? []).find((b: any) => b.userId === userId) ?? null;
-    }
-
     try {
         return await prisma.buyer.findUnique({
             where: { userId },
@@ -264,11 +153,6 @@ export async function getBuyerByUserId(userId: string) {
 }
 
 export async function getVendorByUserId(userId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockVendors ?? []).find((v: any) => v.userId === userId) ?? null;
-    }
-
     try {
         return await prisma.vendor.findUnique({
             where: { userId },
@@ -285,38 +169,23 @@ export async function getVendorByUserId(userId: string) {
 // ==================== ORDERS ====================
 
 export async function getOrders(): Promise<Order[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockOrders ?? []) as Order[];
-    }
-
     try {
-        const orders = await prisma.order
-            .findMany({
-                include: {
-                    buyer: { include: { user: true } },
-                    vendor: { include: { user: true } },
-                    items: { include: { product: true } },
-                },
-                orderBy: { createdAt: 'desc' },
-            });
+        const orders = await prisma.order.findMany({
+            include: {
+                buyer: { include: { user: true } },
+                vendor: { include: { user: true } },
+                items: { include: { product: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return orders as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockOrders ?? [];
-        }
         return [];
     }
 }
 
 export async function getOrderById(id: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockOrders ?? []).find((o: any) => o.id === id) ?? null;
-    }
-
     try {
         return await prisma.order.findUnique({
             where: { id },
@@ -332,38 +201,23 @@ export async function getOrderById(id: string) {
 }
 
 export async function getOrdersByBuyerId(buyerId: string): Promise<Order[]> {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockOrders ?? []).filter((o: any) => o.buyerId === buyerId);
-    }
-
     try {
-        const orders = await prisma.order
-            .findMany({
-                where: { buyerId },
-                include: {
-                    vendor: { include: { user: true } },
-                    items: { include: { product: true } },
-                },
-                orderBy: { createdAt: 'desc' },
-            });
+        const orders = await prisma.order.findMany({
+            where: { buyerId },
+            include: {
+                vendor: { include: { user: true } },
+                items: { include: { product: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return orders as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return (m?.mockOrders ?? []).filter((o: any) => o.buyerId === buyerId);
-        }
         return [];
     }
 }
 
 export async function getOrdersByVendorId(vendorId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockOrders ?? []).filter((o: any) => o.vendorId === vendorId);
-    }
-
     try {
         return await prisma.order.findMany({
             where: { vendorId },
@@ -403,34 +257,19 @@ export async function getOrdersByUserRole(user: { userId: string; role: string }
 // ==================== USERS ====================
 
 export async function getUsers() {
-    if (useMockData) {
-        const m = await loadMockData();
-        return m?.mockUsers ?? [];
-    }
-
     try {
-        const users = await prisma.user
-            .findMany({
-                where: { isActive: true },
-                orderBy: { createdAt: 'desc' },
-            });
+        const users = await prisma.user.findMany({
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' },
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return users as any;
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockUsers ?? [];
-        }
         return [];
     }
 }
 
 export async function getUserById(id: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockUsers ?? []).find((u: any) => u.id === id) ?? null;
-    }
-
     try {
         const user = await prisma.user.findUnique({
             where: { id },
@@ -445,11 +284,6 @@ export async function getUserById(id: string) {
 // ==================== REVIEWS ====================
 
 export async function getReviews() {
-    if (useMockData) {
-        const m = await loadMockData();
-        return m?.mockReviews ?? [];
-    }
-
     try {
         const reviews = await prisma.review.findMany({
             include: {
@@ -458,24 +292,13 @@ export async function getReviews() {
             orderBy: { createdAt: 'desc' },
         });
 
-        // Prisma returns its own generated types which can differ from our app's
-        // canonical types (e.g., JSON fields such as product.variants). Cast to our
-        // Review type to keep the rest of the app consistent.
         return reviews as unknown as Review[];
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockReviews ?? [];
-        }
         return [];
     }
 }
-export async function getReviewsByProductId(productId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockReviews ?? []).filter((r: any) => r.productId === productId);
-    }
 
+export async function getReviewsByProductId(productId: string) {
     try {
         const reviews = await prisma.review.findMany({
             where: { productId },
@@ -483,40 +306,23 @@ export async function getReviewsByProductId(productId: string) {
         });
         return reviews as unknown as Review[];
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return (m?.mockReviews ?? []).filter((r: any) => r.productId === productId);
-        }
         return [];
     }
 }
+
 // ==================== WALLETS ====================
 
 export async function getWallets() {
-    if (useMockData) {
-        const m = await loadMockData();
-        return m?.mockWallets ?? [];
-    }
-
     try {
-        return await prisma.wallet
-            .findMany({
-                include: { user: true },
-            });
+        return await prisma.wallet.findMany({
+            include: { user: true },
+        });
     } catch {
-        if (useMockData) {
-            const m = await loadMockData();
-            return m?.mockWallets ?? [];
-        }
         return [];
     }
 }
-export async function getWalletByUserId(userId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockWallets ?? []).find((w: any) => w.userId === userId) ?? null;
-    }
 
+export async function getWalletByUserId(userId: string) {
     try {
         return await prisma.wallet.findUnique({
             where: { userId },
@@ -527,17 +333,9 @@ export async function getWalletByUserId(userId: string) {
     }
 }
 
-
-
-
 // ==================== TRANSACTIONS ====================
 
 export async function getTransactions() {
-    if (useMockData) {
-        const m = await loadMockData();
-        return m?.mockTransactions ?? [];
-    }
-
     try {
         return await prisma.transaction.findMany({
             include: { wallet: true },
@@ -549,11 +347,6 @@ export async function getTransactions() {
 }
 
 export async function getTransactionsByWalletId(walletId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockTransactions ?? []).filter((t: any) => t.walletId === walletId);
-    }
-
     try {
         return await prisma.transaction.findMany({
             where: { walletId },
@@ -567,11 +360,6 @@ export async function getTransactionsByWalletId(walletId: string) {
 // ==================== ADDRESSES ====================
 
 export async function getAddresses() {
-    if (useMockData) {
-        const m = await loadMockData();
-        return m?.mockAddresses ?? [];
-    }
-
     try {
         return await prisma.address.findMany({
             include: { user: true },
@@ -583,11 +371,6 @@ export async function getAddresses() {
 }
 
 export async function getAddressesByUserId(userId: string) {
-    if (useMockData) {
-        const m = await loadMockData();
-        return (m?.mockAddresses ?? []).filter((a: any) => a.userId === userId);
-    }
-
     try {
         return await prisma.address.findMany({
             where: { userId },

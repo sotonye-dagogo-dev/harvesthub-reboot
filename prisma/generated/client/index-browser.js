@@ -709,6 +709,9 @@ exports.Campus = exports.$Enums.Campus = {
 };
 
 exports.Position = exports.$Enums.Position = {
+  MEMBER: 'MEMBER',
+  NON_MEMBER: 'NON_MEMBER',
+  WORKER: 'WORKER',
   HOD: 'HOD',
   ASST_HOD: 'ASST_HOD',
   SUB_TEAM_LEADER: 'SUB_TEAM_LEADER',

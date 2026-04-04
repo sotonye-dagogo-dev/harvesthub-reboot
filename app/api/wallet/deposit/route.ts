@@ -1,34 +1,63 @@
 /**
  * POST /api/wallet/deposit — Instant deposit (card/USSD payment confirmed)
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { userWalletKey } from '@/lib/cache/keys';
 import { Prisma, TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
+import { dispatchNotification } from '@/lib/services/notifications';
 
 export async function POST(req: NextRequest) {
-    try {
+    return withApiHandler('POST /api/wallet/deposit', async () => {
         const user = await getCurrentUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) return apiError('Unauthorized', 401);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const body = await req.json();
-        const { amount, description, paymentReference } = body;
+        const {
+            amount,
+            description,
+            paymentReference,
+            paymentGateway,
+            paymentVerificationReference,
+        } = body;
 
         if (typeof amount !== 'number' || amount < 100) {
-            return NextResponse.json({ error: 'Minimum deposit is ₦100' }, { status: 400 });
+            return apiError('Minimum deposit is ₦100', 400);
+        }
+
+        if (!paymentReference || typeof paymentReference !== 'string') {
+            return apiError('paymentReference is required', 400);
+        }
+
+        const gateway = String(paymentGateway || '').toUpperCase() as SupportedPaymentGateway;
+        if (!['PAYSTACK', 'FLUTTERWAVE'].includes(gateway)) {
+            return apiError('Unsupported or missing paymentGateway', 400);
+        }
+
+        const verification = await verifyPayment({
+            gateway,
+            reference: paymentVerificationReference || paymentReference,
+        });
+
+        if (verification.status !== 'SUCCESS') {
+            return apiError('Payment verification is not successful', 400, {
+                verification,
+            });
         }
 
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
-        if (!wallet) return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
-        if (!wallet.isActive) return NextResponse.json({ error: 'Wallet is disabled' }, { status: 403 });
+        if (!wallet) return apiError('Wallet not found', 404);
+        if (!wallet.isActive) return apiError('Wallet is disabled', 403);
 
-        const reference = paymentReference || `DEP-${Date.now()}`;
+        const reference = paymentReference;
 
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const updated = await tx.wallet.update({
@@ -46,6 +75,11 @@ export async function POST(req: NextRequest) {
                     status: TransactionStatus.COMPLETED,
                     reference,
                     description: description || 'Wallet deposit',
+                    metadata: {
+                        gateway,
+                        verificationStatus: verification.status,
+                        verificationReference: paymentVerificationReference || paymentReference,
+                    },
                 },
             });
 
@@ -54,9 +88,20 @@ export async function POST(req: NextRequest) {
 
         await cacheInvalidate(userWalletKey(user.userId));
 
-        return NextResponse.json({ success: true, ...result });
-    } catch (error) {
-        console.error('POST /api/wallet/deposit error:', error);
-        return NextResponse.json({ error: 'Failed to process deposit' }, { status: 500 });
-    }
+        await dispatchNotification({
+            userId: user.userId,
+            type: 'PAYMENT_SUCCESS',
+            title: 'Wallet Deposit Successful',
+            message: `Your wallet has been credited with NGN ${amount.toLocaleString('en-NG')}.`,
+            link: '/wallet',
+            emailSubject: 'Wallet deposit confirmed',
+            metadata: {
+                amount,
+                reference,
+                gateway,
+            } as Prisma.InputJsonValue,
+        });
+
+        return apiSuccess(result);
+    });
 }

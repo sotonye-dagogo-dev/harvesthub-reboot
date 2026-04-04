@@ -25,15 +25,38 @@ interface SidebarProps {
   type: "vendor" | "admin";
 }
 
+const ADMIN_LINKS = new Set([
+  "/operations/dashboard",
+  "/analytics",
+  "/operations/vendors",
+  "/operations/users",
+  "/operations/banners",
+  "/operations/ads",
+  "/operations/vendor-content",
+  "/operations/bug-reports",
+  "/operations/settings",
+  "/operations/public-content",
+  "/wallet",
+  "/notifications",
+  "/profile",
+]);
+
+const VENDOR_LINKS = new Set([
+  "/operations/dashboard",
+  "/analytics",
+  "/products",
+  "/orders",
+  "/operations/marketing-content",
+  "/store-settings",
+  "/wallet",
+  "/notifications",
+  "/profile",
+]);
+
 function getSidebarLinks(type: "vendor" | "admin") {
   const role = type === "admin" ? UserRole.ADMIN : UserRole.VENDOR;
-  return buildNav(role).filter(
-    (item) =>
-      item.path.startsWith(`/${type}`) ||
-      item.path === "/wallet" ||
-      item.path === "/notifications" ||
-      item.path === "/profile"
-  );
+  const allowed = type === "admin" ? ADMIN_LINKS : VENDOR_LINKS;
+  return buildNav(role).filter((item) => allowed.has(item.path));
 }
 
 export function Sidebar({ type }: SidebarProps) {
@@ -43,21 +66,21 @@ export function Sidebar({ type }: SidebarProps) {
   const links = getSidebarLinks(type);
 
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    "/admin/dashboard": LayoutDashboard,
-    "/admin/vendors": Users,
-    "/admin/users": Users,
-    "/admin/banners": AlertCircle,
-    "/admin/ads": Megaphone,
-    "/admin/vendor-content": Megaphone,
-    "/admin/bug-reports": Bug,
-    "/admin/settings": Settings,
-    "/vendor/dashboard": LayoutDashboard,
-    "/vendor/products": Package,
-    "/vendor/orders": ShoppingBag,
-    "/vendor/marketing-content": Megaphone,
-    "/vendor/store-settings": Settings,
-    "/wallet": Wallet,
+    "/operations/dashboard": LayoutDashboard,
+    "/analytics": BarChart3,
+    "/operations/vendors": Users,
+    "/operations/users": Users,
+    "/operations/banners": AlertCircle,
+    "/operations/ads": Megaphone,
+    "/operations/public-content": Megaphone,
+    "/operations/vendor-content": Megaphone,
+    "/operations/bug-reports": Bug,
+    "/operations/settings": Settings,
+    "/operations/marketing-content": Megaphone,
+    "/products": Package,
     "/orders": ShoppingBag,
+    "/store-settings": Settings,
+    "/wallet": Wallet,
     "/notifications": BarChart3,
     "/profile": Users,
   };

@@ -39,7 +39,7 @@ export function VendorApproval({
             platform.
           </Text>
           <Section style={{ textAlign: "center", margin: "24px 0" }}>
-            <Link href={`${appUrl}/vendor/dashboard`} style={styles.button}>
+            <Link href={`${appUrl}/operations/dashboard`} style={styles.button}>
               Go to Dashboard
             </Link>
           </Section>
@@ -74,7 +74,7 @@ export function VendorApproval({
             questions, please contact our support team.
           </Text>
           <Section style={{ textAlign: "center", margin: "24px 0" }}>
-            <Link href={`${appUrl}/vendor/store-settings`} style={styles.buttonSecondary}>
+            <Link href={`${appUrl}/store-settings`} style={styles.buttonSecondary}>
               Update Store Info
             </Link>
           </Section>
