@@ -41,19 +41,28 @@ function getSidebarLinks(): Set<string> {
     const content = readFileSync(path, 'utf8');
     const set = new Set<string>();
 
-    const setBlockRegex = /const\s+(ADMIN_LINKS|VENDOR_LINKS)\s*=\s*new Set\(\[([\s\S]*?)\]\);/g;
-    let blockMatch: RegExpExecArray | null;
-
-    while ((blockMatch = setBlockRegex.exec(content)) !== null) {
-        const setBody = blockMatch[2] || '';
+    const collectRoutes = (blockBody: string) => {
         const pathRegex = /"([^"]+)"/g;
         let pathMatch: RegExpExecArray | null;
 
-        while ((pathMatch = pathRegex.exec(setBody)) !== null) {
+        while ((pathMatch = pathRegex.exec(blockBody)) !== null) {
             const routePath = pathMatch[1]?.trim();
             if (!routePath || !routePath.startsWith('/')) continue;
             set.add(routePath);
         }
+    };
+
+    const setBlockRegex = /const\s+(ADMIN_LINKS|VENDOR_LINKS)\s*=\s*new Set\(\[([\s\S]*?)\]\);/g;
+    let blockMatch: RegExpExecArray | null;
+
+    while ((blockMatch = setBlockRegex.exec(content)) !== null) {
+        collectRoutes(blockMatch[2] || '');
+    }
+
+    // New sidebar structure uses ordered arrays for better UX ordering.
+    const arrayBlockRegex = /const\s+(ADMIN_LINK_ORDER|VENDOR_LINK_ORDER)\s*=\s*\[([\s\S]*?)\]\s*as const;/g;
+    while ((blockMatch = arrayBlockRegex.exec(content)) !== null) {
+        collectRoutes(blockMatch[2] || '');
     }
 
     return set;

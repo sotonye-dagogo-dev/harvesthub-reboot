@@ -92,8 +92,8 @@ export default function AdApplicationPage() {
       </p>
 
       <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4 text-sm text-ds-text-secondary">
-        Upload your banner image and proof-of-transfer using the managed uploader below. Applications
-        are reviewed in the order they are received.
+        Upload your banner image and proof-of-transfer using the managed uploader below.
+        Applications are reviewed in the order they are received.
       </div>
 
       {error ? (
@@ -162,7 +162,7 @@ export default function AdApplicationPage() {
           rows={4}
         />
         <input
-          aria-label="Banner Image URL"
+          aria-label="Banner Image Upload Reference"
           type="hidden"
           required
           value={form.imageUrl}
@@ -236,7 +236,7 @@ export default function AdApplicationPage() {
           placeholder="Amount Paid"
         />
         <input
-          aria-label="Proof of Transfer URL"
+          aria-label="Proof of Transfer Upload Reference"
           type="hidden"
           required
           value={form.proofOfTransferUrl}
