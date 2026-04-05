@@ -18,11 +18,13 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedCampus, setSelectedCampus] = useState<string>("");
 
+  const isVendorVerified = (vendor: Vendor) =>
+    vendor.status === "APPROVED" || vendor.businessVerification?.verifiedAt != null;
+
   // Get all approved vendors with product counts
   const allVendors = useMemo(
     () =>
       vendors
-        .filter((vendor) => vendor.status === "APPROVED")
         .map((vendor) => ({
           ...vendor,
           productCount: products.filter((p) => p.vendorId === vendor.id && p.isActive).length,
@@ -148,7 +150,7 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
                 campus={vendor.campus}
                 rating={vendor.analytics?.averageRating || 0}
                 productCount={vendor.productCount}
-                isVerified={vendor.businessVerification?.verifiedAt !== null}
+                isVerified={isVendorVerified(vendor)}
               />
             ))}
           </div>

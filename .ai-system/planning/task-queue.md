@@ -325,3 +325,22 @@
       - Contact page config source parity — Owner: Content/Platform; Target sprint: 2026-04-12 hardening wave.
       - Vendor deactivation UX lifecycle completion — Owner: Operations UX; Target sprint: 2026-04-12 hardening wave.
       - Payment webhook idempotency hardening — Owner: Payments backend; Target sprint: 2026-04-12 hardening wave.
+
+---
+
+## Session Task Slice (2026-04-05) — Product/Vendor/Layout Hotfix Follow-up
+
+> **Section summary:** Immediate fixes for product detail routing, dashboard shell consistency, and vendor visibility/verification labeling.
+
+- [ ] Restore single-product detail route reliability.
+  - [ ] Add/repair `/products/[id]` page so product cards resolve and not-found behavior is intentional.
+  - [ ] Add null-safe fallbacks for product/vendor/reviews/media fields to avoid runtime crashes.
+- [ ] Apply dashboard shell/menu spacing consistency on missing pages.
+  - [ ] Ensure `/store-settings` renders the same sidebar + mobile bottom nav + bottom spacing used in dashboard shell.
+  - [ ] Ensure `/notifications/settings` uses dashboard shell for vendor/admin while preserving buyer access.
+- [ ] Fix vendor read-path visibility and labeling.
+  - [ ] Ensure public vendor/product surfaces include unverified vendors instead of dropping to empty/Unknown Vendor.
+  - [ ] Keep verification state visible via badges/labels (verified vs unverified) on vendor/product cards and detail pages.
+  - [ ] Preserve order restrictions by relying on existing server-side unverified-vendor acknowledgment gating.
+- [ ] Add/adjust focused tests for changed UI behavior.
+- [ ] Re-run touched-scope validations and capture UI screenshots.

@@ -10,6 +10,8 @@ import { useState, useEffect } from "react";
 import { Card, Switch, Button, message } from "antd";
 import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
 import { useNotifications } from "@/lib/contexts/NotificationContext";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Sidebar } from "@/components/layout";
 
 interface NotificationPreferences {
   orderConfirmed: boolean;
@@ -28,6 +30,7 @@ interface NotificationPreferences {
 }
 
 export default function NotificationSettingsPage() {
+  const { user, isLoading } = useAuth();
   const { enablePushNotifications } = useNotifications();
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     orderConfirmed: true,
@@ -110,11 +113,22 @@ export default function NotificationSettingsPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading || loading) {
     return <PageLoader />;
   }
 
-  return (
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <p className="text-center text-ds-text-secondary">Please log in to manage notification settings</p>
+      </div>
+    );
+  }
+
+  const useDashboardLayout = user.role === "ADMIN" || user.role === "VENDOR";
+  const sidebarType = user.role === "ADMIN" ? "admin" : "vendor";
+
+  const settingsContent = (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ds-text-primary mb-2">Notification Settings</h1>
@@ -381,6 +395,21 @@ export default function NotificationSettingsPage() {
             Save Preferences
           </Button>
         </div>
+      </div>
+    </div>
+  );
+
+  if (!useDashboardLayout) {
+    return settingsContent;
+  }
+
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar type={sidebarType} />
+        <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
+          {settingsContent}
+        </main>
       </div>
     </div>
   );

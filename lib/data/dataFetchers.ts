@@ -114,7 +114,7 @@ export async function getProductById(id: string) {
 export async function getVendors(): Promise<Vendor[]> {
     try {
         const vendors = await prisma.vendor.findMany({
-            where: { status: 'APPROVED' },
+            where: { status: { in: ['APPROVED', 'PENDING'] } },
             include: { user: true },
             orderBy: { createdAt: 'desc' },
         });

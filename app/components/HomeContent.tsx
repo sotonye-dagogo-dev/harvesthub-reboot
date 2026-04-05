@@ -16,6 +16,8 @@ interface HomeContentProps {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
+  const isVendorVerified = (vendor: Vendor) =>
+    vendor.status === "APPROVED" || vendor.businessVerification?.verifiedAt != null;
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
   const activeBanners = banners
     .filter(
@@ -91,13 +93,14 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   const handleAddToCart = (product: (typeof featuredProducts)[number]) => {
     if (!requireAuth("add items to your cart")) return;
     const vendor = vendors.find((v) => v.id === product.vendorId);
+    const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
-      vendorName: vendor?.storeName || "Unknown Vendor",
+      vendorName,
       stock: product.stock,
     });
   };
@@ -140,6 +143,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {featuredProducts.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+                const vendorStatus = vendor?.status || product.vendor?.status;
                 const avgRating =
                   product.reviews && product.reviews.length > 0
                     ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
@@ -155,13 +160,14 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       name={product.name}
                       price={product.price}
                       image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}
+                      isVendorVerified={vendorStatus === "APPROVED"}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
@@ -190,6 +196,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {trendingProducts.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+                const vendorStatus = vendor?.status || product.vendor?.status;
                 const avgRating =
                   product.reviews && product.reviews.length > 0
                     ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
@@ -205,13 +213,14 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       name={product.name}
                       price={product.price}
                       image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}
+                      isVendorVerified={vendorStatus === "APPROVED"}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
@@ -240,6 +249,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {newArrivals.map((product) => {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+                const vendorStatus = vendor?.status || product.vendor?.status;
                 const avgRating =
                   product.reviews && product.reviews.length > 0
                     ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
@@ -255,13 +266,14 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       name={product.name}
                       price={product.price}
                       image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}
+                      isVendorVerified={vendorStatus === "APPROVED"}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}
@@ -299,7 +311,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                   campus={vendor.campus}
                   rating={vendor.analytics?.averageRating || 0}
                   productCount={vendor.productCount}
-                  isVerified={vendor.businessVerification?.verifiedAt !== null}
+                  isVerified={isVendorVerified(vendor)}
                 />
               ))}
             </div>

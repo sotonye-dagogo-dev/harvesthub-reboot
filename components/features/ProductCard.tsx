@@ -15,6 +15,7 @@ export interface ProductCardProps {
   image: string;
   vendorName: string;
   vendorId: string;
+  isVendorVerified?: boolean;
   rating?: number;
   reviewCount?: number;
   stock?: number;
@@ -35,6 +36,7 @@ export function ProductCard({
   image,
   vendorName,
   vendorId,
+  isVendorVerified = true,
   rating = 0,
   reviewCount = 0,
   stock = 0,
@@ -110,6 +112,11 @@ export function ProductCard({
         >
           {vendorName}
         </Link>
+        {!isVendorVerified && (
+          <Badge variant="warning" size="sm" className="mb-1">
+            Unverified Vendor
+          </Badge>
+        )}
 
         {/* Rating */}
         {reviewCount > 0 && (
