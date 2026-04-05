@@ -12,7 +12,7 @@ describe("getFirstValidImageUrl", () => {
     expect(getFirstValidImageUrl(["", "   "])).toBeNull();
   });
 
-  it("returns first non-empty trimmed image url", () => {
+  it("rejects non-allowlisted remote image urls", () => {
     expect(getFirstValidImageUrl(["", "  https://example.com/a.jpg  ", "https://example.com/b.jpg"])).toBe(
       null
     );
@@ -26,6 +26,16 @@ describe("getFirstValidImageUrl", () => {
         "https://res.cloudinary.com/demo/image/upload/sample.jpg",
       ])
     ).toBe("https://res.cloudinary.com/demo/image/upload/sample.jpg");
+  });
+
+  it("returns first trimmed allowlisted image url", () => {
+    expect(
+      getFirstValidImageUrl([
+        "   ",
+        "  https://images.unsplash.com/photo-abc  ",
+        "https://res.cloudinary.com/demo/image/upload/next.jpg",
+      ])
+    ).toBe("https://images.unsplash.com/photo-abc");
   });
 });
 

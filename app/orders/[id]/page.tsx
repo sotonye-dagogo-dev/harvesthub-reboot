@@ -7,6 +7,7 @@ import { Badge, Card, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 
 type OrderStatusHistoryEntry = {
+  id?: string;
   status?: string;
   timestamp?: string;
   note?: string;
@@ -77,7 +78,7 @@ export default function OrderDetailPage() {
       }
 
       try {
-        const res = await fetch(`/api/orders/${orderId}`, { cache: "no-store" });
+        const res = await fetch(`/api/orders/${orderId}`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error(data?.error || "Failed to load order.");
@@ -169,8 +170,11 @@ export default function OrderDetailPage() {
           <p className="mt-3 text-sm text-ds-text-secondary">No tracking events yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
-            {statusHistory.map((entry, index) => (
-              <div key={`${entry.timestamp ?? "entry"}-${index}`} className="rounded-ds-md border border-ds-border-base p-3">
+            {statusHistory.map((entry) => (
+              <div
+                key={entry.id ?? `${entry.status ?? "status"}-${entry.timestamp ?? "timestamp"}`}
+                className="rounded-ds-md border border-ds-border-base p-3"
+              >
                 <p className="font-medium text-ds-text-primary">{formatStatusLabel(entry.status)}</p>
                 <p className="text-xs text-ds-text-secondary">
                   {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "No timestamp"}
