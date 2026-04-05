@@ -22,16 +22,21 @@ vi.mock("@/components/features/OrderCard", () => ({
 import OrdersPage from "@/app/orders/page";
 import { UserRole } from "@/lib/constants";
 import { getCurrentUser } from "@/lib/utils/auth";
-import { getBuyerByUserId, getOrdersByVendorId, getVendorByUserId } from "@/lib/data/dataFetchers";
+import {
+  getBuyerByUserId,
+  getOrdersByBuyerId,
+  getOrdersByVendorId,
+  getVendorByUserId,
+} from "@/lib/data/dataFetchers";
 
 describe("OrdersPage admin access", () => {
-  it("renders admin orders from vendor-scoped query without redirect", async () => {
+  it("prefers buyer orders for admin when admin has buyer profile", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({
       userId: "admin-user-1",
       role: UserRole.ADMIN,
     } as any);
-    vi.mocked(getVendorByUserId).mockResolvedValue({ id: "vendor-1" } as any);
-    vi.mocked(getOrdersByVendorId).mockResolvedValue([
+    vi.mocked(getBuyerByUserId).mockResolvedValue({ id: "buyer-1" } as any);
+    vi.mocked(getOrdersByBuyerId).mockResolvedValue([
       {
         id: "order-1",
         orderNumber: "ORD-1001",
@@ -42,12 +47,43 @@ describe("OrdersPage admin access", () => {
         createdAt: new Date().toISOString(),
       },
     ] as any);
+    vi.mocked(getVendorByUserId).mockResolvedValue({ id: "vendor-1" } as any);
 
     const page = await OrdersPage();
 
-    expect(getBuyerByUserId).not.toHaveBeenCalled();
-    expect(getVendorByUserId).toHaveBeenCalledWith("admin-user-1");
-    expect(getOrdersByVendorId).toHaveBeenCalledWith("vendor-1");
+    expect(getBuyerByUserId).toHaveBeenCalledWith("admin-user-1");
+    expect(getOrdersByBuyerId).toHaveBeenCalledWith("buyer-1");
+    expect(getVendorByUserId).not.toHaveBeenCalled();
+    expect(getOrdersByVendorId).not.toHaveBeenCalled();
+    expect(page).toBeTruthy();
+  });
+
+  it("falls back to vendor orders for admin without buyer orders", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      userId: "admin-user-2",
+      role: UserRole.ADMIN,
+    } as any);
+    vi.mocked(getBuyerByUserId).mockResolvedValue({ id: "buyer-2" } as any);
+    vi.mocked(getOrdersByBuyerId).mockResolvedValue([] as any);
+    vi.mocked(getVendorByUserId).mockResolvedValue({ id: "vendor-2" } as any);
+    vi.mocked(getOrdersByVendorId).mockResolvedValue([
+      {
+        id: "order-2",
+        orderNumber: "ORD-1002",
+        status: "CONFIRMED",
+        total: 2500,
+        items: [],
+        deliveryMethod: "PICKUP",
+        createdAt: new Date().toISOString(),
+      },
+    ] as any);
+
+    const page = await OrdersPage();
+
+    expect(getBuyerByUserId).toHaveBeenCalledWith("admin-user-2");
+    expect(getOrdersByBuyerId).toHaveBeenCalledWith("buyer-2");
+    expect(getVendorByUserId).toHaveBeenCalledWith("admin-user-2");
+    expect(getOrdersByVendorId).toHaveBeenCalledWith("vendor-2");
     expect(page).toBeTruthy();
   });
 });

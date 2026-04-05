@@ -24,6 +24,12 @@ async function getBuyerOrdersForUser(userId: string) {
   return getOrdersByBuyerId(buyer.id);
 }
 
+async function getOrdersForAdminUser(userId: string) {
+  const buyerOrders = await getBuyerOrdersForUser(userId);
+  if (buyerOrders.length > 0) return buyerOrders;
+  return getVendorOrdersForUser(userId);
+}
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
 
@@ -32,7 +38,9 @@ export default async function OrdersPage() {
   }
 
   const orders =
-    user.role === UserRole.ADMIN || user.role === UserRole.VENDOR
+    user.role === UserRole.ADMIN
+      ? await getOrdersForAdminUser(user.userId)
+      : user.role === UserRole.VENDOR
       ? await getVendorOrdersForUser(user.userId)
       : await getBuyerOrdersForUser(user.userId);
 
