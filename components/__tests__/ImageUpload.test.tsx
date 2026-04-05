@@ -6,6 +6,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 describe("ImageUpload", () => {
   const successSpy = vi.spyOn(message, "success");
   const errorSpy = vi.spyOn(message, "error");
+  const warningSpy = vi.spyOn(message, "warning");
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -79,5 +80,34 @@ describe("ImageUpload", () => {
 
     await waitFor(() => expect(errorSpy).toHaveBeenCalledWith("Upload failed from server"));
     expect(onUploaded).not.toHaveBeenCalled();
+  });
+
+  it("supports multi-select upload with a configurable max file count", async () => {
+    const onUploadedMany = vi.fn();
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          url: "https://cdn.example.com/gallery.png",
+          publicId: "gallery-public-id",
+        }),
+      } as Response);
+
+    render(
+      <ImageUpload folderType="product" multiple maxFiles={2} onUploadedMany={onUploadedMany} />
+    );
+
+    const fileInput = screen.getByLabelText("Choose images") as HTMLInputElement;
+    const files = [
+      new File(["1"], "1.png", { type: "image/png" }),
+      new File(["2"], "2.png", { type: "image/png" }),
+      new File(["3"], "3.png", { type: "image/png" }),
+    ];
+    fireEvent.change(fileInput, { target: { files } });
+
+    await waitFor(() => expect(onUploadedMany).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(warningSpy).toHaveBeenCalledWith("Only 2 images can be uploaded at once.");
   });
 });
