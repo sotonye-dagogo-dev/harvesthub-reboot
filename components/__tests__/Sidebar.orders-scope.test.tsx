@@ -22,9 +22,6 @@ describe("Sidebar orders scope visibility", () => {
   it("renders mobile labels with wrapping classes to prevent overlap", () => {
     render(<Sidebar type="admin" />);
     const ordersLabels = screen.getAllByText("Orders");
-    const mobileLabel = ordersLabels.find((node) =>
-      node.className.includes("break-words")
-    );
-    expect(mobileLabel).toBeDefined();
+    expect(ordersLabels.some((node) => node.className.includes("break-words"))).toBe(true);
   });
 });

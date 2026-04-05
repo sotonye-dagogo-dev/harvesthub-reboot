@@ -51,11 +51,11 @@ interface AuthMeResponse {
 const VENDOR_FILTER_ALL = "ALL";
 const PRODUCT_FORM_DRAFT_KEY = "myharvesthub.operations.products.form-draft.v1";
 const MAX_PRODUCT_IMAGES = VALIDATION_RULES.MAX_IMAGES_PER_PRODUCT;
-const MAX_ADDITIONAL_IMAGES = Math.max(0, MAX_PRODUCT_IMAGES - 1);
+const MAX_ADDITIONAL_IMAGES = MAX_PRODUCT_IMAGES - 1;
 
 interface ProductFormDraft {
   values?: Partial<ProductFormValues>;
-  mainImageUrl?: string;
+  mainImageUrl?: string | null;
   additionalImageUrls?: string[];
   editingProductId?: string | null;
 }
@@ -251,7 +251,7 @@ export default function OperationsProductsPage() {
     };
 
     form.setFieldsValue(isCreateDraft ? { ...baseValues, ...draft?.values } : baseValues);
-    setMainImageUrl(isCreateDraft ? draft?.mainImageUrl || "" : "");
+    setMainImageUrl(isCreateDraft ? (draft?.mainImageUrl ?? "") : "");
     setAdditionalImageUrls(
       isCreateDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : []
     );
@@ -282,7 +282,9 @@ export default function OperationsProductsPage() {
     ).slice(0, MAX_ADDITIONAL_IMAGES);
 
     form.setFieldsValue(isEditDraft ? { ...baseValues, ...draft?.values } : baseValues);
-    setMainImageUrl(isEditDraft ? draft?.mainImageUrl || product.mainImage || "" : product.mainImage || "");
+    setMainImageUrl(
+      isEditDraft ? (draft?.mainImageUrl ?? product.mainImage ?? "") : product.mainImage || ""
+    );
     setAdditionalImageUrls(
       isEditDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : baseAdditionalImages
     );
@@ -331,10 +333,7 @@ export default function OperationsProductsPage() {
           values.discount !== undefined && values.discount !== null ? Number(values.discount) : 0,
         stock: Number(values.stock),
         mainImage,
-        images: buildImageArray(mainImage, additionalImageUrls.slice(0, MAX_ADDITIONAL_IMAGES)).slice(
-          0,
-          MAX_PRODUCT_IMAGES
-        ),
+        images: buildImageArray(mainImage, additionalImageUrls).slice(0, MAX_PRODUCT_IMAGES),
         isActive: Boolean(values.isActive),
       };
 
@@ -388,14 +387,29 @@ export default function OperationsProductsPage() {
   const addAdditionalImages = useCallback(
     (urls: string[]) => {
       setAdditionalImageUrls((prev) => {
+        if (prev.length >= MAX_ADDITIONAL_IMAGES) {
+          if (urls.length > 0) {
+            message.warning(
+              `You can only add up to ${MAX_ADDITIONAL_IMAGES} additional image${
+                MAX_ADDITIONAL_IMAGES === 1 ? "" : "s"
+              }.`
+            );
+          }
+          return prev;
+        }
+
         const next = [...prev];
+        let wasLimited = false;
         for (const rawUrl of urls) {
           const normalized = rawUrl.trim();
           if (!normalized || normalized === mainImageUrl || next.includes(normalized)) continue;
-          if (next.length >= MAX_ADDITIONAL_IMAGES) break;
+          if (next.length >= MAX_ADDITIONAL_IMAGES) {
+            wasLimited = true;
+            break;
+          }
           next.push(normalized);
         }
-        if (next.length === prev.length && urls.length > 0 && prev.length >= MAX_ADDITIONAL_IMAGES) {
+        if (wasLimited) {
           message.warning(
             `You can only add up to ${MAX_ADDITIONAL_IMAGES} additional image${
               MAX_ADDITIONAL_IMAGES === 1 ? "" : "s"
@@ -679,7 +693,7 @@ export default function OperationsProductsPage() {
                   : selectedVendorId || undefined
               }
               multiple
-              maxFiles={Math.max(1, MAX_ADDITIONAL_IMAGES - additionalImageUrls.length)}
+              maxFiles={Math.max(0, MAX_ADDITIONAL_IMAGES - additionalImageUrls.length)}
               disabled={additionalImageUrls.length >= MAX_ADDITIONAL_IMAGES}
               helpText={`Upload optional gallery images (up to ${MAX_ADDITIONAL_IMAGES}).`}
               onUploadedMany={(results) => addAdditionalImages(results.map((item) => item.url))}

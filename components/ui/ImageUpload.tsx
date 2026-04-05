@@ -59,7 +59,11 @@ export default function ImageUpload({
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
-    const allowedCount = Math.max(1, maxFiles);
+    const allowedCount = Number.isFinite(maxFiles) ? Math.max(0, Math.floor(maxFiles)) : 1;
+    if (allowedCount === 0) {
+      message.warning("Uploading is disabled for this field.");
+      return;
+    }
     const boundedFiles = (multiple ? selectedFiles : selectedFiles.slice(0, 1)).slice(0, allowedCount);
     if (selectedFiles.length > boundedFiles.length) {
       message.warning(`Only ${allowedCount} image${allowedCount === 1 ? "" : "s"} can be uploaded at once.`);
@@ -72,8 +76,7 @@ export default function ImageUpload({
       setProgress(5);
 
       for (let index = 0; index < boundedFiles.length; index += 1) {
-        const file = boundedFiles[index];
-        if (!file) continue;
+        const file = boundedFiles[index] as File;
 
         const fd = new FormData();
         fd.append("file", file);
