@@ -39,6 +39,34 @@
 
 ---
 
+## Session 20 — 2026-04-05
+
+**Goal:**
+Debug vendor registration failure returning 500 with correlation ID and details `unknown field`.
+
+**Completed:**
+
+- Traced register-route payload handling and identified schema-drift risk around vendor `position` writes as likely trigger for opaque Prisma failures on deployed environment.
+- Hardened Prisma error mapping and field inference so unknown-target errors resolve to meaningful diagnostics.
+- Added fallback in vendor creation flow: when Prisma indicates position-related schema drift, retry create without top-level `position` while preserving selected church position inside `businessVerification` JSON.
+- Preserved correlation-aware structured logging and sanitized email masking for troubleshooting.
+- Re-ran local typecheck successfully (`npx tsc --noEmit`).
+
+**Files Modified:**
+
+- app/api/auth/register/route.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Redeploy and re-test vendor signup on hosted environment; if DB schema is behind, run pending Prisma migrations and verify `position` persistence path.
+
+**Notes / Blockers:**
+
+- Hosted environments can still fail if migration state lags behind code; fallback prevents hard registration failure but migration should still be applied for full parity.
+
+---
+
 ## Session 19 — 2026-04-04
 
 **Goal:**
