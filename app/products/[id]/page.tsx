@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge, Rating } from "@/components/ui";
 import { ProductCard } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
-import { getFirstValidImageUrl } from "@/lib/utils/images";
+import { getFirstValidImageUrl, getSafeImageUrl } from "@/lib/utils/images";
 import { prisma } from "@/lib/db/prisma";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 
@@ -56,7 +56,8 @@ async function fetchProduct(id: string) {
       },
     });
     return product as ProductApiResponse["product"] | null;
-  } catch {
+  } catch (error) {
+    console.error("Product detail fetch failed:", error);
     return null;
   }
 }
@@ -127,6 +128,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const image = getFirstValidImageUrl(product.images);
   const vendorName = product.vendor?.storeName || "Vendor";
   const vendorVerified = product.vendor?.status === "APPROVED";
+  const vendorHref = product.vendorId ? `/vendors/${product.vendorId}` : "/vendors";
   const orderingAllowed = vendorVerified;
   const discountedPrice = product.discount
     ? product.price - (product.price * product.discount) / 100
@@ -159,7 +161,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <h1 className="text-3xl font-bold text-ds-text-primary">{product.name}</h1>
           <p className="mt-2 text-sm text-ds-text-secondary">
             Sold by{" "}
-            <Link href={`/vendors/${product.vendorId}`} className="text-ds-text-brand hover:underline">
+            <Link href={vendorHref} className="text-ds-text-brand hover:underline">
               {vendorName}
             </Link>
           </p>
@@ -210,8 +212,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 price={related.price}
                 image={
                   getFirstValidImageUrl(related.images) ||
-                  related.mainImage ||
-                  "/placeholder-product.jpg"
+                  getSafeImageUrl(related.mainImage) ||
+                  "/myharvesthublogo.png"
                 }
                 vendorName={related.vendor?.storeName || "Vendor"}
                 vendorId={related.vendorId}

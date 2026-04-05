@@ -25,6 +25,18 @@ export async function GET(req: NextRequest, context: RouteContext) {
                 items: true,
                 buyer: { include: { user: { select: { firstName: true, lastName: true, email: true, phoneNumber: true } } } },
                 vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } },
+                transactions: {
+                    select: {
+                        id: true,
+                        type: true,
+                        status: true,
+                        amount: true,
+                        reference: true,
+                        description: true,
+                        createdAt: true,
+                    },
+                    orderBy: { createdAt: 'desc' },
+                },
             },
         });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
