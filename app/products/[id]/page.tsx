@@ -81,12 +81,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
+  const relatedOrFilters: Array<Record<string, unknown>> = [{ vendorId: product.vendorId }];
+  if (product.category) {
+    relatedOrFilters.push({ category: product.category });
+  }
+
   const relatedProductsRaw = await prisma.product
     .findMany({
       where: {
         id: { not: id },
         isActive: true,
-        OR: [{ category: product.category }, { vendorId: product.vendorId }],
+        OR: relatedOrFilters,
       },
       include: {
         vendor: { select: { storeName: true, status: true } },
@@ -95,7 +100,22 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       take: 4,
     })
     .catch(() => []);
-  const relatedProducts = Array.isArray(relatedProductsRaw) ? relatedProductsRaw : [];
+  const relatedProducts = (Array.isArray(relatedProductsRaw) ? relatedProductsRaw : []) as Array<
+    {
+      id: string;
+      name: string;
+      price: number;
+      discount?: number | null;
+      mainImage?: string | null;
+      averageRating?: number | null;
+      totalReviews?: number | null;
+      vendorId: string;
+      stock?: number | null;
+      images?: string[] | null;
+      listingType?: string | null;
+      vendor?: { storeName?: string | null; status?: string | null } | null;
+    }
+  >;
 
   const reviews = Array.isArray(product.reviews) ? product.reviews : [];
   const averageRating =
