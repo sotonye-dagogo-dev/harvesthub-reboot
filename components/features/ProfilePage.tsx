@@ -69,19 +69,22 @@ export default function ProfilePage() {
           const data = await profileRes.json();
           const profile = data?.profile;
 
-            if (profile) {
-              setFormData((prev) => ({
-                ...prev,
-                firstName: profile.firstName || "",
-                lastName: profile.lastName || "",
-                email: profile.email || "",
-                phoneNumber: profile.phoneNumber || "",
-                whatsappNumber: profile?.vendorContext?.whatsappNumber ?? prev.whatsappNumber,
-                category: profile?.vendorContext?.category || "",
-                campus: profile?.vendorContext?.campus || "",
-                position: profile?.vendorContext?.position || "",
-                businessAddress: profile?.vendorContext?.businessAddress || "",
-              }));
+          if (profile) {
+            setFormData((prev) => ({
+              ...(profile?.vendorContext &&
+              Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
+                ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
+                : { whatsappNumber: prev.whatsappNumber }),
+              ...prev,
+              firstName: profile.firstName || "",
+              lastName: profile.lastName || "",
+              email: profile.email || "",
+              phoneNumber: profile.phoneNumber || "",
+              category: profile?.vendorContext?.category || "",
+              campus: profile?.vendorContext?.campus || "",
+              position: profile?.vendorContext?.position || "",
+              businessAddress: profile?.vendorContext?.businessAddress || "",
+            }));
             }
         }
 

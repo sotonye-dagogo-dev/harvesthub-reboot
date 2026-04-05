@@ -14,6 +14,9 @@ const validCampusValues = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
 const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value));
 const validPositionValues = new Set(POSITION_OPTIONS.map((item) => item.value));
 
+/**
+ * Safely normalize unknown JSON fields (for example Prisma Json columns) into a record shape.
+ */
 function toSafeRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === 'object' && !Array.isArray(value)
         ? (value as Record<string, unknown>)
@@ -144,7 +147,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
                         vendorUpdateData.position = body.position;
                     }
                     if (body.whatsappNumber !== undefined) {
-                        vendorUpdateData.whatsappNumber = String(body.whatsappNumber).trim();
+                        vendorUpdateData.whatsappNumber =
+                            typeof body.whatsappNumber === 'string' ? body.whatsappNumber.trim() : '';
                     }
 
                     if (body.businessAddress !== undefined) {
