@@ -39,7 +39,7 @@ export function Header() {
     return getDashboardRoute(user?.role);
   };
 
-  const getOrdersLink = () => resolveOrdersLink(user?.role);
+  const getOrdersLink = () => resolveOrdersLink();
 
   return (
     <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
@@ -382,6 +382,6 @@ export function Header() {
   );
 }
 
-export function resolveOrdersLink(_role?: string) {
+export function resolveOrdersLink() {
   return "/orders";
 }
