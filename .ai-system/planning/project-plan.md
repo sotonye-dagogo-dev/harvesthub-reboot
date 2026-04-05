@@ -139,6 +139,7 @@ Close the highest-risk post-adjustment gaps affecting operations usability, layo
 - Email-change verification is fully closed-loop (request -> verify -> atomic update -> re-auth-safe completion state).
 - `/operations/dashboard` renders live role-scoped KPI cards and quick-action links rather than placeholder-only cards.
 - `about` and `privacy` pages consume config/public-content pipeline with fallback content and admin editability.
+- Core multi-context domains (`products`, `orders`, `vendors`, `wallet`, `notifications`) expose explicit role-scoped views with discoverable navigation and tested scope boundaries.
 - Advertise form includes field-level guidance/help and profile surfaces expose missing church/business context fields with API parity.
 - Final quality gates pass and deferred low-priority risks are explicitly documented in planning artifacts.
 
@@ -149,8 +150,9 @@ Close the highest-risk post-adjustment gaps affecting operations usability, layo
 3. Complete email-change reverification completion flow.
 4. Wire dashboard KPI cards to live role-scoped metrics.
 5. Migrate remaining static pages (`about`, `privacy`) to config/public-content.
-6. Apply advertise/profile UX completeness updates.
-7. Run full regression/route audit and finalize documentation closure.
+6. Enforce cross-domain conceptual-view parity and dynamic accessibility for role-scoped domain surfaces.
+7. Apply advertise/profile UX completeness updates.
+8. Run full regression/route audit and finalize documentation closure.
 
 ---
 

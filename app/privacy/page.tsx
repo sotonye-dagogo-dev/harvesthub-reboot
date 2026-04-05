@@ -1,12 +1,37 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { getPublicContentBySlug } from "@/lib/data/publicContent";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | MyHarvestHub",
   description: "MyHarvestHub Privacy Policy - Learn how we collect, use, and protect your data.",
 };
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const publicContent = await getPublicContentBySlug("privacy");
+
+  if (publicContent && publicContent.status === "PUBLISHED") {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">{publicContent.title}</h1>
+          <div
+            className="prose max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: publicContent.body }}
+          />
+          <div className="mt-12 border-t border-ds-border-base pt-8">
+            <p className="text-center text-ds-text-secondary">
+              By using MyHarvestHub, you agree to this Privacy Policy.{" "}
+              <Link href="/terms" className="text-ds-text-brand hover:underline">
+                Read our Terms of Service
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mx-auto max-w-4xl">

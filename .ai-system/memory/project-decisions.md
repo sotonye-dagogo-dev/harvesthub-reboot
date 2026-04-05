@@ -521,3 +521,19 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 - Public navigation/help content is now easier to audit and update in one place.
 - `/help/[slug]` route-safe subpages can be driven by config slugs and optionally enriched by public-content entries.
 - Next step can migrate this config source to admin-managed persisted content with minimal component churn.
+
+## Role/Domain Conceptual-View Parity Contract
+
+**Decision:** Enforce explicit role-scoped conceptual views for multi-context domains (products, orders, vendors, wallet, notifications, ads, bug reports, profile/store) via discoverable routes/navigation and scope-safe API behavior, with a parity matrix tracked in the execution queue.
+**Date:** 2026-04-05
+**Made by:** AI planning/handoff session (GitHub Copilot)
+
+**Reason:** Some domains evolved with mixed access patterns (for example products now have explicit public vs operations views, while orders still rely mostly on one shared route). This creates discoverability drift, implicit scope assumptions, and risk of role-context confusion during future refactors.
+
+**Alternatives Considered:** Keep role filtering purely at API/data layer with shared routes (fewer pages but lower UX clarity), or fork fully separate per-role page trees (clear separation but higher duplication and maintenance burden).
+
+**Implications:**
+
+- Cloud execution must validate and close role/domain parity gaps using a matrix-driven checklist rather than ad-hoc page edits.
+- Orders must have explicit scope semantics (buyer-history vs vendor/admin operations) with compatible redirects for legacy role-prefixed paths.
+- Navigation, route policy, middleware redirects, and API scope checks must be updated together and regression-tested as one unit.

@@ -38,9 +38,21 @@ Audit synthesis (read-only) surfaced the following implementation priorities:
 - Critical: operations chrome duplication (double Header rendering) must be fixed first.
 - High: vendor product management UI route is missing in operations namespace.
 - High: email-change reverification completion path remains incomplete.
+- High: role/domain conceptual-view parity (especially products/orders) needs explicit route/access discoverability and scope-boundary verification.
 - Medium: operations dashboard cards are placeholder-only and need live KPI wiring.
 - Medium: `about` and `privacy` pages still need full config/public-content parity.
 - Medium: advertise/profile usability gaps remain (field guidance + missing profile context fields).
+
+Role/domain parity gap map (initial audit baseline):
+
+- Products: explicit split now exists (`/products` public catalog, `/operations/products` vendor/admin workspace), but admin discoverability and parity testing still need completion.
+- Orders: currently centered on shared `/orders` with role-filtered data; explicit operations-scoped orders workspace/discoverability is still a gap.
+- Vendors: public discovery (`/vendors`, `/vendors/[id]`) and admin operations (`/operations/vendors`) exist; validate vendor self-service scope boundaries remain clear.
+- Wallet: single role-shared route (`/wallet`) exists; validate whether admin requires explicit operations finance scope vs user-wallet behavior.
+- Notifications: shared role route (`/notifications`, `/notifications/settings`) exists; validate whether admin needs explicit operations notification-management surface.
+- Ads: public intake (`/advertise`, `/ad-application`) and admin operations (`/operations/ads`) exist; validate vendor-facing campaign operational discoverability.
+- Bug Reports: public submission (`/bug-report`) and admin triage (`/operations/bug-reports`) exist; preserve scope boundaries and status lifecycle consistency.
+- Profile/Store: personal profile (`/profile`) and vendor store settings (`/store-settings`) exist; complete missing business/church context edit parity.
 
 Execution rule:
 
@@ -262,6 +274,8 @@ Hard requirements:
 - Complete email-change reverification closure end-to-end with secure token handling.
 - Replace placeholder operations dashboard cards with live role-scoped KPI cards.
 - Migrate about/privacy to config/public-content pattern with fallback safety.
+- Enforce cross-domain conceptual-view parity (products/orders and analogous domains) via explicit role-scoped routes, discoverability checks, and scope-safe APIs.
+- Ensure orders view separation is explicit: buyer-history flow at `/orders`; vendor/admin operations flow at `/operations/orders` (or equivalent mode-safe architecture) with legacy compatibility redirects.
 - Improve advertise/profile field completeness per queue tasks.
 - Keep Cloudinary-first upload governance and existing signup role/verification decisions intact.
 
@@ -290,5 +304,6 @@ Do not stop after analysis. Implement, validate, and document in one pass. If bl
 - Vendor signup accepts valid `Member`/`Non-Member` position selections without backend/database errors.
 - Vendor verification enforces all three required documents and `businessAddress` remains editable post-auth.
 - Upload-managed flows no longer rely on raw screenshot/image URLs where Cloudinary upload pipeline is expected.
+- Multi-context domains (products, orders, vendors, wallet, notifications, ads, bug reports, profile/store) have explicit role-scoped entry points with tested nav/policy/API scope boundaries.
 - All changed behavior is test-backed at least by targeted regression coverage.
 - `.ai-system` artifacts reflect final state accurately.

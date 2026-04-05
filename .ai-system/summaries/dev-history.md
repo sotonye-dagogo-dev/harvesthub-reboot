@@ -15,7 +15,6 @@
 **Completed:**
 - [task 1]
 - [task 2]
-
 **Key Changes:**
 - [important architectural or behavioural change]
 
@@ -24,22 +23,34 @@
 ```
 
 ---
-
-## History
-
----
-
 ## 2026-04-05 — Exhaustive Audit Synthesis + Cloud Closure Queue
 
 **Summary:**
-Completed a full planning synchronization pass after an exhaustive read-only platform audit. The audit findings were normalized into a single execution queue focused on remaining production-readiness gaps: operations layout duplication, missing vendor product workspace UI, email-change reverification completion, static dashboard KPIs, and unfinished config-driven content migration.
-
 **Completed:**
 
 - Added a new `Cloud Session Execution Queue (2026-04-05 Exhaustive Audit)` to `.ai-system/planning/task-queue.md` with dependency-aware sequencing.
 - Added a dedicated follow-on feature spec to `.ai-system/planning/project-plan.md` with acceptance criteria and rollout order.
-- Updated cloud handoff plan with an audit addendum and implementation-ready kickoff prompt.
 - Logged a new recurring error pattern in `.ai-system/agents/repair-system.md` for operations header duplication.
+
+## 2026-04-05 — Cloud Handoff Refresh: Role/Domain View Parity Contract
+
+**Summary:**
+Refreshed the cloud-session handoff package after mid-implementation progress to prevent interruption drift and incorporate a new product requirement: explicit conceptual-view parity across role-sensitive domains. Planning artifacts now treat products/orders-style multi-context views as a first-class closure stream rather than implicit behavior.
+
+**Completed:**
+
+- Updated queue state to reflect completed closure items already landed in code (operations products workspace, email-change closure, operations KPI dashboard, about/privacy public-content migration).
+- Added a dedicated queue block for role/domain parity validation and implementation across products/orders and analogous features.
+- Updated cloud handoff requirements and definition-of-done to enforce explicit role-scoped view discoverability and scope-safe route/API alignment.
+- Logged a project decision establishing the role/domain conceptual-view parity contract.
+
+**Key Changes:**
+
+- Cloud execution now explicitly requires orders scope separation semantics (buyer history vs vendor/admin operations context) with compatibility redirects and regression tests.
+- Remaining closure work is now split into three clear streams: domain-view parity, form/profile completeness, and final hardening/sign-off.
+
+**Next Sprint Focus:**
+Execute the updated cloud queue starting with domain-view parity implementation and validation, then complete profile/advertise usability gaps and final quality/documentation closure.
 - Recorded decision-level execution priorities and deferred-risk boundaries in `.ai-system/memory/project-decisions.md`.
 
 **Key Changes:**

@@ -39,6 +39,36 @@
 
 ---
 
+## Session 22 — 2026-04-05
+
+**Goal:**
+Prepare interruption-safe cloud handoff with an updated closure plan that includes cross-domain conceptual-view parity and role-scoped accessibility checks.
+
+**Completed:**
+
+- Revalidated in-progress implementation status and quality gates context (`tsc`, targeted tests, route/dead-link audits).
+- Updated queue statuses to reflect completed critical/high closure work already landed (operations products, email-change closure, operations KPI dashboard, about/privacy public-content migration).
+- Added a new explicit queue block for role/domain conceptual-view parity across products/orders and analogous domains.
+- Updated cloud handoff plan and kickoff requirements to enforce explicit role-scoped orders/products access architecture and parity-matrix validation.
+- Recorded a project decision formalizing the role/domain conceptual-view parity contract.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run the updated cloud session kickoff prompt and execute the remaining queue in order, starting with domain-view parity closure (orders scope split + role discoverability matrix) and form/profile completeness.
+
+**Notes / Blockers:**
+
+- Products parity is now explicit (public marketplace vs operations workspace), but orders still require explicit role-view route separation/discoverability hardening.
+
+---
+
 ## Session 21 — 2026-04-05
 
 **Goal:**
