@@ -83,7 +83,7 @@ export default function OrderDetailPage() {
         if (!res.ok) {
           throw new Error(data?.error || "Failed to load order.");
         }
-        if (mounted) setOrder((data?.order as OrderDetail | undefined) ?? null);
+        if (mounted) setOrder((data?.order || null) as OrderDetail | null);
       } catch (loadError) {
         if (!mounted) return;
         setError(loadError instanceof Error ? loadError.message : "Failed to load order.");
@@ -170,9 +170,9 @@ export default function OrderDetailPage() {
           <p className="mt-3 text-sm text-ds-text-secondary">No tracking events yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
-            {statusHistory.map((entry) => (
+            {statusHistory.map((entry, index) => (
               <div
-                key={entry.id ?? `${entry.status ?? "status"}-${entry.timestamp ?? "timestamp"}`}
+                key={entry.id ?? `entry-${index}`}
                 className="rounded-ds-md border border-ds-border-base p-3"
               >
                 <p className="font-medium text-ds-text-primary">{formatStatusLabel(entry.status)}</p>
