@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { LISTING_TYPES, PRODUCT_CATEGORIES, UserRole } from "@/lib/constants";
+import { LISTING_TYPES, PRODUCT_CATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { loadLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/utils/localDraft";
 import {
   Button,
   Form,
@@ -48,6 +49,16 @@ interface AuthMeResponse {
 }
 
 const VENDOR_FILTER_ALL = "ALL";
+const PRODUCT_FORM_DRAFT_KEY = "myharvesthub.operations.products.form-draft.v1";
+const MAX_PRODUCT_IMAGES = VALIDATION_RULES.MAX_IMAGES_PER_PRODUCT;
+const MAX_ADDITIONAL_IMAGES = MAX_PRODUCT_IMAGES - 1;
+
+interface ProductFormDraft {
+  values?: Partial<ProductFormValues>;
+  mainImageUrl?: string | null;
+  additionalImageUrls?: string[];
+  editingProductId?: string | null;
+}
 
 function buildImageArray(mainImage: string, additionalImageUrls: string[]): string[] {
   const normalized = [mainImage.trim(), ...additionalImageUrls.map((url) => url.trim())].filter(
@@ -81,6 +92,11 @@ export default function OperationsProductsPage() {
   const [additionalImageUrls, setAdditionalImageUrls] = useState<string[]>([]);
 
   const [form] = Form.useForm<ProductFormValues>();
+  const selectedVendorId = Form.useWatch("vendorId", form);
+  const draftKey = useMemo(
+    () => `${PRODUCT_FORM_DRAFT_KEY}.${user?.id || user?.email || "anonymous"}`,
+    [user?.email, user?.id]
+  );
 
   const categoryLabelMap = useMemo(() => {
     return new Map<string, string>(PRODUCT_CATEGORIES.map((item) => [item.value, item.label]));
@@ -222,22 +238,32 @@ export default function OperationsProductsPage() {
   }, [loadProducts]);
 
   const openCreateModal = () => {
+    const draft = loadLocalDraft<ProductFormDraft>(draftKey);
+    const isCreateDraft = (draft?.editingProductId || null) === null;
+
     setEditingProduct(null);
-    setMainImageUrl("");
-    setAdditionalImageUrls([]);
     form.resetFields();
-    form.setFieldsValue({
+    const baseValues: Partial<ProductFormValues> = {
       listingType: "PRODUCT",
       stock: 1,
       isActive: true,
       vendorId: user?.role === UserRole.ADMIN ? adminVendorFilter : vendorScopeId || undefined,
-    });
+    };
+
+    form.setFieldsValue(isCreateDraft ? { ...baseValues, ...draft?.values } : baseValues);
+    setMainImageUrl(isCreateDraft ? (draft?.mainImageUrl ?? "") : "");
+    setAdditionalImageUrls(
+      isCreateDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : []
+    );
     setModalOpen(true);
   };
 
   const openEditModal = (product: Product) => {
+    const draft = loadLocalDraft<ProductFormDraft>(draftKey);
+    const isEditDraft = draft?.editingProductId === product.id;
+
     setEditingProduct(product);
-    form.setFieldsValue({
+    const baseValues: Partial<ProductFormValues> = {
       vendorId: product.vendorId,
       name: product.name,
       description: product.description,
@@ -248,12 +274,19 @@ export default function OperationsProductsPage() {
       discount: product.discount || undefined,
       stock: product.stock,
       isActive: product.isActive,
-    });
-    setMainImageUrl(product.mainImage || "");
-    setAdditionalImageUrls(
+    };
+    const baseAdditionalImages = (
       Array.isArray(product.images)
         ? product.images.filter((imageUrl) => imageUrl && imageUrl !== product.mainImage)
         : []
+    ).slice(0, MAX_ADDITIONAL_IMAGES);
+
+    form.setFieldsValue(isEditDraft ? { ...baseValues, ...draft?.values } : baseValues);
+    setMainImageUrl(
+      isEditDraft ? (draft?.mainImageUrl ?? product.mainImage ?? "") : product.mainImage || ""
+    );
+    setAdditionalImageUrls(
+      isEditDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : baseAdditionalImages
     );
     setModalOpen(true);
   };
@@ -300,7 +333,7 @@ export default function OperationsProductsPage() {
           values.discount !== undefined && values.discount !== null ? Number(values.discount) : 0,
         stock: Number(values.stock),
         mainImage,
-        images: buildImageArray(mainImage, additionalImageUrls),
+        images: buildImageArray(mainImage, additionalImageUrls).slice(0, MAX_PRODUCT_IMAGES),
         isActive: Boolean(values.isActive),
       };
 
@@ -321,6 +354,7 @@ export default function OperationsProductsPage() {
       message.success(
         editingProduct ? "Product updated successfully" : "Product created successfully"
       );
+      clearLocalDraft(draftKey);
       closeModal();
       await loadProducts();
     } catch (error) {
@@ -350,23 +384,58 @@ export default function OperationsProductsPage() {
     }
   };
 
-  const addAdditionalImage = (url: string) => {
-    const normalized = url.trim();
-    if (!normalized || normalized === mainImageUrl) {
-      return;
-    }
+  const addAdditionalImages = useCallback(
+    (urls: string[]) => {
+      setAdditionalImageUrls((prev) => {
+        if (prev.length >= MAX_ADDITIONAL_IMAGES) {
+          if (urls.length > 0) {
+            message.warning(
+              `You can only add up to ${MAX_ADDITIONAL_IMAGES} additional image${
+                MAX_ADDITIONAL_IMAGES === 1 ? "" : "s"
+              }.`
+            );
+          }
+          return prev;
+        }
 
-    setAdditionalImageUrls((prev) => {
-      if (prev.includes(normalized)) {
-        return prev;
-      }
-      return [...prev, normalized];
-    });
-  };
+        const next = [...prev];
+        let wasLimited = false;
+        for (const rawUrl of urls) {
+          const normalized = rawUrl.trim();
+          if (!normalized || normalized === mainImageUrl || next.includes(normalized)) continue;
+          if (next.length >= MAX_ADDITIONAL_IMAGES) {
+            wasLimited = true;
+            break;
+          }
+          next.push(normalized);
+        }
+        if (wasLimited) {
+          message.warning(
+            `You can only add up to ${MAX_ADDITIONAL_IMAGES} additional image${
+              MAX_ADDITIONAL_IMAGES === 1 ? "" : "s"
+            }.`
+          );
+        }
+        return next;
+      });
+    },
+    [mainImageUrl]
+  );
 
   const removeAdditionalImage = (url: string) => {
     setAdditionalImageUrls((prev) => prev.filter((item) => item !== url));
   };
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const values = form.getFieldsValue(true) as Partial<ProductFormValues>;
+    saveLocalDraft<ProductFormDraft>(draftKey, {
+      values,
+      mainImageUrl,
+      additionalImageUrls,
+      editingProductId: editingProduct?.id || null,
+    });
+  }, [additionalImageUrls, draftKey, editingProduct?.id, form, mainImageUrl, modalOpen]);
 
   const columns: ColumnsType<Product> = [
     {
@@ -496,7 +565,19 @@ export default function OperationsProductsPage() {
         footer={null}
         destroyOnClose
       >
-        <Form<ProductFormValues> form={form} layout="vertical" onFinish={saveProduct}>
+        <Form<ProductFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={saveProduct}
+          onValuesChange={(_, allValues) =>
+            saveLocalDraft<ProductFormDraft>(draftKey, {
+              values: allValues as Partial<ProductFormValues>,
+              mainImageUrl,
+              additionalImageUrls,
+              editingProductId: editingProduct?.id || null,
+            })
+          }
+        >
           {user?.role === UserRole.ADMIN && (
             <Form.Item
               name="vendorId"
@@ -584,8 +665,14 @@ export default function OperationsProductsPage() {
           <Form.Item label="Main Product Image" required>
             <ImageUpload
               folderType="product"
+              vendorId={
+                user?.role === UserRole.VENDOR
+                  ? vendorScopeId || undefined
+                  : selectedVendorId || undefined
+              }
               helpText="Upload a clear product cover image."
               onUploaded={(result) => setMainImageUrl(result.url)}
+              valueUrl={mainImageUrl}
             />
             {mainImageUrl ? (
               <p className="mt-2 text-xs text-ds-text-secondary">Main image selected.</p>
@@ -600,8 +687,16 @@ export default function OperationsProductsPage() {
           >
             <ImageUpload
               folderType="product"
-              helpText="Upload optional gallery images."
-              onUploaded={(result) => addAdditionalImage(result.url)}
+              vendorId={
+                user?.role === UserRole.VENDOR
+                  ? vendorScopeId || undefined
+                  : selectedVendorId || undefined
+              }
+              multiple
+              maxFiles={Math.max(0, MAX_ADDITIONAL_IMAGES - additionalImageUrls.length)}
+              disabled={additionalImageUrls.length >= MAX_ADDITIONAL_IMAGES}
+              helpText={`Upload optional gallery images (up to ${MAX_ADDITIONAL_IMAGES}).`}
+              onUploadedMany={(results) => addAdditionalImages(results.map((item) => item.url))}
             />
 
             {additionalImageUrls.length > 0 ? (
@@ -613,6 +708,9 @@ export default function OperationsProductsPage() {
                 ))}
               </div>
             ) : null}
+            <p className="mt-2 text-xs text-ds-text-secondary">
+              {additionalImageUrls.length}/{MAX_ADDITIONAL_IMAGES} additional images selected.
+            </p>
           </Form.Item>
 
           <Form.Item name="isActive" label="Active Listing" valuePropName="checked">

@@ -162,12 +162,12 @@ export function Sidebar({ type }: SidebarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex min-w-[72px] flex-col items-center gap-1 px-3 py-2 text-xs font-medium",
+                  "flex min-w-[72px] flex-col items-center gap-1 px-2 py-2 text-center text-xs font-medium",
                   active ? "text-ds-text-brand" : "text-ds-text-secondary"
                 )}
               >
                 {Icon ? <Icon className="h-5 w-5" /> : null}
-                <span className="truncate">{link.label}</span>
+                <span className="max-w-[72px] whitespace-normal break-words leading-tight">{link.label}</span>
               </Link>
             );
           })}

@@ -18,4 +18,10 @@ describe("Sidebar orders scope visibility", () => {
     render(<Sidebar type="admin" />);
     expect(screen.getAllByRole("link", { name: /orders/i }).length).toBeGreaterThan(0);
   });
+
+  it("renders mobile labels with wrapping classes to prevent overlap", () => {
+    render(<Sidebar type="admin" />);
+    const ordersLabels = screen.getAllByText("Orders");
+    expect(ordersLabels.some((node) => node.className.includes("break-words"))).toBe(true);
+  });
 });
