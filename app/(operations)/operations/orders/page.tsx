@@ -24,6 +24,18 @@ function resolveDeliveryInfo(order: { deliveryAddress?: unknown; pickupDetails?:
   return undefined;
 }
 
+function toOrderStatus(value: unknown): OrderStatus {
+  return Object.values(OrderStatus).includes(value as OrderStatus)
+    ? (value as OrderStatus)
+    : OrderStatus.PENDING;
+}
+
+function toDeliveryMethod(value: unknown): DeliveryMethod {
+  return Object.values(DeliveryMethod).includes(value as DeliveryMethod)
+    ? (value as DeliveryMethod)
+    : DeliveryMethod.PICKUP;
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function OperationsOrdersPage() {
@@ -56,10 +68,10 @@ export default async function OperationsOrdersPage() {
               key={order.id}
               id={order.id}
               orderNumber={order.orderNumber}
-              status={order.status as unknown as OrderStatus}
+              status={toOrderStatus(order.status)}
               total={order.total}
               itemCount={order.items?.length ?? 0}
-              deliveryMethod={order.deliveryMethod as unknown as DeliveryMethod}
+              deliveryMethod={toDeliveryMethod(order.deliveryMethod)}
               deliveryInfo={resolveDeliveryInfo(order)}
               createdAt={order.createdAt}
             />

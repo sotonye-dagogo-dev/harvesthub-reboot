@@ -76,7 +76,7 @@ export default function ProfilePage() {
                 lastName: profile.lastName || "",
                 email: profile.email || "",
                 phoneNumber: profile.phoneNumber || "",
-                whatsappNumber: profile?.vendorContext?.whatsappNumber || prev.whatsappNumber || "",
+                whatsappNumber: profile?.vendorContext?.whatsappNumber ?? prev.whatsappNumber,
                 category: profile?.vendorContext?.category || "",
                 campus: profile?.vendorContext?.campus || "",
                 position: profile?.vendorContext?.position || "",
