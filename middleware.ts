@@ -24,6 +24,9 @@ function getLegacyOperationsPath(pathname: string): string | null {
     if (pathname === "/admin/products") {
         return "/operations/products";
     }
+    if (pathname === "/admin/orders") {
+        return "/operations/orders";
+    }
     if (pathname === "/admin/public-content") {
         return "/operations/public-content";
     }
@@ -45,6 +48,9 @@ function getLegacyOperationsPath(pathname: string): string | null {
     }
     if (pathname === "/vendor/products") {
         return "/operations/products";
+    }
+    if (pathname === "/vendor/orders") {
+        return "/operations/orders";
     }
     if (pathname === "/vendor/store-settings") {
         return "/store-settings";

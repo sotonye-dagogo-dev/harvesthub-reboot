@@ -3,6 +3,8 @@ import { getOrdersByUserRole } from "@/lib/data/dataFetchers";
 import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
 import { orderModule } from "@/modules/orders";
+import { UserRole } from "@/lib/constants";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,10 @@ export default async function OrdersPage() {
 
   if (!user?.userId) {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
+  }
+
+  if (user.role !== UserRole.BUYER) {
+    redirect("/operations/orders");
   }
 
   const orders = await getOrdersByUserRole(user);

@@ -13,6 +13,7 @@ const labelMap: Record<string, string> = {
     products: 'Products',
     vendors: 'Vendors',
     orders: 'Orders',
+    operationsOrders: 'Orders',
     wallet: 'Wallet',
     notifications: 'Notifications',
     dashboard: 'Dashboard',

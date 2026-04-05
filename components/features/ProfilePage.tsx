@@ -9,6 +9,7 @@ import { User, Mail, Phone, MapPin, Lock, Upload as UploadIcon } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 import type { Address } from "@/lib/types";
+import { CAMPUS_LOCATIONS, POSITION_OPTIONS, UserRole, VENDOR_CATEGORIES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -35,6 +36,10 @@ export default function ProfilePage() {
     email: "",
     phoneNumber: "",
     whatsappNumber: "",
+    category: "",
+    campus: "",
+    position: "",
+    businessAddress: "",
   });
 
   useEffect(() => {
@@ -42,13 +47,14 @@ export default function ProfilePage() {
 
     let mounted = true;
 
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",
       phoneNumber: user.phoneNumber || "",
       whatsappNumber: user.whatsappNumber || "",
-    });
+    }));
 
     async function loadProfile() {
       try {
@@ -65,13 +71,21 @@ export default function ProfilePage() {
 
           if (profile) {
             setFormData((prev) => ({
+              ...(profile?.vendorContext &&
+              Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
+                ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
+                : { whatsappNumber: prev.whatsappNumber }),
               ...prev,
               firstName: profile.firstName || "",
               lastName: profile.lastName || "",
               email: profile.email || "",
               phoneNumber: profile.phoneNumber || "",
+              category: profile?.vendorContext?.category || "",
+              campus: profile?.vendorContext?.campus || "",
+              position: profile?.vendorContext?.position || "",
+              businessAddress: profile?.vendorContext?.businessAddress || "",
             }));
-          }
+            }
         }
 
         if (addressesRes.ok) {
@@ -162,6 +176,11 @@ export default function ProfilePage() {
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           phoneNumber: formData.phoneNumber.trim(),
+          whatsappNumber: formData.whatsappNumber.trim(),
+          category: formData.category || undefined,
+          campus: formData.campus || undefined,
+          position: formData.position || undefined,
+          businessAddress: formData.businessAddress.trim() || undefined,
         }),
       });
 
@@ -434,6 +453,85 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+
+              {user.role === UserRole.VENDOR ? (
+                <>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Vendor Category
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select category</option>
+                        {VENDOR_CATEGORIES.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Campus
+                      </label>
+                      <select
+                        value={formData.campus}
+                        onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select campus</option>
+                        {CAMPUS_LOCATIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Church Position
+                      </label>
+                      <select
+                        value={formData.position}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select position</option>
+                        {POSITION_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Business Address
+                      </label>
+                      <CustomInput
+                        value={formData.businessAddress}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            businessAddress: e.target.value,
+                          })
+                        }
+                        disabled={!editMode}
+                        prefix={<MapPin className="h-4 w-4 text-ds-text-placeholder" />}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
 
             <div className="mt-6 flex gap-3">

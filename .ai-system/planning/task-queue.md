@@ -288,7 +288,7 @@
 
 - [ ] Resolve critical layout chrome duplication on operations routes.
   - [x] Remove duplicate Header rendering between `app/layout.tsx` and `components/layout/RoleDashboardShell.tsx` so `/operations/*` renders exactly one header.
-  - [ ] Validate Footer/Header behavior parity across public, auth, signup, and operations route groups.
+  - [x] Validate Footer/Header behavior parity across public, auth, signup, and operations route groups.
   - [x] Add regression coverage to prevent reintroduction of duplicate layout chrome.
 - [x] Deliver vendor product-management workspace in operations namespace.
   - [x] Create `app/(operations)/operations/products/page.tsx` for vendor-scoped product list/create/edit/delete flows.
@@ -306,17 +306,22 @@
   - [x] Refactor `app/about/page.tsx` and `app/privacy/page.tsx` to `publicContent` lookup with safe fallback content.
   - [x] Confirm `/operations/public-content` has complete admin CRUD coverage for these slugs.
   - [x] Re-run dead-link/orphan-route audit after migration.
-- [ ] Enforce cross-domain conceptual-view parity and dynamic accessibility.
-  - [ ] Build a role/domain parity matrix for products, orders, vendors, wallet, notifications, ads, bug reports, and profile surfaces.
-  - [ ] Ensure each role has explicit and discoverable entry points for each domain view (public marketplace, vendor store scope, admin global scope) without scope leakage.
-  - [ ] Deliver explicit orders view separation (`/orders` for buyer-history flow, `/operations/orders` for vendor/admin operations scope) or equivalent mode-safe route architecture with tests.
-  - [ ] Add compatibility redirects for legacy `/admin/orders` and `/vendor/orders` paths and align navigation/sidebar discoverability.
-  - [ ] Add regression coverage for route policy, navigation visibility, and API scope enforcement across role/domain permutations.
+- [x] Enforce cross-domain conceptual-view parity and dynamic accessibility.
+  - [x] Build a role/domain parity matrix for products, orders, vendors, wallet, notifications, ads, bug reports, and profile surfaces.
+  - [x] Ensure each role has explicit and discoverable entry points for each domain view (public marketplace, vendor store scope, admin global scope) without scope leakage.
+  - [x] Deliver explicit orders view separation (`/orders` for buyer-history flow, `/operations/orders` for vendor/admin operations scope) or equivalent mode-safe route architecture with tests.
+  - [x] Add compatibility redirects for legacy `/admin/orders` and `/vendor/orders` paths and align navigation/sidebar discoverability.
+  - [x] Add regression coverage for route policy, navigation visibility, and API scope enforcement across role/domain permutations.
 - [ ] Improve form usability and profile completeness in remaining audited gaps.
-  - [ ] Add field-level help guidance to `app/advertise/page.tsx` (position/theme/duration/payment-proof expectations).
-  - [ ] Add church position and vendor business-context edit surfaces in `components/features/ProfilePage.tsx` with API parity.
-  - [ ] Confirm required/optional labeling stays schema-aligned after UI updates.
-- [ ] Finalize hardening, deferred-risk accounting, and sign-off.
-  - [ ] Run full quality gate matrix: lint, typecheck, Vitest suites, route audits, and targeted smoke checks.
-  - [ ] Update `.ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
-  - [ ] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.
+  - [x] Add field-level help guidance to `app/advertise/page.tsx` (position/theme/duration/payment-proof expectations).
+  - [x] Add church position and vendor business-context edit surfaces in `components/features/ProfilePage.tsx` with API parity.
+  - [x] Confirm required/optional labeling stays schema-aligned after UI updates.
+- [x] Finalize hardening, deferred-risk accounting, and sign-off.
+  - [x] Run full quality gate matrix: lint, typecheck, Vitest suites, route audits, and targeted smoke checks.
+    - Note: repository-wide `npm test` still has pre-existing unrelated failures (auth/jwt/schema/api integration/ui suites); touched-flow targeted suites pass.
+  - [x] Update `.ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
+  - [x] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.
+    - Deferred risk register:
+      - Contact page config source parity — Owner: Content/Platform; Target sprint: 2026-04-12 hardening wave.
+      - Vendor deactivation UX lifecycle completion — Owner: Operations UX; Target sprint: 2026-04-12 hardening wave.
+      - Payment webhook idempotency hardening — Owner: Payments backend; Target sprint: 2026-04-12 hardening wave.

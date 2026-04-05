@@ -46,6 +46,17 @@ describe('rbac route policies', () => {
         });
     });
 
+    it('enforces explicit buyer and operations orders split', () => {
+        expect(getRoutePolicy('/orders')).toMatchObject({
+            public: false,
+            roles: [UserRole.BUYER],
+        });
+        expect(getRoutePolicy('/operations/orders')).toMatchObject({
+            public: false,
+            roles: [UserRole.VENDOR, UserRole.ADMIN],
+        });
+    });
+
     it('keeps ad-application publicly accessible', () => {
         expect(getRoutePolicy('/ad-application')).toMatchObject({
             public: true,

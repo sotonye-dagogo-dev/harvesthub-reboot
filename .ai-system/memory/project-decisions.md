@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Explicit Orders Scope Split + Domain Parity Matrix Enforcement
+
+**Decision:** Keep `/orders` as buyer-history only, introduce `/operations/orders` for vendor/admin operations, and enforce a role/domain parity matrix across products, orders, vendors, wallet, notifications, ads, bug reports, and profile/store using route policy + navigation + tests.
+**Date:** 2026-04-05
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Cross-domain audit closure required explicit separation between consumer history flows and operations workflows, especially for orders, to avoid scope leakage and ambiguous discoverability. A parity matrix contract ensures every domain has role-safe, discoverable entry points with consistent policy enforcement.
+
+**Alternatives Considered:**
+
+- Keep `/orders` shared for buyer/vendor/admin (rejected: blurs operations vs history use-cases and weakens policy clarity).
+- Introduce role-specific duplicate URL trees again (rejected: conflicts with consolidated operations architecture and increases drift risk).
+
+**Implications:**
+
+- Middleware must preserve legacy compatibility for `/admin/orders` and `/vendor/orders`.
+- Route registry, navigation, sidebar, and regression tests must remain synchronized whenever role-scope behavior changes.
+- Dead-link/route audits are required whenever route discoverability is modified.
+
 ## Exhaustive Audit Priority Contract (2026-04-05)
 
 **Decision:** Execute remaining production-readiness work in strict priority order: (1) operations layout chrome de-duplication, (2) vendor product-management workspace delivery, (3) email-change reverification completion, then (4) dashboard KPI/data wiring and (5) config-driven content migration/polish.

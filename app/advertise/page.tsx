@@ -349,6 +349,9 @@ export default function AdvertisePage() {
               <Select.Option value="HERO">Hero</Select.Option>
               <Select.Option value="SIDEBAR">Sidebar</Select.Option>
             </Select>
+            <p className="mt-1 text-xs text-ds-text-tertiary">
+              Choose where your ad should appear first; final placement depends on approved inventory.
+            </p>
           </Form.Item>
           <Form.Item name="theme" label="Theme" rules={[{ required: true }]}>
             <Select>
@@ -357,6 +360,9 @@ export default function AdvertisePage() {
               <Select.Option value="EVENT">Event</Select.Option>
               <Select.Option value="PROMOTION">Promotion</Select.Option>
             </Select>
+            <p className="mt-1 text-xs text-ds-text-tertiary">
+              Theme helps operations review and tailor matching banner presentation.
+            </p>
           </Form.Item>
           <Form.Item
             name="paymentMethod"
@@ -398,6 +404,9 @@ export default function AdvertisePage() {
               <InputNumber className="w-full" min={1} />
             </Form.Item>
           </div>
+          <p className="mb-4 text-xs text-ds-text-tertiary">
+            Use duration type/value to match your campaign run length (e.g., 3 days or 6 hours).
+          </p>
 
           <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3 text-sm text-ds-text-secondary">
             <p className="font-medium text-ds-text-primary">Estimated Price</p>
@@ -449,6 +458,9 @@ export default function AdvertisePage() {
             >
               <Input type="hidden" />
             </Form.Item>
+            <p className="mt-2 text-xs text-ds-text-tertiary">
+              Upload a clear transfer receipt or payment screenshot showing amount, date, and reference.
+            </p>
           </Form.Item>
 
           <Form.Item>
