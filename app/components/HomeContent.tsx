@@ -8,6 +8,7 @@ import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Banner, Product, Vendor } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { isVendorVerified } from "@/lib/utils/vendor";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -16,8 +17,6 @@ interface HomeContentProps {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
-  const isVendorVerified = (vendor: Vendor) =>
-    vendor.status === "APPROVED" || vendor.businessVerification?.verifiedAt != null;
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
   const activeBanners = banners
     .filter(

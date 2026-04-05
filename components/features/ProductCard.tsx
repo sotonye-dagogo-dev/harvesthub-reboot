@@ -36,7 +36,7 @@ export function ProductCard({
   image,
   vendorName,
   vendorId,
-  isVendorVerified = true,
+  isVendorVerified = false,
   rating = 0,
   reviewCount = 0,
   stock = 0,
@@ -106,17 +106,19 @@ export function ProductCard({
           </h3>
         </Link>
 
-        <Link
-          href={`/vendors/${vendorId}`}
-          className="mb-0.5 block text-[11px] text-ds-text-secondary transition-colors hover:text-ds-text-brand sm:text-xs dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
-        >
-          {vendorName}
-        </Link>
-        {!isVendorVerified && (
-          <Badge variant="warning" size="sm" className="mb-1">
-            Unverified Vendor
-          </Badge>
-        )}
+        <div className="mb-0.5 flex items-center gap-1.5">
+          {!isVendorVerified && (
+            <Badge variant="warning" size="sm">
+              Unverified
+            </Badge>
+          )}
+          <Link
+            href={`/vendors/${vendorId}`}
+            className="block text-[11px] text-ds-text-secondary transition-colors hover:text-ds-text-brand sm:text-xs dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+          >
+            {vendorName}
+          </Link>
+        </div>
 
         {/* Rating */}
         {reviewCount > 0 && (

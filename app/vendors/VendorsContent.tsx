@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui";
 import { Search } from "lucide-react";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Vendor, Product } from "@/lib/types";
+import { isVendorVerified } from "@/lib/utils/vendor";
 
 interface VendorsContentProps {
   vendors: Vendor[];
@@ -17,9 +18,6 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedCampus, setSelectedCampus] = useState<string>("");
-
-  const isVendorVerified = (vendor: Vendor) =>
-    vendor.status === "APPROVED" || vendor.businessVerification?.verifiedAt != null;
 
   // Get all approved vendors with product counts
   const allVendors = useMemo(

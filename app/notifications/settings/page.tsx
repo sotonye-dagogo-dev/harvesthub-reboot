@@ -47,7 +47,7 @@ export default function NotificationSettingsPage() {
     emailNotifications: true,
     smsNotifications: false,
   });
-  const [loading, setLoading] = useState(false);
+  const [isFetchingPreferences, setIsFetchingPreferences] = useState(false);
   const [saving, setSaving] = useState(false);
   const [enablingPush, setEnablingPush] = useState(false);
 
@@ -57,7 +57,7 @@ export default function NotificationSettingsPage() {
   }, []);
 
   const fetchPreferences = async () => {
-    setLoading(true);
+    setIsFetchingPreferences(true);
     try {
       const res = await fetch("/api/notifications/preferences");
       const data = await res.json();
@@ -68,7 +68,7 @@ export default function NotificationSettingsPage() {
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
     } finally {
-      setLoading(false);
+      setIsFetchingPreferences(false);
     }
   };
 
@@ -113,7 +113,7 @@ export default function NotificationSettingsPage() {
     }
   };
 
-  if (isLoading || loading) {
+  if (isLoading || isFetchingPreferences) {
     return <PageLoader />;
   }
 

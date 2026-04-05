@@ -148,11 +148,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
 
         <div>
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2" aria-label="Product status badges">
             {product.isFeatured ? <Badge variant="primary">Featured</Badge> : null}
             {product.listingType === "SERVICE" ? <Badge variant="info">Service</Badge> : null}
             {product.category ? <Badge>{product.category}</Badge> : null}
-            {!vendorVerified ? <Badge variant="warning">Unverified Vendor</Badge> : null}
+          </div>
+          <div className="mb-3 flex flex-wrap gap-2" aria-label="Vendor verification status">
+            {!vendorVerified ? <Badge variant="warning">Unverified Vendor</Badge> : <Badge variant="success">Verified Vendor</Badge>}
           </div>
           <h1 className="text-3xl font-bold text-ds-text-primary">{product.name}</h1>
           <p className="mt-2 text-sm text-ds-text-secondary">
@@ -184,7 +186,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             Stock: {product.stock > 0 ? product.stock : "Out of stock"}
           </p>
           {!orderingAllowed && (
-            <p className="mt-3 rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-3 text-sm text-ds-status-warning-text">
+            <p
+              role="alert"
+              aria-live="polite"
+              className="mt-3 rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-3 text-sm text-ds-status-warning-text"
+            >
               This vendor is currently unverified. You can browse their catalog, but order completion
               may require extra acknowledgment until verification is approved.
             </p>
