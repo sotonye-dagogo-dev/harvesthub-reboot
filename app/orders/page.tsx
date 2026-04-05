@@ -1,5 +1,9 @@
 import { getCurrentUser } from "@/lib/utils/auth";
-import { getOrdersByUserRole } from "@/lib/data/dataFetchers";
+import {
+  getBuyerByUserId,
+  getOrdersByBuyerId,
+  getOrdersByUserRole,
+} from "@/lib/data/dataFetchers";
 import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
 import { orderModule } from "@/modules/orders";
@@ -15,11 +19,18 @@ export default async function OrdersPage() {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
   }
 
-  if (user.role !== UserRole.BUYER) {
+  if (user.role === UserRole.ADMIN) {
     redirect("/operations/orders");
   }
 
-  const orders = await getOrdersByUserRole(user);
+  const orders =
+    user.role === UserRole.VENDOR
+      ? await (async () => {
+          const buyer = await getBuyerByUserId(user.userId);
+          if (!buyer?.id) return [];
+          return getOrdersByBuyerId(buyer.id);
+        })()
+      : await getOrdersByUserRole(user);
 
   return (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>

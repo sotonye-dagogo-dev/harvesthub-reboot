@@ -28,6 +28,6 @@ describe('buildNav', () => {
         const nav = buildNav(UserRole.VENDOR);
         expect(nav.some((item) => item.path === '/operations/products')).toBe(true);
         expect(nav.some((item) => item.path === '/operations/orders')).toBe(true);
-        expect(nav.some((item) => item.path === '/orders')).toBe(false);
+        expect(nav.some((item) => item.path === '/orders')).toBe(true);
     });
 });

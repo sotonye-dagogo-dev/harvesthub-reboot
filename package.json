@@ -20,7 +20,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && npm run db:migrate:if-server && npm run db:deploy:if-server",
+    "db:migrate:if-server": "sh -c 'if [ -n \"$VERCEL\" ] && [ -n \"$DATABASE_URL\" ]; then prisma migrate dev; else echo \"Skipping prisma migrate dev: Vercel/DATABASE_URL not detected\"; fi'",
+    "db:deploy:if-server": "sh -c 'if [ -n \"$VERCEL\" ] && [ -n \"$DATABASE_URL\" ]; then prisma migrate deploy; else echo \"Skipping prisma migrate deploy: Vercel/DATABASE_URL not detected\"; fi'"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",

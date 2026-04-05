@@ -18,7 +18,7 @@ export const routeConfig: RouteConfig[] = [
     { path: '/vendors', labelKey: 'vendors', featureKey: 'vendors', public: true },
     { path: '/bug-report', labelKey: 'bugReport', featureKey: 'bug-report', public: true },
     { path: '/cookies', labelKey: 'cookies', featureKey: 'cookies', public: true },
-    { path: '/orders', labelKey: 'orders', featureKey: 'orders', public: false, roles: [UserRole.BUYER] },
+    { path: '/orders', labelKey: 'orders', featureKey: 'orders', public: false, roles: [UserRole.BUYER, UserRole.VENDOR] },
     { path: '/wallet', labelKey: 'wallet', featureKey: 'wallet', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
     { path: '/notifications', labelKey: 'notifications', featureKey: 'notifications', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
     { path: '/notifications/settings', labelKey: 'notificationSettings', featureKey: 'notifications-settings', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
