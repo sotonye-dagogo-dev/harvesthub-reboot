@@ -1,9 +1,11 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { ProductCard, ReviewCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
+import { getFirstValidImageUrl } from "@/lib/utils/images";
 
 import { Button, Tag, Tabs } from "antd";
 import {
@@ -27,10 +29,21 @@ interface VendorDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
+async function resolveBaseUrl(): Promise<string> {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") || headerStore.get("host");
+  const protocol = headerStore.get("x-forwarded-proto") || "http";
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+  return process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+}
+
 export async function generateMetadata({ params }: VendorDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/vendors/${id}`);
+    const baseUrl = await resolveBaseUrl();
+    const res = await fetch(`${baseUrl}/api/vendors/${id}`, { cache: "no-store" });
     if (!res.ok) throw new Error("Not found");
     const json = await res.json();
     const vendor = json.vendor;
@@ -47,13 +60,22 @@ export async function generateMetadata({ params }: VendorDetailPageProps): Promi
 export default async function VendorDetailPage({ params }: VendorDetailPageProps) {
   const { id } = await params;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/vendors/${id}`);
+    const baseUrl = await resolveBaseUrl();
+    const res = await fetch(`${baseUrl}/api/vendors/${id}`, { cache: "no-store" });
     if (!res.ok) return notFound();
     const json = await res.json();
     const vendor = json.vendor || null;
     if (!vendor) return notFound();
 
     const vendorUser = vendor.user;
+    const storeSettings =
+      vendor.storeSettings && typeof vendor.storeSettings === "object"
+        ? (vendor.storeSettings as Record<string, any>)
+        : {};
+    const storePolicies =
+      storeSettings.policies && typeof storeSettings.policies === "object"
+        ? (storeSettings.policies as Record<string, any>)
+        : {};
 
     const vendorProducts = Array.isArray(vendor.products)
       ? vendor.products.filter((p: any) => p.isActive)
@@ -275,7 +297,9 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                                   id={product.id}
                                   name={product.name}
                                   price={product.price}
-                                  image={product.images[0] || "/placeholder-product.jpg"}
+                                  image={
+                                    getFirstValidImageUrl(product.images) || "/placeholder-product.jpg"
+                                  }
                                   vendorName={vendor.storeName}
                                   vendorId={vendor.id}
                                   rating={pRating}
@@ -368,27 +392,27 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                           Delivery &amp; Pickup
                         </h3>
                         <div className="flex flex-wrap gap-3">
-                          {vendor.storeSettings.allowsPickup && (
+                          {storeSettings.allowsPickup && (
                             <Tag color="green" className="!text-sm">
                               <Store className="mr-1 inline h-3 w-3" />
                               Pickup Available
                             </Tag>
                           )}
-                          {vendor.storeSettings.allowsDelivery && (
+                          {storeSettings.allowsDelivery && (
                             <Tag color="blue" className="!text-sm">
                               <Truck className="mr-1 inline h-3 w-3" />
                               Delivery Available
                             </Tag>
                           )}
                         </div>
-                        {vendor.storeSettings.pickupServices &&
-                          vendor.storeSettings.pickupServices.length > 0 && (
+                        {Array.isArray(storeSettings.pickupServices) &&
+                          storeSettings.pickupServices.length > 0 && (
                             <div className="mt-3">
                               <p className="mb-1 text-sm font-medium text-ds-text-secondary">
                                 Pickup Services:
                               </p>
                               <div className="flex flex-wrap gap-2">
-                                {vendor.storeSettings.pickupServices.map((service: any) => (
+                                {storeSettings.pickupServices.map((service: any) => (
                                   <Tag key={service}>{service.replace(/_/g, " ")}</Tag>
                                 ))}
                               </div>
@@ -397,43 +421,37 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                       </div>
 
                       {/* Business Hours */}
-                      {vendor.storeSettings.businessHours && (
+                      {storeSettings.businessHours && (
                         <div>
                           <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold text-ds-text-primary">
                             <Clock className="h-5 w-5" />
                             Business Hours
                           </h3>
-                          <p className="text-ds-text-secondary">
-                            {vendor.storeSettings.businessHours}
-                          </p>
+                          <p className="text-ds-text-secondary">{storeSettings.businessHours}</p>
                         </div>
                       )}
 
                       {/* Policies */}
-                      {vendor.storeSettings.policies && (
+                      {(storePolicies.returnPolicy || storePolicies.shippingPolicy) && (
                         <div>
                           <h3 className="mb-3 text-lg font-semibold text-ds-text-primary">
                             Store Policies
                           </h3>
                           <div className="space-y-3">
-                            {vendor.storeSettings.policies.returnPolicy && (
+                            {storePolicies.returnPolicy && (
                               <div className="rounded-ds-md bg-ds-surface-sunken p-4">
                                 <p className="mb-1 text-sm font-medium text-ds-text-primary">
                                   Return Policy
                                 </p>
-                                <p className="text-sm text-ds-text-secondary">
-                                  {vendor.storeSettings.policies.returnPolicy}
-                                </p>
+                                <p className="text-sm text-ds-text-secondary">{storePolicies.returnPolicy}</p>
                               </div>
                             )}
-                            {vendor.storeSettings.policies.shippingPolicy && (
+                            {storePolicies.shippingPolicy && (
                               <div className="rounded-ds-md bg-ds-surface-sunken p-4">
                                 <p className="mb-1 text-sm font-medium text-ds-text-primary">
                                   Shipping Policy
                                 </p>
-                                <p className="text-sm text-ds-text-secondary">
-                                  {vendor.storeSettings.policies.shippingPolicy}
-                                </p>
+                                <p className="text-sm text-ds-text-secondary">{storePolicies.shippingPolicy}</p>
                               </div>
                             )}
                           </div>

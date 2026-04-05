@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge, Rating } from "@/components/ui";
 import { ProductCard } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
+import { getFirstValidImageUrl } from "@/lib/utils/images";
 import { prisma } from "@/lib/db/prisma";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 
@@ -123,8 +124,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       ? reviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / reviews.length
       : 0;
 
-  const image =
-    Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : null;
+  const image = getFirstValidImageUrl(product.images);
   const vendorName = product.vendor?.storeName || "Vendor";
   const vendorVerified = product.vendor?.status === "APPROVED";
   const orderingAllowed = vendorVerified;
@@ -209,7 +209,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 name={related.name}
                 price={related.price}
                 image={
-                  (Array.isArray(related.images) ? related.images[0] : null) ||
+                  getFirstValidImageUrl(related.images) ||
                   related.mainImage ||
                   "/placeholder-product.jpg"
                 }

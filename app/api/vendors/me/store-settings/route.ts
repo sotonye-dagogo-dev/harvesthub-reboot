@@ -17,6 +17,7 @@ const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value))
 type StoreSettingsPayload = {
     storeName?: string;
     description?: string;
+    storeLogo?: string;
     category?: string;
     campus?: string;
     phone?: string;
@@ -68,6 +69,7 @@ export async function GET() {
             settings: {
                 storeName: vendor.storeName,
                 description: vendor.storeDescription || '',
+                storeLogo: vendor.storeLogo || '',
                 category: vendor.category,
                 campus: vendor.campus,
                 isChurchAffiliated: vendor.isChurchAffiliated,
@@ -107,6 +109,7 @@ export async function PUT(req: NextRequest) {
 
         const storeName = body.storeName?.trim();
         const description = body.description?.trim() || '';
+        const storeLogo = body.storeLogo?.trim() || '';
         const category = body.category;
         const campus = body.campus;
         const phone = body.phone?.trim() || '';
@@ -161,6 +164,7 @@ export async function PUT(req: NextRequest) {
                 data: {
                     storeName,
                     storeDescription: description,
+                    storeLogo: storeLogo || null,
                     category: parsedCategory,
                     campus: parsedCampus,
                     whatsappNumber: whatsapp,
@@ -193,6 +197,7 @@ export async function PUT(req: NextRequest) {
             settings: {
                 storeName: updated.storeName,
                 description: updated.storeDescription || '',
+                storeLogo: updated.storeLogo || '',
                 category: updated.category,
                 campus: updated.campus,
                 isChurchAffiliated: updated.isChurchAffiliated,

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, Button, PageLoader } from "@/components/ui";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { Upload, Camera, Store, MapPin, Percent, Info } from "lucide-react";
 import { Switch, Select, message, Input as AntInput } from "antd";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
@@ -18,6 +20,7 @@ export default function StoreSettingsFeature() {
 
   const [formData, setFormData] = useState({
     storeName: "",
+    storeLogo: "",
     description: "",
     category: "",
     campus: "",
@@ -65,6 +68,7 @@ export default function StoreSettingsFeature() {
 
         const settings = json.settings;
         setVendor({
+          id: json.vendorId,
           isChurchAffiliated: Boolean(settings.isChurchAffiliated),
           commissionRate: settings.commissionRate,
         });
@@ -72,6 +76,7 @@ export default function StoreSettingsFeature() {
         setFormData((prev) => ({
           ...prev,
           storeName: settings.storeName || prev.storeName,
+          storeLogo: settings.storeLogo || prev.storeLogo,
           description: settings.description || prev.description,
           category: settings.category || prev.category,
           campus: settings.campus || prev.campus,
@@ -115,6 +120,7 @@ export default function StoreSettingsFeature() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storeName: formData.storeName,
+          storeLogo: formData.storeLogo || undefined,
           description: formData.description,
           category: formData.category,
           campus: formData.campus,
@@ -223,12 +229,36 @@ export default function StoreSettingsFeature() {
             </label>
             <div className="flex items-center gap-4">
               <div className="flex h-24 w-24 items-center justify-center rounded-ds-md bg-ds-surface-sunken">
-                <Camera className="h-8 w-8 text-ds-text-placeholder" />
+                {formData.storeLogo ? (
+                  <Image
+                    src={formData.storeLogo}
+                    alt="Store logo preview"
+                    width={96}
+                    height={96}
+                    className="h-full w-full rounded-ds-md object-cover"
+                  />
+                ) : (
+                  <Camera className="h-8 w-8 text-ds-text-placeholder" />
+                )}
               </div>
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Logo
-              </Button>
+              <div className="space-y-2">
+                <ImageUpload
+                  folderType="vendor-logo"
+                  vendorId={vendor?.id}
+                  valueUrl={formData.storeLogo || undefined}
+                  onUploaded={(res) => handleChange("storeLogo", res.cacheBustedUrl || res.url)}
+                  helpText="Upload a square logo image for your storefront."
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleChange("storeLogo", "")}
+                  disabled={!formData.storeLogo}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Clear Logo
+                </Button>
+              </div>
             </div>
           </div>
 
