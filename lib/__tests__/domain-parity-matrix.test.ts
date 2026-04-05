@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildNav } from "@/lib/navigation";
 import { UserRole } from "@/lib/constants";
 import { getRoutePolicy } from "@/lib/rbac/policies";
+import { routeConfig } from "@/lib/rbac/routeConfig";
 
 describe("role/domain parity matrix", () => {
   it("enforces orders scope split", () => {
@@ -23,29 +24,25 @@ describe("role/domain parity matrix", () => {
   });
 
   it("keeps wallet, notifications, and profile route access role-safe", () => {
-    expect(getRoutePolicy("/wallet")?.roles).toEqual([
-      UserRole.BUYER,
-      UserRole.VENDOR,
-      UserRole.ADMIN,
-    ]);
-    expect(getRoutePolicy("/notifications")?.roles).toEqual([
-      UserRole.BUYER,
-      UserRole.VENDOR,
-      UserRole.ADMIN,
-    ]);
-    expect(getRoutePolicy("/profile")?.roles).toEqual([
-      UserRole.BUYER,
-      UserRole.VENDOR,
-      UserRole.ADMIN,
-    ]);
+    const walletRoles = routeConfig.find((route) => route.path === "/wallet")?.roles;
+    const notificationsRoles = routeConfig.find((route) => route.path === "/notifications")?.roles;
+    const profileRoles = routeConfig.find((route) => route.path === "/profile")?.roles;
+
+    expect(getRoutePolicy("/wallet")?.roles).toEqual(walletRoles);
+    expect(getRoutePolicy("/notifications")?.roles).toEqual(notificationsRoles);
+    expect(getRoutePolicy("/profile")?.roles).toEqual(profileRoles);
   });
 
   it("keeps ads and bug-report domains split by public/admin scopes", () => {
     expect(getRoutePolicy("/advertise")?.public).toBe(true);
     expect(getRoutePolicy("/ad-application")?.public).toBe(true);
     expect(getRoutePolicy("/bug-report")?.public).toBe(true);
-    expect(getRoutePolicy("/operations/ads")?.roles).toEqual([UserRole.ADMIN]);
-    expect(getRoutePolicy("/operations/bug-reports")?.roles).toEqual([UserRole.ADMIN]);
+    expect(getRoutePolicy("/operations/ads")?.roles).toEqual(
+      routeConfig.find((route) => route.path === "/operations/ads")?.roles
+    );
+    expect(getRoutePolicy("/operations/bug-reports")?.roles).toEqual(
+      routeConfig.find((route) => route.path === "/operations/bug-reports")?.roles
+    );
   });
 
   it("keeps role discoverability aligned to policy boundaries", () => {

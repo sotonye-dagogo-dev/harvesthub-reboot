@@ -77,6 +77,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
             stats = { ...stats, productCount, vendorOrderCount: orderCount, totalRevenue: Number((revenueAgg._sum as { total?: number | null })?.total ?? 0) };
         }
 
+        const vendorBusinessAddress =
+            found.vendor && typeof asRecord(found.vendor.businessVerification).businessAddress === 'string'
+                ? asRecord(found.vendor.businessVerification).businessAddress
+                : '';
+
         return NextResponse.json({
             success: true,
             profile: {
@@ -88,7 +93,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
                         campus: found.vendor.campus,
                         position: found.vendor.position,
                         whatsappNumber: found.vendor.whatsappNumber,
-                        businessAddress: (asRecord(found.vendor.businessVerification).businessAddress as string) || '',
+                        businessAddress: vendorBusinessAddress,
                     }
                     : null,
             },

@@ -47,17 +47,14 @@ export default function ProfilePage() {
 
     let mounted = true;
 
-      setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phoneNumber: user.phoneNumber || "",
-        whatsappNumber: user.whatsappNumber || "",
-        category: "",
-        campus: "",
-        position: "",
-        businessAddress: "",
-      });
+    setFormData((prev) => ({
+      ...prev,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      phoneNumber: user.phoneNumber || "",
+      whatsappNumber: user.whatsappNumber || "",
+    }));
 
     async function loadProfile() {
       try {
