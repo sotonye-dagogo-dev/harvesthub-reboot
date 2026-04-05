@@ -48,13 +48,14 @@ export default function FavouritesPage() {
     if (!requireAuth("add items to your cart")) return;
 
     const vendor = vendors.find((v) => v.id === product.vendorId);
+    const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
-      vendorName: vendor?.storeName || "Unknown Vendor",
+      vendorName,
       stock: product.stock,
     });
   };
@@ -89,6 +90,8 @@ export default function FavouritesPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {favoriteProducts.map((product) => {
               const vendor = vendors.find((v) => v.id === product.vendorId);
+              const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+              const vendorStatus = vendor?.status || product.vendor?.status;
               const avgRating =
                 product.reviews && product.reviews.length > 0
                   ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
@@ -102,13 +105,14 @@ export default function FavouritesPage() {
                   name={product.name}
                   price={product.price}
                   image={product.images[0] || "/placeholder-product.jpg"}
-                  vendorName={vendor?.storeName || "Unknown Vendor"}
+                  vendorName={vendorName}
                   vendorId={product.vendorId}
                   rating={avgRating}
                   reviewCount={product.reviews?.length || 0}
                   stock={product.stock}
                   discount={product.discount}
                   isFeatured={product.isFeatured}
+                  isVendorVerified={vendorStatus === "APPROVED"}
                   isFavorite={isFavorite(product.id)}
                   onToggleFavorite={() => toggleFavorite(product.id)}
                   onAddToCart={() => handleAddToCart(product)}
