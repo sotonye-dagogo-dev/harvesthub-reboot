@@ -13,6 +13,18 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+async function getVendorOrdersForUser(userId: string) {
+  const vendor = await getVendorByUserId(userId);
+  if (!vendor?.id) return [];
+  return getOrdersByVendorId(vendor.id);
+}
+
+async function getBuyerOrdersForUser(userId: string) {
+  const buyer = await getBuyerByUserId(userId);
+  if (!buyer?.id) return [];
+  return getOrdersByBuyerId(buyer.id);
+}
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
 
@@ -26,16 +38,8 @@ export default async function OrdersPage() {
 
   const orders =
     user.role === UserRole.VENDOR
-      ? await (async () => {
-          const vendor = await getVendorByUserId(user.userId);
-          if (!vendor?.id) return [];
-          return getOrdersByVendorId(vendor.id);
-        })()
-      : await (async () => {
-          const buyer = await getBuyerByUserId(user.userId);
-          if (!buyer?.id) return [];
-          return getOrdersByBuyerId(buyer.id);
-        })();
+      ? await getVendorOrdersForUser(user.userId)
+      : await getBuyerOrdersForUser(user.userId);
 
   return (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>

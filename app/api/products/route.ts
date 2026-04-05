@@ -12,7 +12,7 @@ import { productListKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
 import type { Prisma } from '../../../prisma/generated/client';
 
-const hasValue = (value: unknown) => value !== null && value !== undefined && value !== '';
+const isProvided = (value: unknown) => value !== null && value !== undefined && value !== '';
 
 export async function GET(req: NextRequest) {
     try {
@@ -117,21 +117,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Price must be a valid positive number' }, { status: 400 });
         }
 
-        const numericCompareAtPrice = hasValue(compareAtPrice)
+        const numericCompareAtPrice = isProvided(compareAtPrice)
             ? Number(compareAtPrice)
             : null;
         if (numericCompareAtPrice !== null && (!Number.isFinite(numericCompareAtPrice) || numericCompareAtPrice <= 0)) {
             return NextResponse.json({ error: 'Compare at price must be a valid positive number' }, { status: 400 });
         }
 
-        const numericDiscount = hasValue(discount)
+        const numericDiscount = isProvided(discount)
             ? Number(discount)
             : 0;
         if (!Number.isFinite(numericDiscount) || numericDiscount < 0) {
             return NextResponse.json({ error: 'Discount must be a valid non-negative number' }, { status: 400 });
         }
 
-        const numericStock = hasValue(stock)
+        const numericStock = isProvided(stock)
             ? Number(stock)
             : 0;
         if (!Number.isFinite(numericStock) || numericStock < 0) {
