@@ -37,7 +37,7 @@ export default function StoreSettingsFeature() {
     shippingPolicy: "",
   });
 
-  const resolvedVendorId = typeof vendor?.id === "string" && vendor.id.trim().length > 0 ? vendor.id : null;
+  const validatedVendorId = typeof vendor?.id === "string" && vendor.id.trim().length > 0 ? vendor.id : null;
 
   useEffect(() => {
     let mounted = true;
@@ -246,12 +246,12 @@ export default function StoreSettingsFeature() {
               <div className="space-y-2">
                 <ImageUpload
                   folderType="vendor-logo"
-                  vendorId={resolvedVendorId ?? undefined}
+                  vendorId={validatedVendorId ?? undefined}
                   valueUrl={formData.storeLogo || undefined}
                   onUploaded={(res) => handleChange("storeLogo", res.cacheBustedUrl || res.url)}
-                  disabled={!resolvedVendorId}
+                  disabled={!validatedVendorId}
                   helpText={
-                    resolvedVendorId
+                    validatedVendorId
                       ? "Upload a square logo image for your storefront."
                       : "Store profile must be loaded before logo upload."
                   }

@@ -32,7 +32,8 @@ interface VendorDetailPageProps {
 async function resolveBaseUrl(): Promise<string> {
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") || headerStore.get("host");
-  const protocol = headerStore.get("x-forwarded-proto") || "http";
+  const protocol =
+    headerStore.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
   if (host) {
     return `${protocol}://${host}`;
   }

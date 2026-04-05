@@ -287,7 +287,7 @@ export default function OperationsMarketingContentPage() {
 
   if (resolvingVendor) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-96">
         <Spin />
       </div>
     );
@@ -295,7 +295,7 @@ export default function OperationsMarketingContentPage() {
 
   if (!vendorId && user?.role === "ADMIN") {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-96">
         <p className="text-ds-text-secondary">
           Use Vendor Content in Operations to review and manage submissions across vendors.
         </p>
@@ -305,7 +305,7 @@ export default function OperationsMarketingContentPage() {
 
   if (!vendorId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-96">
         <p className="text-ds-text-secondary">Vendor account required.</p>
       </div>
     );
