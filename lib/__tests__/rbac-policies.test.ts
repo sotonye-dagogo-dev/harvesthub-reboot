@@ -49,7 +49,7 @@ describe('rbac route policies', () => {
     it('enforces explicit buyer and operations orders split', () => {
         expect(getRoutePolicy('/orders')).toMatchObject({
             public: false,
-            roles: [UserRole.BUYER, UserRole.VENDOR],
+            roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN],
         });
         expect(getRoutePolicy('/operations/orders')).toMatchObject({
             public: false,

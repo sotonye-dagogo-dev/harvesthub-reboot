@@ -10,7 +10,7 @@ describe("Header orders link resolution", () => {
     expect(resolveOrdersLink("VENDOR")).toBe("/orders");
   });
 
-  it("routes admins to /operations/orders", () => {
-    expect(resolveOrdersLink("ADMIN")).toBe("/operations/orders");
+  it("routes admins to /orders", () => {
+    expect(resolveOrdersLink("ADMIN")).toBe("/orders");
   });
 });

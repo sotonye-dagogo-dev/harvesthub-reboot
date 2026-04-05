@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { LISTING_TYPES, PRODUCT_CATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
+import { LISTING_TYPES, PRODUCT_SUBCATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { loadLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/utils/localDraft";
@@ -99,7 +99,7 @@ export default function OperationsProductsPage() {
   );
 
   const categoryLabelMap = useMemo(() => {
-    return new Map<string, string>(PRODUCT_CATEGORIES.map((item) => [item.value, item.label]));
+    return new Map<string, string>(PRODUCT_SUBCATEGORIES.map((item) => [item.value, item.label]));
   }, []);
 
   const listingLabelMap = useMemo(() => {
@@ -617,7 +617,7 @@ export default function OperationsProductsPage() {
               rules={[{ required: true, message: "Category is required" }]}
             >
               <Select
-                options={PRODUCT_CATEGORIES.map((category) => ({
+                options={PRODUCT_SUBCATEGORIES.map((category) => ({
                   value: category.value,
                   label: category.label,
                 }))}
