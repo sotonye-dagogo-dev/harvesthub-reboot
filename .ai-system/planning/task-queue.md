@@ -271,6 +271,7 @@
 - [x] Fix dark-mode select active/focus contrast across key forms and error states.
 - [x] Harden vendor registration diagnostics.
   - [x] Add structured verbose server-side logging (sanitized payload + Prisma error mapping + correlation context).
+  - [x] Add resilient fallback for vendor position write when database schema is behind (avoid opaque 500 during signup).
   - [x] Return actionable validation and failure messages without leaking sensitive data.
 - [x] Enforce Cloudinary-first upload governance platform-wide.
   - [x] Fix unauthenticated signup upload failures by allowing scoped guest uploads for `profile` and `verification-doc` when `skipPersistence=true`.

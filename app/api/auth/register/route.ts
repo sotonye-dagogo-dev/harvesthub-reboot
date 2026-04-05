@@ -14,6 +14,27 @@ import { randomUUID as uuidv4 } from 'crypto';
 const isValidEnumValue = <T extends readonly string[]>(value: unknown, enumValues: T): value is T[number] =>
     typeof value === 'string' && (enumValues as readonly string[]).includes(value);
 
+const isPrismaKnownError = (error: unknown): error is Prisma.PrismaClientKnownRequestError =>
+    Boolean(error && typeof error === 'object' && 'code' in error);
+
+const inferFieldFromPrismaError = (error: Prisma.PrismaClientKnownRequestError): string => {
+    const fromTarget = Array.isArray(error.meta?.target)
+        ? (error.meta?.target as string[]).join(', ')
+        : typeof error.meta?.target === 'string'
+            ? (error.meta.target as string)
+            : '';
+
+    if (fromTarget) return fromTarget;
+
+    const message = error.message.toLowerCase();
+    if (message.includes('position')) return 'position';
+    if (message.includes('businessverification')) return 'businessVerification';
+    if (message.includes('storesettings')) return 'storeSettings';
+    if (message.includes('registrationsequence')) return 'registrationSequence';
+    if (message.includes('email')) return 'email';
+    return 'unknown field';
+};
+
 export async function POST(request: NextRequest) {
     let body: any = null;
     const correlationId = request.headers.get('x-correlation-id') || uuidv4();
@@ -28,6 +49,8 @@ export async function POST(request: NextRequest) {
         if (error.code === 'P2002') return { status: 409, message: 'A user with this email or details already exists.' };
         if (error.code === 'P2023') return { status: 400, message: 'Invalid input value provided for a field.' };
         if (error.code === 'P2003') return { status: 400, message: 'Provided related reference is invalid.' };
+        if (error.code === 'P2022') return { status: 500, message: 'Database schema is out of sync for this operation. Apply latest migrations and retry.' };
+        if (error.code === 'P2009') return { status: 500, message: 'Database query validation failed due to schema mismatch. Apply latest migrations and retry.' };
         return { status: 500, message: 'Internal server error' };
     };
     try {
@@ -234,42 +257,76 @@ export async function POST(request: NextRequest) {
                 }
             } else if (role === UserRole.VENDOR) {
                 const commissionRate = CATEGORY_COMMISSION_DEFAULTS[companyCategory] ?? COMMISSION_RATES.DEFAULT;
+                const businessVerificationData: Prisma.InputJsonValue = {
+                    verificationDocuments: verificationDocuments?.length
+                        ? verificationDocuments
+                        : undefined,
+                    businessAddress: businessAddress || undefined,
+                    idType: body?.idType || undefined,
+                    churchPosition: position || undefined,
+                    bankDetails:
+                        bankName || accountName || accountNumber
+                            ? {
+                                bankName: bankName || undefined,
+                                accountName: accountName || undefined,
+                                accountNumber: accountNumber || undefined,
+                            }
+                            : undefined,
+                };
 
-                await tx.vendor.create({
-                    data: {
-                        userId: user.id,
-                        storeName,
-                        storeDescription: storeDescription || null,
-                        category: companyCategory,
-                        whatsappNumber,
-                        campus: vendorCampus,
-                        position: position || undefined,
-                        status: 'PENDING',
-                        isChurchAffiliated: isChurchAffiliated || false,
-                        commissionRate,
-                        businessVerification: {
-                            verificationDocuments: verificationDocuments?.length
-                                ? verificationDocuments
-                                : undefined,
-                            businessAddress: businessAddress || undefined,
-                            idType: body?.idType || undefined,
-                            bankDetails:
-                                bankName || accountName || accountNumber
-                                    ? {
-                                        bankName: bankName || undefined,
-                                        accountName: accountName || undefined,
-                                        accountNumber: accountNumber || undefined,
-                                    }
-                                    : undefined,
-                        },
-                        storeSettings: {
-                            allowsPickup: true,
-                            allowsDelivery: false,
-                            pickupServices: [],
-                            deliveryZones: [],
-                        },
+                const vendorCreateData: Prisma.VendorUncheckedCreateInput = {
+                    userId: user.id,
+                    storeName,
+                    storeDescription: storeDescription || null,
+                    category: companyCategory,
+                    whatsappNumber,
+                    campus: vendorCampus,
+                    position: position || undefined,
+                    status: 'PENDING',
+                    isChurchAffiliated: isChurchAffiliated || false,
+                    commissionRate,
+                    businessVerification: businessVerificationData,
+                    storeSettings: {
+                        allowsPickup: true,
+                        allowsDelivery: false,
+                        pickupServices: [],
+                        deliveryZones: [],
                     },
-                });
+                };
+
+                try {
+                    await tx.vendor.create({ data: vendorCreateData });
+                } catch (createError) {
+                    if (isPrismaKnownError(createError)) {
+                        const inferredField = inferFieldFromPrismaError(createError);
+                        const isPositionDrift =
+                            inferredField.includes('position') &&
+                            (createError.code === 'P2022' || createError.code === 'P2009' || createError.code === 'P2023');
+
+                        // Backward-compatible fallback: if DB is behind on position column/enum,
+                        // complete vendor registration and preserve selected church position inside JSON metadata.
+                        if (isPositionDrift) {
+                            console.warn('register vendor fallback: omitting vendor.position due to schema drift', {
+                                ...logBase,
+                                prismaCode: createError.code,
+                                inferredField,
+                                role: body?.role,
+                                email: maskEmail(body?.email),
+                            });
+
+                            await tx.vendor.create({
+                                data: {
+                                    ...vendorCreateData,
+                                    position: undefined,
+                                },
+                            });
+                        } else {
+                            throw createError;
+                        }
+                    } else {
+                        throw createError;
+                    }
+                }
 
                 // Auto-assign milestone if first 1000 vendors
                 if (roleCount + 1 <= 1000) {
@@ -321,13 +378,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (error && typeof error === 'object' && 'code' in error) {
-            const pError = error as Prisma.PrismaClientKnownRequestError;
-            const fields = Array.isArray(pError.meta?.target)
-                ? (pError.meta.target as string[]).join(', ')
-                : typeof pError.meta?.target === 'string'
-                    ? (pError.meta.target as string)
-                    : 'unknown field';
+        if (isPrismaKnownError(error)) {
+            const pError = error;
+            const fields = inferFieldFromPrismaError(pError);
             const mapped = mapPrismaError(pError);
             console.warn('register prisma error', {
                 ...logBase,
