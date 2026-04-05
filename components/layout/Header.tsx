@@ -382,6 +382,6 @@ export function Header() {
   );
 }
 
-export function resolveOrdersLink(role?: string) {
+export function resolveOrdersLink(_role?: string) {
   return "/orders";
 }
