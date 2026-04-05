@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { LISTING_TYPES, PRODUCT_CATEGORIES, UserRole } from "@/lib/constants";
 import type { Product } from "@/lib/types";
+import ImageUpload from "@/components/ui/ImageUpload";
 import {
   Button,
   Form,
@@ -37,8 +38,6 @@ interface ProductFormValues {
   compareAtPrice?: number;
   discount?: number;
   stock: number;
-  mainImage: string;
-  imageUrls?: string;
   isActive: boolean;
 }
 
@@ -50,17 +49,11 @@ interface AuthMeResponse {
 
 const VENDOR_FILTER_ALL = "ALL";
 
-function toImageArray(mainImage: string, imageUrls?: string): string[] {
-  const parsed = (imageUrls || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (!parsed.includes(mainImage)) {
-    parsed.unshift(mainImage);
-  }
-
-  return parsed;
+function buildImageArray(mainImage: string, additionalImageUrls: string[]): string[] {
+  const normalized = [mainImage.trim(), ...additionalImageUrls.map((url) => url.trim())].filter(
+    Boolean
+  );
+  return Array.from(new Set(normalized));
 }
 
 function formatNaira(amount: number) {
@@ -84,6 +77,8 @@ export default function OperationsProductsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [mainImageUrl, setMainImageUrl] = useState("");
+  const [additionalImageUrls, setAdditionalImageUrls] = useState<string[]>([]);
 
   const [form] = Form.useForm<ProductFormValues>();
 
@@ -228,6 +223,8 @@ export default function OperationsProductsPage() {
 
   const openCreateModal = () => {
     setEditingProduct(null);
+    setMainImageUrl("");
+    setAdditionalImageUrls([]);
     form.resetFields();
     form.setFieldsValue({
       listingType: "PRODUCT",
@@ -250,16 +247,22 @@ export default function OperationsProductsPage() {
       compareAtPrice: product.compareAtPrice || undefined,
       discount: product.discount || undefined,
       stock: product.stock,
-      mainImage: product.mainImage,
-      imageUrls: Array.isArray(product.images) ? product.images.join(", ") : "",
       isActive: product.isActive,
     });
+    setMainImageUrl(product.mainImage || "");
+    setAdditionalImageUrls(
+      Array.isArray(product.images)
+        ? product.images.filter((imageUrl) => imageUrl && imageUrl !== product.mainImage)
+        : []
+    );
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setEditingProduct(null);
+    setMainImageUrl("");
+    setAdditionalImageUrls([]);
     form.resetFields();
   };
 
@@ -274,9 +277,14 @@ export default function OperationsProductsPage() {
       return;
     }
 
+    const mainImage = mainImageUrl.trim();
+    if (!mainImage) {
+      message.error("Please upload a main product image.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const mainImage = values.mainImage.trim();
       const payload = {
         vendorId: scopedVendorId,
         name: values.name.trim(),
@@ -292,7 +300,7 @@ export default function OperationsProductsPage() {
           values.discount !== undefined && values.discount !== null ? Number(values.discount) : 0,
         stock: Number(values.stock),
         mainImage,
-        images: toImageArray(mainImage, values.imageUrls),
+        images: buildImageArray(mainImage, additionalImageUrls),
         isActive: Boolean(values.isActive),
       };
 
@@ -340,6 +348,24 @@ export default function OperationsProductsPage() {
       const description = error instanceof Error ? error.message : "Unable to delete product";
       message.error(description);
     }
+  };
+
+  const addAdditionalImage = (url: string) => {
+    const normalized = url.trim();
+    if (!normalized || normalized === mainImageUrl) {
+      return;
+    }
+
+    setAdditionalImageUrls((prev) => {
+      if (prev.includes(normalized)) {
+        return prev;
+      }
+      return [...prev, normalized];
+    });
+  };
+
+  const removeAdditionalImage = (url: string) => {
+    setAdditionalImageUrls((prev) => prev.filter((item) => item !== url));
   };
 
   const columns: ColumnsType<Product> = [
@@ -555,20 +581,38 @@ export default function OperationsProductsPage() {
             </Form.Item>
           </div>
 
-          <Form.Item
-            name="mainImage"
-            label="Main Image URL"
-            rules={[{ required: true, message: "Main image URL is required" }]}
-          >
-            <Input placeholder="https://..." />
+          <Form.Item label="Main Product Image" required>
+            <ImageUpload
+              folderType="product"
+              helpText="Upload a clear product cover image."
+              onUploaded={(result) => setMainImageUrl(result.url)}
+            />
+            {mainImageUrl ? (
+              <p className="mt-2 text-xs text-ds-text-secondary">Main image selected.</p>
+            ) : (
+              <p className="mt-2 text-xs text-ds-text-tertiary">No main image uploaded yet.</p>
+            )}
           </Form.Item>
 
           <Form.Item
-            name="imageUrls"
-            label="Additional Image URLs"
-            extra="Comma-separated URLs. Main image will be included automatically."
+            label="Additional Product Images (optional)"
+            extra="Upload more images to showcase angles, variants, or details."
           >
-            <Input.TextArea rows={2} placeholder="https://... , https://..." />
+            <ImageUpload
+              folderType="product"
+              helpText="Upload optional gallery images."
+              onUploaded={(result) => addAdditionalImage(result.url)}
+            />
+
+            {additionalImageUrls.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {additionalImageUrls.map((url, index) => (
+                  <Tag key={url} closable onClose={() => removeAdditionalImage(url)}>
+                    Image {index + 1}
+                  </Tag>
+                ))}
+              </div>
+            ) : null}
           </Form.Item>
 
           <Form.Item name="isActive" label="Active Listing" valuePropName="checked">

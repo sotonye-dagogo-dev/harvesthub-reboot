@@ -39,6 +39,13 @@ export function Header() {
     return getDashboardRoute(user?.role);
   };
 
+  const getOrdersLink = () => {
+    if (user?.role === "ADMIN" || user?.role === "VENDOR") {
+      return "/operations/orders";
+    }
+    return "/orders";
+  };
+
   return (
     <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
       <div className="container mx-auto px-4">
@@ -114,10 +121,10 @@ export function Header() {
 
                 {/* Orders - All users */}
                 <Link
-                  href="/orders"
+                  href={getOrdersLink()}
                   className={cn(
                     "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
-                    isActive("/orders")
+                    isActive(getOrdersLink())
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                   )}
@@ -251,7 +258,7 @@ export function Header() {
 
                   {/* Orders */}
                   <Link
-                    href="/orders"
+                    href={getOrdersLink()}
                     className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
                     onClick={() => setShowMobileMenu(false)}
                   >

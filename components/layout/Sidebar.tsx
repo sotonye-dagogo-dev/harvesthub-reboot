@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
+  Bug,
+  CircleUser,
+  FileText,
+  ImageIcon,
   LayoutDashboard,
+  Megaphone,
   Package,
   ShoppingBag,
   BarChart3,
   Wallet,
   Settings,
+  Store,
   Users,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
-  Bug,
-  Megaphone,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -25,39 +29,44 @@ interface SidebarProps {
   type: "vendor" | "admin";
 }
 
-const ADMIN_LINKS = new Set([
+const ADMIN_LINK_ORDER = [
   "/operations/dashboard",
-  "/analytics",
+  "/operations/orders",
+  "/operations/products",
   "/operations/vendors",
   "/operations/users",
-  "/operations/banners",
   "/operations/ads",
+  "/operations/banners",
   "/operations/vendor-content",
   "/operations/bug-reports",
-  "/operations/settings",
   "/operations/public-content",
-  "/operations/orders",
+  "/operations/settings",
+  "/analytics",
   "/wallet",
   "/notifications",
   "/profile",
-]);
+] as const;
 
-const VENDOR_LINKS = new Set([
+const VENDOR_LINK_ORDER = [
   "/operations/dashboard",
-  "/analytics",
-  "/operations/products",
   "/operations/orders",
+  "/operations/products",
   "/operations/marketing-content",
+  "/analytics",
   "/store-settings",
   "/wallet",
   "/notifications",
   "/profile",
-]);
+] as const;
 
 function getSidebarLinks(type: "vendor" | "admin") {
   const role = type === "admin" ? UserRole.ADMIN : UserRole.VENDOR;
-  const allowed = type === "admin" ? ADMIN_LINKS : VENDOR_LINKS;
-  return buildNav(role).filter((item) => allowed.has(item.path));
+  const orderedPaths = type === "admin" ? ADMIN_LINK_ORDER : VENDOR_LINK_ORDER;
+  const navByPath = new Map(buildNav(role).map((item) => [item.path, item]));
+
+  return orderedPaths
+    .map((path) => navByPath.get(path))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 }
 
 export function Sidebar({ type }: SidebarProps) {
@@ -69,21 +78,21 @@ export function Sidebar({ type }: SidebarProps) {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     "/operations/dashboard": LayoutDashboard,
     "/analytics": BarChart3,
-    "/operations/vendors": Users,
+    "/operations/vendors": Store,
     "/operations/users": Users,
-    "/operations/banners": AlertCircle,
+    "/operations/banners": ImageIcon,
     "/operations/ads": Megaphone,
-    "/operations/public-content": Megaphone,
+    "/operations/public-content": FileText,
     "/operations/orders": ShoppingBag,
-    "/operations/vendor-content": Megaphone,
+    "/operations/vendor-content": FileText,
     "/operations/bug-reports": Bug,
     "/operations/settings": Settings,
     "/operations/marketing-content": Megaphone,
     "/operations/products": Package,
     "/store-settings": Settings,
     "/wallet": Wallet,
-    "/notifications": BarChart3,
-    "/profile": Users,
+    "/notifications": Bell,
+    "/profile": CircleUser,
   };
 
   const getIcon = (href: string) => {
