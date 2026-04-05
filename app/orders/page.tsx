@@ -9,7 +9,6 @@ import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
 import { orderModule } from "@/modules/orders";
 import { UserRole } from "@/lib/constants";
-import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +24,12 @@ async function getBuyerOrdersForUser(userId: string) {
   return getOrdersByBuyerId(buyer.id);
 }
 
+async function getOrdersForAdminUser(userId: string) {
+  const buyerOrders = await getBuyerOrdersForUser(userId);
+  if (buyerOrders.length > 0) return buyerOrders;
+  return getVendorOrdersForUser(userId);
+}
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
 
@@ -32,12 +37,10 @@ export default async function OrdersPage() {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
   }
 
-  if (user.role === UserRole.ADMIN) {
-    redirect("/operations/orders");
-  }
-
   const orders =
-    user.role === UserRole.VENDOR
+    user.role === UserRole.ADMIN
+      ? await getOrdersForAdminUser(user.userId)
+      : user.role === UserRole.VENDOR
       ? await getVendorOrdersForUser(user.userId)
       : await getBuyerOrdersForUser(user.userId);
 

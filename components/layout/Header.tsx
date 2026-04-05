@@ -39,7 +39,7 @@ export function Header() {
     return getDashboardRoute(user?.role);
   };
 
-  const getOrdersLink = () => resolveOrdersLink(user?.role);
+  const getOrdersLink = () => resolveOrdersLink();
 
   return (
     <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
@@ -233,7 +233,12 @@ export function Header() {
                   {(user.role === "ADMIN" || user.role === "VENDOR") && (
                     <Link
                       href={getDashboardLink()}
-                      className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      className={cn(
+                        "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                        isActive(getDashboardLink())
+                          ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                          : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      )}
                       onClick={() => setShowMobileMenu(false)}
                     >
                       <LayoutDashboard className="h-5 w-5" />
@@ -244,7 +249,12 @@ export function Header() {
                   {/* Cart */}
                   <Link
                     href="/cart"
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/cart")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <ShoppingCart className="h-5 w-5" />
@@ -254,7 +264,12 @@ export function Header() {
                   {/* Orders */}
                   <Link
                     href={getOrdersLink()}
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive(getOrdersLink())
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <Package className="h-5 w-5" />
@@ -264,7 +279,12 @@ export function Header() {
                   {/* Favourites */}
                   <Link
                     href="/favourites"
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/favourites")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <Heart className="h-5 w-5" />
@@ -274,7 +294,12 @@ export function Header() {
                   {/* Wallet */}
                   <Link
                     href="/wallet"
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/wallet")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <Wallet className="h-5 w-5" />
@@ -284,7 +309,12 @@ export function Header() {
                   {/* Profile */}
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/profile")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <User className="h-5 w-5" />
@@ -294,7 +324,12 @@ export function Header() {
                   {user.role === "BUYER" && (
                     <Link
                       href="/become-vendor"
-                      className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      className={cn(
+                        "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                        isActive("/become-vendor")
+                          ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                          : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                      )}
                       onClick={() => setShowMobileMenu(false)}
                     >
                       <Store className="h-5 w-5" />
@@ -315,14 +350,24 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="rounded-ds-md px-4 py-2 text-sm font-medium text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    className={cn(
+                      "rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
+                      isActive("/login")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="rounded-ds-md bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
+                    className={cn(
+                      "rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
+                      isActive("/signup")
+                        ? "bg-ds-brand-primary text-white"
+                        : "bg-ds-brand-primary text-white hover:bg-ds-brand-primary-hover"
+                    )}
                     onClick={() => setShowMobileMenu(false)}
                   >
                     Sign Up
@@ -337,9 +382,6 @@ export function Header() {
   );
 }
 
-export function resolveOrdersLink(role?: string) {
-  if (role === "ADMIN") {
-    return "/operations/orders";
-  }
+export function resolveOrdersLink() {
   return "/orders";
 }

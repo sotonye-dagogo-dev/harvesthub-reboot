@@ -6,7 +6,7 @@ import { routeConfig } from "@/lib/rbac/routeConfig";
 
 describe("role/domain parity matrix", () => {
   it("enforces orders scope split", () => {
-    expect(getRoutePolicy("/orders")?.roles).toEqual([UserRole.BUYER, UserRole.VENDOR]);
+    expect(getRoutePolicy("/orders")?.roles).toEqual([UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN]);
     expect(getRoutePolicy("/operations/orders")?.roles).toEqual([UserRole.VENDOR, UserRole.ADMIN]);
   });
 
@@ -56,7 +56,7 @@ describe("role/domain parity matrix", () => {
     expect(vendorNav).toContain("/operations/orders");
     expect(vendorNav).toContain("/orders");
     expect(adminNav).toContain("/operations/orders");
-    expect(adminNav).not.toContain("/orders");
+    expect(adminNav).toContain("/orders");
     expect(vendorNav).toContain("/operations/products");
     expect(adminNav).toContain("/operations/ads");
     expect(adminNav).toContain("/operations/bug-reports");

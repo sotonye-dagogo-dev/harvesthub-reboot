@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "@/components/layout/Sidebar";
 
 const pathnameState = vi.hoisted(() => ({ value: "/operations/dashboard" }));
@@ -9,6 +9,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Sidebar orders scope visibility", () => {
+  beforeEach(() => {
+    pathnameState.value = "/operations/dashboard";
+  });
+
   it("shows operations orders for vendor sidebar", () => {
     render(<Sidebar type="vendor" />);
     expect(screen.getAllByRole("link", { name: /orders/i }).length).toBeGreaterThan(0);
@@ -17,6 +21,13 @@ describe("Sidebar orders scope visibility", () => {
   it("shows operations orders for admin sidebar", () => {
     render(<Sidebar type="admin" />);
     expect(screen.getAllByRole("link", { name: /orders/i }).length).toBeGreaterThan(0);
+  });
+
+  it("highlights active orders link in mobile nav with brand text class", () => {
+    pathnameState.value = "/operations/orders";
+    render(<Sidebar type="admin" />);
+    const ordersLinks = screen.getAllByRole("link", { name: /orders/i });
+    expect(ordersLinks.some((link) => link.className.includes("text-ds-text-brand"))).toBe(true);
   });
 
   it("renders mobile labels with wrapping classes to prevent overlap", () => {
