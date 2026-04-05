@@ -2,7 +2,8 @@ import { getCurrentUser } from "@/lib/utils/auth";
 import {
   getBuyerByUserId,
   getOrdersByBuyerId,
-  getOrdersByUserRole,
+  getOrdersByVendorId,
+  getVendorByUserId,
 } from "@/lib/data/dataFetchers";
 import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
@@ -26,11 +27,15 @@ export default async function OrdersPage() {
   const orders =
     user.role === UserRole.VENDOR
       ? await (async () => {
+          const vendor = await getVendorByUserId(user.userId);
+          if (!vendor?.id) return [];
+          return getOrdersByVendorId(vendor.id);
+        })()
+      : await (async () => {
           const buyer = await getBuyerByUserId(user.userId);
           if (!buyer?.id) return [];
           return getOrdersByBuyerId(buyer.id);
-        })()
-      : await getOrdersByUserRole(user);
+        })();
 
   return (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>

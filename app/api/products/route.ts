@@ -12,6 +12,8 @@ import { productListKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
 import type { Prisma } from '../../../prisma/generated/client';
 
+const hasValue = (value: unknown) => value !== null && value !== undefined && value !== '';
+
 export async function GET(req: NextRequest) {
     try {
         const rl = await rateLimitByIP(req);
@@ -115,21 +117,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Price must be a valid positive number' }, { status: 400 });
         }
 
-        const numericCompareAtPrice = compareAtPrice !== null && compareAtPrice !== undefined && compareAtPrice !== ''
+        const numericCompareAtPrice = hasValue(compareAtPrice)
             ? Number(compareAtPrice)
             : null;
         if (numericCompareAtPrice !== null && (!Number.isFinite(numericCompareAtPrice) || numericCompareAtPrice <= 0)) {
             return NextResponse.json({ error: 'Compare at price must be a valid positive number' }, { status: 400 });
         }
 
-        const numericDiscount = discount !== null && discount !== undefined && discount !== ''
+        const numericDiscount = hasValue(discount)
             ? Number(discount)
             : 0;
         if (!Number.isFinite(numericDiscount) || numericDiscount < 0) {
             return NextResponse.json({ error: 'Discount must be a valid non-negative number' }, { status: 400 });
         }
 
-        const numericStock = stock !== null && stock !== undefined && stock !== ''
+        const numericStock = hasValue(stock)
             ? Number(stock)
             : 0;
         if (!Number.isFinite(numericStock) || numericStock < 0) {
@@ -144,7 +146,7 @@ export async function POST(req: NextRequest) {
             price: numericPrice,
             compareAtPrice: numericCompareAtPrice,
             discount: numericDiscount,
-            stock: Math.trunc(numericStock),
+            stock: Math.floor(numericStock),
             images: images || [],
             mainImage,
             variants: variants || null,
