@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui";
 import { Search } from "lucide-react";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Vendor, Product } from "@/lib/types";
+import { isVendorVerified } from "@/lib/utils/vendor";
 
 interface VendorsContentProps {
   vendors: Vendor[];
@@ -22,7 +23,6 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const allVendors = useMemo(
     () =>
       vendors
-        .filter((vendor) => vendor.status === "APPROVED")
         .map((vendor) => ({
           ...vendor,
           productCount: products.filter((p) => p.vendorId === vendor.id && p.isActive).length,
@@ -148,7 +148,7 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
                 campus={vendor.campus}
                 rating={vendor.analytics?.averageRating || 0}
                 productCount={vendor.productCount}
-                isVerified={vendor.businessVerification?.verifiedAt !== null}
+                isVerified={isVendorVerified(vendor)}
               />
             ))}
           </div>

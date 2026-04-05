@@ -104,13 +104,14 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
   const handleAddToCart = (product: Product) => {
     if (!requireAuth("add items to your cart")) return;
     const vendor = vendors.find((v) => v.id === product.vendorId);
+    const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     addItem({
       productId: product.id,
       name: product.name,
       price: product.price,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
-      vendorName: vendor?.storeName || "Unknown Vendor",
+      vendorName,
       stock: product.stock,
     });
   };
@@ -158,6 +159,8 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedProducts.map((product) => {
                   const vendor = vendors.find((v) => v.id === product.vendorId);
+                  const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+                  const vendorStatus = vendor?.status || product.vendor?.status;
                   const avgRating =
                     product.reviews && product.reviews.length > 0
                       ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
@@ -171,12 +174,13 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
                       name={product.name}
                       price={product.price}
                       image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendor?.storeName || "Unknown Vendor"}
+                      vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
                       reviewCount={product.reviews?.length || 0}
                       stock={product.stock}
                       discount={product.discount}
+                      isVendorVerified={vendorStatus === "APPROVED"}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={() => guardedToggleFavorite(product.id)}
                       onAddToCart={() => handleAddToCart(product)}

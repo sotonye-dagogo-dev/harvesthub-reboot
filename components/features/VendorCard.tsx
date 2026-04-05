@@ -50,9 +50,13 @@ export function VendorCard({
           <div className="flex-1 min-w-0">
             <div className="mb-1 flex items-center gap-2">
               <h3 className="truncate font-semibold text-ds-text-primary">{name}</h3>
-              {isVerified && (
+              {isVerified ? (
                 <Badge variant="success" size="sm">
                   Verified
+                </Badge>
+              ) : (
+                <Badge variant="warning" size="sm">
+                  Unverified
                 </Badge>
               )}
             </div>

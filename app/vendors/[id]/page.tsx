@@ -51,13 +51,13 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
     if (!res.ok) return notFound();
     const json = await res.json();
     const vendor = json.vendor || null;
-    if (!vendor || vendor.status !== "APPROVED") return notFound();
+    if (!vendor) return notFound();
 
     const vendorUser = vendor.user;
 
     const vendorProducts = Array.isArray(vendor.products)
       ? vendor.products.filter((p: any) => p.isActive)
-      : {};
+      : [];
     const activeProducts = vendorProducts.filter((p: any) => p.stock > 0);
     const totalProducts = vendorProducts.length;
 
@@ -70,6 +70,8 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
         ? vendorReviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) /
           vendorReviews.length
         : vendor.analytics?.averageRating || 0;
+    const vendorVerified = vendor.status === "APPROVED";
+    const vendorTotalOrders = vendor.analytics?.totalOrders || 0;
 
     return (
       <div className="min-h-screen bg-ds-surface-sunken py-8 dark:bg-ds-surface-sunken">
@@ -116,8 +118,13 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     <h1 className="text-2xl font-bold text-ds-text-primary md:text-3xl">
                       {vendor.storeName}
                     </h1>
-                    {vendor.status === "APPROVED" && (
+                    {vendorVerified && (
                       <CheckCircle className="h-6 w-6 text-ds-status-success" />
+                    )}
+                    {!vendorVerified && (
+                      <Tag color="orange" className="!mb-0">
+                        Unverified
+                      </Tag>
                     )}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -137,8 +144,13 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
               <div className="mb-4 sm:hidden">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-ds-text-primary">{vendor.storeName}</h1>
-                  {vendor.status === "APPROVED" && (
+                  {vendorVerified && (
                     <CheckCircle className="h-5 w-5 text-ds-status-success" />
+                  )}
+                  {!vendorVerified && (
+                    <Tag color="orange" className="!mb-0">
+                      Unverified
+                    </Tag>
                   )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -181,9 +193,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                     <ShoppingBag className="h-4 w-4 text-ds-status-info-text" />
                     Orders
                   </div>
-                  <div className="mt-1 text-xl font-bold text-ds-text-primary">
-                    {vendor.analytics.totalOrders}
-                  </div>
+                  <div className="mt-1 text-xl font-bold text-ds-text-primary">{vendorTotalOrders}</div>
                 </div>
 
                 <div className="rounded-ds-md bg-ds-surface-sunken p-3">
@@ -273,6 +283,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                                   stock={product.stock}
                                   discount={product.discount}
                                   isFeatured={product.isFeatured}
+                                  isVendorVerified={vendorVerified}
                                 />
                               );
                             })}
