@@ -69,6 +69,7 @@ export default function OperationsMarketingContentPage() {
   const { user } = useAuth();
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resolvingVendor, setResolvingVendor] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editItem, setEditItem] = useState<ContentItem | null>(null);
@@ -76,21 +77,57 @@ export default function OperationsMarketingContentPage() {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  // Fetch vendor ID from user
+  // Resolve vendor context for vendor users
   useEffect(() => {
-    if (!user) return;
-    fetch(`/api/vendors?userId=${user.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data?.id) {
-          setVendorId(data.data.id);
+    let mounted = true;
+
+    const resolveVendor = async () => {
+      if (!user) {
+        if (mounted) {
+          setVendorId(null);
+          setLoading(false);
+          setResolvingVendor(false);
         }
-      })
-      .catch(() => {});
+        return;
+      }
+
+      if (user.role !== "VENDOR") {
+        if (mounted) {
+          setVendorId(null);
+          setLoading(false);
+          setResolvingVendor(false);
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/vendors/me/store-settings");
+        const data = await res.json();
+        if (mounted && res.ok && data.success && data.vendorId) {
+          setVendorId(data.vendorId);
+        }
+      } catch {
+        if (mounted) {
+          setVendorId(null);
+        }
+      } finally {
+        if (mounted) {
+          setResolvingVendor(false);
+        }
+      }
+    };
+
+    resolveVendor();
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   const fetchContent = useCallback(async () => {
-    if (!vendorId) return;
+    if (!vendorId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/vendors/${vendorId}/content`);
@@ -248,9 +285,27 @@ export default function OperationsMarketingContentPage() {
     },
   ];
 
+  if (resolvingVendor) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Spin />
+      </div>
+    );
+  }
+
+  if (!vendorId && user?.role === "ADMIN") {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <p className="text-ds-text-secondary">
+          Use Vendor Content in Operations to review and manage submissions across vendors.
+        </p>
+      </div>
+    );
+  }
+
   if (!vendorId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-96">
         <p className="text-ds-text-secondary">Vendor account required.</p>
       </div>
     );
