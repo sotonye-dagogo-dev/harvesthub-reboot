@@ -50,7 +50,7 @@ async function getAdminMetrics() {
       value: totalOrders.toLocaleString(),
       description: "All-time order volume across the marketplace.",
       icon: ShoppingBag,
-      href: "/orders",
+      href: "/operations/orders",
       cta: "View orders",
     },
     {
@@ -116,7 +116,7 @@ async function getVendorMetrics(userId: string) {
       value: totalOrders.toLocaleString(),
       description: `${pendingOrders.toLocaleString()} orders need attention.`,
       icon: ShoppingBag,
-      href: "/orders",
+      href: "/operations/orders",
       cta: "Track orders",
     },
     {

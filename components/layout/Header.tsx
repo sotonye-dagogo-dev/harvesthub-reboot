@@ -39,12 +39,7 @@ export function Header() {
     return getDashboardRoute(user?.role);
   };
 
-  const getOrdersLink = () => {
-    if (user?.role === "ADMIN" || user?.role === "VENDOR") {
-      return "/operations/orders";
-    }
-    return "/orders";
-  };
+  const getOrdersLink = () => resolveOrdersLink(user?.role);
 
   return (
     <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
@@ -340,4 +335,11 @@ export function Header() {
       </div>
     </header>
   );
+}
+
+export function resolveOrdersLink(role?: string) {
+  if (role === "ADMIN") {
+    return "/operations/orders";
+  }
+  return "/orders";
 }

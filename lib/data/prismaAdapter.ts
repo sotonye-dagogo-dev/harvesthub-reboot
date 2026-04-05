@@ -138,23 +138,23 @@ export const productDb = {
     },
 
     findById: async (id: string) => {
-        return prisma.product.findUnique({ where: { id } });
+        return withPrismaReconnect(() => prisma.product.findUnique({ where: { id } }));
     },
 
     findByVendor: async (vendorId: string) => {
-        return prisma.product.findMany({ where: { vendorId } });
+        return withPrismaReconnect(() => prisma.product.findMany({ where: { vendorId } }));
     },
 
     create: async (data: any) => {
-        return prisma.product.create({ data });
+        return withPrismaReconnect(() => prisma.product.create({ data }));
     },
 
     update: async (id: string, data: any) => {
-        return prisma.product.update({ where: { id }, data });
+        return withPrismaReconnect(() => prisma.product.update({ where: { id }, data }));
     },
 
     delete: async (id: string) => {
-        await prisma.product.delete({ where: { id } });
+        await withPrismaReconnect(() => prisma.product.delete({ where: { id } }));
         return true;
     },
 } satisfies CrudAdapter<any, any, any>;

@@ -12,6 +12,8 @@ import { productListKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
 import type { Prisma } from '../../../prisma/generated/client';
 
+const isProvided = (value: unknown) => value !== null && value !== undefined && value !== '';
+
 export async function GET(req: NextRequest) {
     try {
         const rl = await rateLimitByIP(req);
@@ -97,20 +99,54 @@ export async function POST(req: NextRequest) {
         // For vendors, find their vendor profile via unified data layer
         let vendorId = body.vendorId;
         if (user.role === UserRole.VENDOR) {
-            const vendor = await prisma.vendor.findUnique({ where: { userId: user.userId } });
+            const vendor = await prismaAdapter.vendorDb.findByUserId(user.userId);
             if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
             vendorId = vendor.id;
         }
+        if (!vendorId) {
+            return NextResponse.json({ error: 'Vendor ID is required' }, { status: 400 });
+        }
+
+        const vendor = await prismaAdapter.vendorDb.findById(vendorId);
+        if (!vendor) {
+            return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        }
+
+        const numericPrice = Number(price);
+        if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+            return NextResponse.json({ error: 'Price must be a valid positive number' }, { status: 400 });
+        }
+
+        const numericCompareAtPrice = isProvided(compareAtPrice)
+            ? Number(compareAtPrice)
+            : null;
+        if (numericCompareAtPrice !== null && (!Number.isFinite(numericCompareAtPrice) || numericCompareAtPrice <= 0)) {
+            return NextResponse.json({ error: 'Compare at price must be a valid positive number' }, { status: 400 });
+        }
+
+        const numericDiscount = isProvided(discount)
+            ? Number(discount)
+            : 0;
+        if (!Number.isFinite(numericDiscount) || numericDiscount < 0) {
+            return NextResponse.json({ error: 'Discount must be a valid non-negative number' }, { status: 400 });
+        }
+
+        const numericStock = isProvided(stock)
+            ? Number(stock)
+            : 0;
+        if (!Number.isFinite(numericStock) || numericStock < 0) {
+            return NextResponse.json({ error: 'Stock must be a valid non-negative number' }, { status: 400 });
+        }
 
         const product = await prismaAdapter.productDb.create({
-            vendorId,
+            vendorId: vendor.id,
             name,
             description,
             category,
-            price: parseFloat(price),
-            compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
-            discount: discount ? parseFloat(discount) : 0,
-            stock: stock !== undefined ? parseInt(stock) : 0,
+            price: numericPrice,
+            compareAtPrice: numericCompareAtPrice,
+            discount: numericDiscount,
+            stock: Math.floor(numericStock),
             images: images || [],
             mainImage,
             variants: variants || null,
@@ -122,9 +158,9 @@ export async function POST(req: NextRequest) {
 
         // Increment vendor product count (use vendor object if available)
         try {
-            const v = await prisma.vendor.findUnique({ where: { id: vendorId as string }, select: { totalProducts: true } });
+            const v = await prisma.vendor.findUnique({ where: { id: vendor.id }, select: { totalProducts: true } });
             if (v) {
-                await prisma.vendor.update({ where: { id: vendorId as string }, data: { totalProducts: (v.totalProducts || 0) + 1 } });
+                await prisma.vendor.update({ where: { id: vendor.id }, data: { totalProducts: (v.totalProducts || 0) + 1 } });
             }
         } catch (e) {
             // non-fatal: continue

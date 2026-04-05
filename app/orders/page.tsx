@@ -1,5 +1,10 @@
 import { getCurrentUser } from "@/lib/utils/auth";
-import { getOrdersByUserRole } from "@/lib/data/dataFetchers";
+import {
+  getBuyerByUserId,
+  getOrdersByBuyerId,
+  getOrdersByVendorId,
+  getVendorByUserId,
+} from "@/lib/data/dataFetchers";
 import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
 import { orderModule } from "@/modules/orders";
@@ -8,6 +13,18 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+async function getVendorOrdersForUser(userId: string) {
+  const vendor = await getVendorByUserId(userId);
+  if (!vendor?.id) return [];
+  return getOrdersByVendorId(vendor.id);
+}
+
+async function getBuyerOrdersForUser(userId: string) {
+  const buyer = await getBuyerByUserId(userId);
+  if (!buyer?.id) return [];
+  return getOrdersByBuyerId(buyer.id);
+}
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
 
@@ -15,11 +32,14 @@ export default async function OrdersPage() {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
   }
 
-  if (user.role !== UserRole.BUYER) {
+  if (user.role === UserRole.ADMIN) {
     redirect("/operations/orders");
   }
 
-  const orders = await getOrdersByUserRole(user);
+  const orders =
+    user.role === UserRole.VENDOR
+      ? await getVendorOrdersForUser(user.userId)
+      : await getBuyerOrdersForUser(user.userId);
 
   return (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>
