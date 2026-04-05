@@ -31,6 +31,7 @@ describe("role/domain parity matrix", () => {
     expect(getRoutePolicy("/wallet")?.roles).toEqual(walletRoles);
     expect(getRoutePolicy("/notifications")?.roles).toEqual(notificationsRoles);
     expect(getRoutePolicy("/profile")?.roles).toEqual(profileRoles);
+    expect(profileRoles).toBeDefined();
   });
 
   it("keeps ads and bug-report domains split by public/admin scopes", () => {

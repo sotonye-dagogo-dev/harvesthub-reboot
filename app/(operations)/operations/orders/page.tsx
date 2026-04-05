@@ -1,8 +1,28 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/utils/auth";
-import { UserRole } from "@/lib/constants";
+import { DeliveryMethod, OrderStatus, UserRole } from "@/lib/constants";
 import { getOrdersByUserRole } from "@/lib/data/dataFetchers";
 import { OrderCard } from "@/components/features/OrderCard";
+
+function resolveDeliveryInfo(order: { deliveryAddress?: unknown; pickupDetails?: unknown }) {
+  const deliveryAddress =
+    order.deliveryAddress && typeof order.deliveryAddress === "object"
+      ? (order.deliveryAddress as Record<string, unknown>)
+      : null;
+  if (deliveryAddress && typeof deliveryAddress.address === "string") {
+    return deliveryAddress.address;
+  }
+
+  const pickupDetails =
+    order.pickupDetails && typeof order.pickupDetails === "object"
+      ? (order.pickupDetails as Record<string, unknown>)
+      : null;
+  if (pickupDetails && typeof pickupDetails.location === "string") {
+    return pickupDetails.location;
+  }
+
+  return undefined;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -31,16 +51,16 @@ export default async function OperationsOrdersPage() {
         <p className="text-ds-text-secondary">No orders found yet.</p>
       ) : (
         <div className="space-y-4">
-          {orders.map((order: any) => (
+          {orders.map((order) => (
             <OrderCard
               key={order.id}
               id={order.id}
               orderNumber={order.orderNumber}
-              status={order.status}
+              status={order.status as unknown as OrderStatus}
               total={order.total}
               itemCount={order.items?.length ?? 0}
-              deliveryMethod={order.deliveryMethod}
-              deliveryInfo={order.deliveryAddress?.address ?? order.pickupDetails?.location}
+              deliveryMethod={order.deliveryMethod as unknown as DeliveryMethod}
+              deliveryInfo={resolveDeliveryInfo(order)}
               createdAt={order.createdAt}
             />
           ))}

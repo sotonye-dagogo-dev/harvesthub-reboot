@@ -14,7 +14,7 @@ const validCampusValues = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
 const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value));
 const validPositionValues = new Set(POSITION_OPTIONS.map((item) => item.value));
 
-function asRecord(value: unknown): Record<string, unknown> {
+function toSafeRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === 'object' && !Array.isArray(value)
         ? (value as Record<string, unknown>)
         : {};
@@ -78,8 +78,8 @@ export async function GET(req: NextRequest, context: RouteContext) {
         }
 
         const vendorBusinessAddress =
-            found.vendor && typeof asRecord(found.vendor.businessVerification).businessAddress === 'string'
-                ? asRecord(found.vendor.businessVerification).businessAddress
+            found.vendor && typeof toSafeRecord(found.vendor.businessVerification).businessAddress === 'string'
+                ? toSafeRecord(found.vendor.businessVerification).businessAddress
                 : '';
 
         return NextResponse.json({
@@ -148,7 +148,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
                     }
 
                     if (body.businessAddress !== undefined) {
-                        const existingVerification = asRecord(vendor.businessVerification);
+                        const existingVerification = toSafeRecord(vendor.businessVerification);
                         vendorUpdateData.businessVerification = {
                             ...existingVerification,
                             businessAddress: String(body.businessAddress).trim(),
