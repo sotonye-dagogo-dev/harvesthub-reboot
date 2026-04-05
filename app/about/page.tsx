@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { getPublicContentBySlug } from "@/lib/data/publicContent";
 import {
   Mail,
   MapPin,
@@ -18,7 +19,23 @@ export const metadata: Metadata = {
     "MyHarvestHub.org is a revolutionary faith-based e-marketplace connecting members of Christian worship centers with vendors within their communities.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const publicContent = await getPublicContentBySlug("about");
+
+  if (publicContent && publicContent.status === "PUBLISHED") {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="mb-4 text-4xl font-bold text-ds-text-primary">{publicContent.title}</h1>
+          <div
+            className="prose max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: publicContent.body }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mx-auto max-w-4xl">

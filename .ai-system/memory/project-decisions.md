@@ -27,6 +27,47 @@
 
 ## Decisions
 
+## Explicit Orders Scope Split + Domain Parity Matrix Enforcement
+
+**Decision:** Keep `/orders` as buyer-history only, introduce `/operations/orders` for vendor/admin operations, and enforce a role/domain parity matrix across products, orders, vendors, wallet, notifications, ads, bug reports, and profile/store using route policy + navigation + tests.
+**Date:** 2026-04-05
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Cross-domain audit closure required explicit separation between consumer history flows and operations workflows, especially for orders, to avoid scope leakage and ambiguous discoverability. A parity matrix contract ensures every domain has role-safe, discoverable entry points with consistent policy enforcement.
+
+**Alternatives Considered:**
+
+- Keep `/orders` shared for buyer/vendor/admin (rejected: blurs operations vs history use-cases and weakens policy clarity).
+- Introduce role-specific duplicate URL trees again (rejected: conflicts with consolidated operations architecture and increases drift risk).
+
+**Implications:**
+
+- Middleware must preserve legacy compatibility for `/admin/orders` and `/vendor/orders`.
+- Route registry, navigation, sidebar, and regression tests must remain synchronized whenever role-scope behavior changes.
+- Dead-link/route audits are required whenever route discoverability is modified.
+
+## Exhaustive Audit Priority Contract (2026-04-05)
+
+**Decision:** Execute remaining production-readiness work in strict priority order: (1) operations layout chrome de-duplication, (2) vendor product-management workspace delivery, (3) email-change reverification completion, then (4) dashboard KPI/data wiring and (5) config-driven content migration/polish.
+**Date:** 2026-04-05
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+The exhaustive audit surfaced one critical UX regression and multiple high-severity workflow gaps that have cross-surface dependencies. A strict sequence reduces regression risk and prevents low-priority polish from delaying critical-path fixes.
+
+**Alternatives Considered:**
+
+- Run all outstanding items in parallel (rejected: increases merge/test complexity and masks root-cause regressions).
+- Continue broad mixed-priority batching (rejected: critical issues can remain open while medium/low tasks consume time).
+- Delay operations UX fixes until final polish phase (rejected: vendor/admin usability remains impaired).
+
+**Implications:**
+
+- Cloud sessions should not start with medium/low polish tasks until layout duplication and vendor product workflow are closed.
+- Queue/checkpoint docs must track deferred low-priority work explicitly (contact config source, vendor deactivation UX, webhook idempotency hardening).
+- Regression gates should run after each high-risk slice instead of only at the end.
+
 ## Cloud Adjustment Execution: Signup + Upload Contract Enforcement
 
 **Decision:** Enforce strict buyer/vendor-only signup role selection while keeping church position values (`MEMBER`, `NON_MEMBER`, `WORKER`) available through the `Position` enum; require vendor `businessAddress` and all three verification documents at signup; and enforce Cloudinary-managed URLs for upload-governed fields in bug-report and ad-application APIs.
@@ -500,3 +541,19 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 - Public navigation/help content is now easier to audit and update in one place.
 - `/help/[slug]` route-safe subpages can be driven by config slugs and optionally enriched by public-content entries.
 - Next step can migrate this config source to admin-managed persisted content with minimal component churn.
+
+## Role/Domain Conceptual-View Parity Contract
+
+**Decision:** Enforce explicit role-scoped conceptual views for multi-context domains (products, orders, vendors, wallet, notifications, ads, bug reports, profile/store) via discoverable routes/navigation and scope-safe API behavior, with a parity matrix tracked in the execution queue.
+**Date:** 2026-04-05
+**Made by:** AI planning/handoff session (GitHub Copilot)
+
+**Reason:** Some domains evolved with mixed access patterns (for example products now have explicit public vs operations views, while orders still rely mostly on one shared route). This creates discoverability drift, implicit scope assumptions, and risk of role-context confusion during future refactors.
+
+**Alternatives Considered:** Keep role filtering purely at API/data layer with shared routes (fewer pages but lower UX clarity), or fork fully separate per-role page trees (clear separation but higher duplication and maintenance burden).
+
+**Implications:**
+
+- Cloud execution must validate and close role/domain parity gaps using a matrix-driven checklist rather than ad-hoc page edits.
+- Orders must have explicit scope semantics (buyer-history vs vendor/admin operations) with compatible redirects for legacy role-prefixed paths.
+- Navigation, route policy, middleware redirects, and API scope checks must be updated together and regression-tested as one unit.

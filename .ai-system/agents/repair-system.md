@@ -18,6 +18,36 @@
 
 ---
 
+## [Operations layout chrome duplication (double Header)]
+
+**Symptom:**
+
+- Operations pages under `/operations/*` render two stacked headers.
+- Visual spacing/navigation appears broken specifically in operations workspace routes.
+
+**Root Cause:**
+
+- Root `app/layout.tsx` renders global `<Header />`, while `components/layout/RoleDashboardShell.tsx` also renders `<Header />`.
+- Operations layout group is nested under root layout, so both chrome components render for the same route.
+
+**Fix Applied:**
+
+- Planning fix contract created (2026-04-05 queue): de-duplicate operations chrome by rendering header in exactly one layer (root or dashboard shell, not both), then run cross-route layout regression checks.
+
+**Prevention:**
+
+- Define explicit chrome ownership per route group in architecture docs.
+- Add regression tests/assertions to detect duplicate global chrome on grouped routes.
+- Avoid embedding global layout components (Header/Footer) inside nested feature shells unless root layout excludes those routes.
+
+**Files Affected:**
+
+- app/layout.tsx
+- components/layout/RoleDashboardShell.tsx
+- app/(operations)/operations/layout.tsx
+
+**Date:** 2026-04-05
+
 ### [TEMPLATE — copy this for each new error]
 
 ```

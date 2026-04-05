@@ -39,6 +39,137 @@
 
 ---
 
+## Session 23 — 2026-04-05
+
+**Goal:**
+Execute the remaining 2026-04-05 exhaustive-audit queue slices for role/domain parity closure and form/profile completeness, with validation and docs synchronization.
+
+**Completed:**
+
+- Enforced explicit orders scope separation:
+  - `/orders` is now buyer-only policy.
+  - Added `/operations/orders` for vendor/admin operations scope.
+  - Added middleware compatibility redirects from `/admin/orders` and `/vendor/orders`.
+  - Updated operations sidebar discoverability to use `/operations/orders`.
+- Added route/access parity regression coverage:
+  - Route policy + navigation assertions for buyer/vendor/admin orders split.
+  - Legacy middleware redirect tests for old orders routes.
+  - Domain parity matrix test covering products/orders/vendors/wallet/notifications/ads/bug-reports/profile-store scope boundaries.
+  - Route-group chrome parity tests for auth/signup/operations layouts.
+- Completed form/profile audited gaps:
+  - Added advertise field-level guidance (position/theme/duration/payment-proof expectations).
+  - Added vendor profile edit surfaces for category/campus/church position/businessAddress.
+  - Added API parity in `PUT /api/users/[id]/profile` to persist vendor context updates.
+  - Extended profile GET payload with `vendorContext` for prefill/edit lifecycle.
+- Validation gates passed for touched slices:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - targeted vitest suites for route/layout/parity changes
+  - `npm run audit:dead-links`
+- Ran final quality gate matrix and documented residual baseline:
+  - `npm run lint` ✅
+  - `npx tsc --noEmit` ✅
+  - `npm run audit:dead-links` ✅
+  - `npm test` ❌ (pre-existing unrelated baseline failures in legacy auth/jwt/schema/api integration/ui suites)
+- Captured deferred low-priority risk owners/targets in queue artifact.
+
+**Files Modified:**
+
+- app/orders/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- middleware.ts
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- components/layout/Sidebar.tsx
+- app/api/users/[id]/profile/route.ts
+- components/features/ProfilePage.tsx
+- app/advertise/page.tsx
+- lib/__tests__/rbac-policies.test.ts
+- lib/__tests__/navigation.test.ts
+- lib/__tests__/domain-parity-matrix.test.ts
+- lib/__tests__/middleware.legacy-orders-redirect.test.ts
+- components/__tests__/Sidebar.orders-scope.test.tsx
+- app/(auth)/__tests__/layout.test.tsx
+- app/(operations)/operations/__tests__/layout.test.tsx
+- app/signup/__tests__/layout.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run final full quality gate matrix and finalize remaining queue sign-off items/deferred-risk accounting.
+
+**Notes / Blockers:**
+
+- Repository-wide `npm test` still has pre-existing unrelated failures outside touched flows; targeted suites for changed slices are green.
+
+---
+
+## Session 22 — 2026-04-05
+
+**Goal:**
+Prepare interruption-safe cloud handoff with an updated closure plan that includes cross-domain conceptual-view parity and role-scoped accessibility checks.
+
+**Completed:**
+
+- Revalidated in-progress implementation status and quality gates context (`tsc`, targeted tests, route/dead-link audits).
+- Updated queue statuses to reflect completed critical/high closure work already landed (operations products, email-change closure, operations KPI dashboard, about/privacy public-content migration).
+- Added a new explicit queue block for role/domain conceptual-view parity across products/orders and analogous domains.
+- Updated cloud handoff plan and kickoff requirements to enforce explicit role-scoped orders/products access architecture and parity-matrix validation.
+- Recorded a project decision formalizing the role/domain conceptual-view parity contract.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run the updated cloud session kickoff prompt and execute the remaining queue in order, starting with domain-view parity closure (orders scope split + role discoverability matrix) and form/profile completeness.
+
+**Notes / Blockers:**
+
+- Products parity is now explicit (public marketplace vs operations workspace), but orders still require explicit role-view route separation/discoverability hardening.
+
+---
+
+## Session 21 — 2026-04-05
+
+**Goal:**
+Synthesize the exhaustive codebase audit into an implementation-ready cloud execution queue and synchronized `.ai-system` planning artifacts.
+
+**Completed:**
+
+- Consolidated exhaustive audit findings into a priority-ordered implementation queue (critical layout bug, vendor product workspace gap, email-change completion flow, dashboard KPI wiring, config-driven page completion).
+- Updated project plan with a dedicated follow-on feature spec for the 2026-04-05 closure wave.
+- Logged a new architectural/operational decision establishing execution priority and deferred-risk boundaries.
+- Added repair-system knowledge-base entry for recurring duplicate-header layout defect in operations routes.
+- Refreshed cloud handoff plan with a 2026-04-05 addendum and a ready-to-run cloud kickoff prompt.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+- .ai-system/agents/repair-system.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Start cloud implementation against the new 2026-04-05 execution queue, beginning with operations layout chrome de-duplication and `/operations/products` delivery.
+
+**Notes / Blockers:**
+
+- Exhaustive audit output included overlapping duplicate sections; priorities were normalized before queueing.
+- No product code edits were made in this session; this was planning/documentation synchronization only.
+
+---
+
 ## Session 20 — 2026-04-05
 
 **Goal:**

@@ -31,6 +31,33 @@
 - Vendor `businessAddress` is required at signup and remains editable post-auth in vendor settings.
 - Raw screenshot/image URL fields are deprecated in user flows; image evidence should use managed upload paths via Cloudinary.
 
+### 2026-04-05 Exhaustive Audit Addendum
+
+Audit synthesis (read-only) surfaced the following implementation priorities:
+
+- Critical: operations chrome duplication (double Header rendering) must be fixed first.
+- High: vendor product management UI route is missing in operations namespace.
+- High: email-change reverification completion path remains incomplete.
+- High: role/domain conceptual-view parity (especially products/orders) needs explicit route/access discoverability and scope-boundary verification.
+- Medium: operations dashboard cards are placeholder-only and need live KPI wiring.
+- Medium: `about` and `privacy` pages still need full config/public-content parity.
+- Medium: advertise/profile usability gaps remain (field guidance + missing profile context fields).
+
+Role/domain parity gap map (initial audit baseline):
+
+- Products: explicit split now exists (`/products` public catalog, `/operations/products` vendor/admin workspace), but admin discoverability and parity testing still need completion.
+- Orders: currently centered on shared `/orders` with role-filtered data; explicit operations-scoped orders workspace/discoverability is still a gap.
+- Vendors: public discovery (`/vendors`, `/vendors/[id]`) and admin operations (`/operations/vendors`) exist; validate vendor self-service scope boundaries remain clear.
+- Wallet: single role-shared route (`/wallet`) exists; validate whether admin requires explicit operations finance scope vs user-wallet behavior.
+- Notifications: shared role route (`/notifications`, `/notifications/settings`) exists; validate whether admin needs explicit operations notification-management surface.
+- Ads: public intake (`/advertise`, `/ad-application`) and admin operations (`/operations/ads`) exist; validate vendor-facing campaign operational discoverability.
+- Bug Reports: public submission (`/bug-report`) and admin triage (`/operations/bug-reports`) exist; preserve scope boundaries and status lifecycle consistency.
+- Profile/Store: personal profile (`/profile`) and vendor store settings (`/store-settings`) exist; complete missing business/church context edit parity.
+
+Execution rule:
+
+- Use `.ai-system/planning/task-queue.md` section `Cloud Session Execution Queue (2026-04-05 Exhaustive Audit)` as the authoritative order for this next implementation wave.
+
 ---
 
 ## 1. Feature Summary
@@ -221,12 +248,62 @@ When implementation lands, update architecture docs for:
 
 ---
 
+## Cloud Kickoff Prompt (2026-04-05)
+
+Use this exact prompt to start the next cloud coding session:
+
+```
+You are continuing MyHarvestHub production-readiness execution in a cloud session.
+
+Read in order:
+1) .ai-system/agents/general-instructions.md
+2) .ai-system/planning/task-queue.md
+3) .ai-system/planning/project-plan.md
+4) .ai-system/agents/system-architecture.md
+5) .ai-system/agents/design-system.md
+6) .ai-system/agents/repair-system.md
+7) .ai-system/project-context.md
+8) .ai-system/planning/cloud-session-temp-plan-2026-04-04.md
+
+Then execute ONLY this queue block, in order:
+- .ai-system/planning/task-queue.md -> "Cloud Session Execution Queue (2026-04-05 Exhaustive Audit)"
+
+Hard requirements:
+- Fix operations double-header duplication first before any feature expansion.
+- Deliver vendor operations products page and sidebar routing correction.
+- Complete email-change reverification closure end-to-end with secure token handling.
+- Replace placeholder operations dashboard cards with live role-scoped KPI cards.
+- Migrate about/privacy to config/public-content pattern with fallback safety.
+- Enforce cross-domain conceptual-view parity (products/orders and analogous domains) via explicit role-scoped routes, discoverability checks, and scope-safe APIs.
+- Ensure orders view separation is explicit: buyer-history flow at `/orders`; vendor/admin operations flow at `/operations/orders` (or equivalent mode-safe architecture) with legacy compatibility redirects.
+- Improve advertise/profile field completeness per queue tasks.
+- Keep Cloudinary-first upload governance and existing signup role/verification decisions intact.
+
+Validation gates after each major slice:
+- npm run lint
+- npx tsc --noEmit
+- targeted vitest suites for touched flows
+- route/dead-link audit scripts when nav/routes are touched
+
+Documentation updates required after each major slice:
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md (if new decisions)
+- .ai-system/agents/system-architecture.md (if architecture/data flow changed)
+
+Do not stop after analysis. Implement, validate, and document in one pass. If blocked, record exact blocker and proceed to next non-blocked task.
+```
+
+---
+
 ## Definition of Done for Cloud Session
 
-- Cloud Session Continuation Queue items are completed or explicitly marked blocked with reason.
+- Cloud Session Execution Queue (2026-04-05 Exhaustive Audit) items are completed or explicitly marked blocked with reason.
 - No critical route/API/auth/payment/signup regressions remain.
 - Vendor signup accepts valid `Member`/`Non-Member` position selections without backend/database errors.
 - Vendor verification enforces all three required documents and `businessAddress` remains editable post-auth.
 - Upload-managed flows no longer rely on raw screenshot/image URLs where Cloudinary upload pipeline is expected.
+- Multi-context domains (products, orders, vendors, wallet, notifications, ads, bug reports, profile/store) have explicit role-scoped entry points with tested nav/policy/API scope boundaries.
 - All changed behavior is test-backed at least by targeted regression coverage.
 - `.ai-system` artifacts reflect final state accurately.

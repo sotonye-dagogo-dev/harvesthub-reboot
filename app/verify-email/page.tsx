@@ -10,11 +10,13 @@ export default function VerifyEmailPage() {
   const search = useSearchParams();
   const token = search.get("token") || "";
   const emailFromQuery = search.get("email") || "";
+  const isEmailChangeToken = token.startsWith("email-change:");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
   const [email, setEmail] = useState<string>(emailFromQuery.toLowerCase());
   const [resendLoading, setResendLoading] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(4);
+  const [redirectPath, setRedirectPath] = useState("/login?verified=1");
 
   useEffect(() => {
     if (emailFromQuery) {
@@ -36,10 +38,11 @@ export default function VerifyEmailPage() {
         if (res.ok && data.success) {
           setStatus("success");
           setMessage(data.message || "Email verified successfully.");
-          if (data.redirectTo) {
-            router.push(data.redirectTo);
-            return;
-          }
+          setRedirectPath(
+            typeof data.redirectTo === "string" && data.redirectTo.length > 0
+              ? data.redirectTo
+              : "/login?verified=1"
+          );
         } else {
           setStatus("error");
           setMessage(data.error || "Verification failed.");
@@ -60,7 +63,7 @@ export default function VerifyEmailPage() {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
           window.clearInterval(timer);
-          router.push("/login?verified=1");
+          router.push(redirectPath);
           return 0;
         }
         return prev - 1;
@@ -70,7 +73,7 @@ export default function VerifyEmailPage() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [router, status]);
+  }, [redirectPath, router, status]);
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
@@ -100,9 +103,13 @@ export default function VerifyEmailPage() {
 
   return (
     <main className="mx-auto mt-12 max-w-lg px-4">
-      <h1 className="text-2xl font-bold mb-4">Verify your email</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {isEmailChangeToken ? "Confirm your new email" : "Verify your email"}
+      </h1>
       <p className="mb-3 text-sm text-ds-text-secondary">
-        Check your inbox and click the verification link we sent to complete your signup.
+        {isEmailChangeToken
+          ? "Click the verification link sent to your new email address to complete the change."
+          : "Check your inbox and click the verification link we sent to complete your signup."}
       </p>
       {email ? (
         <p className="mb-4 text-sm text-ds-text-secondary">
@@ -117,7 +124,7 @@ export default function VerifyEmailPage() {
             Redirecting to sign in in {redirectCountdown}s...
           </p>
           <Link
-            href="/login?verified=1"
+            href={redirectPath}
             className="inline-flex rounded-ds-md bg-ds-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-ds-brand-primary-hover"
           >
             Continue to Login

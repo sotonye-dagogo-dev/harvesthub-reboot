@@ -9,6 +9,7 @@ import { User, Mail, Phone, MapPin, Lock, Upload as UploadIcon } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 import type { Address } from "@/lib/types";
+import { CAMPUS_LOCATIONS, POSITION_OPTIONS, UserRole, VENDOR_CATEGORIES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -17,7 +18,17 @@ export default function ProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [loadingEmailStatus, setLoadingEmailStatus] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [emailChangeStatus, setEmailChangeStatus] = useState<{
+    hasPendingEmailChange: boolean;
+    pendingEmail: string | null;
+    expiresAt: string | null;
+  }>({
+    hasPendingEmailChange: false,
+    pendingEmail: null,
+    expiresAt: null,
+  });
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -25,6 +36,10 @@ export default function ProfilePage() {
     email: "",
     phoneNumber: "",
     whatsappNumber: "",
+    category: "",
+    campus: "",
+    position: "",
+    businessAddress: "",
   });
 
   useEffect(() => {
@@ -32,13 +47,14 @@ export default function ProfilePage() {
 
     let mounted = true;
 
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",
       phoneNumber: user.phoneNumber || "",
       whatsappNumber: user.whatsappNumber || "",
-    });
+    }));
 
     async function loadProfile() {
       try {
@@ -55,13 +71,21 @@ export default function ProfilePage() {
 
           if (profile) {
             setFormData((prev) => ({
+              ...(profile?.vendorContext &&
+              Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
+                ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
+                : { whatsappNumber: prev.whatsappNumber }),
               ...prev,
               firstName: profile.firstName || "",
               lastName: profile.lastName || "",
               email: profile.email || "",
               phoneNumber: profile.phoneNumber || "",
+              category: profile?.vendorContext?.category || "",
+              campus: profile?.vendorContext?.campus || "",
+              position: profile?.vendorContext?.position || "",
+              businessAddress: profile?.vendorContext?.businessAddress || "",
             }));
-          }
+            }
         }
 
         if (addressesRes.ok) {
@@ -81,6 +105,49 @@ export default function ProfilePage() {
     }
 
     loadProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let mounted = true;
+
+    async function loadEmailChangeStatus() {
+      setLoadingEmailStatus(true);
+      try {
+        const res = await fetch("/api/users/me/change-email");
+        if (!mounted) return;
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setEmailChangeStatus({
+            hasPendingEmailChange: Boolean(data.data.hasPendingEmailChange),
+            pendingEmail: typeof data.data.pendingEmail === "string" ? data.data.pendingEmail : null,
+            expiresAt: typeof data.data.expiresAt === "string" ? data.data.expiresAt : null,
+          });
+          return;
+        }
+      } catch {
+        // Keep default status if status fetch fails.
+      } finally {
+        if (mounted) {
+          setLoadingEmailStatus(false);
+        }
+      }
+
+      if (mounted) {
+        setEmailChangeStatus({
+          hasPendingEmailChange: false,
+          pendingEmail: null,
+          expiresAt: null,
+        });
+      }
+    }
+
+    loadEmailChangeStatus();
 
     return () => {
       mounted = false;
@@ -109,6 +176,11 @@ export default function ProfilePage() {
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           phoneNumber: formData.phoneNumber.trim(),
+          whatsappNumber: formData.whatsappNumber.trim(),
+          category: formData.category || undefined,
+          campus: formData.campus || undefined,
+          position: formData.position || undefined,
+          businessAddress: formData.businessAddress.trim() || undefined,
         }),
       });
 
@@ -206,6 +278,12 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to start email change process");
       }
       message.success("Verification link sent to your new email address");
+      setEmailChangeStatus({
+        hasPendingEmailChange: true,
+        pendingEmail:
+          typeof data.data?.pendingEmail === "string" ? data.data.pendingEmail : emailData.newEmail.trim().toLowerCase(),
+        expiresAt: null,
+      });
       setEmailData({ newEmail: "", confirmEmail: "" });
     } catch (error) {
       const errMessage = error instanceof Error ? error.message : "Unable to request email change";
@@ -375,6 +453,85 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+
+              {user.role === UserRole.VENDOR ? (
+                <>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Vendor Category
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select category</option>
+                        {VENDOR_CATEGORIES.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Campus
+                      </label>
+                      <select
+                        value={formData.campus}
+                        onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select campus</option>
+                        {CAMPUS_LOCATIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Church Position
+                      </label>
+                      <select
+                        value={formData.position}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        disabled={!editMode}
+                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      >
+                        <option value="">Select position</option>
+                        {POSITION_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                        Business Address
+                      </label>
+                      <CustomInput
+                        value={formData.businessAddress}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            businessAddress: e.target.value,
+                          })
+                        }
+                        disabled={!editMode}
+                        prefix={<MapPin className="h-4 w-4 text-ds-text-placeholder" />}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
 
             <div className="mt-6 flex gap-3">
@@ -519,6 +676,23 @@ export default function ProfilePage() {
                 We&apos;ll send a verification link to your new email. You&apos;ll need to verify it to complete the change.
               </p>
 
+              {loadingEmailStatus ? (
+                <p className="mb-4 text-sm text-ds-text-secondary">Checking email-change status...</p>
+              ) : null}
+
+              {emailChangeStatus.hasPendingEmailChange && emailChangeStatus.pendingEmail ? (
+                <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-raised p-3">
+                  <p className="text-sm text-ds-text-primary">
+                    Pending email change: <span className="font-semibold">{emailChangeStatus.pendingEmail}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-ds-text-secondary">
+                    {emailChangeStatus.expiresAt
+                      ? `Verification link expires ${new Date(emailChangeStatus.expiresAt).toLocaleString()}.`
+                      : "A verification link was sent. You can resend by submitting the same email again."}
+                  </p>
+                </div>
+              ) : null}
+
               <div className="max-w-md space-y-4">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
@@ -550,7 +724,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Button onClick={handleChangeEmail} loading={savingEmail}>
-                  Send Verification Link
+                  {emailChangeStatus.hasPendingEmailChange ? "Resend Verification Link" : "Send Verification Link"}
                 </Button>
               </div>
             </div>
