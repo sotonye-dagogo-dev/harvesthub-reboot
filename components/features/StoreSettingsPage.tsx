@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, Button, PageLoader } from "@/components/ui";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { Upload, Camera, Store, MapPin, Percent, Info } from "lucide-react";
+import { Camera, Store, MapPin, Percent, Info, X } from "lucide-react";
 import { Switch, Select, message, Input as AntInput } from "antd";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
 
@@ -36,6 +36,8 @@ export default function StoreSettingsFeature() {
     returnPolicy: "",
     shippingPolicy: "",
   });
+
+  const resolvedVendorId = typeof vendor?.id === "string" && vendor.id.trim().length > 0 ? vendor.id : null;
 
   useEffect(() => {
     let mounted = true;
@@ -244,10 +246,15 @@ export default function StoreSettingsFeature() {
               <div className="space-y-2">
                 <ImageUpload
                   folderType="vendor-logo"
-                  vendorId={vendor?.id}
+                  vendorId={resolvedVendorId ?? undefined}
                   valueUrl={formData.storeLogo || undefined}
                   onUploaded={(res) => handleChange("storeLogo", res.cacheBustedUrl || res.url)}
-                  helpText="Upload a square logo image for your storefront."
+                  disabled={!resolvedVendorId}
+                  helpText={
+                    resolvedVendorId
+                      ? "Upload a square logo image for your storefront."
+                      : "Store profile must be loaded before logo upload."
+                  }
                 />
                 <Button
                   variant="outline"
@@ -255,7 +262,7 @@ export default function StoreSettingsFeature() {
                   onClick={() => handleChange("storeLogo", "")}
                   disabled={!formData.storeLogo}
                 >
-                  <Upload className="mr-2 h-4 w-4" />
+                  <X className="mr-2 h-4 w-4" />
                   Clear Logo
                 </Button>
               </div>

@@ -293,7 +293,7 @@ export default function OperationsMarketingContentPage() {
     );
   }
 
-  if (user?.role === "ADMIN" && !vendorId) {
+  if (!vendorId && user?.role === "ADMIN") {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-ds-text-secondary">
