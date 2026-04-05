@@ -213,7 +213,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 image={
                   getFirstValidImageUrl(related.images) ||
                   getSafeImageUrl(related.mainImage) ||
-                  "/myharvesthublogo.png"
+                  "/placeholder-product.jpg"
                 }
                 vendorName={related.vendor?.storeName || "Vendor"}
                 vendorId={related.vendorId}
