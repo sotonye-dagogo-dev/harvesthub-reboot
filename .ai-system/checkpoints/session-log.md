@@ -39,6 +39,68 @@
 
 ---
 
+## Session 23 — 2026-04-05
+
+**Goal:**
+Execute the remaining 2026-04-05 exhaustive-audit queue slices for role/domain parity closure and form/profile completeness, with validation and docs synchronization.
+
+**Completed:**
+
+- Enforced explicit orders scope separation:
+  - `/orders` is now buyer-only policy.
+  - Added `/operations/orders` for vendor/admin operations scope.
+  - Added middleware compatibility redirects from `/admin/orders` and `/vendor/orders`.
+  - Updated operations sidebar discoverability to use `/operations/orders`.
+- Added route/access parity regression coverage:
+  - Route policy + navigation assertions for buyer/vendor/admin orders split.
+  - Legacy middleware redirect tests for old orders routes.
+  - Domain parity matrix test covering products/orders/vendors/wallet/notifications/ads/bug-reports/profile-store scope boundaries.
+  - Route-group chrome parity tests for auth/signup/operations layouts.
+- Completed form/profile audited gaps:
+  - Added advertise field-level guidance (position/theme/duration/payment-proof expectations).
+  - Added vendor profile edit surfaces for category/campus/church position/businessAddress.
+  - Added API parity in `PUT /api/users/[id]/profile` to persist vendor context updates.
+  - Extended profile GET payload with `vendorContext` for prefill/edit lifecycle.
+- Validation gates passed for touched slices:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - targeted vitest suites for route/layout/parity changes
+  - `npm run audit:dead-links`
+
+**Files Modified:**
+
+- app/orders/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- middleware.ts
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- components/layout/Sidebar.tsx
+- app/api/users/[id]/profile/route.ts
+- components/features/ProfilePage.tsx
+- app/advertise/page.tsx
+- lib/__tests__/rbac-policies.test.ts
+- lib/__tests__/navigation.test.ts
+- lib/__tests__/domain-parity-matrix.test.ts
+- lib/__tests__/middleware.legacy-orders-redirect.test.ts
+- components/__tests__/Sidebar.orders-scope.test.tsx
+- app/(auth)/__tests__/layout.test.tsx
+- app/(operations)/operations/__tests__/layout.test.tsx
+- app/signup/__tests__/layout.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run final full quality gate matrix and finalize remaining queue sign-off items/deferred-risk accounting.
+
+**Notes / Blockers:**
+
+- Repository-wide `npm test` still has pre-existing unrelated failures outside touched flows; targeted suites for changed slices are green.
+
+---
+
 ## Session 22 — 2026-04-05
 
 **Goal:**

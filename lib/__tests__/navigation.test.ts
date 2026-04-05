@@ -13,17 +13,21 @@ describe('buildNav', () => {
         const nav = buildNav(UserRole.BUYER);
         expect(nav.some((item) => item.path === '/orders')).toBe(true);
         expect(nav.some((item) => item.path === '/dashboard')).toBe(true);
+        expect(nav.some((item) => item.path === '/operations/orders')).toBe(false);
     });
 
     it('includes admin links', () => {
         const nav = buildNav(UserRole.ADMIN);
         expect(nav.some((item) => item.path === '/operations/users')).toBe(true);
         expect(nav.some((item) => item.path === '/operations/products')).toBe(true);
-        expect(nav.some((item) => item.path === '/orders')).toBe(true);
+        expect(nav.some((item) => item.path === '/orders')).toBe(false);
+        expect(nav.some((item) => item.path === '/operations/orders')).toBe(true);
     });
 
     it('includes vendor operations products link', () => {
         const nav = buildNav(UserRole.VENDOR);
         expect(nav.some((item) => item.path === '/operations/products')).toBe(true);
+        expect(nav.some((item) => item.path === '/operations/orders')).toBe(true);
+        expect(nav.some((item) => item.path === '/orders')).toBe(false);
     });
 });

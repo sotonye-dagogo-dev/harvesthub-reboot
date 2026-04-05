@@ -32,6 +32,29 @@
 - Added a dedicated follow-on feature spec to `.ai-system/planning/project-plan.md` with acceptance criteria and rollout order.
 - Logged a new recurring error pattern in `.ai-system/agents/repair-system.md` for operations header duplication.
 
+## 2026-04-05 — Domain Parity Closure + Orders Scope Split
+
+**Summary:**
+Completed the remaining high-priority exhaustive-audit implementation slice by enforcing explicit orders-domain scope separation and role/domain parity boundaries across core surfaces. Also closed the audited advertise/profile completeness gaps with API-backed vendor context editing and route-group chrome parity regressions.
+
+**Completed:**
+
+- Enforced `/orders` buyer-history only and added `/operations/orders` for vendor/admin operations.
+- Added legacy redirect compatibility for `/admin/orders` and `/vendor/orders`.
+- Updated sidebar/navigation discoverability to align with operations orders scope.
+- Added parity regressions for route policy, navigation visibility, middleware redirects, and domain matrix coverage.
+- Added auth/signup/operations layout parity tests for footer/header route-group behavior.
+- Added advertise field-level guidance for position/theme/duration/payment-proof expectations.
+- Added profile vendor-context editing surfaces (category/campus/position/businessAddress) and API persistence parity in `/api/users/[id]/profile`.
+
+**Key Changes:**
+
+- Orders flow is now explicitly split by intent and role: buyer history vs operations management.
+- Role/domain parity is now codified in tests and route policy, reducing hidden discoverability and scope-leak regressions.
+
+**Next Sprint Focus:**
+Execute final hardening/sign-off slice: full quality gate matrix, deferred-risk accounting, final `.ai-system` closure, and PR handoff.
+
 ## 2026-04-05 — Cloud Handoff Refresh: Role/Domain View Parity Contract
 
 **Summary:**

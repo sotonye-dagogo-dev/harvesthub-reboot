@@ -80,4 +80,15 @@ describe("SignupLayout", () => {
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     expect(mocks.push).toHaveBeenCalledWith("/signup/user-info");
   });
+
+  it("keeps signup route-group footer without nested header regression", () => {
+    render(
+      <SignupLayout>
+        <div>Signup Child</div>
+      </SignupLayout>
+    );
+
+    expect(screen.getByTestId("signup-footer")).toBeInTheDocument();
+    expect(screen.queryByTestId("shell-header")).not.toBeInTheDocument();
+  });
 });

@@ -300,5 +300,26 @@ Migration direction:
 4. Order status-history captures verification/acknowledgement context for audit visibility.
 ```
 
+### Orders Domain Scope-Split Flow
+
+```
+1. Buyer history route remains canonical at `/orders` and is buyer-only in route policy.
+2. Vendor/admin operational order management uses `/operations/orders`.
+3. Non-buyer access to `/orders` is redirected to `/operations/orders`.
+4. Middleware keeps legacy compatibility by redirecting `/admin/orders` and `/vendor/orders` to `/operations/orders`.
+5. Navigation/sidebar and RBAC route registry are aligned with the same scope split to avoid discoverability drift.
+```
+
+### Role/Domain Parity Matrix Enforcement Flow
+
+```
+1. Route policy registry (`lib/rbac/routeConfig.ts`) defines role/public scope for core domains:
+   products, orders, vendors, wallet, notifications, ads, bug reports, profile/store.
+2. Navigation builder + operations sidebar expose discoverable entry points only for allowed role scopes.
+3. Domain parity regression tests assert route policy, navigation visibility, and legacy redirect behavior.
+4. Dead-link audits validate route discoverability consistency after navigation/policy changes.
+```
+
 | 2026-04-04 | Added email-change reverification + bug-report/settings/help-flow hardening | Close cloud continuation queue for account security, config-driven UX surfaces, and operations reliability |
 | 2026-04-04 | Enforced signup role/position parity + Cloudinary-first governed uploads | Remove Worker signup role drift, require vendor verification contract, and harden image evidence ingestion |
+| 2026-04-05 | Enforced explicit orders scope split + role/domain parity matrix | Separate buyer history from operations order management and harden route discoverability/scope boundaries |
