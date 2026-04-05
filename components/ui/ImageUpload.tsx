@@ -22,8 +22,13 @@ interface Props {
   guestUploadId?: string;
   skipPersistence?: boolean;
   accept?: string;
+  multiple?: boolean;
+  maxFiles?: number;
+  valueUrl?: string;
+  disabled?: boolean;
   helpText?: string;
   onUploaded?: (result: { url: string; publicId: string; cacheBustedUrl?: string }) => void;
+  onUploadedMany?: (results: Array<{ url: string; publicId: string; cacheBustedUrl?: string }>) => void;
 }
 
 export default function ImageUpload({
@@ -33,8 +38,13 @@ export default function ImageUpload({
   guestUploadId,
   skipPersistence,
   accept,
+  multiple = false,
+  maxFiles = 1,
+  valueUrl,
+  disabled = false,
   helpText,
   onUploaded,
+  onUploadedMany,
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -45,46 +55,76 @@ export default function ImageUpload({
   );
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const inputElement = e.currentTarget;
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
 
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("folderType", folderType);
-    if (vendorId) fd.append("vendorId", vendorId);
-    if (userId) fd.append("userId", userId);
-    if (guestUploadId) fd.append("guestUploadId", guestUploadId);
-    if (skipPersistence) fd.append("skipPersistence", "true");
+    const allowedCount = Math.max(1, maxFiles);
+    const boundedFiles = (multiple ? selectedFiles : selectedFiles.slice(0, 1)).slice(0, allowedCount);
+    if (selectedFiles.length > boundedFiles.length) {
+      message.warning(`Only ${allowedCount} image${allowedCount === 1 ? "" : "s"} can be uploaded at once.`);
+    }
+
+    const uploadedResults: Array<{ url: string; publicId: string; cacheBustedUrl?: string }> = [];
 
     try {
       setUploading(true);
       setProgress(5);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: fd,
-      });
+      for (let index = 0; index < boundedFiles.length; index += 1) {
+        const file = boundedFiles[index];
+        if (!file) continue;
 
-      setProgress(60);
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("folderType", folderType);
+        if (vendorId) fd.append("vendorId", vendorId);
+        if (userId) fd.append("userId", userId);
+        if (guestUploadId) fd.append("guestUploadId", guestUploadId);
+        if (skipPersistence) fd.append("skipPersistence", "true");
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Upload failed");
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+        });
 
-      setProgress(100);
-      setUploadedUrl(data.cacheBustedUrl || data.url);
-      message.success("Upload successful");
-      onUploaded?.({
-        url: data.url,
-        publicId: data.publicId,
-        cacheBustedUrl: data.cacheBustedUrl,
-      });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Upload failed");
+        }
+
+        const result = {
+          url: data.url,
+          publicId: data.publicId,
+          cacheBustedUrl: data.cacheBustedUrl,
+        };
+
+        uploadedResults.push(result);
+        onUploaded?.(result);
+        setUploadedUrl(result.cacheBustedUrl || result.url);
+        setProgress(Math.round(((index + 1) / boundedFiles.length) * 100));
+      }
+
+      if (uploadedResults.length > 0) {
+        onUploadedMany?.(uploadedResults);
+        message.success(
+          uploadedResults.length === 1
+            ? "Upload successful"
+            : `${uploadedResults.length} images uploaded successfully`
+        );
+      }
     } catch (err: any) {
       message.error(err?.message || "Upload failed");
     } finally {
+      if (inputElement) {
+        inputElement.value = "";
+      }
       setUploading(false);
       setTimeout(() => setProgress(0), 800);
     }
   };
+
+  const previewUrl = valueUrl || uploadedUrl;
 
   return (
     <div className="image-upload space-y-3">
@@ -92,23 +132,28 @@ export default function ImageUpload({
         id={inputId}
         type="file"
         accept={accept || "image/*"}
+        multiple={multiple}
         onChange={handleFile}
-        disabled={uploading}
+        disabled={uploading || disabled}
         className="sr-only"
       />
       <label
         htmlFor={inputId}
-        className="inline-flex cursor-pointer items-center rounded-ds-md border border-ds-border-base px-3 py-2 text-sm font-medium text-ds-text-primary hover:bg-ds-surface-sunken"
+        className={`inline-flex items-center rounded-ds-md border border-ds-border-base px-3 py-2 text-sm font-medium ${
+          disabled
+            ? "cursor-not-allowed opacity-60"
+            : "cursor-pointer text-ds-text-primary hover:bg-ds-surface-sunken"
+        }`}
       >
-        {uploading ? "Uploading..." : "Choose image"}
+        {uploading ? "Uploading..." : multiple ? "Choose images" : "Choose image"}
       </label>
       {uploading && <Progress percent={progress} size="small" />}
       {helpText ? <p className="text-xs text-ds-text-secondary">{helpText}</p> : null}
-      {uploadedUrl ? (
+      {previewUrl ? (
         <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-2">
           <div className="relative h-36 w-full overflow-hidden rounded-ds-sm">
             <Image
-              src={uploadedUrl}
+              src={previewUrl}
               alt="Uploaded preview"
               fill
               unoptimized
@@ -118,9 +163,9 @@ export default function ImageUpload({
           </div>
         </div>
       ) : null}
-      {uploadedUrl ? (
+      {previewUrl ? (
         <Button type="link" disabled={uploading} className="px-0">
-          Upload another image
+          {multiple ? "Upload more images" : "Upload another image"}
         </Button>
       ) : null}
     </div>
