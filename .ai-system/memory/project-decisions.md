@@ -27,6 +27,27 @@
 
 ## Decisions
 
+## Exhaustive Audit Priority Contract (2026-04-05)
+
+**Decision:** Execute remaining production-readiness work in strict priority order: (1) operations layout chrome de-duplication, (2) vendor product-management workspace delivery, (3) email-change reverification completion, then (4) dashboard KPI/data wiring and (5) config-driven content migration/polish.
+**Date:** 2026-04-05
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+The exhaustive audit surfaced one critical UX regression and multiple high-severity workflow gaps that have cross-surface dependencies. A strict sequence reduces regression risk and prevents low-priority polish from delaying critical-path fixes.
+
+**Alternatives Considered:**
+
+- Run all outstanding items in parallel (rejected: increases merge/test complexity and masks root-cause regressions).
+- Continue broad mixed-priority batching (rejected: critical issues can remain open while medium/low tasks consume time).
+- Delay operations UX fixes until final polish phase (rejected: vendor/admin usability remains impaired).
+
+**Implications:**
+
+- Cloud sessions should not start with medium/low polish tasks until layout duplication and vendor product workflow are closed.
+- Queue/checkpoint docs must track deferred low-priority work explicitly (contact config source, vendor deactivation UX, webhook idempotency hardening).
+- Regression gates should run after each high-risk slice instead of only at the end.
+
 ## Cloud Adjustment Execution: Signup + Upload Contract Enforcement
 
 **Decision:** Enforce strict buyer/vendor-only signup role selection while keeping church position values (`MEMBER`, `NON_MEMBER`, `WORKER`) available through the `Position` enum; require vendor `businessAddress` and all three verification documents at signup; and enforce Cloudinary-managed URLs for upload-governed fields in bug-report and ad-application APIs.

@@ -44,7 +44,7 @@ const ADMIN_LINKS = new Set([
 const VENDOR_LINKS = new Set([
   "/operations/dashboard",
   "/analytics",
-  "/products",
+  "/operations/products",
   "/orders",
   "/operations/marketing-content",
   "/store-settings",
@@ -77,7 +77,7 @@ export function Sidebar({ type }: SidebarProps) {
     "/operations/bug-reports": Bug,
     "/operations/settings": Settings,
     "/operations/marketing-content": Megaphone,
-    "/products": Package,
+    "/operations/products": Package,
     "/orders": ShoppingBag,
     "/store-settings": Settings,
     "/wallet": Wallet,

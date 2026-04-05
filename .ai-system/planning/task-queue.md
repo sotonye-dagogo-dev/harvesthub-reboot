@@ -279,3 +279,38 @@
   - [x] Reject unsupported raw URL payloads for upload-managed fields.
   - [x] Standardize upload metadata contract across forms and APIs.
 - [x] Re-verify service readiness posture for Resend, Cloudinary, Upstash, Prisma, wallet, and payment paths with production-safe feature-flag behavior.
+
+---
+
+## Cloud Session Execution Queue (2026-04-05 Exhaustive Audit)
+
+> **Section summary:** Priority-ordered implementation queue derived from exhaustive read-only audit findings to close remaining production-readiness UX and operations gaps.
+
+- [ ] Resolve critical layout chrome duplication on operations routes.
+  - [ ] Remove duplicate Header rendering between `app/layout.tsx` and `components/layout/RoleDashboardShell.tsx` so `/operations/*` renders exactly one header.
+  - [ ] Validate Footer/Header behavior parity across public, auth, signup, and operations route groups.
+  - [ ] Add regression coverage to prevent reintroduction of duplicate layout chrome.
+- [ ] Deliver vendor product-management workspace in operations namespace.
+  - [ ] Create `app/(operations)/operations/products/page.tsx` for vendor-scoped product list/create/edit/delete flows.
+  - [ ] Update vendor sidebar links in `components/layout/Sidebar.tsx` from marketplace `/products` to `/operations/products`.
+  - [ ] Verify role/ownership enforcement end-to-end (vendor self-scope, admin global scope, buyer denied).
+- [ ] Complete email-change reverification flow closure.
+  - [ ] Implement dedicated verification completion path (`/verify-email-change` or `/verify-email?type=change`) with token validation and atomic email mutation.
+  - [ ] Add pending/retry UI states in profile security settings for email-change lifecycle.
+  - [ ] Ensure session/token handling is explicit after email mutation (force re-auth and clear stale session state).
+- [ ] Upgrade operations dashboard from placeholder cards to live KPI + quick-action surface.
+  - [ ] Wire role-scoped metrics into `/operations/dashboard` (admin and vendor variants).
+  - [ ] Make cards actionable with links to relevant operations/detail pages.
+  - [ ] Add loading/error/empty states and last-updated metadata for observability.
+- [ ] Finish config-driven migration for remaining static policy/marketing pages.
+  - [ ] Refactor `app/about/page.tsx` and `app/privacy/page.tsx` to `publicContent` lookup with safe fallback content.
+  - [ ] Confirm `/operations/public-content` has complete admin CRUD coverage for these slugs.
+  - [ ] Re-run dead-link/orphan-route audit after migration.
+- [ ] Improve form usability and profile completeness in remaining audited gaps.
+  - [ ] Add field-level help guidance to `app/advertise/page.tsx` (position/theme/duration/payment-proof expectations).
+  - [ ] Add church position and vendor business-context edit surfaces in `components/features/ProfilePage.tsx` with API parity.
+  - [ ] Confirm required/optional labeling stays schema-aligned after UI updates.
+- [ ] Finalize hardening, deferred-risk accounting, and sign-off.
+  - [ ] Run full quality gate matrix: lint, typecheck, Vitest suites, route audits, and targeted smoke checks.
+  - [ ] Update `.ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
+  - [ ] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.

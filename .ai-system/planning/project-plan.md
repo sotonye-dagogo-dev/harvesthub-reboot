@@ -119,6 +119,41 @@ Stabilize and complete the in-progress refactor wave while implementing missing 
 
 ---
 
+## Cloud Session Feature Spec - Exhaustive UX/Operations Closure (Planned 2026-04-05)
+
+> **Section summary:** Follow-on execution spec built from an exhaustive read-only audit to close remaining production-readiness UX, layout, and operational workflow gaps.
+
+**Feature Objective:**
+Close the highest-risk post-adjustment gaps affecting operations usability, layout consistency, vendor workflow completion, and config-driven content behavior before final production sign-off.
+
+**Why This Is Needed:**
+
+- Exhaustive audit found one critical defect (duplicate operations header) and several high/medium workflow gaps still affecting role-specific usability.
+- Vendor operations flow is still missing a first-class products management page despite backend CRUD capability.
+- Email-change reverification and dashboard KPI wiring are only partially complete, leaving security/UX and operational visibility gaps.
+
+**Acceptance Criteria:**
+
+- Operations routes render a single header/footer chrome and pass regression checks for layout consistency.
+- Vendors can manage their own catalog through `/operations/products` with role-safe CRUD behavior.
+- Email-change verification is fully closed-loop (request -> verify -> atomic update -> re-auth-safe completion state).
+- `/operations/dashboard` renders live role-scoped KPI cards and quick-action links rather than placeholder-only cards.
+- `about` and `privacy` pages consume config/public-content pipeline with fallback content and admin editability.
+- Advertise form includes field-level guidance/help and profile surfaces expose missing church/business context fields with API parity.
+- Final quality gates pass and deferred low-priority risks are explicitly documented in planning artifacts.
+
+**Rollout Order:**
+
+1. Fix layout duplication and confirm shared chrome behavior.
+2. Implement `/operations/products` and sidebar route corrections.
+3. Complete email-change reverification completion flow.
+4. Wire dashboard KPI cards to live role-scoped metrics.
+5. Migrate remaining static pages (`about`, `privacy`) to config/public-content.
+6. Apply advertise/profile UX completeness updates.
+7. Run full regression/route audit and finalize documentation closure.
+
+---
+
 ## Completed
 
 > **Section summary:** Tasks that have already shipped in the current repository state.

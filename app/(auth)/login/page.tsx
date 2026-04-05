@@ -24,8 +24,11 @@ function LoginForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const redirectTo = searchParams.get("from") || "/";
+  const verified = searchParams.get("verified");
+  const emailChanged = searchParams.get("emailChanged");
 
   // Auto-toggle "Remember Me" from previous preference
   useEffect(() => {
@@ -38,6 +41,18 @@ function LoginForm() {
       // ignore
     }
   }, [form]);
+
+  useEffect(() => {
+    if (emailChanged === "1") {
+      setInfoMessage("Email changed successfully. Please sign in with your new email address.");
+      return;
+    }
+    if (verified === "1") {
+      setInfoMessage("Email verified successfully. You can now sign in.");
+      return;
+    }
+    setInfoMessage(null);
+  }, [emailChanged, verified]);
 
   const handleLogin = async (values: LoginFormData) => {
     setLoading(true);
@@ -79,6 +94,17 @@ function LoginForm() {
           showIcon
           closable
           onClose={() => setError(null)}
+          className="mb-6"
+        />
+      )}
+
+      {infoMessage && (
+        <Alert
+          message={infoMessage}
+          type="success"
+          showIcon
+          closable
+          onClose={() => setInfoMessage(null)}
           className="mb-6"
         />
       )}

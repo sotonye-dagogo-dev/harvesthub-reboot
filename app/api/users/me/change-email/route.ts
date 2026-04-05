@@ -6,6 +6,54 @@ import { getRateLimitResponse, rateLimitByUser } from '@/lib/middleware/rate-lim
 import { prisma } from '@/lib/db/prisma';
 import { sendVerifyEmail } from '@/lib/services/email';
 
+function parseEmailChangeToken(token: string): { pendingEmail: string } | null {
+    if (!token.startsWith('email-change:')) return null;
+    const [, encodedEmail] = token.split(':');
+    if (!encodedEmail) return null;
+    try {
+        const pendingEmail = Buffer.from(encodedEmail, 'base64url').toString('utf8').trim().toLowerCase();
+        if (!pendingEmail || !pendingEmail.includes('@') || pendingEmail.length > 254) return null;
+        return { pendingEmail };
+    } catch {
+        return null;
+    }
+}
+
+export async function GET() {
+    return withApiHandler('GET /api/users/me/change-email', async () => {
+        const user = await getCurrentUser();
+        if (!user) return apiError('Unauthorized', 401);
+
+        const current = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: {
+                id: true,
+                emailVerificationToken: true,
+                emailVerificationExpiry: true,
+            },
+        });
+
+        if (!current) return apiError('User not found', 404);
+
+        const token = current.emailVerificationToken;
+        const parsed = token ? parseEmailChangeToken(token) : null;
+
+        if (!parsed || !current.emailVerificationExpiry || current.emailVerificationExpiry < new Date()) {
+            return apiSuccess({
+                hasPendingEmailChange: false,
+                pendingEmail: null,
+                expiresAt: null,
+            });
+        }
+
+        return apiSuccess({
+            hasPendingEmailChange: true,
+            pendingEmail: parsed.pendingEmail,
+            expiresAt: current.emailVerificationExpiry.toISOString(),
+        });
+    });
+}
+
 export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/users/me/change-email', async () => {
         const user = await getCurrentUser();
@@ -43,7 +91,6 @@ export async function POST(req: NextRequest) {
         await prisma.user.update({
             where: { id: current.id },
             data: {
-                emailVerified: false,
                 emailVerificationToken: token,
                 emailVerificationExpiry: expiresAt,
             },

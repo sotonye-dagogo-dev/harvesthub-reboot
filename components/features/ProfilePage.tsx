@@ -17,7 +17,17 @@ export default function ProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [loadingEmailStatus, setLoadingEmailStatus] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [emailChangeStatus, setEmailChangeStatus] = useState<{
+    hasPendingEmailChange: boolean;
+    pendingEmail: string | null;
+    expiresAt: string | null;
+  }>({
+    hasPendingEmailChange: false,
+    pendingEmail: null,
+    expiresAt: null,
+  });
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -81,6 +91,49 @@ export default function ProfilePage() {
     }
 
     loadProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let mounted = true;
+
+    async function loadEmailChangeStatus() {
+      setLoadingEmailStatus(true);
+      try {
+        const res = await fetch("/api/users/me/change-email");
+        if (!mounted) return;
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setEmailChangeStatus({
+            hasPendingEmailChange: Boolean(data.data.hasPendingEmailChange),
+            pendingEmail: typeof data.data.pendingEmail === "string" ? data.data.pendingEmail : null,
+            expiresAt: typeof data.data.expiresAt === "string" ? data.data.expiresAt : null,
+          });
+          return;
+        }
+      } catch {
+        // Keep default status if status fetch fails.
+      } finally {
+        if (mounted) {
+          setLoadingEmailStatus(false);
+        }
+      }
+
+      if (mounted) {
+        setEmailChangeStatus({
+          hasPendingEmailChange: false,
+          pendingEmail: null,
+          expiresAt: null,
+        });
+      }
+    }
+
+    loadEmailChangeStatus();
 
     return () => {
       mounted = false;
@@ -206,6 +259,12 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to start email change process");
       }
       message.success("Verification link sent to your new email address");
+      setEmailChangeStatus({
+        hasPendingEmailChange: true,
+        pendingEmail:
+          typeof data.data?.pendingEmail === "string" ? data.data.pendingEmail : emailData.newEmail.trim().toLowerCase(),
+        expiresAt: null,
+      });
       setEmailData({ newEmail: "", confirmEmail: "" });
     } catch (error) {
       const errMessage = error instanceof Error ? error.message : "Unable to request email change";
@@ -519,6 +578,23 @@ export default function ProfilePage() {
                 We&apos;ll send a verification link to your new email. You&apos;ll need to verify it to complete the change.
               </p>
 
+              {loadingEmailStatus ? (
+                <p className="mb-4 text-sm text-ds-text-secondary">Checking email-change status...</p>
+              ) : null}
+
+              {emailChangeStatus.hasPendingEmailChange && emailChangeStatus.pendingEmail ? (
+                <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-raised p-3">
+                  <p className="text-sm text-ds-text-primary">
+                    Pending email change: <span className="font-semibold">{emailChangeStatus.pendingEmail}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-ds-text-secondary">
+                    {emailChangeStatus.expiresAt
+                      ? `Verification link expires ${new Date(emailChangeStatus.expiresAt).toLocaleString()}.`
+                      : "A verification link was sent. You can resend by submitting the same email again."}
+                  </p>
+                </div>
+              ) : null}
+
               <div className="max-w-md space-y-4">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
@@ -550,7 +626,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Button onClick={handleChangeEmail} loading={savingEmail}>
-                  Send Verification Link
+                  {emailChangeStatus.hasPendingEmailChange ? "Resend Verification Link" : "Send Verification Link"}
                 </Button>
               </div>
             </div>
