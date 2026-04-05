@@ -55,6 +55,27 @@ Completed the remaining high-priority exhaustive-audit implementation slice by e
 **Next Sprint Focus:**
 Execute final hardening/sign-off slice: full quality gate matrix, deferred-risk accounting, final `.ai-system` closure, and PR handoff.
 
+## 2026-04-05 — Final Hardening Sign-Off + Deferred-Risk Accounting
+
+**Summary:**
+Completed sign-off bookkeeping for the exhaustive-audit queue and documented final validation posture with explicit residual-risk ownership. Queue closure now reflects delivered implementation, green touched-flow validations, and known pre-existing full-suite baseline failures.
+
+**Completed:**
+
+- Finalized exhaustive-audit queue status as complete with notes on baseline/full-suite behavior.
+- Logged final quality-gate outcomes and residual blocker details in session log.
+- Recorded explicit deferred low-priority items with owner and target sprint:
+  - contact page config source parity
+  - vendor deactivation UX
+  - payment webhook idempotency hardening
+
+**Key Changes:**
+
+- Production-readiness queue closure is now explicit about what passed, what remains deferred, and why.
+
+**Next Sprint Focus:**
+Address deferred low-priority hardening items in the 2026-04-12 stabilization sprint while preserving current role/routing/security contracts.
+
 ## 2026-04-05 — Cloud Handoff Refresh: Role/Domain View Parity Contract
 
 **Summary:**

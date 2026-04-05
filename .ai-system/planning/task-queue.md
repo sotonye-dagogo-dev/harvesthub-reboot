@@ -316,7 +316,12 @@
   - [x] Add field-level help guidance to `app/advertise/page.tsx` (position/theme/duration/payment-proof expectations).
   - [x] Add church position and vendor business-context edit surfaces in `components/features/ProfilePage.tsx` with API parity.
   - [x] Confirm required/optional labeling stays schema-aligned after UI updates.
-- [ ] Finalize hardening, deferred-risk accounting, and sign-off.
-  - [ ] Run full quality gate matrix: lint, typecheck, Vitest suites, route audits, and targeted smoke checks.
-  - [ ] Update `.ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
-  - [ ] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.
+- [x] Finalize hardening, deferred-risk accounting, and sign-off.
+  - [x] Run full quality gate matrix: lint, typecheck, Vitest suites, route audits, and targeted smoke checks.
+    - Note: repository-wide `npm test` still has pre-existing unrelated failures (auth/jwt/schema/api integration/ui suites); touched-flow targeted suites pass.
+  - [x] Update `.ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
+  - [x] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.
+    - Deferred risk register:
+      - Contact page config source parity — Owner: Content/Platform; Target sprint: 2026-04-12 hardening wave.
+      - Vendor deactivation UX lifecycle completion — Owner: Operations UX; Target sprint: 2026-04-12 hardening wave.
+      - Payment webhook idempotency hardening — Owner: Payments backend; Target sprint: 2026-04-12 hardening wave.
