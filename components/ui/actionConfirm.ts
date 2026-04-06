@@ -116,4 +116,3 @@ export function openActionConfirm(
     onOk: onConfirm,
   });
 }
-
