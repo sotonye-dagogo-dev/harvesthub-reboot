@@ -39,6 +39,53 @@
 
 ---
 
+## Session 26 — 2026-04-06
+
+**Goal:**
+Address ad-application blocking errors, recover analytics/count reliability, restore analytics visualization cues, and harden admin user-management actions with minimal surface-area changes.
+
+**Completed:**
+
+- Investigated CI failures via GitHub Actions logs; confirmed failing gate is missing required env vars (`NEXTAUTH_URL`, `DATABASE_URL`) before lint/tests run.
+- Removed ad-application hard-block when ad rate config is missing by introducing safe fallback rate resolution.
+- Added fallback response behavior in `/api/admin/ads/rates` so advertise UI remains usable even without admin-entered rates.
+- Improved advertise form consistency for Select/Date/InputNumber controls (shared class + global style overrides for dark-mode/Safari parity).
+- Fixed analytics user-count retrieval by aligning `getUsersClient()` with `/api/users` response shape.
+- Improved analytics resilience using partial-success loading (`Promise.allSettled`) and restored lightweight chart-style visualizations (progress-bar KPI breakdowns).
+- Enabled real admin user-management actions on operations users list:
+  - status toggle now persists through `/api/users/[id]`
+  - delete now persists through `/api/users/[id]`
+  - view action now routes to dedicated user page
+- Added role-edit control on dedicated operations user detail page.
+- Removed provider-leaking bug-report upload error copy in favor of generic managed-uploader wording.
+- Added ad-pricing fallback regression test coverage (`resolveAdRateConfig`) and re-ran targeted test/lint/build checks.
+- Captured UI screenshot evidence for advertise page updates.
+
+**Files Modified:**
+
+- lib/utils/adPricing.ts
+- lib/utils/__tests__/adPricing.test.ts
+- app/api/ad-applications/route.ts
+- app/api/ads/apply/route.ts
+- app/api/admin/ads/rates/route.ts
+- app/advertise/page.tsx
+- app/_styles/globals.css
+- lib/data/clientDataFetchers.ts
+- components/features/AnalyticsFeature.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/users/[id]/page.tsx
+- app/api/bug-reports/route.ts
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run final parallel validation, push progress update with screenshot link, and finalize PR handoff notes.
+
+**Notes / Blockers:**
+
+- Local lint/build are green; build still shows pre-existing sitemap runtime warnings unrelated to this slice.
+
+---
+
 ## Session 25 — 2026-04-06
 
 **Goal:**

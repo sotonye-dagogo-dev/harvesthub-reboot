@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+    FALLBACK_AD_RATE_CONFIG,
     computeAdActiveUntil,
     estimateAdAmount,
     isPaymentSufficient,
     normalizeAdDuration,
+    resolveAdRateConfig,
 } from "@/lib/utils/adPricing";
 
 describe("ad pricing utilities", () => {
@@ -40,5 +42,15 @@ describe("ad pricing utilities", () => {
 
         const daily = computeAdActiveUntil(start, "DAILY", 3);
         expect(daily.toISOString()).toBe("2026-04-04T10:00:00.000Z");
+    });
+
+    it("resolves fallback ad rate config when active config is unavailable", () => {
+        const missing = resolveAdRateConfig(null);
+        expect(missing.usedFallback).toBe(true);
+        expect(missing.rateConfig).toEqual(FALLBACK_AD_RATE_CONFIG);
+
+        const existing = resolveAdRateConfig({ hourlyRate: 1500, dailyRate: 9000 });
+        expect(existing.usedFallback).toBe(false);
+        expect(existing.rateConfig).toEqual({ hourlyRate: 1500, dailyRate: 9000 });
     });
 });

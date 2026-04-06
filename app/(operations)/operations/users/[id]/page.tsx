@@ -16,7 +16,9 @@ import {
   Trash2,
   Mail,
   Phone,
+  ChevronDown,
 } from "lucide-react";
+import { UserRole } from "@/lib/constants";
 
 export default function OperationsUserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -131,7 +133,7 @@ export default function OperationsUserDetailPage() {
               <Descriptions.Item label="Full Name">
                 {profileUser.firstName} {profileUser.lastName}
               </Descriptions.Item>
-              <Descriptions.Item label="Role">{profileUser.role}</Descriptions.Item>
+                <Descriptions.Item label="Role">{profileUser.role}</Descriptions.Item>
               <Descriptions.Item label="Email">
                 <span className="flex items-center gap-1">
                   <Mail className="h-3.5 w-3.5" />
@@ -166,6 +168,39 @@ export default function OperationsUserDetailPage() {
             <Card>
               <h2 className="mb-4 text-base font-semibold text-ds-text-primary">Admin Actions</h2>
               <div className="space-y-3">
+                <div>
+                  <label htmlFor="user-role" className="mb-1 block text-xs font-medium text-ds-text-tertiary">
+                    Change Role
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="user-role"
+                      value={profileUser.role}
+                      onChange={(event) =>
+                        openActionConfirm(
+                          new ActionConfirmBuilder()
+                            .title("Change user role")
+                            .message(
+                              `Update role for ${profileUser.firstName} ${profileUser.lastName} to ${event.target.value}?`
+                            )
+                            .confirmText("Change Role")
+                            .build(),
+                          () => updateUser({ role: event.target.value as UserRole })
+                        )
+                      }
+                      className="w-full appearance-none rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                      disabled={actionLoading}
+                    >
+                      {Object.values(UserRole).map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-4 w-4 text-ds-text-tertiary" />
+                  </div>
+                </div>
+
                 {(profileUser.status ?? "ACTIVE") === "ACTIVE" ? (
                   <Button
                     variant="outline"

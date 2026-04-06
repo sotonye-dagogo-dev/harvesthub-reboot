@@ -18,6 +18,36 @@
 
 ---
 
+## [Analytics user count silently zero due API payload key mismatch]
+
+**Symptom:**
+
+- Analytics cards show zero users or incomplete totals even when user records exist.
+- No obvious frontend crash; counts appear stale/empty.
+
+**Root Cause:**
+
+- `getUsersClient()` expected `data.data` while `/api/users` returns `users`, causing empty-array fallback.
+
+**Fix Applied:**
+
+- Updated `getUsersClient()` to read `data.users` first (with legacy `data.data` fallback).
+- Added analytics partial-load hardening (`Promise.allSettled`) so one failing dataset does not blank all cards.
+
+**Prevention:**
+
+- Keep client fetcher payload parsing aligned with API envelope contracts (`users`, `products`, etc.).
+- When building KPI surfaces, avoid all-or-nothing `Promise.all` for independent datasets.
+
+**Files Affected:**
+
+- lib/data/clientDataFetchers.ts
+- components/features/AnalyticsFeature.tsx
+
+**Date:** 2026-04-06
+
+---
+
 ## [Operations layout chrome duplication (double Header)]
 
 **Symptom:**

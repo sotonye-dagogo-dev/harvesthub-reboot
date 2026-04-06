@@ -67,6 +67,7 @@ export default function AdvertisePage() {
   const [rateConfig, setRateConfig] = useState<{ hourlyRate: number; dailyRate: number } | null>(
     null
   );
+  const [isRateFallback, setIsRateFallback] = useState(false);
   const router = useRouter();
 
   const durationType = Form.useWatch("durationType", form) || "DAILY";
@@ -117,6 +118,7 @@ export default function AdvertisePage() {
           hourlyRate: Number(data.rateConfig.hourlyRate || 0),
           dailyRate: Number(data.rateConfig.dailyRate || 0),
         });
+        setIsRateFallback(Boolean(data.fallback));
       } catch {
         // Keep form usable even if rates endpoint is unavailable.
       }
@@ -227,6 +229,9 @@ export default function AdvertisePage() {
       setLoading(false);
     }
   };
+
+  const adFormInputClassName =
+    "ad-form-native-control w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-ds-text-primary";
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -341,10 +346,10 @@ export default function AdvertisePage() {
             label="Preferred Schedule"
             rules={[{ required: true, message: "Select start/end dates" }]}
           >
-            <RangePicker />
+            <RangePicker className={adFormInputClassName} />
           </Form.Item>
           <Form.Item name="position" label="Preferred Position" rules={[{ required: true }]}>
-            <Select>
+            <Select className={adFormInputClassName}>
               <Select.Option value="TOP">Top</Select.Option>
               <Select.Option value="HERO">Hero</Select.Option>
               <Select.Option value="SIDEBAR">Sidebar</Select.Option>
@@ -354,7 +359,7 @@ export default function AdvertisePage() {
             </p>
           </Form.Item>
           <Form.Item name="theme" label="Theme" rules={[{ required: true }]}>
-            <Select>
+            <Select className={adFormInputClassName}>
               <Select.Option value="BUSINESS">Business</Select.Option>
               <Select.Option value="CHURCH">Church</Select.Option>
               <Select.Option value="EVENT">Event</Select.Option>
@@ -369,7 +374,7 @@ export default function AdvertisePage() {
             label="Payment Method"
             rules={[{ required: true, message: "Please select a payment method" }]}
           >
-            <Select>
+            <Select className={adFormInputClassName}>
               <Select.Option value="BANK_TRANSFER">Bank Transfer</Select.Option>
               <Select.Option value="CARD">Card</Select.Option>
               <Select.Option value="USSD">USSD</Select.Option>
@@ -382,7 +387,7 @@ export default function AdvertisePage() {
               label="Duration Type"
               rules={[{ required: true, message: "Please select a duration type" }]}
             >
-              <Select>
+              <Select className={adFormInputClassName}>
                 <Select.Option value="DAILY">Daily</Select.Option>
                 <Select.Option value="HOURLY">Hourly</Select.Option>
               </Select>
@@ -401,7 +406,7 @@ export default function AdvertisePage() {
                 },
               ]}
             >
-              <InputNumber className="w-full" min={1} />
+              <InputNumber className={adFormInputClassName} min={1} />
             </Form.Item>
           </div>
           <p className="mb-4 text-xs text-ds-text-tertiary">
@@ -421,6 +426,11 @@ export default function AdvertisePage() {
                 Rate configuration unavailable. You can still submit, and admin will verify pricing.
               </p>
             )}
+            {isRateFallback ? (
+              <p className="mt-1 text-xs text-ds-text-tertiary">
+                Pricing is using temporary fallback values pending admin configuration.
+              </p>
+            ) : null}
           </div>
 
           <Form.Item
@@ -436,7 +446,7 @@ export default function AdvertisePage() {
               },
             ]}
           >
-            <InputNumber className="w-full" min={100} />
+            <InputNumber className={adFormInputClassName} min={100} />
           </Form.Item>
 
           <Form.Item label="Proof of Payment" required>

@@ -3,18 +3,33 @@ import { db } from '@/lib/data/database';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { FALLBACK_AD_RATE_CONFIG } from '@/lib/utils/adPricing';
 
 export async function GET() {
     try {
         const rateConfigs = await db.adRateConfig.findAll();
         const rateConfig = rateConfigs.find((config: any) => config.isActive);
         if (!rateConfig) {
-            return NextResponse.json({ success: false, error: 'Rate config not found' }, { status: 404 });
+            return NextResponse.json({
+                success: true,
+                rateConfig: {
+                    ...FALLBACK_AD_RATE_CONFIG,
+                    isActive: false,
+                },
+                fallback: true,
+            });
         }
         return NextResponse.json({ success: true, rateConfig });
     } catch (error) {
         console.error('GET /api/admin/ads/rates error:', error);
-        return NextResponse.json({ success: false, error: 'Failed to retrieve rate config' }, { status: 500 });
+        return NextResponse.json({
+            success: true,
+            rateConfig: {
+                ...FALLBACK_AD_RATE_CONFIG,
+                isActive: false,
+            },
+            fallback: true,
+        });
     }
 }
 

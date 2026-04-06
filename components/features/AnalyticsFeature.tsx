@@ -41,7 +41,7 @@ export function AnalyticsFeature() {
     let mounted = true;
     async function load() {
       try {
-        const [p, v, o, u] = await Promise.all([
+        const results = await Promise.allSettled([
           getProductsClient(),
           getVendorsClient(),
           getOrdersClient(),
@@ -50,10 +50,15 @@ export function AnalyticsFeature() {
 
         if (!mounted) return;
 
-        setProducts(Array.isArray(p) ? p : []);
-        setVendors(Array.isArray(v) ? v : []);
-        setOrders(Array.isArray(o) ? o : []);
-        setUsers(Array.isArray(u) ? u : []);
+        const [p, v, o, u] = results;
+        setProducts(p.status === "fulfilled" && Array.isArray(p.value) ? p.value : []);
+        setVendors(v.status === "fulfilled" && Array.isArray(v.value) ? v.value : []);
+        setOrders(o.status === "fulfilled" && Array.isArray(o.value) ? o.value : []);
+        setUsers(u.status === "fulfilled" && Array.isArray(u.value) ? u.value : []);
+
+        if (results.every((entry) => entry.status === "rejected")) {
+          setError("Failed to load analytics. Please try again later.");
+        }
       } catch (e) {
         console.error("Analytics load failure", e);
         if (!mounted) return;
@@ -166,6 +171,90 @@ export function AnalyticsFeature() {
           <p className="text-2xl font-bold text-ds-status-warning-text">
             {isVendor ? stats.pendingOrders : stats.totalUsers}
           </p>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <p className="mb-3 text-sm font-medium text-ds-text-secondary">Order Status Breakdown</p>
+          <div className="space-y-2">
+            {[
+              {
+                label: "Completed",
+                value: stats.completedOrders,
+                total: stats.totalOrders,
+                color: "bg-ds-status-success-bg",
+              },
+              {
+                label: "Pending",
+                value: stats.pendingOrders,
+                total: stats.totalOrders,
+                color: "bg-ds-status-warning-bg",
+              },
+              {
+                label: "Cancelled",
+                value: stats.cancelledOrders,
+                total: stats.totalOrders,
+                color: "bg-ds-status-error-bg",
+              },
+            ].map((item) => {
+              const percentage = item.total > 0 ? Math.round((item.value / item.total) * 100) : 0;
+              return (
+                <div key={item.label}>
+                  <div className="mb-1 flex items-center justify-between text-xs text-ds-text-secondary">
+                    <span>{item.label}</span>
+                    <span>
+                      {item.value} ({percentage}%)
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-ds-surface-muted">
+                    <div
+                      className={`h-2 rounded-full ${item.color}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card>
+          <p className="mb-3 text-sm font-medium text-ds-text-secondary">Catalog Health</p>
+          <div className="space-y-2">
+            {[
+              {
+                label: "Active Products",
+                value: stats.activeProducts,
+                total: Math.max(stats.totalProducts, 1),
+                color: "bg-ds-brand-primary",
+              },
+              {
+                label: "Out of Stock",
+                value: stats.outOfStock,
+                total: Math.max(stats.totalProducts, 1),
+                color: "bg-ds-status-warning-bg",
+              },
+            ].map((item) => {
+              const percentage = item.total > 0 ? Math.round((item.value / item.total) * 100) : 0;
+              return (
+                <div key={item.label}>
+                  <div className="mb-1 flex items-center justify-between text-xs text-ds-text-secondary">
+                    <span>{item.label}</span>
+                    <span>
+                      {item.value} ({percentage}%)
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-ds-surface-muted">
+                    <div
+                      className={`h-2 rounded-full ${item.color}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </Card>
       </div>
     </div>
