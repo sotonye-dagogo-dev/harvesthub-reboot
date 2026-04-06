@@ -20,10 +20,15 @@ export default function OperationsUsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState<{ page: number; totalPages: number } | null>(
+    null
+  );
 
   useEffect(() => {
     let mounted = true;
     async function loadUsers() {
+      setIsLoadingUsers(true);
       try {
         const limit = 100;
         let page = 1;
@@ -31,6 +36,7 @@ export default function OperationsUsersPage() {
         const collected: User[] = [];
 
         while (page <= totalPages) {
+          if (mounted) setLoadingProgress({ page, totalPages });
           const res = await fetch(`/api/users?page=${page}&limit=${limit}`);
           if (!res.ok) break;
 
@@ -49,6 +55,11 @@ export default function OperationsUsersPage() {
       } catch {
         if (!mounted) return;
         setUsers([]);
+      } finally {
+        if (mounted) {
+          setIsLoadingUsers(false);
+          setLoadingProgress(null);
+        }
       }
     }
     loadUsers();
@@ -261,6 +272,11 @@ export default function OperationsUsersPage() {
         <p className="mt-1 text-ds-text-secondary">
           Manage platform users and access control ({filteredUsers.length} users)
         </p>
+        {isLoadingUsers && loadingProgress ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">
+            Loading users page {loadingProgress.page} of {loadingProgress.totalPages}...
+          </p>
+        ) : null}
       </div>
 
       {/* Stats */}

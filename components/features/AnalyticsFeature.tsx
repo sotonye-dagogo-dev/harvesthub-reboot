@@ -221,18 +221,23 @@ export function AnalyticsFeature() {
 
         <Card>
           <p className="mb-3 text-sm font-medium text-ds-text-secondary">Catalog Health</p>
+          {stats.totalProducts === 0 ? (
+            <p className="text-sm text-ds-text-secondary">
+              No product data is available yet.
+            </p>
+          ) : null}
           <div className="space-y-2">
             {[
               {
                 label: "Active Products",
                 value: stats.activeProducts,
-                total: Math.max(stats.totalProducts, 1),
+                total: stats.totalProducts,
                 color: "bg-ds-brand-primary",
               },
               {
                 label: "Out of Stock",
                 value: stats.outOfStock,
-                total: Math.max(stats.totalProducts, 1),
+                total: stats.totalProducts,
                 color: "bg-ds-status-warning-bg",
               },
             ].map((item) => {

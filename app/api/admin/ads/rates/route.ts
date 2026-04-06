@@ -23,7 +23,8 @@ export async function GET() {
     } catch (error) {
         console.error('GET /api/admin/ads/rates error:', error);
         return NextResponse.json({
-            success: true,
+            success: false,
+            error: 'Failed to retrieve rate config',
             rateConfig: {
                 ...FALLBACK_AD_RATE_CONFIG,
                 isActive: false,
