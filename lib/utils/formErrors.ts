@@ -9,4 +9,3 @@ export const isAntdFormValidationError = (
   error !== null &&
   "errorFields" in error &&
   Array.isArray((error as AntdFormValidationError).errorFields);
-

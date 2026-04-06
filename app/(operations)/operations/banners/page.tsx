@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { isAntdFormValidationError } from "@/lib/utils/formErrors";
+import type { Banner } from "@/lib/types";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -33,7 +34,7 @@ export default function OperationsBannersPage() {
       throw new Error(data.error || "Failed to fetch banners");
     }
     const list = data.banners;
-    setBanners(Array.isArray(list) ? (list as any[]) : []);
+    setBanners(Array.isArray(list) ? (list as Banner[]) : []);
   }, []);
 
   useEffect(() => {
@@ -83,13 +84,16 @@ export default function OperationsBannersPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const normalizedDisplayOrder = Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER);
       const payload = {
         title: values.title,
         description: values.description || null,
         imageUrl: values.imageUrl,
         linkUrl: values.linkUrl || null,
         position: values.position,
-        displayOrder: Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER),
+        displayOrder: Number.isFinite(normalizedDisplayOrder)
+          ? normalizedDisplayOrder
+          : DEFAULT_DISPLAY_ORDER,
         isActive: values.isActive ?? true,
         startDate: values.startDate ? values.startDate.toISOString() : undefined,
         endDate: values.endDate ? values.endDate.toISOString() : null,
