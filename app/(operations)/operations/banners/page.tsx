@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
@@ -32,7 +32,7 @@ export default function OperationsBannersPage() {
 
   const [form] = Form.useForm();
 
-  const reloadBanners = async () => {
+  const reloadBanners = useCallback(async () => {
     const res = await fetch("/api/banners");
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -40,7 +40,7 @@ export default function OperationsBannersPage() {
     }
     const list = data.banners;
     setBanners(Array.isArray(list) ? (list as any[]) : []);
-  };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -49,6 +49,7 @@ export default function OperationsBannersPage() {
         await reloadBanners();
       } catch {
         if (!mounted) return;
+        message.error("Failed to load banners");
         setBanners([]);
       }
     }
@@ -56,7 +57,7 @@ export default function OperationsBannersPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [message, reloadBanners]);
 
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");

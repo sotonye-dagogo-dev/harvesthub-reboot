@@ -133,7 +133,7 @@ export default function NotificationSettingsPage() {
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.success) {
           toast.warning(
-            "Browser push is enabled, but we couldn't sync app preference automatically. Use Save to retry."
+            "Browser push is enabled, but we couldn't sync app preference automatically. Use the Save button below to retry."
           );
           setPreferences(nextPreferences);
           return;
