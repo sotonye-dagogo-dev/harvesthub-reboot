@@ -344,3 +344,9 @@
   - [ ] Preserve order restrictions by relying on existing server-side unverified-vendor acknowledgment gating.
 - [ ] Add/adjust focused tests for changed UI behavior.
 - [ ] Re-run touched-scope validations and capture UI screenshots.
+- [x] Restore `/operations/banners` end-to-end management reliability (real API-backed create/update/delete/status toggle + robust non-blocking error/success feedback + cache invalidation parity).
+- [x] Add reusable config-driven confirmation workflow for destructive/removal-like operations and apply across operations surfaces.
+  - [x] Added OOP-backed confirmation config builder/presets utility (`components/ui/actionConfirm.ts`).
+  - [x] Applied shared confirmation utility in operations marketing content, products, users, vendors, ads, and banners high-risk actions.
+  - [x] Standardized concise confirmation copy (title/message/confirm button text).
+- [x] Remove ambiguous placeholder-style messaging in vendor marketing-content table context for production readiness.

@@ -9,6 +9,7 @@ import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
 import { getSubcategoryValues, VENDOR_CATEGORIES } from "@/lib/constants";
 import type { Product, Vendor } from "@/lib/types";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 interface ProductsContentProps {
   products: Product[];
@@ -19,10 +20,13 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
   const { addItem } = useCart();
   const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
+  const toast = useToast();
 
   const guardedToggleFavorite = (productId: string) => {
     if (!requireAuth("save favourites")) return;
+    const wasFavorite = isFavorite(productId);
     rawToggleFavorite(productId);
+    toast.success(wasFavorite ? "Removed from favourites" : "Added to favourites");
   };
 
   const [filters, setFilters] = useState<{
@@ -114,6 +118,7 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
       vendorName,
       stock: product.stock,
     });
+    toast.success("Added to cart");
   };
 
   return (

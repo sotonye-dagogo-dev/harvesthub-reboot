@@ -27,6 +27,44 @@
 
 ## Decisions
 
+## Reusable Config-Driven Confirmations for Destructive/Removal Actions
+
+**Decision:** Standardize destructive/removal-like UI actions on a shared confirmation utility with OOP-backed config builder/presets (`ActionConfirmBuilder` + `ActionConfirmPresets`) and concise copy conventions (short title/message/confirm text).
+**Date:** 2026-04-06
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Operations surfaces had mixed confirmation patterns (`Modal.confirm`, `Popconfirm`, custom modal state), leading to uneven UX and missed consistency for high-risk actions. A shared, config-driven confirmation helper improves clarity, reusability, and lowers regression risk while keeping adoption incremental.
+
+**Alternatives Considered:**
+
+- Continue page-level ad hoc confirm implementations (rejected: repeated drift and inconsistent copy/behavior).
+- Build a heavy global modal state manager first (rejected: unnecessary scope for immediate production-readiness hardening).
+
+**Implications:**
+
+- New destructive/removal actions should use shared presets/builders unless there is a documented exception.
+- Copy for confirm dialogs should stay concise and explicit (action + target).
+
+## Operations Banners Must Use Real API Mutations (No Local-Only Success Paths)
+
+**Decision:** Keep `/operations/banners` on real API-backed create/update/delete/toggle flows and align banner cache invalidation patterns to `cache:banners:*` fan-out keys.
+**Date:** 2026-04-06
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Operations audit showed the banners page emitted success toasts without persisting changes, causing false-positive UX and stale admin state. Converging on API-backed mutations with shared invalidation behavior preserves trust and ensures admin actions are end-to-end functional.
+
+**Alternatives Considered:**
+
+- Keep optimistic/local-only updates with delayed persistence (rejected: risk of silent data loss and admin confusion).
+- Rebuild page around a different state library first (rejected: unnecessary scope for reliability fix).
+
+**Implications:**
+
+- Any future operations mutation surface should avoid stub success paths and always verify API response before success feedback.
+- Banner cache keys should include filter dimensions while invalidation remains broad enough to clear all active/list permutations.
+
 ## Explicit Orders Scope Split + Domain Parity Matrix Enforcement
 
 **Decision:** Keep `/orders` as buyer-history only, introduce `/operations/orders` for vendor/admin operations, and enforce a role/domain parity matrix across products, orders, vendors, wallet, notifications, ads, bug reports, and profile/store using route policy + navigation + tests.

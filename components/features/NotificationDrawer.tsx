@@ -12,7 +12,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { StatusTag, SectionLoader, EmptyState } from "@/components/ui";
+import { StatusTag, SectionLoader, EmptyState, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Drawer, Tabs, Button, Dropdown, Space } from "antd";
 import { Check, CheckCheck, Filter, MoreVertical, Trash2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -124,7 +124,10 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id),
+                        onClick: () =>
+                          openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
+                            deleteNotification(notification.id)
+                          ),
                       },
                     ],
                   }}
@@ -182,7 +185,10 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         icon: <Trash2 size={16} />,
                         label: "Delete",
                         danger: true,
-                        onClick: () => deleteNotification(notification.id),
+                        onClick: () =>
+                          openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
+                            deleteNotification(notification.id)
+                          ),
                       },
                     ],
                   }}

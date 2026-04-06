@@ -9,6 +9,7 @@ import { formatVendorCategory } from "@/lib/utils/format";
 import type { Banner, Product, Vendor } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { isVendorVerified } from "@/lib/utils/vendor";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -83,10 +84,13 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   const { addItem } = useCart();
   const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
+  const toast = useToast();
 
   const guardedToggleFavorite = (productId: string) => {
     if (!requireAuth("save favourites")) return;
+    const wasFavorite = isFavorite(productId);
     rawToggleFavorite(productId);
+    toast.success(wasFavorite ? "Removed from favourites" : "Added to favourites");
   };
 
   const handleAddToCart = (product: (typeof featuredProducts)[number]) => {
@@ -102,6 +106,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       vendorName,
       stock: product.stock,
     });
+    toast.success("Added to cart");
   };
 
   return (

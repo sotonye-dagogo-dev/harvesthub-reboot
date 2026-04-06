@@ -7,6 +7,7 @@ import type { Vendor, Product } from "@/lib/types";
 import { StatusTag, PageLoader } from "@/components/ui";
 import { message, Descriptions, Modal } from "antd";
 import { Button, Card } from "@/components/ui";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import {
   ArrowLeft,
   Store,
@@ -255,7 +256,11 @@ export default function OperationsVendorDetailPage() {
                 <>
                   <Button
                     className="w-full"
-                    onClick={() => updateVendorStatus("APPROVED")}
+                    onClick={() =>
+                      openActionConfirm(ActionConfirmPresets.approve("vendor"), () =>
+                        updateVendorStatus("APPROVED")
+                      )
+                    }
                     disabled={actionLoading}
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
@@ -276,7 +281,11 @@ export default function OperationsVendorDetailPage() {
                 <Button
                   variant="outline"
                   className="w-full border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg"
-                  onClick={() => updateVendorStatus("SUSPENDED")}
+                  onClick={() =>
+                    openActionConfirm(ActionConfirmPresets.suspend("vendor"), () =>
+                      updateVendorStatus("SUSPENDED")
+                    )
+                  }
                   disabled={actionLoading}
                 >
                   <AlertTriangle className="mr-2 h-4 w-4" />
@@ -286,7 +295,11 @@ export default function OperationsVendorDetailPage() {
               {vendor.status === "SUSPENDED" && (
                 <Button
                   className="w-full"
-                  onClick={() => updateVendorStatus("APPROVED")}
+                  onClick={() =>
+                    openActionConfirm(ActionConfirmPresets.activate("vendor"), () =>
+                      updateVendorStatus("APPROVED")
+                    )
+                  }
                   disabled={actionLoading}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />

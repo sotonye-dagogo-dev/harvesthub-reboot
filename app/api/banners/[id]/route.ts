@@ -14,6 +14,23 @@ import { UserRole } from '@/lib/constants';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
+/**
+ * Normalizes API update payload values into Prisma-compatible types.
+ * Converts displayOrder to number and start/end date strings to Date objects.
+ */
+function normalizeBannerUpdateData(data: Record<string, unknown>) {
+    if (typeof data.displayOrder === 'string' || typeof data.displayOrder === 'number') {
+        data.displayOrder = Number(data.displayOrder);
+    }
+    if (typeof data.startDate === 'string') {
+        data.startDate = new Date(data.startDate);
+    }
+    if (typeof data.endDate === 'string') {
+        data.endDate = new Date(data.endDate);
+    }
+    return data;
+}
+
 export async function GET(req: NextRequest, context: RouteContext) {
     try {
         const rl = await rateLimitByIP(req);
@@ -43,14 +60,17 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         if (!banner) return NextResponse.json({ error: 'Banner not found' }, { status: 404 });
 
         const body = await req.json();
-        const allowedFields = ['title', 'subtitle', 'imageUrl', 'linkUrl', 'isActive',
-            'position', 'startDate', 'endDate', 'priority', 'backgroundColor', 'textColor'];
+        const allowedFields = ['title', 'subtitle', 'description', 'imageUrl', 'linkUrl', 'isActive',
+            'position', 'startDate', 'endDate', 'displayOrder', 'theme', 'accentColor', 'details', 'knowMoreLabel', 'actions', 'targetAudience'];
         const data: Record<string, unknown> = {};
         for (const key of allowedFields) {
             if (body[key] !== undefined) data[key] = body[key];
         }
+        normalizeBannerUpdateData(data);
 
         const updated = await prisma.banner.update({ where: { id }, data });
+        await cacheInvalidate('cache:banners:*');
+        await cacheInvalidate('banners:*');
         await cacheInvalidate(bannerKey());
         return NextResponse.json({ success: true, banner: updated });
     } catch (error) {
@@ -90,6 +110,8 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
         if (!banner) return NextResponse.json({ error: 'Banner not found' }, { status: 404 });
 
         await prisma.banner.delete({ where: { id } });
+        await cacheInvalidate('cache:banners:*');
+        await cacheInvalidate('banners:*');
         await cacheInvalidate(bannerKey());
         return NextResponse.json({ success: true, message: 'Banner deleted' });
     } catch (error) {

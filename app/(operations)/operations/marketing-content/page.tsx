@@ -17,11 +17,11 @@ import {
   Switch,
   Empty,
   Spin,
-  Popconfirm,
 } from "antd";
 import { PlusOutlined, UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload";
 import dayjs from "dayjs";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -277,9 +277,16 @@ export default function OperationsMarketingContentPage() {
       render: (_: unknown, record: ContentItem) => (
         <div className="flex gap-2">
           <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(record)} />
-          <Popconfirm title="Delete this content?" onConfirm={() => handleDelete(record.id)}>
-            <Button size="small" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          <Button
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() =>
+              openActionConfirm(ActionConfirmPresets.delete("content"), () =>
+                handleDelete(record.id)
+              )
+            }
+          />
         </div>
       ),
     },
@@ -339,7 +346,7 @@ export default function OperationsMarketingContentPage() {
 
       <Spin spinning={loading}>
         {content.length === 0 && !loading ? (
-          <Empty description="No marketing content yet. Upload your first piece!" />
+          <Empty description="No content found." />
         ) : (
           <Table
             dataSource={content}

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         const active = searchParams.get('active');
         const position = searchParams.get('position');
 
-        const cacheKey = bannerKey();
+        const cacheKey = `${bannerKey()}:${active ?? 'all'}:${position ?? 'all'}`;
         const cached = await cacheGet(cacheKey);
         if (cached) return NextResponse.json(cached);
 
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
             createdBy: user.userId,
         } as any);
 
+        await cacheInvalidate('cache:banners:*');
         await cacheInvalidate('banners:*');
         return NextResponse.json({ success: true, banner }, { status: 201 });
     } catch (error) {

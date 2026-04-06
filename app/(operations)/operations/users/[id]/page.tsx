@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { User } from "@/lib/types";
 import { StatusTag, PageLoader } from "@/components/ui";
-import { message, Descriptions, Modal } from "antd";
+import { message, Descriptions } from "antd";
 import { Button, Card } from "@/components/ui";
+import { openActionConfirm, ActionConfirmBuilder, ActionConfirmPresets } from "@/components/ui";
 import {
   ArrowLeft,
   User as UserIcon,
@@ -25,7 +26,6 @@ export default function OperationsUserDetailPage() {
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -84,7 +84,6 @@ export default function OperationsUserDetailPage() {
       message.error("Failed to delete user");
     } finally {
       setActionLoading(false);
-      setDeleteModal(false);
     }
   };
 
@@ -171,7 +170,11 @@ export default function OperationsUserDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full border-ds-status-warning/30 text-ds-status-warning-text hover:bg-ds-status-warning-bg"
-                    onClick={() => updateUser({ status: "INACTIVE" })}
+                    onClick={() =>
+                      openActionConfirm(ActionConfirmPresets.suspend("account"), () =>
+                        updateUser({ status: "INACTIVE" })
+                      )
+                    }
                     disabled={actionLoading}
                   >
                     <ShieldOff className="mr-2 h-4 w-4" />
@@ -180,7 +183,11 @@ export default function OperationsUserDetailPage() {
                 ) : (
                   <Button
                     className="w-full"
-                    onClick={() => updateUser({ status: "ACTIVE" })}
+                    onClick={() =>
+                      openActionConfirm(ActionConfirmPresets.activate("account"), () =>
+                        updateUser({ status: "ACTIVE" })
+                      )
+                    }
                     disabled={actionLoading}
                   >
                     <ShieldCheck className="mr-2 h-4 w-4" />
@@ -192,7 +199,17 @@ export default function OperationsUserDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full border-ds-status-error/30 text-ds-status-error-text hover:bg-ds-status-error-bg"
-                    onClick={() => updateUser({ status: "BANNED" })}
+                    onClick={() =>
+                      openActionConfirm(
+                        new ActionConfirmBuilder()
+                          .title("Ban user")
+                          .message("Ban this user?")
+                          .confirmText("Ban")
+                          .danger()
+                          .build(),
+                        () => updateUser({ status: "BANNED" })
+                      )
+                    }
                     disabled={actionLoading}
                   >
                     Ban User
@@ -201,7 +218,16 @@ export default function OperationsUserDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => updateUser({ status: "ACTIVE" })}
+                    onClick={() =>
+                      openActionConfirm(
+                        new ActionConfirmBuilder()
+                          .title("Unban user")
+                          .message("Unban this user?")
+                          .confirmText("Unban")
+                          .build(),
+                        () => updateUser({ status: "ACTIVE" })
+                      )
+                    }
                     disabled={actionLoading}
                   >
                     <ShieldCheck className="mr-2 h-4 w-4" />
@@ -212,7 +238,12 @@ export default function OperationsUserDetailPage() {
                 <Button
                   variant="outline"
                   className="w-full border-ds-status-error text-ds-status-error-text hover:bg-ds-status-error-bg"
-                  onClick={() => setDeleteModal(true)}
+                  onClick={() =>
+                    openActionConfirm(
+                      ActionConfirmPresets.delete("account"),
+                      deleteUser
+                    )
+                  }
                   disabled={actionLoading}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -224,23 +255,6 @@ export default function OperationsUserDetailPage() {
         )}
       </div>
 
-      {/* Delete Confirmation */}
-      <Modal
-        title="Delete User Account"
-        open={deleteModal}
-        onCancel={() => setDeleteModal(false)}
-        onOk={deleteUser}
-        okText="Delete Permanently"
-        okButtonProps={{ danger: true, loading: actionLoading }}
-      >
-        <p className="text-ds-text-secondary">
-          Are you absolutely sure you want to permanently delete{" "}
-          <strong>
-            {profileUser.firstName} {profileUser.lastName}
-          </strong>
-          ? This action cannot be undone and all related data will be lost.
-        </p>
-      </Modal>
     </div>
   );
 }
