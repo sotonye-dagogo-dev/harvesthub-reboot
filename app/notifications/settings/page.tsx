@@ -116,6 +116,19 @@ export default function NotificationSettingsPage() {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
+  const persistPreferences = useCallback(
+    async (nextPreferences: NotificationPreferences) => {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nextPreferences),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { res, data };
+    },
+    []
+  );
+
   const enableBrowserPush = async () => {
     setEnablingPush(true);
     try {
@@ -125,12 +138,7 @@ export default function NotificationSettingsPage() {
 
       if (enabled) {
         const nextPreferences = { ...preferences, pushNotifications: true };
-        const res = await fetch("/api/notifications/preferences", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nextPreferences),
-        });
-        const data = await res.json().catch(() => ({}));
+        const { res, data } = await persistPreferences(nextPreferences);
         if (!res.ok || !data.success) {
           toast.warning(
             "Browser push is enabled, but we could not sync app preference automatically. Use the Save button below to retry."

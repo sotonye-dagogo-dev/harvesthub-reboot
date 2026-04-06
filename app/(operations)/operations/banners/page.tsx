@@ -12,16 +12,9 @@ import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
+import { isAntdFormValidationError } from "@/lib/utils/formErrors";
 
-type AntdFormValidationError = {
-  errorFields?: unknown[];
-};
-
-const isFormValidationError = (error: unknown): error is AntdFormValidationError =>
-  typeof error === "object" &&
-  error !== null &&
-  "errorFields" in error &&
-  Array.isArray((error as AntdFormValidationError).errorFields);
+const DEFAULT_DISPLAY_ORDER = 0;
 
 export default function OperationsBannersPage() {
   const { user } = useAuth();
@@ -96,7 +89,7 @@ export default function OperationsBannersPage() {
         imageUrl: values.imageUrl,
         linkUrl: values.linkUrl || null,
         position: values.position,
-        displayOrder: Number(values.displayOrder ?? 0),
+        displayOrder: Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER),
         isActive: values.isActive ?? true,
         startDate: values.startDate ? values.startDate.toISOString() : undefined,
         endDate: values.endDate ? values.endDate.toISOString() : null,
@@ -120,7 +113,7 @@ export default function OperationsBannersPage() {
       setShowModal(false);
       form.resetFields();
     } catch (error) {
-      if (isFormValidationError(error)) {
+      if (isAntdFormValidationError(error)) {
         message.error("Please fill in all required fields");
         return;
       }

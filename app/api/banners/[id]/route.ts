@@ -14,6 +14,19 @@ import { UserRole } from '@/lib/constants';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
+function normalizeBannerUpdateData(data: Record<string, unknown>) {
+    if (typeof data.displayOrder === 'string' || typeof data.displayOrder === 'number') {
+        data.displayOrder = Number(data.displayOrder);
+    }
+    if (typeof data.startDate === 'string') {
+        data.startDate = new Date(data.startDate);
+    }
+    if (typeof data.endDate === 'string') {
+        data.endDate = new Date(data.endDate);
+    }
+    return data;
+}
+
 export async function GET(req: NextRequest, context: RouteContext) {
     try {
         const rl = await rateLimitByIP(req);
@@ -49,15 +62,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         for (const key of allowedFields) {
             if (body[key] !== undefined) data[key] = body[key];
         }
-        if (typeof data.displayOrder === 'string' || typeof data.displayOrder === 'number') {
-            data.displayOrder = Number(data.displayOrder);
-        }
-        if (typeof data.startDate === 'string') {
-            data.startDate = new Date(data.startDate);
-        }
-        if (typeof data.endDate === 'string') {
-            data.endDate = new Date(data.endDate);
-        }
+        normalizeBannerUpdateData(data);
 
         const updated = await prisma.banner.update({ where: { id }, data });
         await cacheInvalidate('cache:banners:*');

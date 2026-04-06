@@ -11,7 +11,16 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  /**
+   * Requests browser push permission when needed and synchronizes the current
+   * browser push subscription with backend persistence.
+   * Returns true when subscription sync succeeds.
+   */
   enablePushNotifications: () => Promise<boolean>;
+  /**
+   * Returns current browser Notification.permission state.
+   * Returns "unsupported" when Notification APIs are unavailable in this environment.
+   */
   getBrowserPushPermission: () => NotificationPermission | "unsupported";
   refreshNotifications: () => void;
 }

@@ -10,6 +10,10 @@ export interface ActionConfirmConfig {
   danger?: boolean;
 }
 
+/**
+ * Fluent builder for concise action-confirmation dialog configs.
+ * Use this when a preset is insufficient and a page needs custom title/message/button text.
+ */
 export class ActionConfirmBuilder {
   private config: ActionConfirmConfig = {
     title: "Confirm",
@@ -50,6 +54,10 @@ export class ActionConfirmBuilder {
 }
 
 export class ActionConfirmPresets {
+  /**
+   * Preset factory for common destructive/moderation actions.
+   * Keeps confirmation copy short and consistent across operations surfaces.
+   */
   static delete(subject: string) {
     return new ActionConfirmBuilder()
       .title(`Delete ${subject}`)
