@@ -23,6 +23,30 @@
 ```
 
 ---
+
+## 2026-04-06 — Operations Banners End-to-End Reliability Pass
+
+**Summary:**
+Continued the requested platform-wide audit by closing a high-impact admin workflow gap in operations banners. The banners management page now performs real API mutations for create/update/delete/toggle actions and only surfaces success feedback after backend confirmation.
+
+**Completed:**
+- Wired `/operations/banners` mutations to `/api/banners` and `/api/banners/[id]`.
+- Replaced local-only success paths with API-confirmed success/error handling.
+- Added list refresh/state update hooks after successful mutations.
+- Improved banner cache strategy:
+  - filtered GET cache keys (`active`/`position` aware)
+  - broad mutation invalidation for banner cache fan-out (`cache:banners:*`)
+- Updated `.ai-system` queue, decisions, and checkpoint logs for traceability.
+
+**Key Changes:**
+- Admin banner actions are now genuinely end-to-end functional (UI → API → persistence → refreshed UI), reducing false success states.
+- Banner cache correctness is improved for both filtered reads and mutation invalidation.
+
+**Next Sprint Focus:**
+Continue the same audit pattern on the next operations slices (`/operations/ads` and `/operations/vendors`) for response handling consistency and end-to-end reliability hardening.
+
+---
+
 ## 2026-04-05 — Exhaustive Audit Synthesis + Cloud Closure Queue
 
 **Summary:**

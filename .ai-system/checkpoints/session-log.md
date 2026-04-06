@@ -39,6 +39,44 @@
 
 ---
 
+## Session 24 — 2026-04-06
+
+**Goal:**
+Continue the broad UX/operations reliability closure by addressing the next audited admin process and synchronizing `.ai-system` artifacts during implementation.
+
+**Completed:**
+
+- Re-ran baseline validation posture for this cycle:
+  - `npm run lint` ✅
+  - `npm run build` ✅
+  - `npm run test` ❌ (pre-existing unrelated baseline failures including integration tests expecting localhost server and legacy schema/auth test drift).
+- Restored `/operations/banners` end-to-end reliability:
+  - Wired create/update/delete/status-toggle on the page to real `/api/banners` and `/api/banners/[id]` mutations.
+  - Added robust response error handling and success feedback only after API confirmation.
+  - Added explicit list reload/update behavior after successful mutations.
+- Hardened banner cache behavior in API routes:
+  - GET now keys cached responses by active/position filter dimensions.
+  - POST/PUT/DELETE now fan-out invalidate `cache:banners:*` (plus legacy `banners:*` compatibility invalidate).
+- Updated `.ai-system` queue and decisions to record this reliability slice.
+
+**Files Modified:**
+
+- app/(operations)/operations/banners/page.tsx
+- app/api/banners/route.ts
+- app/api/banners/[id]/route.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Continue the operations/admin audit with the next highest-impact flow (`/operations/ads` and `/operations/vendors`) to unify response handling/toast reliability and close remaining end-to-end gaps.
+
+**Notes / Blockers:**
+
+- Repository-wide tests remain baseline-red; touched-flow lint/build checks are green.
+
+---
+
 ## Session 23 — 2026-04-05
 
 **Goal:**

@@ -344,3 +344,4 @@
   - [ ] Preserve order restrictions by relying on existing server-side unverified-vendor acknowledgment gating.
 - [ ] Add/adjust focused tests for changed UI behavior.
 - [ ] Re-run touched-scope validations and capture UI screenshots.
+- [x] Restore `/operations/banners` end-to-end management reliability (real API-backed create/update/delete/status toggle + robust non-blocking error/success feedback + cache invalidation parity).

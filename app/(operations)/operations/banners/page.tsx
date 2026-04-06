@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { getBannersClient } from "@/lib/data/clientDataFetchers";
 import type { Banner } from "@/lib/types";
 
 import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd";
@@ -21,13 +20,23 @@ export default function OperationsBannersPage() {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
 
+  const [form] = Form.useForm();
+
+  const reloadBanners = async () => {
+    const res = await fetch("/api/banners");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to fetch banners");
+    }
+    const list = data.banners;
+    setBanners(Array.isArray(list) ? (list as any[]) : []);
+  };
+
   useEffect(() => {
     let mounted = true;
     async function load() {
       try {
-        const b = await getBannersClient();
-        if (!mounted) return;
-        if (Array.isArray(b)) setBanners(b as any[]);
+        await reloadBanners();
       } catch {
         if (!mounted) return;
         setBanners([]);
@@ -38,7 +47,6 @@ export default function OperationsBannersPage() {
       mounted = false;
     };
   }, []);
-  const [form] = Form.useForm();
 
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");
@@ -69,36 +77,80 @@ export default function OperationsBannersPage() {
 
   const handleSubmit = async () => {
     try {
-      await form.validateFields();
+      const values = await form.validateFields();
+      const payload = {
+        title: values.title,
+        description: values.description || null,
+        imageUrl: values.imageUrl,
+        linkUrl: values.linkUrl || null,
+        position: values.position,
+        displayOrder: Number(values.displayOrder ?? 0),
+        isActive: values.isActive ?? true,
+        startDate: values.startDate ? values.startDate.toISOString() : undefined,
+        endDate: values.endDate ? values.endDate.toISOString() : null,
+      };
 
-      if (editingBanner) {
-        message.success("Banner updated successfully");
-      } else {
-        message.success("Banner created successfully");
+      const endpoint = editingBanner ? `/api/banners/${editingBanner.id}` : "/api/banners";
+      const method = editingBanner ? "PUT" : "POST";
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save banner");
       }
+
+      message.success(editingBanner ? "Banner updated successfully" : "Banner created successfully");
+      await reloadBanners();
 
       setShowModal(false);
       form.resetFields();
-    } catch {
-      message.error("Please fill in all required fields");
+    } catch (error: any) {
+      if (Array.isArray(error?.errorFields)) {
+        message.error("Please fill in all required fields");
+        return;
+      }
+      message.error(error?.message || "Failed to save banner");
     }
   };
 
   const handleDelete = (bannerId: string) => {
-    console.log("Deleting banner:", bannerId);
     modal.confirm({
       title: "Delete Banner",
       content: "Are you sure you want to delete this banner?",
       okText: "Delete",
       okType: "danger",
-      onOk: () => {
+      onOk: async () => {
+        const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          message.error(data.error || "Failed to delete banner");
+          return;
+        }
         message.success("Banner deleted successfully");
+        await reloadBanners();
       },
     });
   };
 
-  const handleToggleActive = (bannerId: string, currentStatus: boolean) => {
+  const handleToggleActive = async (bannerId: string, currentStatus: boolean) => {
+    const targetStatus = !currentStatus;
+    const res = await fetch(`/api/banners/${bannerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: targetStatus }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      message.error(data.error || "Failed to update banner status");
+      return;
+    }
     message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
+    setBanners((prev) =>
+      prev.map((banner) => (banner.id === bannerId ? { ...banner, isActive: targetStatus } : banner))
+    );
   };
 
   const columns = [
