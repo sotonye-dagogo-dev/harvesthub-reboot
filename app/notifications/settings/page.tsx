@@ -156,7 +156,7 @@ export default function NotificationSettingsPage() {
       } else if (permission === "denied") {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
         toast.warning(
-          "Browser notifications blocked. Enable them in browser settings."
+          "Browser notifications blocked. Enable them in your browser's site settings to use this feature."
         );
       } else {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));

@@ -14,6 +14,10 @@ import { UserRole } from '@/lib/constants';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
+/**
+ * Normalizes API update payload values into Prisma-compatible types.
+ * Converts displayOrder to number and start/end date strings to Date objects.
+ */
 function normalizeBannerUpdateData(data: Record<string, unknown>) {
     if (typeof data.displayOrder === 'string' || typeof data.displayOrder === 'number') {
         data.displayOrder = Number(data.displayOrder);
