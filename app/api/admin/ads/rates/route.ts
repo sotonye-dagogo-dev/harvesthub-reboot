@@ -23,8 +23,8 @@ export async function GET() {
     } catch (error) {
         console.error('GET /api/admin/ads/rates error:', error);
         return NextResponse.json({
-            success: false,
-            error: 'Failed to retrieve rate config',
+            success: true,
+            warning: 'Failed to retrieve rate config, fallback values are being used.',
             rateConfig: {
                 ...FALLBACK_AD_RATE_CONFIG,
                 isActive: false,

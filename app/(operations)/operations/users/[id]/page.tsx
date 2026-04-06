@@ -133,7 +133,7 @@ export default function OperationsUserDetailPage() {
               <Descriptions.Item label="Full Name">
                 {profileUser.firstName} {profileUser.lastName}
               </Descriptions.Item>
-                <Descriptions.Item label="Role">{profileUser.role}</Descriptions.Item>
+              <Descriptions.Item label="Role">{profileUser.role}</Descriptions.Item>
               <Descriptions.Item label="Email">
                 <span className="flex items-center gap-1">
                   <Mail className="h-3.5 w-3.5" />

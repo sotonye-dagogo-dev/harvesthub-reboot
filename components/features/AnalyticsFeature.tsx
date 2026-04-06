@@ -225,41 +225,42 @@ export function AnalyticsFeature() {
             <p className="text-sm text-ds-text-secondary">
               No product data is available yet.
             </p>
-          ) : null}
-          <div className="space-y-2">
-            {[
-              {
-                label: "Active Products",
-                value: stats.activeProducts,
-                total: stats.totalProducts,
-                color: "bg-ds-brand-primary",
-              },
-              {
-                label: "Out of Stock",
-                value: stats.outOfStock,
-                total: stats.totalProducts,
-                color: "bg-ds-status-warning-bg",
-              },
-            ].map((item) => {
-              const percentage = item.total > 0 ? Math.round((item.value / item.total) * 100) : 0;
-              return (
-                <div key={item.label}>
-                  <div className="mb-1 flex items-center justify-between text-xs text-ds-text-secondary">
-                    <span>{item.label}</span>
-                    <span>
-                      {item.value} ({percentage}%)
-                    </span>
+          ) : (
+            <div className="space-y-2">
+              {[
+                {
+                  label: "Active Products",
+                  value: stats.activeProducts,
+                  total: stats.totalProducts,
+                  color: "bg-ds-brand-primary",
+                },
+                {
+                  label: "Out of Stock",
+                  value: stats.outOfStock,
+                  total: stats.totalProducts,
+                  color: "bg-ds-status-warning-bg",
+                },
+              ].map((item) => {
+                const percentage = Math.round((item.value / item.total) * 100);
+                return (
+                  <div key={item.label}>
+                    <div className="mb-1 flex items-center justify-between text-xs text-ds-text-secondary">
+                      <span>{item.label}</span>
+                      <span>
+                        {item.value} ({percentage}%)
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-ds-surface-muted">
+                      <div
+                        className={`h-2 rounded-full ${item.color}`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-ds-surface-muted">
-                    <div
-                      className={`h-2 rounded-full ${item.color}`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
       </div>
     </div>

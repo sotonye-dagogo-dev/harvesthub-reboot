@@ -47,7 +47,7 @@ export default function OperationsUsersPage() {
               ? json.data
               : [];
           collected.push(...usersPayload);
-          totalPages = Number(json?.pagination?.totalPages || 1);
+          totalPages = Number(json?.pagination?.totalPages ?? 1);
           page += 1;
         }
 
