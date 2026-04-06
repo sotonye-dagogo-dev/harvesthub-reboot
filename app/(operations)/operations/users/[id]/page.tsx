@@ -197,7 +197,10 @@ export default function OperationsUserDetailPage() {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-4 w-4 text-ds-text-tertiary" />
+                    <ChevronDown
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-2 top-2.5 h-4 w-4 text-ds-text-tertiary"
+                    />
                   </div>
                 </div>
 

@@ -113,7 +113,7 @@ export default function AdvertisePage() {
       try {
         const res = await fetch("/api/admin/ads/rates");
         const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data?.rateConfig) return;
+        if (!data?.rateConfig) return;
         setRateConfig({
           hourlyRate: Number(data.rateConfig.hourlyRate || 0),
           dailyRate: Number(data.rateConfig.dailyRate || 0),
