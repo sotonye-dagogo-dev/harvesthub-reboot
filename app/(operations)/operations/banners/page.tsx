@@ -12,6 +12,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 
+type AntdFormValidationError = {
+  errorFields?: unknown[];
+};
+
+const isFormValidationError = (error: unknown): error is AntdFormValidationError =>
+  typeof error === "object" &&
+  error !== null &&
+  "errorFields" in error &&
+  Array.isArray((error as AntdFormValidationError).errorFields);
+
 export default function OperationsBannersPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -107,12 +117,16 @@ export default function OperationsBannersPage() {
 
       setShowModal(false);
       form.resetFields();
-    } catch (error: any) {
-      if (Array.isArray(error?.errorFields)) {
+    } catch (error) {
+      if (isFormValidationError(error)) {
         message.error("Please fill in all required fields");
         return;
       }
-      message.error(error?.message || "Failed to save banner");
+      if (error instanceof Error) {
+        message.error(error.message);
+        return;
+      }
+      message.error("Failed to save banner");
     }
   };
 

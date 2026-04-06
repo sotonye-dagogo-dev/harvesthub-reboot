@@ -74,6 +74,10 @@ Continue the operations/admin audit with the next highest-impact flow (`/operati
 **Notes / Blockers:**
 
 - Repository-wide tests remain baseline-red; touched-flow lint/build checks are green.
+- Follow-up review hardening applied in-session:
+  - Notification settings no longer force-enable push preference from browser permission during fetch/save; user preference remains independently controllable.
+  - Push auto-sync warning copy now explicitly tells user to use Save button for retry.
+  - Operations banners form validation error handling was made type-safe via explicit validation-error guard helper.
 
 ---
 

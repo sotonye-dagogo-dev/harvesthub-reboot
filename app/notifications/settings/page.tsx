@@ -58,14 +58,6 @@ export default function NotificationSettingsPage() {
     NotificationPermission | "unsupported"
   >("unsupported");
 
-  const normalizePreferencesWithPermission = useCallback(
-    (incoming: NotificationPreferences, permission: NotificationPermission | "unsupported") =>
-      permission === "granted" && !incoming.pushNotifications
-        ? { ...incoming, pushNotifications: true }
-        : incoming,
-    []
-  );
-
   const fetchPreferences = useCallback(async () => {
     setIsFetchingPreferences(true);
     try {
@@ -74,30 +66,15 @@ export default function NotificationSettingsPage() {
 
       if (data.success) {
         const permission = getBrowserPushPermission();
-        const nextPreferences = normalizePreferencesWithPermission(data.preferences, permission);
-        const shouldForcePushOn =
-          permission === "granted" && data.preferences.pushNotifications !== true;
-        setPreferences(nextPreferences);
+        setPreferences(data.preferences);
         setBrowserPushPermission(permission);
-
-        if (shouldForcePushOn) {
-          try {
-            await fetch("/api/notifications/preferences", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(nextPreferences),
-            });
-          } catch {
-            toast.warning("Push is enabled in browser, but preference sync failed. Please save again.");
-          }
-        }
       }
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
     } finally {
       setIsFetchingPreferences(false);
     }
-  }, [getBrowserPushPermission, normalizePreferencesWithPermission, toast]);
+  }, [getBrowserPushPermission]);
 
   // Fetch preferences
   useEffect(() => {
@@ -121,8 +98,7 @@ export default function NotificationSettingsPage() {
 
       if (data.success) {
         const permission = getBrowserPushPermission();
-        const nextPreferences = normalizePreferencesWithPermission(data.preferences, permission);
-        setPreferences(nextPreferences);
+        setPreferences(data.preferences);
         setBrowserPushPermission(permission);
         toast.success("Notification preferences saved");
       } else {
@@ -148,7 +124,21 @@ export default function NotificationSettingsPage() {
       setBrowserPushPermission(permission);
 
       if (enabled) {
-        setPreferences((prev) => ({ ...prev, pushNotifications: true }));
+        const nextPreferences = { ...preferences, pushNotifications: true };
+        const res = await fetch("/api/notifications/preferences", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextPreferences),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          toast.warning(
+            "Browser push is enabled, but we couldn't sync app preference automatically. Use Save to retry."
+          );
+          setPreferences(nextPreferences);
+          return;
+        }
+        setPreferences(data.preferences);
         toast.success("Browser push notifications enabled");
       } else if (permission === "denied") {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
