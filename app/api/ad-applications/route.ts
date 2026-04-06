@@ -5,7 +5,7 @@ import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/midd
 import { UserRole } from '@/lib/constants';
 import { z } from 'zod';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
-import { estimateAdAmount, isPaymentSufficient, normalizeAdDuration } from '@/lib/utils/adPricing';
+import { estimateAdAmount, isPaymentSufficient, normalizeAdDuration, resolveAdRateConfig } from '@/lib/utils/adPricing';
 
 const adApplicationStatusSchema = z.enum([
     'PENDING',
@@ -95,15 +95,13 @@ export async function POST(req: NextRequest) {
             return apiError('Proof of transfer must be uploaded via managed Cloudinary flow.', 400);
         }
         const rateConfig = await db.adRateConfig.getActive();
-        if (!rateConfig) {
-            return apiError('Ad pricing is unavailable. Please try again later.', 503);
-        }
+        const { rateConfig: effectiveRateConfig } = resolveAdRateConfig(rateConfig);
 
         const normalizedDuration = normalizeAdDuration(data.durationType, data.durationValue);
         const expectedAmount = estimateAdAmount(
             {
-                hourlyRate: rateConfig.hourlyRate,
-                dailyRate: rateConfig.dailyRate,
+                hourlyRate: effectiveRateConfig.hourlyRate,
+                dailyRate: effectiveRateConfig.dailyRate,
             },
             normalizedDuration.durationType,
             normalizedDuration.durationValue

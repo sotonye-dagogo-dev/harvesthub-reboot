@@ -36,6 +36,17 @@
 
 > **Section summary:** Tasks planned for the next sprint. Not yet started.
 
+- [x] Recovery slice: ad application fallback + analytics/admin reliability (2026-04-06)
+  - [x] Remove ad-application hard-blocking when ad rate config is missing by introducing safe fallback handling.
+  - [x] Ensure `/api/admin/ads/rates` returns non-breaking fallback values when config is absent.
+  - [x] Fix analytics user-count data retrieval mismatch from `/api/users` payload shape.
+  - [x] Improve analytics load resilience with partial-success handling.
+  - [x] Reintroduce lightweight analytics visualization blocks (progress-bar chart summaries).
+  - [x] Enable real operations user management actions (view detail route, status toggle persistence, delete persistence).
+  - [x] Add admin role-change control on dedicated `/operations/users/[id]` page.
+  - [x] Improve advertise form control visual consistency for select/date/number inputs in dark mode/Safari.
+  - [x] Remove provider-leaking user-facing bug-report upload error copy.
+
 - [ ] Migrate mock backend to Prisma + PostgreSQL (using `prisma/schema.prisma`)
   - [x] Remove direct page-level and client-fetcher mock fallback paths in operations/users, operations/banners, wallet, favourites, and `lib/data/clientDataFetchers.ts`.
   - [x] Remove server-side runtime mock fallback branches in `lib/data/publicContent.ts` for read/write content paths.

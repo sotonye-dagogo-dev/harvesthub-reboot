@@ -451,3 +451,31 @@
 .dark .ant-notification-notice-description {
   color: rgb(var(--ds-text-secondary)) !important;
 }
+
+/* ============================================================================
+   AD APPLICATION FORM CONTROL CONSISTENCY
+   ============================================================================ */
+.ad-form-native-control.ant-select .ant-select-selector,
+.ad-form-native-control.ant-picker,
+.ad-form-native-control.ant-input-number {
+  border-color: rgb(var(--ds-border-base));
+  background-color: rgb(var(--ds-surface-base));
+  color: rgb(var(--ds-text-primary));
+}
+
+.ad-form-native-control.ant-input-number .ant-input-number-input {
+  color: rgb(var(--ds-text-primary));
+}
+
+.ad-form-native-control.ant-select.ant-select-focused .ant-select-selector,
+.ad-form-native-control.ant-picker.ant-picker-focused,
+.ad-form-native-control.ant-input-number.ant-input-number-focused {
+  border-color: rgb(var(--ds-border-focus));
+  box-shadow: 0 0 0 2px rgba(var(--ds-focus-ring), 0.35);
+}
+
+.dark .ad-form-native-control.ant-select .ant-select-selector,
+.dark .ad-form-native-control.ant-picker,
+.dark .ad-form-native-control.ant-input-number {
+  background-color: rgb(var(--ds-surface-raised));
+}

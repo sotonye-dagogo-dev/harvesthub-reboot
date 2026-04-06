@@ -24,6 +24,31 @@
 
 ---
 
+## 2026-04-06 — Ad Application Fallback + Analytics/Admin Reliability Recovery
+
+**Summary:**
+Delivered a focused production-readiness recovery slice centered on ad application reliability, analytics/count consistency, and admin user-management functionality. The change set removes hard failures when admin ad-pricing config is absent, restores stable analytics behavior with visualization cues, and enables real CRUD-like admin actions from user management surfaces.
+
+**Completed:**
+- Added fallback ad rate resolution in shared pricing utilities and updated ad-application APIs to avoid user-facing submission blockers.
+- Updated `/api/admin/ads/rates` to return safe fallback values when no active rate config exists.
+- Improved `/advertise` form control consistency for Select/Date/InputNumber (dark mode and Safari-friendly styling).
+- Fixed users-count retrieval by aligning client fetcher parsing with `/api/users` API shape.
+- Hardened analytics loading with partial-success handling and reintroduced chart-like KPI visualizations via progress bars.
+- Enabled real operations user-management actions (status toggle, delete, view detail navigation) and added role-edit control on dedicated user detail page.
+- Replaced provider-leaking bug-report upload error text with generic managed-uploader wording.
+- Added fallback pricing test coverage and revalidated with targeted tests, lint, and build.
+
+**Key Changes:**
+- Ad submission no longer fails solely because admin pricing config is missing; safe fallback values preserve flow continuity.
+- Platform analytics surfaces are more resilient to partial API failures and now include clear visual KPI breakdowns.
+- Admin user-management is now operationally actionable from both list and dedicated user detail views.
+
+**Next Sprint Focus:**
+Run final review/security validation sweep and complete PR handoff with CI/env caveat notes.
+
+---
+
 ## 2026-04-06 — Unified Confirmations + Operations Leftover Slice
 
 **Summary:**

@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
             screenshot.length > 0 &&
             !screenshot.startsWith('https://res.cloudinary.com/')
         ) {
-            return apiError('Screenshot must be uploaded through the managed Cloudinary upload flow.', 400);
+            return apiError('Screenshot must be uploaded using the managed uploader.', 400);
         }
 
         const report = await prisma.bugReport.create({
