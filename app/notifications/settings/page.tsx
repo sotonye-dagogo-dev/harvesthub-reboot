@@ -58,6 +58,14 @@ export default function NotificationSettingsPage() {
     NotificationPermission | "unsupported"
   >("unsupported");
 
+  const normalizePreferencesWithPermission = useCallback(
+    (incoming: NotificationPreferences, permission: NotificationPermission | "unsupported") =>
+      permission === "granted" && !incoming.pushNotifications
+        ? { ...incoming, pushNotifications: true }
+        : incoming,
+    []
+  );
+
   const fetchPreferences = useCallback(async () => {
     setIsFetchingPreferences(true);
     try {
@@ -66,19 +74,22 @@ export default function NotificationSettingsPage() {
 
       if (data.success) {
         const permission = getBrowserPushPermission();
-        const shouldForcePushOn = permission === "granted" && !data.preferences.pushNotifications;
-        const nextPreferences = shouldForcePushOn
-          ? { ...data.preferences, pushNotifications: true }
-          : data.preferences;
+        const nextPreferences = normalizePreferencesWithPermission(data.preferences, permission);
+        const shouldForcePushOn =
+          permission === "granted" && data.preferences.pushNotifications !== true;
         setPreferences(nextPreferences);
         setBrowserPushPermission(permission);
 
         if (shouldForcePushOn) {
-          await fetch("/api/notifications/preferences", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(nextPreferences),
-          });
+          try {
+            await fetch("/api/notifications/preferences", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(nextPreferences),
+            });
+          } catch {
+            toast.warning("Push is enabled in browser, but preference sync failed. Please save again.");
+          }
         }
       }
     } catch (error) {
@@ -86,7 +97,7 @@ export default function NotificationSettingsPage() {
     } finally {
       setIsFetchingPreferences(false);
     }
-  }, [getBrowserPushPermission]);
+  }, [getBrowserPushPermission, normalizePreferencesWithPermission, toast]);
 
   // Fetch preferences
   useEffect(() => {
@@ -109,7 +120,10 @@ export default function NotificationSettingsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setPreferences(data.preferences);
+        const permission = getBrowserPushPermission();
+        const nextPreferences = normalizePreferencesWithPermission(data.preferences, permission);
+        setPreferences(nextPreferences);
+        setBrowserPushPermission(permission);
         toast.success("Notification preferences saved");
       } else {
         toast.error(data.error || "Failed to save preferences");
@@ -139,7 +153,7 @@ export default function NotificationSettingsPage() {
       } else if (permission === "denied") {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
         toast.warning(
-          "Browser notifications are blocked. Enable notifications in your browser's site settings/permissions panel to continue."
+          "Browser notifications blocked. Enable them in browser settings."
         );
       } else {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
