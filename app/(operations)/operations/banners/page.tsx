@@ -47,9 +47,9 @@ export default function OperationsBannersPage() {
     async function load() {
       try {
         await reloadBanners();
-      } catch {
+      } catch (error) {
         if (!mounted) return;
-        message.error("Failed to load banners");
+        message.error(error instanceof Error ? error.message : "Failed to load banners");
         setBanners([]);
       }
     }
@@ -138,34 +138,44 @@ export default function OperationsBannersPage() {
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
-        const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          message.error(data.error || "Failed to delete banner");
-          return;
+        try {
+          const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            message.error(data.error || "Failed to delete banner");
+            return;
+          }
+          message.success("Banner deleted successfully");
+          await reloadBanners();
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : "Failed to delete banner");
         }
-        message.success("Banner deleted successfully");
-        await reloadBanners();
       },
     });
   };
 
   const handleToggleActive = async (bannerId: string, currentStatus: boolean) => {
-    const targetStatus = !currentStatus;
-    const res = await fetch(`/api/banners/${bannerId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: targetStatus }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      message.error(data.error || "Failed to update banner status");
-      return;
+    try {
+      const targetStatus = !currentStatus;
+      const res = await fetch(`/api/banners/${bannerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: targetStatus }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        message.error(data.error || "Failed to update banner status");
+        return;
+      }
+      message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
+      setBanners((prev) =>
+        prev.map((banner) =>
+          banner.id === bannerId ? { ...banner, isActive: targetStatus } : banner
+        )
+      );
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Failed to update banner status");
     }
-    message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
-    setBanners((prev) =>
-      prev.map((banner) => (banner.id === bannerId ? { ...banner, isActive: targetStatus } : banner))
-    );
   };
 
   const columns = [
