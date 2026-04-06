@@ -31,6 +31,13 @@ interface NotificationPreferences {
   pushNotifications: boolean;
 }
 
+const PUSH_PERMISSION_LABELS: Record<NotificationPermission | "unsupported", string> = {
+  granted: "Allowed",
+  denied: "Blocked",
+  default: "Not set",
+  unsupported: "Unsupported",
+};
+
 export default function NotificationSettingsPage() {
   const { user, isLoading } = useAuth();
   const { enablePushNotifications, getBrowserPushPermission } = useNotifications();
@@ -163,14 +170,7 @@ export default function NotificationSettingsPage() {
     }
   };
 
-  const pushPermissionLabel =
-    browserPushPermission === "granted"
-      ? "Allowed"
-      : browserPushPermission === "denied"
-        ? "Blocked"
-        : browserPushPermission === "default"
-          ? "Not set"
-          : "Unsupported";
+  const pushPermissionLabel = PUSH_PERMISSION_LABELS[browserPushPermission];
 
   if (isLoading || isFetchingPreferences) {
     return <PageLoader />;

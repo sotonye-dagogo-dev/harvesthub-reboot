@@ -13,7 +13,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { isAntdFormValidationError } from "@/lib/utils/formErrors";
-import type { Banner } from "@/lib/types";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -85,15 +84,17 @@ export default function OperationsBannersPage() {
     try {
       const values = await form.validateFields();
       const normalizedDisplayOrder = Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER);
+      if (!Number.isFinite(normalizedDisplayOrder)) {
+        message.error("Display order must be a valid number.");
+        return;
+      }
       const payload = {
         title: values.title,
         description: values.description || null,
         imageUrl: values.imageUrl,
         linkUrl: values.linkUrl || null,
         position: values.position,
-        displayOrder: Number.isFinite(normalizedDisplayOrder)
-          ? normalizedDisplayOrder
-          : DEFAULT_DISPLAY_ORDER,
+        displayOrder: normalizedDisplayOrder,
         isActive: values.isActive ?? true,
         startDate: values.startDate ? values.startDate.toISOString() : undefined,
         endDate: values.endDate ? values.endDate.toISOString() : null,

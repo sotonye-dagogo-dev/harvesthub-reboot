@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/lib/store/cartStore";
-import { EmptyState, Button, Card } from "@/components/ui";
+import { EmptyState, Button, Card, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { CartItemComponent } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -35,7 +35,10 @@ export default function CartPage() {
         <h1 className="text-2xl font-bold text-ds-text-primary sm:text-3xl">
           Shopping Cart ({totalItems} {totalItems === 1 ? "item" : "items"})
         </h1>
-        <Button variant="outline" onClick={clearCart}>
+        <Button
+          variant="outline"
+          onClick={() => openActionConfirm(ActionConfirmPresets.remove("all cart items"), clearCart)}
+        >
           Clear Cart
         </Button>
       </div>
@@ -54,7 +57,11 @@ export default function CartPage() {
               quantity={item.quantity}
               stock={item.stock}
               onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty)}
-              onRemove={() => removeItem(item.productId)}
+              onRemove={() =>
+                openActionConfirm(ActionConfirmPresets.remove("cart item"), () =>
+                  removeItem(item.productId)
+                )
+              }
             />
           ))}
         </div>
