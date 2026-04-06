@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Ad Pricing + Analytics/User-Admin Reliability Fallback Contract
+
+**Decision:** Keep ad application submission non-blocking when admin rate config is missing by applying explicit safe fallback rates, and harden analytics/user-admin pages to prefer partial data/fetch resilience over full-surface failure.
+**Date:** 2026-04-06
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Client-facing flows were blocked by strict dependency on admin-entered ad rates and brittle count/data retrieval assumptions. Platform reliability requirements favor graceful degradation (fallback values + partial rendering) so public submissions and operations insights remain functional while admin configuration catches up.
+
+**Alternatives Considered:**
+
+- Keep 503 hard-fail on missing ad rates (rejected: blocks legitimate ad submissions and degrades trust).
+- Add extensive new charting dependency for analytics visuals (rejected: unnecessary scope/risk for immediate recovery; lightweight DS-native chart blocks are sufficient).
+
+**Implications:**
+
+- Ad APIs and ad-rate endpoint should preserve a safe fallback path for missing admin config.
+- Analytics surfaces should continue rendering when some datasets fail and should avoid all-or-nothing fetch behavior.
+- User-management list actions must execute real API mutations (not local success-only stubs) to preserve admin CRUD expectations.
+
 ## Reusable Config-Driven Confirmations for Destructive/Removal Actions
 
 **Decision:** Standardize destructive/removal-like UI actions on a shared confirmation utility with OOP-backed config builder/presets (`ActionConfirmBuilder` + `ActionConfirmPresets`) and concise copy conventions (short title/message/confirm text).

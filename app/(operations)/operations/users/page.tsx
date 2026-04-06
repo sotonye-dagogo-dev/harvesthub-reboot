@@ -20,23 +20,46 @@ export default function OperationsUsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState<{ page: number; totalPages: number } | null>(
+    null
+  );
 
   useEffect(() => {
     let mounted = true;
     async function loadUsers() {
+      setIsLoadingUsers(true);
       try {
-        const res = await fetch("/api/users");
-        if (!res.ok) return;
-        const json = await res.json();
-        const usersPayload = Array.isArray(json.users)
-          ? json.users
-          : Array.isArray(json.data)
-            ? json.data
-            : [];
-        if (mounted) setUsers(usersPayload);
+        const limit = 100;
+        let page = 1;
+        let totalPages = 1;
+        const collected: User[] = [];
+
+        while (page <= totalPages) {
+          if (mounted) setLoadingProgress({ page, totalPages });
+          const res = await fetch(`/api/users?page=${page}&limit=${limit}`);
+          if (!res.ok) break;
+
+          const json = await res.json();
+          const usersPayload = Array.isArray(json.users)
+            ? json.users
+            : Array.isArray(json.data)
+              ? json.data
+              : [];
+          collected.push(...usersPayload);
+          totalPages = Number(json?.pagination?.totalPages ?? 1);
+          page += 1;
+        }
+
+        if (mounted) setUsers(collected);
       } catch {
         if (!mounted) return;
         setUsers([]);
+      } finally {
+        if (mounted) {
+          setIsLoadingUsers(false);
+          setLoadingProgress(null);
+        }
       }
     }
     loadUsers();
@@ -94,15 +117,45 @@ export default function OperationsUsersPage() {
       targetUser.isActive
         ? ActionConfirmPresets.suspend("user")
         : ActionConfirmPresets.activate("user"),
-      () => {
-        message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
+      async () => {
+        try {
+          const res = await fetch(`/api/users/${targetUser.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              status: targetUser.isActive ? "INACTIVE" : "ACTIVE",
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Failed to update user status");
+
+          const updatedStatus = targetUser.isActive ? "INACTIVE" : "ACTIVE";
+          setUsers((prev) =>
+            prev.map((item) =>
+              item.id === targetUser.id
+                ? { ...item, status: updatedStatus, isActive: updatedStatus === "ACTIVE" }
+                : item
+            )
+          );
+          message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
+        } catch (err) {
+          message.error(err instanceof Error ? err.message : "Failed to update user status");
+        }
       }
     );
   };
 
-  const handleDelete = (_userId: string) => {
-    openActionConfirm(ActionConfirmPresets.delete("user"), () => {
-      message.success("User deleted");
+  const handleDelete = (userId: string) => {
+    openActionConfirm(ActionConfirmPresets.delete("user"), async () => {
+      try {
+        const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to delete user");
+        setUsers((prev) => prev.filter((item) => item.id !== userId));
+        message.success("User deleted");
+      } catch (err) {
+        message.error(err instanceof Error ? err.message : "Failed to delete user");
+      }
     });
   };
 
@@ -177,7 +230,12 @@ export default function OperationsUsersPage() {
       key: "actions",
       render: (_: unknown, record: User) => (
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" title="View Profile">
+          <Button
+            variant="ghost"
+            size="sm"
+            title="View Profile"
+            onClick={() => router.push(`/operations/users/${record.id}`)}
+          >
             <Eye className="h-4 w-4" />
           </Button>
           <Button
@@ -214,6 +272,11 @@ export default function OperationsUsersPage() {
         <p className="mt-1 text-ds-text-secondary">
           Manage platform users and access control ({filteredUsers.length} users)
         </p>
+        {isLoadingUsers && loadingProgress ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">
+            Loading users page {loadingProgress.page} of {loadingProgress.totalPages}...
+          </p>
+        ) : null}
       </div>
 
       {/* Stats */}

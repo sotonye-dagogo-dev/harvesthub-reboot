@@ -162,6 +162,7 @@ export async function getUsersClient() {
         if (!res.ok) throw new Error('Failed to fetch users');
 
         const data = await res.json();
+        if (Array.isArray(data?.users)) return data.users;
         if (Array.isArray(data?.data)) return data.data;
         return [];
     } catch (err) {
