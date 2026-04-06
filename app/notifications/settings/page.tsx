@@ -71,7 +71,7 @@ export default function NotificationSettingsPage() {
           ? { ...data.preferences, pushNotifications: true }
           : data.preferences;
         setPreferences(nextPreferences);
-        setBrowserPushPermission(getBrowserPushPermission());
+        setBrowserPushPermission(permission);
 
         if (shouldForcePushOn) {
           await fetch("/api/notifications/preferences", {
@@ -139,7 +139,7 @@ export default function NotificationSettingsPage() {
       } else if (permission === "denied") {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
         toast.warning(
-          "Browser notifications are blocked. Enable notifications in your browser settings to continue."
+          "Browser notifications are blocked. Enable notifications in your browser's site settings/permissions panel to continue."
         );
       } else {
         setPreferences((prev) => ({ ...prev, pushNotifications: false }));
