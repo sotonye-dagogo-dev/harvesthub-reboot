@@ -8,6 +8,7 @@ import type { ColumnsType } from "antd/es/table";
 import { AdApplication } from "@/lib/types";
 import { AD_BANNER_DIMENSIONS } from "@/lib/constants";
 import { Eye, Check, X } from "lucide-react";
+import { openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
 
 interface ApplicationRow extends AdApplication {
   key: string;
@@ -105,32 +106,39 @@ export default function OperationsAdsPage() {
 
   const handleStatusUpdate = async (id: string, status: "APPROVED" | "REJECTED") => {
     const actionLabel = status === "APPROVED" ? "approve" : "reject";
-    Modal.confirm({
-      title: `Confirm ${actionLabel}`,
-      content: `Are you sure you want to ${actionLabel} this application?`,
-      onOk: async () => {
-        setLoading(true);
-        try {
-          const res = await fetch(`/api/ad-applications/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              status,
-              reviewComment: `${actionLabel}d by admin`,
-              createBanner: status === "APPROVED",
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Failed to update");
-          message.success(`Application ${actionLabel}d successfully`);
-          fetchApplications();
-        } catch (err: any) {
-          console.error(err);
-          message.error(err.message || "Could not update application");
-        } finally {
-          setLoading(false);
-        }
-      },
+    const confirmConfig = new ActionConfirmBuilder()
+      .title(status === "APPROVED" ? "Approve application" : "Reject application")
+      .message(
+        status === "APPROVED"
+          ? "Approve this ad application?"
+          : "Reject this ad application?"
+      )
+      .confirmText(status === "APPROVED" ? "Approve" : "Reject")
+      .danger(status !== "APPROVED")
+      .build();
+
+    openActionConfirm(confirmConfig, async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/ad-applications/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status,
+            reviewComment: `${actionLabel}d by admin`,
+            createBanner: status === "APPROVED",
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update");
+        message.success(`Application ${actionLabel}d successfully`);
+        fetchApplications();
+      } catch (err: any) {
+        console.error(err);
+        message.error(err.message || "Could not update application");
+      } finally {
+        setLoading(false);
+      }
     });
   };
 

@@ -1,35 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { getBannersClient } from "@/lib/data/clientDataFetchers";
 import type { Banner } from "@/lib/types";
 
 import { App, Modal, Form, Input, Select, Switch, DatePicker, Table } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
+import { isAntdFormValidationError } from "@/lib/utils/formErrors";
+
+const DEFAULT_DISPLAY_ORDER = 0;
 
 export default function OperationsBannersPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { modal, message } = App.useApp();
+  const { message } = App.useApp();
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+
+  const [form] = Form.useForm();
+
+  const reloadBanners = useCallback(async () => {
+    const res = await fetch("/api/banners");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to fetch banners");
+    }
+    const list = data.banners;
+    setBanners(Array.isArray(list) ? (list as Banner[]) : []);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
       try {
-        const b = await getBannersClient();
+        await reloadBanners();
+      } catch (error) {
         if (!mounted) return;
-        if (Array.isArray(b)) setBanners(b as any[]);
-      } catch {
-        if (!mounted) return;
+        message.error(error instanceof Error ? error.message : "Failed to load banners");
         setBanners([]);
       }
     }
@@ -37,8 +51,7 @@ export default function OperationsBannersPage() {
     return () => {
       mounted = false;
     };
-  }, []);
-  const [form] = Form.useForm();
+  }, [message, reloadBanners]);
 
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");
@@ -69,36 +82,93 @@ export default function OperationsBannersPage() {
 
   const handleSubmit = async () => {
     try {
-      await form.validateFields();
-
-      if (editingBanner) {
-        message.success("Banner updated successfully");
-      } else {
-        message.success("Banner created successfully");
+      const values = await form.validateFields();
+      const normalizedDisplayOrder = Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER);
+      if (!Number.isFinite(normalizedDisplayOrder)) {
+        message.error("Display order must be a valid number.");
+        return;
       }
+      const payload = {
+        title: values.title,
+        description: values.description || null,
+        imageUrl: values.imageUrl,
+        linkUrl: values.linkUrl || null,
+        position: values.position,
+        displayOrder: normalizedDisplayOrder,
+        isActive: values.isActive ?? true,
+        startDate: values.startDate ? values.startDate.toISOString() : undefined,
+        endDate: values.endDate ? values.endDate.toISOString() : null,
+      };
+
+      const endpoint = editingBanner ? `/api/banners/${editingBanner.id}` : "/api/banners";
+      const method = editingBanner ? "PUT" : "POST";
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save banner");
+      }
+
+      message.success(editingBanner ? "Banner updated successfully" : "Banner created successfully");
+      await reloadBanners();
 
       setShowModal(false);
       form.resetFields();
-    } catch {
-      message.error("Please fill in all required fields");
+    } catch (error) {
+      if (isAntdFormValidationError(error)) {
+        message.error("Please fill in all required fields");
+        return;
+      }
+      if (error instanceof Error) {
+        message.error(error.message);
+        return;
+      }
+      message.error("Failed to save banner");
     }
   };
 
   const handleDelete = (bannerId: string) => {
-    console.log("Deleting banner:", bannerId);
-    modal.confirm({
-      title: "Delete Banner",
-      content: "Are you sure you want to delete this banner?",
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => {
+    openActionConfirm(ActionConfirmPresets.delete("banner"), async () => {
+      try {
+        const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          message.error(data.error || "Failed to delete banner");
+          return;
+        }
         message.success("Banner deleted successfully");
-      },
+        await reloadBanners();
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : "Failed to delete banner");
+      }
     });
   };
 
-  const handleToggleActive = (bannerId: string, currentStatus: boolean) => {
-    message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
+  const handleToggleActive = async (bannerId: string, currentStatus: boolean) => {
+    try {
+      const targetStatus = !currentStatus;
+      const res = await fetch(`/api/banners/${bannerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: targetStatus }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        message.error(data.error || "Failed to update banner status");
+        return;
+      }
+      message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
+      setBanners((prev) =>
+        prev.map((banner) =>
+          banner.id === bannerId ? { ...banner, isActive: targetStatus } : banner
+        )
+      );
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Failed to update banner status");
+    }
   };
 
   const columns = [

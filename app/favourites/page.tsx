@@ -10,11 +10,13 @@ import type { Product, Vendor } from "@/lib/types";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 export default function FavouritesPage() {
   const { addItem } = useCart();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
+  const toast = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -58,6 +60,13 @@ export default function FavouritesPage() {
       vendorName,
       stock: product.stock,
     });
+    toast.success("Added to cart");
+  };
+
+  const handleToggleFavorite = (productId: string) => {
+    const wasFavorite = isFavorite(productId);
+    toggleFavorite(productId);
+    toast.success(wasFavorite ? "Removed from favourites" : "Added to favourites");
   };
 
   return (
@@ -114,7 +123,7 @@ export default function FavouritesPage() {
                   isFeatured={product.isFeatured}
                   isVendorVerified={vendorStatus === "APPROVED"}
                   isFavorite={isFavorite(product.id)}
-                  onToggleFavorite={() => toggleFavorite(product.id)}
+                  onToggleFavorite={() => handleToggleFavorite(product.id)}
                   onAddToCart={() => handleAddToCart(product)}
                 />
               );

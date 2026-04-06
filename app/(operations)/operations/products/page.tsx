@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LISTING_TYPES, PRODUCT_SUBCATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { loadLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/utils/localDraft";
 import {
   Button,
@@ -13,7 +14,6 @@ import {
   Input,
   InputNumber,
   Modal,
-  Popconfirm,
   Select,
   Space,
   Switch,
@@ -494,17 +494,18 @@ export default function OperationsProductsPage() {
           <Button size="small" icon={<EditOutlined />} onClick={() => openEditModal(record)}>
             Edit
           </Button>
-          <Popconfirm
-            title="Delete this product?"
-            description="This action cannot be undone."
-            okText="Delete"
-            okButtonProps={{ danger: true }}
-            onConfirm={() => deleteProduct(record.id)}
+          <Button
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() =>
+              openActionConfirm(ActionConfirmPresets.delete("product"), () =>
+                deleteProduct(record.id)
+              )
+            }
           >
-            <Button size="small" danger icon={<DeleteOutlined />}>
-              Delete
-            </Button>
-          </Popconfirm>
+            Delete
+          </Button>
         </Space>
       ),
     },

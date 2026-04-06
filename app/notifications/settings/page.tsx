@@ -6,12 +6,13 @@
 "use client";
 
 import { PageLoader } from "@/components/ui";
-import { useState, useEffect } from "react";
-import { Card, Switch, Button, message } from "antd";
+import { useState, useEffect, useCallback } from "react";
+import { Card, Switch, Button } from "antd";
 import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
 import { useNotifications } from "@/lib/contexts/NotificationContext";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Sidebar } from "@/components/layout";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 interface NotificationPreferences {
   orderConfirmed: boolean;
@@ -27,11 +28,20 @@ interface NotificationPreferences {
   promotions: boolean;
   emailNotifications: boolean;
   smsNotifications: boolean;
+  pushNotifications: boolean;
 }
+
+const PUSH_PERMISSION_LABELS: Record<NotificationPermission | "unsupported", string> = {
+  granted: "Allowed",
+  denied: "Blocked",
+  default: "Not set",
+  unsupported: "Unsupported",
+};
 
 export default function NotificationSettingsPage() {
   const { user, isLoading } = useAuth();
-  const { enablePushNotifications } = useNotifications();
+  const { enablePushNotifications, getBrowserPushPermission } = useNotifications();
+  const toast = useToast();
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     orderConfirmed: true,
     orderReady: true,
@@ -46,31 +56,41 @@ export default function NotificationSettingsPage() {
     promotions: false,
     emailNotifications: true,
     smsNotifications: false,
+    pushNotifications: true,
   });
   const [isFetchingPreferences, setIsFetchingPreferences] = useState(false);
   const [saving, setSaving] = useState(false);
   const [enablingPush, setEnablingPush] = useState(false);
+  const [browserPushPermission, setBrowserPushPermission] = useState<
+    NotificationPermission | "unsupported"
+  >("unsupported");
 
-  // Fetch preferences
-  useEffect(() => {
-    fetchPreferences();
-  }, []);
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = useCallback(async () => {
     setIsFetchingPreferences(true);
     try {
       const res = await fetch("/api/notifications/preferences");
       const data = await res.json();
 
       if (data.success) {
+        const permission = getBrowserPushPermission();
         setPreferences(data.preferences);
+        setBrowserPushPermission(permission);
       }
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
     } finally {
       setIsFetchingPreferences(false);
     }
-  };
+  }, [getBrowserPushPermission]);
+
+  // Fetch preferences
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
+
+  useEffect(() => {
+    setBrowserPushPermission(getBrowserPushPermission());
+  }, [getBrowserPushPermission]);
 
   const savePreferences = async () => {
     setSaving(true);
@@ -84,13 +104,16 @@ export default function NotificationSettingsPage() {
       const data = await res.json();
 
       if (data.success) {
-        message.success("Notification preferences saved");
+        const permission = getBrowserPushPermission();
+        setPreferences(data.preferences);
+        setBrowserPushPermission(permission);
+        toast.success("Notification preferences saved");
       } else {
-        message.error(data.error || "Failed to save preferences");
+        toast.error(data.error || "Failed to save preferences");
       }
     } catch (error) {
       console.error("Failed to save preferences:", error);
-      message.error("Failed to save preferences");
+      toast.error("Failed to save preferences");
     } finally {
       setSaving(false);
     }
@@ -100,18 +123,54 @@ export default function NotificationSettingsPage() {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
+  const persistPreferences = useCallback(
+    async (nextPreferences: NotificationPreferences) => {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nextPreferences),
+      });
+      const data = await res.json().catch(() => ({}));
+      return { res, data };
+    },
+    []
+  );
+
   const enableBrowserPush = async () => {
     setEnablingPush(true);
     try {
-      await enablePushNotifications();
-      message.success("Browser push notifications enabled");
+      const enabled = await enablePushNotifications();
+      const permission = getBrowserPushPermission();
+      setBrowserPushPermission(permission);
+
+      if (enabled) {
+        const nextPreferences = { ...preferences, pushNotifications: true };
+        const { res, data } = await persistPreferences(nextPreferences);
+        if (!res.ok || !data.success) {
+          toast.warning("Push enabled. Click Save to update your preferences.");
+          setPreferences(nextPreferences);
+          return;
+        }
+        setPreferences(data.preferences);
+        toast.success("Browser push notifications enabled");
+      } else if (permission === "denied") {
+        setPreferences((prev) => ({ ...prev, pushNotifications: false }));
+        toast.warning(
+          "Browser notifications blocked. Enable them in your browser's site settings to use this feature."
+        );
+      } else {
+        setPreferences((prev) => ({ ...prev, pushNotifications: false }));
+        toast.error("Unable to enable browser push notifications");
+      }
     } catch (error) {
       console.error("Failed to enable browser push notifications:", error);
-      message.error("Unable to enable browser push notifications");
+      toast.error("Unable to enable browser push notifications");
     } finally {
       setEnablingPush(false);
     }
   };
+
+  const pushPermissionLabel = PUSH_PERMISSION_LABELS[browserPushPermission];
 
   if (isLoading || isFetchingPreferences) {
     return <PageLoader />;
@@ -377,10 +436,17 @@ export default function NotificationSettingsPage() {
                   <div className="text-sm text-ds-text-secondary">
                     Enable this browser to receive web push notifications
                   </div>
+                  <div className="text-xs text-ds-text-tertiary">
+                    Browser permission: {pushPermissionLabel}
+                  </div>
                 </div>
               </div>
-              <Button onClick={enableBrowserPush} loading={enablingPush}>
-                Enable Push
+              <Button
+                onClick={enableBrowserPush}
+                loading={enablingPush}
+                disabled={browserPushPermission === "unsupported"}
+              >
+                {browserPushPermission === "granted" ? "Push Enabled" : "Enable Push"}
               </Button>
             </div>
           </div>

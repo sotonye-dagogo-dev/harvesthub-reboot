@@ -23,6 +23,51 @@
 ```
 
 ---
+
+## 2026-04-06 — Unified Confirmations + Operations Leftover Slice
+
+**Summary:**
+Completed a single-pass operations hardening slice to improve production readiness by unifying confirmatory UX for destructive/removal actions and closing leftover messaging concerns in vendor marketing content surfaces.
+
+**Completed:**
+- Added shared OOP-backed confirmation utility (`ActionConfirmBuilder` + presets + opener).
+- Migrated high-risk operations actions (delete/reject/suspend/activate/approve style flows) to shared confirmation patterns.
+- Replaced ambiguous empty-state wording in vendor marketing-content table context with neutral production-safe copy.
+- Updated `.ai-system` queue, decisions, and session log artifacts.
+- Re-validated with `npm run lint` and `npm run build`.
+
+**Key Changes:**
+- Confirm dialogs are now config-driven and reusable with concise, consistent copy conventions.
+- Operations UX now has better guardrails around risky actions and less ad hoc confirm behavior.
+
+**Next Sprint Focus:**
+Continue residual operations reliability audit on remaining detailed pages/routes not yet migrated to shared confirmations and close any validation findings from final review/security checks.
+
+---
+
+## 2026-04-06 — Operations Banners End-to-End Reliability Pass
+
+**Summary:**
+Continued the requested platform-wide audit by closing a high-impact admin workflow gap in operations banners. The banners management page now performs real API mutations for create/update/delete/toggle actions and only surfaces success feedback after backend confirmation.
+
+**Completed:**
+- Wired `/operations/banners` mutations to `/api/banners` and `/api/banners/[id]`.
+- Replaced local-only success paths with API-confirmed success/error handling.
+- Added list refresh/state update hooks after successful mutations.
+- Improved banner cache strategy:
+  - filtered GET cache keys (`active`/`position` aware)
+  - broad mutation invalidation for banner cache fan-out (`cache:banners:*`)
+- Updated `.ai-system` queue, decisions, and checkpoint logs for traceability.
+
+**Key Changes:**
+- Admin banner actions are now genuinely end-to-end functional (UI → API → persistence → refreshed UI), reducing false success states.
+- Banner cache correctness is improved for both filtered reads and mutation invalidation.
+
+**Next Sprint Focus:**
+Continue the same audit pattern on the next operations slices (`/operations/ads` and `/operations/vendors`) for response handling consistency and end-to-end reliability hardening.
+
+---
+
 ## 2026-04-05 — Exhaustive Audit Synthesis + Cloud Closure Queue
 
 **Summary:**

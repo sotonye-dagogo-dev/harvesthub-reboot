@@ -11,7 +11,17 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  enablePushNotifications: () => Promise<void>;
+  /**
+   * Requests browser push permission when needed and synchronizes the current
+   * browser push subscription with backend persistence.
+   * Returns true when subscription sync succeeds.
+   */
+  enablePushNotifications: () => Promise<boolean>;
+  /**
+   * Returns current browser Notification.permission state.
+   * Returns "unsupported" when Notification APIs are unavailable in this environment.
+   */
+  getBrowserPushPermission: () => NotificationPermission | "unsupported";
   refreshNotifications: () => void;
 }
 
@@ -166,8 +176,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const enablePushNotifications = useCallback(async () => {
-    await syncPushSubscription(true);
+    return syncPushSubscription(true);
   }, [syncPushSubscription]);
+
+  const getBrowserPushPermission = useCallback((): NotificationPermission | "unsupported" => {
+    if (typeof window === "undefined" || typeof Notification === "undefined") {
+      return "unsupported";
+    }
+    return Notification.permission;
+  }, []);
 
   const refreshNotifications = useCallback(() => {
     fetchNotifications();
@@ -200,6 +217,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         markAllAsRead,
         deleteNotification,
         enablePushNotifications,
+        getBrowserPushPermission,
         refreshNotifications,
       }}
     >

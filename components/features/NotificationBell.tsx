@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from "react";
 import { Badge, Dropdown, Button } from "antd";
-import { SectionLoader, EmptyState } from "@/components/ui";
+import { SectionLoader, EmptyState, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Bell, Check, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -187,7 +187,9 @@ export function NotificationBell() {
                       icon={<X className="h-4 w-4" />}
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotification(notification.id);
+                        openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
+                          deleteNotification(notification.id)
+                        );
                       }}
                       title="Delete"
                     />

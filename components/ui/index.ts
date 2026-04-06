@@ -48,3 +48,6 @@ export type { StatCardProps, StatColorPreset } from "./StatCard";
 
 export { PriceDisplay } from "./PriceDisplay";
 export type { PriceDisplayProps } from "./PriceDisplay";
+
+export { openActionConfirm, ActionConfirmBuilder, ActionConfirmPresets } from "./actionConfirm";
+export type { ActionConfirmConfig } from "./actionConfirm";

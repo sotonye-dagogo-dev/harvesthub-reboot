@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { booleanColor } from "@/components/ui";
+import { booleanColor, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Table, Button, Modal, message, Tag, Rate, Image, Space, Input } from "antd";
 import { Flag, Trash2, Eye, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -60,30 +60,24 @@ export function ReviewModerationPanel() {
   };
 
   const deleteReview = async (reviewId: string) => {
-    Modal.confirm({
-      title: "Delete Review",
-      content: "Are you sure you want to delete this review? This action cannot be undone.",
-      okText: "Delete",
-      okType: "danger",
-      onOk: async () => {
-        try {
-          const res = await fetch(`/api/admin/reviews/${reviewId}`, {
-            method: "DELETE",
-          });
+    openActionConfirm(ActionConfirmPresets.delete("review"), async () => {
+      try {
+        const res = await fetch(`/api/admin/reviews/${reviewId}`, {
+          method: "DELETE",
+        });
 
-          const data = await res.json();
+        const data = await res.json();
 
-          if (data.success) {
-            message.success("Review deleted successfully");
-            fetchReviews();
-          } else {
-            message.error(data.error || "Failed to delete review");
-          }
-        } catch (error) {
-          console.error("Failed to delete review:", error);
-          message.error("Failed to delete review");
+        if (data.success) {
+          message.success("Review deleted successfully");
+          fetchReviews();
+        } else {
+          message.error(data.error || "Failed to delete review");
         }
-      },
+      } catch (error) {
+        console.error("Failed to delete review:", error);
+        message.error("Failed to delete review");
+      }
     });
   };
 

@@ -3,11 +3,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { getProductsClient } from "@/lib/data/clientDataFetchers";
 import type { Vendor, User, Product } from "@/lib/types";
 import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
 import { StatusTag } from "@/components/ui";
-import { Input, Select, Table, Modal, message, Tag, Tooltip } from "antd";
+import { Input, Select, Table, message, Tag, Tooltip } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { VendorStatus, CAMPUS_LOCATIONS } from "@/lib/constants";
@@ -104,55 +105,30 @@ export default function OperationsVendorsPage() {
   };
 
   const handleApprove = (vendorId: string) => {
-    Modal.confirm({
-      title: "Approve Vendor",
-      content: "Approve this vendor? They will be able to list products and accept orders.",
-      okText: "Approve",
-      okButtonProps: { style: { backgroundColor: "#22c55e", borderColor: "#22c55e" } },
-      onOk: async () => {
-        const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
-        if (ok) message.success("Vendor approved successfully");
-      },
+    openActionConfirm(ActionConfirmPresets.approve("vendor"), async () => {
+      const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
+      if (ok) message.success("Vendor approved successfully");
     });
   };
 
   const handleReject = (vendorId: string) => {
-    Modal.confirm({
-      title: "Reject Vendor",
-      content:
-        "Are you sure you want to reject this vendor application? The vendor will be notified.",
-      okText: "Reject",
-      okType: "danger",
-      onOk: async () => {
-        const ok = await updateVendorStatus(vendorId, VendorStatus.REJECTED);
-        if (ok) message.warning("Vendor application rejected");
-      },
+    openActionConfirm(ActionConfirmPresets.reject("vendor"), async () => {
+      const ok = await updateVendorStatus(vendorId, VendorStatus.REJECTED);
+      if (ok) message.warning("Vendor application rejected");
     });
   };
 
   const handleSuspend = (vendorId: string) => {
-    Modal.confirm({
-      title: "Suspend Vendor",
-      content: "Suspending this vendor will hide their store and products from buyers. Continue?",
-      okText: "Suspend",
-      okType: "danger",
-      onOk: async () => {
-        const ok = await updateVendorStatus(vendorId, VendorStatus.SUSPENDED);
-        if (ok) message.warning("Vendor has been suspended");
-      },
+    openActionConfirm(ActionConfirmPresets.suspend("vendor"), async () => {
+      const ok = await updateVendorStatus(vendorId, VendorStatus.SUSPENDED);
+      if (ok) message.warning("Vendor has been suspended");
     });
   };
 
   const handleUnsuspend = (vendorId: string) => {
-    Modal.confirm({
-      title: "Reactivate Vendor",
-      content: "Reactivate this vendor? Their store and products will become visible again.",
-      okText: "Reactivate",
-      okButtonProps: { style: { backgroundColor: "#22c55e", borderColor: "#22c55e" } },
-      onOk: async () => {
-        const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
-        if (ok) message.success("Vendor reactivated successfully");
-      },
+    openActionConfirm(ActionConfirmPresets.activate("vendor"), async () => {
+      const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
+      if (ok) message.success("Vendor reactivated successfully");
     });
   };
 

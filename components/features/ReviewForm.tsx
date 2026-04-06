@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Star, Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 interface ReviewFormProps {
   productId: string;
@@ -19,6 +20,7 @@ export function ReviewForm({
   onSuccess,
   onCancel,
 }: ReviewFormProps) {
+  const toast = useToast();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -51,13 +53,16 @@ export function ReviewForm({
 
       if (!res.ok) {
         setError(data.error || "Failed to submit review");
+        toast.error(data.error || "Failed to submit review");
         return;
       }
 
       setSubmitted(true);
+      toast.success("Review submitted successfully");
       onSuccess?.();
     } catch {
       setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

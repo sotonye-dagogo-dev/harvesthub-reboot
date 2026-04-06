@@ -3,11 +3,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import type { User } from "@/lib/types";
 import { Users, Search, Eye, Ban, CheckCircle, Trash2 } from "lucide-react";
 
 import { StatusTag } from "@/components/ui";
-import { Input, Select, Table, Modal, message, Avatar } from "antd";
+import { Input, Select, Table, message, Avatar } from "antd";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/lib/constants";
 
@@ -89,17 +90,19 @@ export default function OperationsUsersPage() {
   }
 
   const handleToggleStatus = (targetUser: User) => {
-    message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
+    openActionConfirm(
+      targetUser.isActive
+        ? ActionConfirmPresets.suspend("user")
+        : ActionConfirmPresets.activate("user"),
+      () => {
+        message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
+      }
+    );
   };
 
   const handleDelete = (_userId: string) => {
-    Modal.confirm({
-      title: "Delete User",
-      content:
-        "Are you sure you want to permanently delete this user? This action cannot be undone.",
-      okText: "Delete",
-      okType: "danger",
-      onOk: () => message.success("User deleted"),
+    openActionConfirm(ActionConfirmPresets.delete("user"), () => {
+      message.success("User deleted");
     });
   };
 
