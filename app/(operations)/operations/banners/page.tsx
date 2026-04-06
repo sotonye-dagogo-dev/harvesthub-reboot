@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
+import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
 import type { Banner } from "@/lib/types";
@@ -25,7 +26,7 @@ const isFormValidationError = (error: unknown): error is AntdFormValidationError
 export default function OperationsBannersPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { modal, message } = App.useApp();
+  const { message } = App.useApp();
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -132,25 +133,19 @@ export default function OperationsBannersPage() {
   };
 
   const handleDelete = (bannerId: string) => {
-    modal.confirm({
-      title: "Delete Banner",
-      content: "Are you sure you want to delete this banner?",
-      okText: "Delete",
-      okType: "danger",
-      onOk: async () => {
-        try {
-          const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            message.error(data.error || "Failed to delete banner");
-            return;
-          }
-          message.success("Banner deleted successfully");
-          await reloadBanners();
-        } catch (error) {
-          message.error(error instanceof Error ? error.message : "Failed to delete banner");
+    openActionConfirm(ActionConfirmPresets.delete("banner"), async () => {
+      try {
+        const res = await fetch(`/api/banners/${bannerId}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          message.error(data.error || "Failed to delete banner");
+          return;
         }
-      },
+        message.success("Banner deleted successfully");
+        await reloadBanners();
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : "Failed to delete banner");
+      }
     });
   };
 

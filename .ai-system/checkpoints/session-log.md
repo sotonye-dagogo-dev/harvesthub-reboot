@@ -39,6 +39,56 @@
 
 ---
 
+## Session 25 — 2026-04-06
+
+**Goal:**
+Execute a single-pass production-readiness slice to (1) enforce reusable confirmatory modals for destructive/removal actions and (2) close leftover operations UX concerns including vendor marketing-content placeholder-style messaging.
+
+**Completed:**
+
+- Added shared confirmation utility:
+  - `components/ui/actionConfirm.ts`
+  - OOP-backed builder (`ActionConfirmBuilder`) + presets (`ActionConfirmPresets`) + `openActionConfirm`.
+- Applied shared confirm patterns to high-impact operations actions:
+  - `operations/marketing-content` delete
+  - `operations/products` delete
+  - `operations/users` status toggle + delete
+  - `operations/users/[id]` deactivate/activate/ban/unban/delete
+  - `operations/vendors` approve/reject/suspend/reactivate
+  - `operations/vendors/[id]` approve/suspend/reinstate
+  - `operations/ads` approve/reject application
+  - `operations/banners` delete
+- Removed ambiguous placeholder-style message in vendor marketing-content table context:
+  - Empty state now uses neutral production-safe copy (`No content found.`) instead of promotional placeholder wording.
+- Re-ran validation baseline for touched scope:
+  - `npm run lint` ✅
+  - `npm run build` ✅
+
+**Files Modified:**
+
+- components/ui/actionConfirm.ts
+- components/ui/index.ts
+- app/(operations)/operations/marketing-content/page.tsx
+- app/(operations)/operations/products/page.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/users/[id]/page.tsx
+- app/(operations)/operations/vendors/page.tsx
+- app/(operations)/operations/vendors/[id]/page.tsx
+- app/(operations)/operations/ads/page.tsx
+- app/(operations)/operations/banners/page.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run final parallel validation and resolve any valid review/security findings from this slice.
+
+**Notes / Blockers:**
+
+- Existing build-time sitemap warnings remain baseline noise (`product.findMany`/`vendor.findMany` in sitemap path), not introduced by this slice.
+
+---
+
 ## Session 24 — 2026-04-06
 
 **Goal:**
