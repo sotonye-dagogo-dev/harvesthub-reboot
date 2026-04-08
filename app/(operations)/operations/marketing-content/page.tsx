@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { PageLoader, SectionLoader } from "@/components/ui";
 import {
   Button,
   Card,
@@ -16,12 +17,18 @@ import {
   message,
   Switch,
   Empty,
-  Spin,
 } from "antd";
-import { PlusOutlined, UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload";
 import dayjs from "dayjs";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -67,8 +74,6 @@ interface ContentItem {
 
 export default function OperationsMarketingContentPage() {
   const { user } = useAuth();
-  const [content, setContent] = useState<ContentItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [resolvingVendor, setResolvingVendor] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -123,26 +128,34 @@ export default function OperationsMarketingContentPage() {
     };
   }, [user]);
 
-  const fetchContent = useCallback(async () => {
-    if (!vendorId) {
-      setLoading(false);
-      return;
+  const fetchContent = useCallback(async (): Promise<ContentItem[]> => {
+    if (!vendorId) return [];
+
+    const res = await fetch(`/api/vendors/${vendorId}/content`);
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Failed to load marketing content");
     }
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/vendors/${vendorId}/content`);
-      const data = await res.json();
-      if (data.success) setContent(data.data);
-    } catch {
-      message.error("Failed to load content");
-    } finally {
-      setLoading(false);
-    }
+
+    const list = Array.isArray(data.data) ? data.data : [];
+    return list as ContentItem[];
   }, [vendorId]);
 
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
+  const {
+    data: contentData,
+    isLoading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(fetchContent, {
+    key: `vendor-marketing-content:${vendorId ?? "none"}`,
+    enabled: Boolean(vendorId),
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
+  const content = contentData ?? [];
 
   const handleFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -187,7 +200,7 @@ export default function OperationsMarketingContentPage() {
         setEditItem(null);
         setFileList([]);
         form.resetFields();
-        fetchContent();
+        await refresh(true);
       } else {
         message.error(data.error || "Failed to save content");
       }
@@ -205,7 +218,7 @@ export default function OperationsMarketingContentPage() {
       const data = await res.json();
       if (data.success) {
         message.success("Content deleted");
-        fetchContent();
+        await refresh(true);
       } else {
         message.error(data.error || "Delete failed");
       }
@@ -233,7 +246,7 @@ export default function OperationsMarketingContentPage() {
   const openCreate = () => {
     setEditItem(null);
     form.resetFields();
-    form.setFieldsValue({ usageRights: true });
+    form.setFieldsValue({ usageRights: true, targetPlatform: "all" });
     setFileList([]);
     setModalOpen(true);
   };
@@ -293,11 +306,7 @@ export default function OperationsMarketingContentPage() {
   ];
 
   if (resolvingVendor) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <Spin />
-      </div>
-    );
+    return <PageLoader minHeight="min-h-96" message="Resolving vendor workspace..." />;
   }
 
   if (!vendorId && user?.role === "ADMIN") {
@@ -326,10 +335,19 @@ export default function OperationsMarketingContentPage() {
           <p className="text-ds-text-secondary mt-1">
             Upload images, videos, and promotional content for platform-assisted marketing.
           </p>
+          {isRefreshing ? (
+            <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing in background...</p>
+          ) : null}
+          {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          Upload Content
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
+            Refresh
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            Upload Content
+          </Button>
+        </div>
       </div>
 
       {/* Rejection notices */}
@@ -344,19 +362,20 @@ export default function OperationsMarketingContentPage() {
           </Card>
         ))}
 
-      <Spin spinning={loading}>
-        {content.length === 0 && !loading ? (
-          <Empty description="No content found." />
-        ) : (
-          <Table
-            dataSource={content}
-            columns={columns}
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 600 }}
-          />
-        )}
-      </Spin>
+      {isLoading && content.length === 0 ? (
+        <SectionLoader />
+      ) : content.length === 0 ? (
+        <Empty description="No content found." />
+      ) : (
+        <Table
+          dataSource={content}
+          columns={columns}
+          rowKey="id"
+          loading={isRefreshing}
+          pagination={{ defaultPageSize: 10 }}
+          scroll={{ x: 600 }}
+        />
+      )}
 
       {/* Create/Edit Modal */}
       <Modal
@@ -431,8 +450,12 @@ export default function OperationsMarketingContentPage() {
               </Form.Item>
             )}
 
-          <Form.Item name="targetPlatform" label="Target Platform">
-            <Select placeholder="Where should this be used?" allowClear>
+          <Form.Item
+            name="targetPlatform"
+            label="Target Platform"
+            rules={[{ required: true, message: "Please choose where this content should be used" }]}
+          >
+            <Select placeholder="Where should this be used?">
               {TARGET_PLATFORMS.map((p) => (
                 <Option key={p.value} value={p.value}>
                   {p.label}

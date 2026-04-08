@@ -61,6 +61,11 @@ export default function OperationsBannersPage() {
   const handleCreate = () => {
     setEditingBanner(null);
     form.resetFields();
+    form.setFieldsValue({
+      position: "HERO",
+      isActive: true,
+      displayOrder: DEFAULT_DISPLAY_ORDER,
+    });
     setShowModal(true);
   };
 
@@ -89,7 +94,7 @@ export default function OperationsBannersPage() {
         return;
       }
       const payload = {
-        title: values.title,
+        title: values.position === "TOP" ? values.title || "" : values.title,
         description: values.description || null,
         imageUrl: values.imageUrl,
         linkUrl: values.linkUrl || null,
@@ -112,7 +117,9 @@ export default function OperationsBannersPage() {
         throw new Error(data.error || "Failed to save banner");
       }
 
-      message.success(editingBanner ? "Banner updated successfully" : "Banner created successfully");
+      message.success(
+        editingBanner ? "Banner updated successfully" : "Banner created successfully"
+      );
       await reloadBanners();
 
       setShowModal(false);
@@ -287,7 +294,12 @@ export default function OperationsBannersPage() {
         </Card>
       ) : (
         <Card>
-          <Table columns={columns} dataSource={banners} rowKey="id" pagination={{ pageSize: 10 }} />
+          <Table
+            columns={columns}
+            dataSource={banners}
+            rowKey="id"
+            pagination={{ defaultPageSize: 10 }}
+          />
         </Card>
       )}
 
@@ -301,11 +313,31 @@ export default function OperationsBannersPage() {
       >
         <Form form={form} layout="vertical" className="mt-4">
           <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: "Please enter banner title" }]}
+            shouldUpdate={(prevValues, nextValues) => prevValues.position !== nextValues.position}
+            noStyle
           >
-            <Input placeholder="Enter banner title" />
+            {({ getFieldValue }) => {
+              const position = getFieldValue("position");
+              const hideTitle = position === "TOP";
+
+              if (hideTitle) {
+                return (
+                  <div className="mb-4 rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken p-3 text-sm text-ds-text-secondary">
+                    Top banners render image-only. Title text is hidden from the top strip.
+                  </div>
+                );
+              }
+
+              return (
+                <Form.Item
+                  name="title"
+                  label="Title"
+                  rules={[{ required: true, message: "Please enter banner title" }]}
+                >
+                  <Input placeholder="Enter banner title" />
+                </Form.Item>
+              );
+            }}
           </Form.Item>
 
           <Form.Item name="description" label="Description">

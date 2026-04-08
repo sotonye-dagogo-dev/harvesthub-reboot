@@ -32,6 +32,26 @@ function normalizeBannerText(value: string | null | undefined): string {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
+  const getProductReviewMetrics = (product: Product) => {
+    const reviewCount =
+      typeof product.totalReviews === "number"
+        ? product.totalReviews
+        : (product.reviews?.length ?? 0);
+
+    if (!product.reviews || product.reviews.length === 0) {
+      return {
+        reviewCount,
+        avgRating: typeof product.averageRating === "number" ? product.averageRating : 0,
+      };
+    }
+
+    return {
+      reviewCount,
+      avgRating:
+        product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length,
+    };
+  };
+
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
   const activeBanners = banners
     .filter(
@@ -70,7 +90,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   // Get trending products (sort by reviews count)
   const trendingProducts = products
     .filter((product) => product.isActive)
-    .sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0))
+    .sort((a, b) => getProductReviewMetrics(b).reviewCount - getProductReviewMetrics(a).reviewCount)
     .slice(0, 8);
 
   // Get new arrivals (sort by createdAt)
@@ -163,10 +183,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
-                const avgRating =
-                  product.reviews && product.reviews.length > 0
-                    ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-                    : 0;
+                const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
                   <div
@@ -181,7 +198,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
-                      reviewCount={product.reviews?.length || 0}
+                      reviewCount={reviewCount}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}
@@ -216,10 +233,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
-                const avgRating =
-                  product.reviews && product.reviews.length > 0
-                    ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-                    : 0;
+                const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
                   <div
@@ -234,7 +248,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
-                      reviewCount={product.reviews?.length || 0}
+                      reviewCount={reviewCount}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}
@@ -269,10 +283,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const vendor = vendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
-                const avgRating =
-                  product.reviews && product.reviews.length > 0
-                    ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-                    : 0;
+                const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
                   <div
@@ -287,7 +298,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       vendorName={vendorName}
                       vendorId={product.vendorId}
                       rating={avgRating}
-                      reviewCount={product.reviews?.length || 0}
+                      reviewCount={reviewCount}
                       stock={product.stock}
                       discount={product.discount}
                       isFeatured={product.isFeatured}

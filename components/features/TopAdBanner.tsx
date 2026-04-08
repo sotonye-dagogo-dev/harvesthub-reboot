@@ -57,15 +57,6 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
   };
 }
 
-function normalizeBannerText(value: string | null | undefined): string {
-  if (!value) return "";
-  return value
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 // ─── Component ────────────────────────────────────────────────────
 
 export function TopAdBanner() {
@@ -86,7 +77,8 @@ export function TopAdBanner() {
               b.isActive &&
               b.position === "TOP" &&
               (!b.endDate || new Date(b.endDate) >= new Date()) &&
-              normalizeBannerText(b.title).length > 0
+              typeof b.imageUrl === "string" &&
+              b.imageUrl.trim().length > 0
           )
           .sort((a, b) => a.displayOrder - b.displayOrder);
         if (!mounted) return;
@@ -132,13 +124,10 @@ export function TopAdBanner() {
   const banner = banners[currentIndex];
   if (!banner) return null;
 
-  const displayTitle = normalizeBannerText(banner.title);
-  if (!displayTitle) return null;
-
   const themeClasses = getThemeClasses(banner.theme);
-  const primaryAction = banner.actions?.[0];
-  const hasLink = primaryAction?.href ?? banner.linkUrl ?? undefined;
+  const hasLink = banner.actions?.[0]?.href ?? banner.linkUrl ?? undefined;
   const hasImage = !!banner.imageUrl;
+  const ariaLabel = (banner.title || "").trim() || "Top advertisement banner";
 
   // ── Inner strip markup ─────────────────────────────────────────
   const stripContent = (
@@ -149,7 +138,7 @@ export function TopAdBanner() {
         themeClasses.text
       )}
       role="banner"
-      aria-label={banner.title}
+      aria-label={ariaLabel}
     >
       {/* Background image (when available) */}
       {hasImage && (
@@ -162,8 +151,7 @@ export function TopAdBanner() {
             sizes="100vw"
             priority
           />
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-black/25" />
         </>
       )}
 
@@ -183,20 +171,10 @@ export function TopAdBanner() {
         </button>
       )}
 
-      {/* Message */}
-      <p className="relative z-10 flex-1 truncate text-center text-sm font-semibold sm:text-base">
-        {displayTitle}
-      </p>
+      <div className="relative z-10 flex-1" />
 
-      {/* Right side: CTA label + nav */}
+      {/* Right-side nav */}
       <div className="relative z-10 flex flex-shrink-0 items-center gap-1">
-        {/* Inline CTA pill */}
-        {(primaryAction?.label ?? banner.linkUrl) && (
-          <span className="hidden rounded-ds-xs border border-current/40 px-2 py-0.5 text-[11px] font-semibold sm:inline-block">
-            {primaryAction?.label ?? BANNER_CONFIG.DEFAULT_CTA_LABEL} →
-          </span>
-        )}
-
         {/* Right nav */}
         {banners.length > 1 && (
           <button

@@ -5,6 +5,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
+import type { Prisma } from '../../../../prisma/generated/client';
 
 export async function GET(req: Request) {
     try {
@@ -18,7 +19,23 @@ export async function GET(req: Request) {
         const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-        const where = status === 'ALL' ? {} : { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED' };
+        const where: Prisma.VendorContentWhereInput = {};
+        if (status !== 'ALL') {
+            where.status = status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED';
+        }
+
+        // Marketing-content moderation is intentionally isolated from product media assets.
+        where.AND = [
+            { targetPlatform: { not: null } },
+            { targetPlatform: { not: '' } },
+            {
+                OR: [
+                    { mediaUrl: null },
+                    { mediaUrl: { contains: 'vendor-content' } },
+                    { type: 'TEXT' },
+                ],
+            },
+        ];
 
         const [content, total] = await Promise.all([
             prisma.vendorContent.findMany({

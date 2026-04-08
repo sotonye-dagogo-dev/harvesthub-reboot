@@ -317,7 +317,7 @@ export default function OperationsBugReportsPage() {
             rowKey="id"
             pagination={{
               current: page,
-              pageSize: 20,
+              defaultPageSize: 20,
               total,
               onChange: (p) => setPage(p),
               showTotal: (t) => `${t} reports`,

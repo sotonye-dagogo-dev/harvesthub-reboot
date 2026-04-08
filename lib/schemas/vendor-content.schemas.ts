@@ -6,6 +6,13 @@
 import { z } from 'zod';
 
 export const vendorContentTypeEnum = z.enum(['IMAGE', 'VIDEO', 'TEXT', 'PROMO_BANNER']);
+export const vendorContentTargetPlatformEnum = z.enum([
+    'instagram',
+    'tiktok',
+    'twitter',
+    'website',
+    'all',
+]);
 
 export const createVendorContentSchema = z.object({
     type: vendorContentTypeEnum,
@@ -25,7 +32,7 @@ export const createVendorContentSchema = z.object({
         .trim()
         .optional(),
     usageRights: z.boolean({ required_error: 'You must confirm usage rights' }),
-    targetPlatform: z.string().max(100).optional(),
+    targetPlatform: vendorContentTargetPlatformEnum.default('all'),
     validFrom: z.string().datetime().optional(),
     validTo: z.string().datetime().optional(),
 });

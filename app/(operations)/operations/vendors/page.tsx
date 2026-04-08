@@ -1,39 +1,83 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Card, Button, EmptyState } from "@/components/ui";
+import { Card, Button, EmptyState, SectionLoader, VendorAvatar } from "@/components/ui";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
-import { getProductsClient } from "@/lib/data/clientDataFetchers";
 import type { Vendor, User, Product } from "@/lib/types";
 import { Store, Search, Eye, CheckCircle, XCircle, Ban, MapPin, RefreshCw } from "lucide-react";
 import { StatusTag } from "@/components/ui";
 import { Input, Select, Table, message, Tag, Tooltip } from "antd";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { VendorStatus, CAMPUS_LOCATIONS } from "@/lib/constants";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 type VendorsApiResponse = {
   vendors?: Vendor[];
   data?: Vendor[];
+  pagination?: {
+    totalPages?: number;
+  };
 };
 
-async function fetchVendorsByStatus(status: VendorStatus, limit = 100): Promise<Vendor[]> {
-  const res = await fetch(`/api/vendors?status=${status}&limit=${limit}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${status.toLowerCase()} vendors`);
+async function fetchAllVendors(limit = 50): Promise<Vendor[]> {
+  const collected: Vendor[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const res = await fetch(`/api/vendors?includeAllStatuses=true&page=${page}&limit=${limit}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch vendors");
+    }
+
+    const data = (await res.json()) as VendorsApiResponse;
+    const list = Array.isArray(data.vendors)
+      ? data.vendors
+      : Array.isArray(data.data)
+        ? data.data
+        : [];
+
+    collected.push(...list);
+    totalPages = Number(data?.pagination?.totalPages ?? 1);
+    page += 1;
   }
 
-  const data = (await res.json()) as VendorsApiResponse;
-  if (Array.isArray(data.vendors)) {
-    return data.vendors;
+  return collected;
+}
+
+type ProductsApiResponse = {
+  products?: Product[];
+  data?: Product[];
+  pagination?: {
+    totalPages?: number;
+  };
+};
+
+async function fetchAllProducts(limit = 50): Promise<Product[]> {
+  const collected: Product[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const res = await fetch(`/api/products?isActive=true&page=${page}&limit=${limit}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch products");
+    }
+
+    const data = (await res.json()) as ProductsApiResponse;
+    const list = Array.isArray(data.products)
+      ? data.products
+      : Array.isArray(data.data)
+        ? data.data
+        : [];
+
+    collected.push(...list);
+    totalPages = Number(data?.pagination?.totalPages ?? 1);
+    page += 1;
   }
 
-  if (Array.isArray(data.data)) {
-    return data.data;
-  }
-
-  return [];
+  return collected;
 }
 
 export default function OperationsVendorsPage() {
@@ -41,46 +85,39 @@ export default function OperationsVendorsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  useEffect(() => {
-    let mounted = true;
-    async function loadVendors() {
-      try {
-        const [vendorsByStatus, productsRes] = await Promise.all([
-          Promise.all(
-            Object.values(VendorStatus).map((status) =>
-              fetchVendorsByStatus(status as VendorStatus)
-            )
-          ),
-          getProductsClient(),
-        ]);
+  const loadVendorsResource = useCallback(async () => {
+    const [vendorsRes, productsRes] = await Promise.all([fetchAllVendors(), fetchAllProducts()]);
 
-        const mergedVendors = vendorsByStatus.flat();
-        const uniqueById = new Map<string, Vendor>();
-        mergedVendors.forEach((vendor) => {
-          uniqueById.set(vendor.id, vendor);
-        });
+    const uniqueById = new Map<string, Vendor>();
+    vendorsRes.forEach((vendor) => {
+      uniqueById.set(vendor.id, vendor);
+    });
 
-        if (!mounted) return;
-        setVendors(Array.from(uniqueById.values()));
-        setAllProducts(Array.isArray(productsRes) ? productsRes : []);
-      } catch (e) {
-        if (!mounted) return;
-        message.error("Unable to load vendor data. Please try again later.");
-        setVendors([]);
-        setAllProducts([]);
-      }
-    }
-    loadVendors();
-    return () => {
-      mounted = false;
+    return {
+      vendors: Array.from(uniqueById.values()),
+      allProducts: Array.isArray(productsRes) ? productsRes : [],
     };
   }, []);
+
+  const {
+    data: resource,
+    isLoading,
+    isRefreshing,
+    error,
+    mutate,
+    refresh,
+  } = useSmartResource(loadVendorsResource, {
+    key: "operations-vendors-resource",
+    refreshIntervalMs: 90_000,
+    staleTimeMs: 15_000,
+  });
+
+  const vendors = resource?.vendors;
+  const allProducts = resource?.allProducts ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const filteredVendors = useMemo(() => {
-    let filtered = [...vendors];
+    let filtered = [...(vendors ?? [])];
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -121,9 +158,21 @@ export default function OperationsVendorsPage() {
         message.warning("Vendor status updated, but review email delivery failed.");
       }
 
-      setVendors((prev) =>
-        prev.map((v) => (v.id === vendorId ? { ...v, status, updatedAt: new Date() } : v))
-      );
+      mutate((prev) => {
+        if (!prev) {
+          return { vendors: [], allProducts: [] };
+        }
+        return {
+          ...prev,
+          vendors: prev.vendors.map((vendor) =>
+            vendor.id === vendorId ? { ...vendor, status, updatedAt: new Date() } : vendor
+          ),
+        };
+      });
+
+      if (status === VendorStatus.APPROVED || status === VendorStatus.REJECTED) {
+        void refresh(true);
+      }
       return true;
     } catch (err) {
       message.error(err instanceof Error ? err.message : "Failed to update vendor status");
@@ -175,11 +224,11 @@ export default function OperationsVendorsPage() {
         return (
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10 overflow-hidden rounded-ds-full">
-              <Image
+              <VendorAvatar
                 src={record.storeLogo || vendorUser?.profilePicture || "/placeholder-avatar.png"}
                 alt={record.storeName}
-                fill
-                className="object-cover"
+                label={record.storeName}
+                className="h-10 w-10"
               />
             </div>
             <div>
@@ -298,12 +347,24 @@ export default function OperationsVendorsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ds-text-primary">Vendor Management</h1>
-        <p className="mt-1 text-ds-text-secondary">
-          Manage vendor accounts and applications ({filteredVendors.length} vendors)
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ds-text-primary">Vendor Management</h1>
+          <p className="mt-1 text-ds-text-secondary">
+            Manage vendor accounts and applications ({filteredVendors.length} vendors)
+          </p>
+          {isRefreshing ? (
+            <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing vendor data...</p>
+          ) : null}
+          {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+          <RefreshCw className="mr-1 h-4 w-4" />
+          Refresh
+        </Button>
       </div>
+
+      {isLoading && (vendors?.length ?? 0) === 0 ? <SectionLoader /> : null}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -373,7 +434,7 @@ export default function OperationsVendorsPage() {
             dataSource={filteredVendors}
             columns={columns}
             rowKey="id"
-            pagination={{ pageSize: 10, showSizeChanger: true }}
+            pagination={{ defaultPageSize: 10, showSizeChanger: true }}
             scroll={{ x: 900 }}
           />
         </Card>

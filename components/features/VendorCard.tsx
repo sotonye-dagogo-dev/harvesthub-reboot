@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { MapPin, Star, Package } from "lucide-react";
-import { Card, Badge } from "@/components/ui";
+import { Card, Badge, VendorAvatar } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export interface VendorCardProps {
@@ -36,15 +35,13 @@ export function VendorCard({
       <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
         <div className="flex items-start gap-4">
           {/* Vendor Logo */}
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-ds-md bg-ds-surface-sunken">
-            {logo ? (
-              <Image src={logo} alt={name} fill className="object-cover" sizes="64px" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-ds-text-placeholder">
-                {name.charAt(0)}
-              </div>
-            )}
-          </div>
+          <VendorAvatar
+            src={logo}
+            alt={name}
+            label={name}
+            className="h-16 w-16 flex-shrink-0 rounded-ds-md"
+            shape="rounded"
+          />
 
           {/* Vendor Info */}
           <div className="flex-1 min-w-0">
@@ -64,9 +61,7 @@ export function VendorCard({
             <p className="mb-2 text-sm text-ds-text-secondary">{category}</p>
 
             {description && (
-              <p className="mb-2 line-clamp-2 text-sm text-ds-text-secondary">
-                {description}
-              </p>
+              <p className="mb-2 line-clamp-2 text-sm text-ds-text-secondary">{description}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-3 text-sm text-ds-text-secondary">

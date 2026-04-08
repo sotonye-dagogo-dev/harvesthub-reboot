@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button, Card, Tag, Modal, Input, Select, Empty, Spin, message, Image } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { SectionLoader, VendorAvatar } from "@/components/ui";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -40,30 +42,35 @@ interface ContentItem {
   vendor?: { id: string; storeName: string; storeLogo?: string | null };
 }
 
+interface VendorContentApiResponse {
+  success?: boolean;
+  data?: ContentItem[];
+}
+
 export default function OperationsVendorContentPage() {
-  const [content, setContent] = useState<ContentItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [rejectModal, setRejectModal] = useState<ContentItem | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const fetchContent = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/admin/vendor-content?status=${statusFilter}`);
-      const data = await res.json();
-      if (data.success) setContent(data.data);
-    } catch {
-      message.error("Failed to load content");
-    } finally {
-      setLoading(false);
+  const fetchContent = useCallback(async (): Promise<ContentItem[]> => {
+    const res = await fetch(`/api/admin/vendor-content?status=${statusFilter}`);
+    const data = (await res.json().catch(() => ({}))) as VendorContentApiResponse;
+
+    if (!res.ok || !data.success) {
+      throw new Error("Failed to load vendor marketing submissions");
     }
+
+    return Array.isArray(data.data) ? data.data : [];
   }, [statusFilter]);
 
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
+  const { data, isLoading, isRefreshing, error, refresh } = useSmartResource(fetchContent, {
+    key: `operations-vendor-content:${statusFilter}`,
+    refreshIntervalMs: 90_000,
+    staleTimeMs: 20_000,
+  });
+
+  const content = data ?? [];
 
   const handleModerate = async (id: string, status: "APPROVED" | "REJECTED", reason?: string) => {
     setActionLoading(id);
@@ -78,7 +85,7 @@ export default function OperationsVendorContentPage() {
         message.success(`Content ${status.toLowerCase()}`);
         setRejectModal(null);
         setRejectionReason("");
-        fetchContent();
+        await refresh(true);
       } else {
         message.error(data.error || "Failed to moderate");
       }
@@ -95,20 +102,31 @@ export default function OperationsVendorContentPage() {
         <div>
           <h1 className="text-2xl font-bold text-ds-text-primary">Vendor Content Moderation</h1>
           <p className="text-ds-text-secondary mt-1">
-            Review and approve marketing content uploaded by vendors.
+            Review and approve vendor marketing submissions only (separate from product media).
           </p>
+          {isRefreshing ? (
+            <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing submissions...</p>
+          ) : null}
+          {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
         </div>
-        <Select value={statusFilter} onChange={setStatusFilter} className="w-40">
-          <Option value="PENDING">Pending</Option>
-          <Option value="APPROVED">Approved</Option>
-          <Option value="REJECTED">Rejected</Option>
-          <Option value="ACTIVE">Active</Option>
-          <Option value="ALL">All</Option>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={statusFilter} onChange={setStatusFilter} className="w-40">
+            <Option value="PENDING">Pending</Option>
+            <Option value="APPROVED">Approved</Option>
+            <Option value="REJECTED">Rejected</Option>
+            <Option value="ACTIVE">Active</Option>
+            <Option value="ALL">All</Option>
+          </Select>
+          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      <Spin spinning={loading}>
-        {content.length === 0 && !loading ? (
+      {isLoading && content.length === 0 ? <SectionLoader /> : null}
+
+      <Spin spinning={isRefreshing && content.length > 0}>
+        {content.length === 0 && !isLoading ? (
           <Empty description={`No ${statusFilter.toLowerCase()} content to review`} />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -125,7 +143,15 @@ export default function OperationsVendorContentPage() {
                 className="shadow-sm"
               >
                 <p className="text-sm text-ds-text-secondary mb-2">
-                  By: <strong>{item.vendor?.storeName ?? "Unknown"}</strong>
+                  <span className="inline-flex items-center gap-2">
+                    <VendorAvatar
+                      src={item.vendor?.storeLogo}
+                      alt={item.vendor?.storeName || "Vendor"}
+                      label={item.vendor?.storeName || "Vendor"}
+                      className="h-6 w-6"
+                    />
+                    By: <strong>{item.vendor?.storeName ?? "Unknown"}</strong>
+                  </span>
                 </p>
 
                 {item.description && (

@@ -182,7 +182,7 @@ export function ReviewModerationPanel() {
         loading={loading}
         rowKey="id"
         pagination={{
-          pageSize: 10,
+          defaultPageSize: 10,
           showSizeChanger: true,
           showTotal: (total) => `Total ${total} reviews`,
         }}

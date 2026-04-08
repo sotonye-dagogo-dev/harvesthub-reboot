@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
         const statusParam = searchParams.get('status');
+        const includeAllStatuses = searchParams.get('includeAllStatuses') === 'true';
+        const requester = includeAllStatuses ? await getCurrentUser() : null;
+        const canViewAllStatuses = includeAllStatuses && requester?.role === UserRole.ADMIN;
         const explicitStatus =
             statusParam && statusParam !== 'ALL' && Object.values(VendorStatus).includes(statusParam as VendorStatus)
                 ? (statusParam as VendorStatus)
@@ -28,14 +31,27 @@ export async function GET(req: NextRequest) {
         const category = searchParams.get('category');
         const search = searchParams.get('search');
 
-        const cacheKey = vendorListKey(JSON.stringify({ page, limit, status: explicitStatus, campus, category, search }));
-        const cached = await cacheGet(cacheKey);
-        if (cached) return NextResponse.json(cached);
+        const cacheable = !canViewAllStatuses;
+        const cacheKey = vendorListKey(JSON.stringify({
+            page,
+            limit,
+            status: explicitStatus,
+            campus,
+            category,
+            search,
+            includeAllStatuses: canViewAllStatuses,
+        }));
+        if (cacheable) {
+            const cached = await cacheGet(cacheKey);
+            if (cached) return NextResponse.json(cached);
+        }
 
         const where: Prisma.VendorWhereInput =
             explicitStatus
                 ? { status: explicitStatus }
-                : { status: { in: [VendorStatus.APPROVED, VendorStatus.PENDING] } };
+                : canViewAllStatuses
+                    ? {}
+                    : { status: { in: [VendorStatus.APPROVED, VendorStatus.PENDING] } };
         if (campus) where.campus = campus as Campus;
         if (category) where.category = category as VendorCategory;
         if (search) {
@@ -69,7 +85,9 @@ export async function GET(req: NextRequest) {
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         };
 
-        await cacheSet(cacheKey, result, 300);
+        if (cacheable) {
+            await cacheSet(cacheKey, result, 300);
+        }
         return NextResponse.json(result);
     } catch (error) {
         console.error('GET /api/vendors error:', error);

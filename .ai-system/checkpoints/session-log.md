@@ -39,6 +39,93 @@
 
 ---
 
+## Session 34 — 2026-04-08
+
+**Goal:**
+Implement the queued follow-up directive to separate vendor marketing moderation from product-media concerns, add resilient avatar fallbacks, and introduce cached/silent refresh behavior for operations pages.
+
+**Completed:**
+
+- Added shared smart-resource hook (`useSmartResource`) with in-memory cache, stale-time guard, background interval refresh, and compare-before-state-update behavior.
+- Added reusable entity avatar component (`EntityAvatar`/`VendorAvatar`) with broken-image recovery and icon/initial fallbacks.
+- Migrated operations vendors page to smart-resource loading with non-blocking refresh indicator, manual refresh control, and optimistic mutation updates.
+- Migrated operations marketing-content and vendor-content moderation pages to smart-resource loading with background refresh + manual refresh actions.
+- Tightened admin vendor-content moderation API filtering toward marketing-scoped submissions and added clearer marketing-only moderation copy.
+- Strengthened vendor-content schema by enforcing `targetPlatform` enum/default contract.
+- Updated operations users and shared vendor card rendering to use robust avatar fallback behavior.
+- Updated operations navigation label to reflect moderation scope (`Marketing Review`).
+- Revalidated edited scope with focused lint and targeted Vitest suites.
+
+**Files Modified:**
+
+- lib/hooks/useSmartResource.ts
+- components/ui/EntityAvatar.tsx
+- components/ui/index.ts
+- components/features/VendorCard.tsx
+- app/(operations)/operations/vendors/page.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/marketing-content/page.tsx
+- app/(operations)/operations/vendor-content/page.tsx
+- app/api/admin/vendor-content/route.ts
+- lib/schemas/vendor-content.schemas.ts
+- lib/navigation.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Capture UI verification evidence for operations vendors, vendor-content moderation, and marketing-content pages under slow-network simulation, then decide whether to expand smart-resource adoption to additional operations surfaces.
+
+**Notes / Blockers:**
+
+- Validation passed:
+  - `npx next lint --file app/(operations)/operations/vendors/page.tsx --file app/(operations)/operations/users/page.tsx --file app/(operations)/operations/marketing-content/page.tsx --file app/(operations)/operations/vendor-content/page.tsx --file app/api/admin/vendor-content/route.ts --file components/features/VendorCard.tsx --file components/ui/EntityAvatar.tsx --file lib/hooks/useSmartResource.ts --file lib/schemas/vendor-content.schemas.ts --file lib/navigation.ts`
+  - `npx vitest run components/__tests__/VendorCard.test.tsx components/__tests__/ProductCard.discount.test.tsx components/__tests__/TopAdBanner.test.tsx components/__tests__/TopAdBanner.contract.test.tsx app/__tests__/home.category-clickthrough.test.tsx app/__tests__/page.banner-composition.test.tsx app/__tests__/products.page-query-contract.test.tsx`
+- Vitest emitted known jsdom warnings for mocked Next/Image boolean props (`fill`/`priority`) and a localstorage-path warning; tests still passed.
+
+---
+
+## Session 33 — 2026-04-08
+
+**Goal:**
+Resolve reported regressions where product cards showed incorrect discount output, top banners still rendered deprecated text overlays, home surfaced empty products, and operations vendor statistics could collapse to zeros.
+
+**Completed:**
+
+- Hardened `ProductCard` pricing contract so zero/invalid discounts never render strike-through/`0` discount artifacts and discounted price remains visible on mobile.
+- Converted `TopAdBanner` to image-only rendering (no title/text/CTA overlay), while keeping navigation controls and link behavior.
+- Updated banner API behavior to support TOP banners without title text and enforce explicit valid banner position on create.
+- Updated operations banners form UX so TOP position no longer requires visible title entry.
+- Added reconnect retry hardening in server `dataFetchers` to reduce transient empty home/product/vendor payloads on closed Prisma connections.
+- Added hero/top dedupe guard in hero fetcher to avoid accidental dual-slot rendering for duplicated banner content.
+- Reworked operations vendors page data loading to avoid multi-status parallel calls that can fail/rate-limit and zero out counts.
+- Added/updated focused tests for top-banner contract and product-card discount rendering.
+
+**Files Modified:**
+
+- components/features/ProductCard.tsx
+- components/features/TopAdBanner.tsx
+- app/api/banners/route.ts
+- app/(operations)/operations/banners/page.tsx
+- lib/data/dataFetchers.ts
+- app/api/vendors/route.ts
+- app/(operations)/operations/vendors/page.tsx
+- components/**tests**/TopAdBanner.contract.test.tsx
+- components/**tests**/TopAdBanner.test.tsx
+- components/**tests**/ProductCard.discount.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Capture UI verification screenshots for home/product-card/top-banner and operations-vendors stats screens, then run broader lint/typecheck regression pass if required for release branch confidence.
+
+**Notes / Blockers:**
+
+- Targeted validation passed:
+  - `npm run test -- components/__tests__/TopAdBanner.contract.test.tsx components/__tests__/TopAdBanner.test.tsx components/__tests__/ProductCard.discount.test.tsx app/__tests__/page.banner-composition.test.tsx`
+- Vitest emitted known jsdom warnings for mocked Next/Image boolean props (`fill`/`priority`) but tests passed.
+
+---
+
 ## Session 32 — 2026-04-08
 
 **Goal:**

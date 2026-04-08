@@ -286,7 +286,9 @@ export default function OperationsProductsPage() {
       isEditDraft ? (draft?.mainImageUrl ?? product.mainImage ?? "") : product.mainImage || ""
     );
     setAdditionalImageUrls(
-      isEditDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : baseAdditionalImages
+      isEditDraft
+        ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES)
+        : baseAdditionalImages
     );
     setModalOpen(true);
   };
@@ -555,7 +557,7 @@ export default function OperationsProductsPage() {
         loading={loading}
         columns={columns}
         dataSource={products}
-        pagination={{ pageSize: 10 }}
+        pagination={{ defaultPageSize: 10 }}
         scroll={{ x: 1100 }}
       />
 

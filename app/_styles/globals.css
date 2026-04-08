@@ -479,3 +479,17 @@
 .dark .ad-form-native-control.ant-input-number {
   background-color: rgb(var(--ds-surface-raised));
 }
+
+/* ============================================================================
+   ANT DESIGN PAGINATION READABILITY
+   ============================================================================ */
+.ant-pagination .ant-pagination-item-active {
+  background-color: rgb(var(--ds-brand-primary)) !important;
+  border-color: rgb(var(--ds-brand-primary)) !important;
+}
+
+.ant-pagination .ant-pagination-item-active a,
+.ant-pagination .ant-pagination-item-active:hover a,
+.ant-pagination .ant-pagination-item-active:focus-within a {
+  color: rgb(var(--ds-text-inverse)) !important;
+}

@@ -24,6 +24,57 @@
 
 ---
 
+## 2026-04-08 — Vendor Marketing Separation + Smart Refresh Reliability Slice
+
+**Summary:**
+Implemented the follow-up operations reliability slice requested after the initial hotfix wave. The change set isolates vendor marketing moderation semantics, introduces robust entity-avatar fallbacks, and adds in-memory cached silent refresh patterns to reduce request churn and visible loading disruptions on key operations pages.
+
+**Completed:**
+
+- Added `lib/hooks/useSmartResource.ts` for stale-time memory cache, interval refresh, and compare-before-update UI state behavior.
+- Added reusable avatar fallback component (`components/ui/EntityAvatar.tsx`) and exported `VendorAvatar` for consistent store/user logo fallback rendering.
+- Migrated operations vendors, vendor-content moderation, and marketing-content pages to smart cached retrieval with background refresh and manual refresh controls.
+- Updated operations users + shared vendor cards to resilient avatar fallback rendering for missing/broken images.
+- Tightened admin vendor-content moderation endpoint to prioritize marketing-scoped submissions and updated navigation/copy to `Marketing Review` semantics.
+- Enforced target-platform enum/defaults in vendor-content schema to keep submissions explicitly channel-scoped.
+- Revalidated with focused lint + targeted Vitest suites.
+
+**Key Changes:**
+
+- Operations admin pages now avoid repetitive all-or-nothing fetch churn by using shared in-memory cache + silent refresh behavior.
+- Marketing moderation scope is clearer in API filtering and UI messaging, reducing product-media bleed-through risk.
+- Missing/broken vendor/user images now degrade gracefully to deterministic icon/initial placeholders.
+
+**Next Sprint Focus:**
+Expand smart-resource adoption to remaining high-traffic operations pages and add direct regression coverage for the new hook behavior (cache hit, stale refresh, and equality suppression).
+
+---
+
+## 2026-04-08 — Home/Product/Banner/Data Integrity Hotfix
+
+**Summary:**
+Implemented an immediate regression-fix slice addressing discount display correctness, top-banner image-only rendering, and data reliability issues that caused empty/zero states on home and operations vendor metrics. The fix aligns banner APIs/forms with the updated UX contract and strengthens server fetch resilience against transient Prisma connection drops.
+
+**Completed:**
+
+- Fixed `ProductCard` discount rendering so zero discounts no longer show stale strike-through/`0` artifacts and discounted/current price remains visible on mobile.
+- Converted top-banner strip to image-only display and removed deprecated title/text overlay behavior.
+- Updated banner create API and admin banner form to support TOP banners without title text while keeping strict position validation.
+- Added Prisma reconnect retry wrapper in `lib/data/dataFetchers.ts` and hero/top duplication guard for banner composition safety.
+- Reworked operations vendor list loading to use admin all-status paginated fetch path and avoid rate-limit-driven zeroed stats.
+- Added/updated focused regression tests for top-banner contract and product-card discount behavior.
+
+**Key Changes:**
+
+- Banner zone behavior now matches current product requirement: TOP is visual-only image strip, HERO carries text-focused content.
+- Home/server read paths are more resilient to transient DB connection closure.
+- Vendor stats surfaces are less likely to flatten to zeros due request fan-out failures.
+
+**Next Sprint Focus:**
+Capture UI screenshots for the fixed surfaces and run a broader non-targeted regression sweep if preparing for production deploy.
+
+---
+
 ## 2026-04-08 — Product/Vendor/Layout Hotfix Follow-up (Implementation)
 
 **Summary:**
