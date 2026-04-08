@@ -24,6 +24,49 @@
 
 ---
 
+## 2026-04-08 — Checkout Access Policy + Bug Screenshot Inline Preview
+
+**Summary:**
+Resolved two UX regressions in one patch: unauthorized checkout redirects for authenticated non-buyer roles and bug-report screenshot review friction in operations.
+
+**Completed:**
+
+- Expanded `/checkout` route policy role list in `routeConfig` to include vendor/admin alongside buyer.
+- Replaced external screenshot link with inline preview rendering in operations bug-report details modal.
+- Validated touched scope with focused lint and diagnostics checks.
+
+**Key Changes:**
+
+- Checkout access now matches broader authenticated-role navigation expectations.
+- Bug triage workflow can inspect screenshots directly in-page without leaving context.
+
+**Next Sprint Focus:**
+Run role-based navigation smoke checks for protected routes and continue replacing external-media moderation links with inline previews where applicable.
+
+---
+
+## 2026-04-08 — Cart Confirmation Reliability Patch
+
+**Summary:**
+Resolved a cart UX bug where remove-item and clear-cart actions appeared non-responsive because confirmation did not reliably surface in the cart route.
+
+**Completed:**
+
+- Migrated cart clear/remove confirmations from static confirm helper usage to inline Ant `Popconfirm` controls.
+- Wired confirmations directly to `clearCart` and `removeItem` callbacks.
+- Added explicit button types on cart action controls to avoid accidental submit behavior.
+- Validated touched scope with focused lint and diagnostics checks.
+
+**Key Changes:**
+
+- Cart destructive actions now have route-local, explicit confirmation surfaces.
+- Remove/clear callbacks execute reliably after user confirmation.
+
+**Next Sprint Focus:**
+Run manual cross-device cart UX checks and consider standardizing cart-level confirmation pattern in design-system guidance.
+
+---
+
 ## 2026-04-08 — Vendor Marketing Separation + Smart Refresh Reliability Slice
 
 **Summary:**
