@@ -7,7 +7,7 @@ import { Card, EmptyState } from "@/components/ui";
 import { BUG_REPORT_CATEGORIES, BUG_REPORT_PRIORITIES, BUG_REPORT_STATUSES } from "@/lib/constants";
 import type { BugReport } from "@/lib/types";
 import { Bug, Eye, Loader2, Filter, RefreshCw } from "lucide-react";
-import { App, Table, Tag, Select, Modal, Input } from "antd";
+import { App, Table, Tag, Select, Modal, Input, Image } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -378,14 +378,12 @@ export default function OperationsBugReportsPage() {
             {selectedReport.screenshotUrl && (
               <div>
                 <p className="mb-1 text-xs text-ds-text-placeholder">Screenshot</p>
-                <a
-                  href={selectedReport.screenshotUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-ds-text-brand underline"
-                >
-                  View screenshot
-                </a>
+                <Image
+                  src={selectedReport.screenshotUrl}
+                  alt="Bug report screenshot"
+                  className="max-h-80 max-w-full rounded-ds-md border border-ds-border-base object-contain"
+                />
+                <p className="mt-1 text-xs text-ds-text-tertiary">Click image to view full size.</p>
               </div>
             )}
 

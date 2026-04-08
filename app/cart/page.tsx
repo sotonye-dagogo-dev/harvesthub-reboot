@@ -1,11 +1,12 @@
 "use client";
 
 import { useCart } from "@/lib/store/cartStore";
-import { EmptyState, Button, Card, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
+import { EmptyState, Button, Card } from "@/components/ui";
 import { CartItemComponent } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import { Popconfirm } from "antd";
 
 export const dynamic = "force-dynamic";
 
@@ -35,12 +36,18 @@ export default function CartPage() {
         <h1 className="text-2xl font-bold text-ds-text-primary sm:text-3xl">
           Shopping Cart ({totalItems} {totalItems === 1 ? "item" : "items"})
         </h1>
-        <Button
-          variant="outline"
-          onClick={() => openActionConfirm(ActionConfirmPresets.remove("all cart items"), clearCart)}
+        <Popconfirm
+          title="Remove all cart items"
+          description="Remove all items from your cart?"
+          okText="Remove all"
+          cancelText="Cancel"
+          okButtonProps={{ danger: true }}
+          onConfirm={clearCart}
         >
-          Clear Cart
-        </Button>
+          <Button type="button" variant="outline">
+            Clear Cart
+          </Button>
+        </Popconfirm>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
@@ -57,11 +64,7 @@ export default function CartPage() {
               quantity={item.quantity}
               stock={item.stock}
               onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty)}
-              onRemove={() =>
-                openActionConfirm(ActionConfirmPresets.remove("cart item"), () =>
-                  removeItem(item.productId)
-                )
-              }
+              onRemove={() => removeItem(item.productId)}
             />
           ))}
         </div>
@@ -69,9 +72,7 @@ export default function CartPage() {
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-20 lg:top-24">
-            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-              Order Summary
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Order Summary</h2>
 
             <div className="space-y-3 border-t border-ds-border-base pt-4">
               <div className="flex items-center justify-between text-ds-text-secondary">
@@ -87,9 +88,7 @@ export default function CartPage() {
             <div className="mt-4 border-t border-ds-border-base pt-4">
               <div className="flex items-center justify-between text-lg font-bold text-ds-text-primary">
                 <span>Total</span>
-                <span className="text-ds-text-brand">
-                  {formatCurrency(totalPrice)}
-                </span>
+                <span className="text-ds-text-brand">{formatCurrency(totalPrice)}</span>
               </div>
             </div>
 

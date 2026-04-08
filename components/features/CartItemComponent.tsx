@@ -3,6 +3,7 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
+import { Popconfirm } from "antd";
 
 interface CartItemProps {
   id: string;
@@ -53,16 +54,26 @@ export function CartItemComponent({
       </div>
 
       <div className="flex flex-col items-end justify-between">
-        <button
-          onClick={() => onRemove(id)}
-          className="text-ds-text-placeholder hover:text-ds-status-error dark:hover:text-ds-status-error"
-          aria-label="Remove item"
+        <Popconfirm
+          title="Remove cart item"
+          description="Remove this item from your cart?"
+          okText="Remove"
+          cancelText="Cancel"
+          okButtonProps={{ danger: true }}
+          onConfirm={() => onRemove(id)}
         >
-          <Trash2 size={20} />
-        </button>
+          <button
+            type="button"
+            className="text-ds-text-placeholder hover:text-ds-status-error dark:hover:text-ds-status-error"
+            aria-label="Remove item"
+          >
+            <Trash2 size={20} />
+          </button>
+        </Popconfirm>
 
         <div className="flex items-center gap-2 border border-ds-border-base rounded-ds-md">
           <button
+            type="button"
             onClick={handleDecrease}
             disabled={quantity <= 1}
             className="p-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay disabled:opacity-50 disabled:cursor-not-allowed"
@@ -72,6 +83,7 @@ export function CartItemComponent({
           </button>
           <span className="min-w-[40px] text-center font-medium">{quantity}</span>
           <button
+            type="button"
             onClick={handleIncrease}
             disabled={quantity >= stock}
             className="p-2 hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-overlay disabled:opacity-50 disabled:cursor-not-allowed"

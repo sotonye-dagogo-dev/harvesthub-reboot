@@ -39,6 +39,66 @@
 
 ---
 
+## Session 36 — 2026-04-08
+
+**Goal:**
+Resolve checkout unauthorized redirect behavior and improve bug-report screenshot visibility in operations UI.
+
+**Completed:**
+
+- Updated route policy for `/checkout` to allow authenticated buyer/vendor/admin users, preventing middleware-level unauthorized redirect for non-buyer authenticated roles.
+- Updated operations bug-report detail modal to render screenshots inline via Ant `Image` preview instead of external-link-only viewing.
+- Revalidated touched files with focused lint and diagnostics checks.
+
+**Files Modified:**
+
+- lib/rbac/routeConfig.ts
+- app/(operations)/operations/bug-reports/page.tsx
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Manually verify `/checkout` access for buyer/vendor/admin sessions and validate inline screenshot rendering on `/operations/bug-reports` detail modal.
+
+**Notes / Blockers:**
+
+- Validation passed:
+  - `npx next lint --file lib/rbac/routeConfig.ts --file app/(operations)/operations/bug-reports/page.tsx`
+- No diagnostics remain on touched files.
+
+---
+
+## Session 35 — 2026-04-08
+
+**Goal:**
+Fix non-working cart remove/clear interactions where confirmation did not reliably appear and callbacks were not executed.
+
+**Completed:**
+
+- Replaced cart clear-action confirmation with inline Ant `Popconfirm` in `app/cart/page.tsx`.
+- Replaced cart item remove-action confirmation with inline Ant `Popconfirm` in `components/features/CartItemComponent.tsx`.
+- Simplified cart item remove callback wiring to direct `removeItem` invocation on confirm.
+- Added explicit `type="button"` on cart action buttons to prevent accidental submit behavior.
+- Validated touched files with focused lint + diagnostics.
+
+**Files Modified:**
+
+- app/cart/page.tsx
+- components/features/CartItemComponent.tsx
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run quick manual UX verification on `/cart` for: remove single item, clear cart, and quantity increment/decrement behavior.
+
+**Notes / Blockers:**
+
+- Validation passed:
+  - `npx next lint --file app/cart/page.tsx --file components/features/CartItemComponent.tsx`
+- No diagnostics remain on touched files.
+
+---
+
 ## Session 34 — 2026-04-08
 
 **Goal:**

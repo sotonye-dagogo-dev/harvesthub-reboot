@@ -18,6 +18,95 @@
 
 ---
 
+## [Checkout route redirected to unauthorized without console errors]
+
+**Symptom:**
+
+- Navigating to `/checkout` redirected to `/unauthorized` for some authenticated users.
+- Browser console showed no obvious application error.
+
+**Root Cause:**
+
+- Middleware enforces role policy from `lib/rbac/routeConfig.ts`.
+- `/checkout` was restricted to `BUYER` only, so authenticated `VENDOR`/`ADMIN` users were denied at middleware level.
+
+**Fix Applied:**
+
+- Expanded `/checkout` route roles to include `BUYER`, `VENDOR`, and `ADMIN`.
+
+**Prevention:**
+
+- Keep checkout eligibility policy aligned with actual product behavior (cart access + order flow expectations).
+- Treat middleware redirects without console errors as likely route-policy mismatches first.
+
+**Files Affected:**
+
+- lib/rbac/routeConfig.ts
+
+**Date:** 2026-04-08
+
+---
+
+## [Bug report screenshot required opening a new tab for viewing]
+
+**Symptom:**
+
+- In operations bug-report details, screenshot could only be viewed through an external link/new tab.
+
+**Root Cause:**
+
+- Modal rendered `screenshotUrl` as an anchor instead of an inline preview component.
+
+**Fix Applied:**
+
+- Replaced external screenshot link with inline Ant `Image` preview in bug-report detail modal.
+
+**Prevention:**
+
+- Prefer inline media preview for moderation/review workflows; keep full-size preview as optional overlay action.
+
+**Files Affected:**
+
+- app/(operations)/operations/bug-reports/page.tsx
+
+**Date:** 2026-04-08
+
+---
+
+## [Cart remove/clear actions appeared non-responsive due confirmation flow mismatch]
+
+**Symptom:**
+
+- Clicking remove-item or clear-cart on `/cart` appeared to do nothing.
+- No obvious browser-console error was surfaced by the user.
+
+**Root Cause:**
+
+- Cart actions depended on static modal confirmation helper behavior (`Modal.confirm`) rather than inline confirmation controls on the cart interaction points.
+- In the affected UI path, confirmation did not reliably surface for the user, so the destructive callbacks were never executed.
+
+**Fix Applied:**
+
+- Switched cart clear/remove confirmations to inline Ant `Popconfirm` controls in:
+  - `app/cart/page.tsx` (clear cart)
+  - `components/features/CartItemComponent.tsx` (remove item)
+- Wired callbacks directly to `clearCart` / `removeItem` on confirm.
+- Added explicit `type="button"` on cart action buttons to avoid accidental form-submit behavior in nested contexts.
+
+**Prevention:**
+
+- Prefer inline confirmation controls (`Popconfirm`) for high-frequency per-item interactions.
+- Keep destructive controls local to the action source when static modal behavior is inconsistent in a route.
+
+**Files Affected:**
+
+- app/cart/page.tsx
+- components/features/CartItemComponent.tsx
+
+**Date:** 2026-04-08
+
+---
+
 ## [Vendor-content moderation feed mixed marketing submissions with non-marketing media]
 
 **Symptom:**
