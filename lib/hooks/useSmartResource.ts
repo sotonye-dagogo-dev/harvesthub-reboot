@@ -23,9 +23,7 @@ export interface UseSmartResourceOptions<T> {
   onError?: (error: unknown) => void;
 }
 
-export interface SmartResourceState<T> extends RuntimeResourceHookState<T> {
-  mutate: (next: T | ((prev: T | undefined) => T), persist?: boolean) => void;
-}
+export type SmartResourceState<T> = RuntimeResourceHookState<T>;
 
 export function useSmartResource<T>(
   fetcher: () => Promise<T>,
@@ -38,7 +36,7 @@ export function useSmartResource<T>(
     onError,
   }: UseSmartResourceOptions<T>
 ): SmartResourceState<T> {
-  const state = useRuntimeResource<T>({
+  return useRuntimeResource<T>({
     key,
     enabled,
     refreshIntervalMs,
@@ -48,11 +46,6 @@ export function useSmartResource<T>(
     scope: { visibility: "public" },
     fetcher: async () => fetcher(),
   });
-
-  return {
-    ...state,
-    mutate: (next) => state.mutate(next),
-  };
 }
 
 export function clearSmartResourceCache(key?: string) {

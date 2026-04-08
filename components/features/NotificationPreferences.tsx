@@ -147,7 +147,7 @@ export function NotificationPreferences() {
 
   const fetchPreferences = useCallback(async (): Promise<NotificationPreference[]> => {
     const res = await fetch("/api/notifications/preferences");
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
 
     if (!res.ok || !data.success || !data.preferences) {
       throw new Error(data?.error || "Failed to fetch preferences");

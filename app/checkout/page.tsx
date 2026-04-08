@@ -44,6 +44,10 @@ export default function CheckoutPage() {
     () => Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean))),
     [items]
   );
+  const vendorStatusKey = useMemo(
+    () => vendorIds.slice().sort().join(","),
+    [vendorIds]
+  );
 
   const fetchVendorStatuses = useMemo(
     () => async (): Promise<Record<string, string | null>> => {
@@ -69,7 +73,7 @@ export default function CheckoutPage() {
   );
 
   const { data: vendorStatuses } = useSmartResource(fetchVendorStatuses, {
-    key: `checkout-vendor-status:${vendorIds.join(",")}`,
+    key: `checkout-vendor-status:${vendorStatusKey}`,
     enabled: vendorIds.length > 0,
     refreshIntervalMs: 120_000,
     staleTimeMs: 30_000,

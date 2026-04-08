@@ -23,7 +23,7 @@ export function registerRuntimeResource<TData, TParams = unknown>(
 }
 
 export function registerRuntimeResources(
-  definitions: RuntimeResourceDefinition<any, any>[]
+  definitions: RuntimeResourceDefinition<unknown, unknown>[]
 ): void {
   definitions.forEach((definition) => registerRuntimeResource(definition));
 }
@@ -79,4 +79,4 @@ registerRuntimeResources([
     policy: { staleTimeMs: 15_000, ttlMs: 3 * 60_000 },
     fetcher: async () => getUsersClient(),
   }),
-]);
+] as RuntimeResourceDefinition<unknown, unknown>[]);

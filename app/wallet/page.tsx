@@ -6,7 +6,7 @@ import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { Input, Modal, message } from "antd";
-import { PLATFORM_DEFAULTS } from "@/lib/constants";
+import { PLATFORM_DEFAULTS, TransactionStatus, TransactionType } from "@/lib/constants";
 import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
@@ -90,26 +90,11 @@ export default function WalletPage() {
       }
 
       const paymentReference = initializeData.payment.reference as string;
-
-      const depositRes = await fetch("/api/wallet/deposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          description: "Wallet deposit via gateway stub",
-          paymentReference,
-          paymentGateway: "PAYSTACK",
-          paymentVerificationReference: `${paymentReference}-success`,
-        }),
-      });
-      const depositData = await depositRes.json().catch(() => ({}));
-      if (!depositRes.ok || !depositData?.wallet || !depositData?.transaction) {
-        throw new Error(depositData?.error || "Failed to complete wallet deposit");
-      }
+      const optimisticTransactionId = `optimistic-deposit-${Date.now()}-${Math.round(Math.random() * 1000)}`;
 
       await runOptimisticMutation<
         { wallet: Wallet | null; transactions: Transaction[] },
-        { wallet: Wallet; transaction: Transaction }
+        { wallet: Wallet; transaction: Transaction; optimisticTransactionId: string }
       >({
         key: `wallet-resource:${user?.id ?? "guest"}`,
         applyOptimistic: (previous) => {
@@ -121,24 +106,55 @@ export default function WalletPage() {
             },
             transactions: [
               {
-                ...(depositData.transaction as Transaction),
+                id: optimisticTransactionId,
+                walletId: previous.wallet.id,
+                type: TransactionType.DEPOSIT,
                 amount,
+                balanceBefore: previous.wallet.balance,
+                balanceAfter: previous.wallet.balance + amount,
+                status: TransactionStatus.PENDING,
+                reference: paymentReference,
+                description: "Wallet deposit pending confirmation",
+                createdAt: new Date(),
+                updatedAt: new Date(),
               },
               ...previous.transactions,
             ],
           };
         },
-        commit: async () => ({
-          wallet: depositData.wallet as Wallet,
-          transaction: depositData.transaction as Transaction,
-        }),
-        reconcile: (_, serverResult) => ({
+        commit: async () => {
+          const depositRes = await fetch("/api/wallet/deposit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount,
+              description: "Wallet deposit via gateway stub",
+              paymentReference,
+              paymentGateway: "PAYSTACK",
+              paymentVerificationReference: `${paymentReference}-success`,
+            }),
+          });
+          const depositData = await depositRes.json().catch(() => ({}));
+          if (!depositRes.ok || !depositData?.wallet || !depositData?.transaction) {
+            throw new Error(depositData?.error || "Failed to complete wallet deposit");
+          }
+
+          return {
+            wallet: depositData.wallet as Wallet,
+            transaction: depositData.transaction as Transaction,
+            optimisticTransactionId,
+          };
+        },
+        reconcile: (current, serverResult) => ({
           wallet: serverResult.wallet,
-          transactions: [serverResult.transaction, ...(walletResource?.transactions ?? [])],
+          transactions: [
+            serverResult.transaction,
+            ...((current?.transactions ?? []).filter(
+              (transaction) => transaction.id !== serverResult.optimisticTransactionId
+            ) as Transaction[]),
+          ],
         }),
       });
-
-      await refresh(true);
 
       message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
       setShowDepositModal(false);

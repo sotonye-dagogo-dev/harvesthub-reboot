@@ -21,9 +21,10 @@ function isRetryableError(error: unknown): boolean {
 }
 
 function computeBackoffDelay<TData>(policy: RuntimeResourcePolicy<TData>, attempt: number): number {
-  const exp = Math.min(policy.retry.maxDelayMs, policy.retry.baseDelayMs * 2 ** (attempt - 1));
+  const boundedAttempt = Math.min(Math.max(attempt, 1), 30);
+  const exp = policy.retry.baseDelayMs * 2 ** (boundedAttempt - 1);
   const jitter = exp * policy.retry.jitterRatio * Math.random();
-  return Math.round(exp + jitter);
+  return Math.min(policy.retry.maxDelayMs, Math.round(exp + jitter));
 }
 
 function wait(ms: number): Promise<void> {
