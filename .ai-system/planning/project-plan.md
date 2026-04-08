@@ -283,6 +283,87 @@ Ensure category tags and all discovery controls (search/filter/sort) consistentl
 
 ---
 
+## Feature Spec - Unified In-Memory Data Runtime + Seamless Refresh (Planned 2026-04-08)
+
+> **Section summary:** Planning package for project-wide data loading/rendering reliability: preloaded role-accessible data, in-memory continuity, optimistic mutation sync, and low-interruption background refresh.
+
+**Feature Summary:**
+Design and roll out a unified client data runtime so user-accessible data is loaded early, kept in memory, and updated predictably with minimal visual interruption. Mutations should update UI-state and backend safely, while background DB refreshes reconcile state without blank states, unnecessary spinners, or noisy rerenders.
+
+**Why This Is Needed:**
+
+- Multiple pages still perform page-local fetch patterns that re-trigger cold-loading, visible emptiness, and repeated waits.
+- Some flows experience transient DB connection errors (`connection closed`) even after prior successful data load.
+- Refresh behavior can show loading indicators even when payloads are unchanged, creating UX jitter.
+- Data comparison and refresh orchestration are inconsistent across pages.
+
+**Architecture Impact:**
+
+- `lib/hooks/useSmartResource.ts` (existing) will evolve into a shared runtime surface instead of isolated page usage.
+- New runtime modules under `lib/data-runtime/*` (resource registry, cache policy, refresh scheduler, mutation coordinator, reconciler).
+- App bootstrap/provider layer in `app/providers.tsx` for role-aware warm-up loading and hydration.
+- Existing client fetchers in `lib/data/clientDataFetchers.ts` and selected API consumers across `app/*` and `components/*`.
+- Optional event-stream integration boundary for future RxJS channels (without hard coupling initial rollout).
+
+**New Modules or Services Required:**
+
+- `lib/data-runtime/resourceRegistry.ts`: declarative resource map (key, fetcher, scope, stale/ttl policy).
+- `lib/data-runtime/runtimeConfig.ts`: config-driven policy defaults (retry, backoff, spinner thresholds, compare strategy).
+- `lib/data-runtime/runtimeStore.ts`: in-memory state graph (resources, status flags, timestamps, in-flight ops).
+- `lib/data-runtime/mutationCoordinator.ts`: optimistic update + rollback + DB commit reconciliation.
+- `lib/data-runtime/reconciler.ts`: payload comparison/merge pipeline for silent refresh and non-disruptive updates.
+- `lib/data-runtime/prefetch.ts`: role/context-aware initial warm-up loader for accessible resources.
+- `lib/data-runtime/telemetry.ts`: lightweight instrumentation for load latency, refresh churn, and retry/error rates.
+
+**Data Flow:**
+
+1. App bootstrap resolves auth/role context.
+2. Prefetch layer loads role-accessible resources into runtime store (warm start).
+3. UI components subscribe to runtime resources (not page-local cold fetch by default).
+4. User-triggered mutations apply optimistic in-memory change and dispatch backend request.
+5. On backend success, reconciler confirms/normalizes resource state; on failure, rollback + user-safe error feedback.
+6. Background refresh scheduler pulls DB snapshots on policy intervals or explicit triggers.
+7. Compare/merge step suppresses no-op UI updates when payload is semantically unchanged.
+8. Loading indicators only surface when stale/no-data thresholds are crossed; otherwise refresh remains silent.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- Preserve existing page content during refresh whenever valid cached data exists.
+- Use DS loaders (`PageLoader`, `SectionLoader`, skeletons) only for true cold/empty states.
+- Provide subtle, non-blocking refresh cues (timestamp/badge) for background sync activity.
+- Keep destructive/loading states scoped to affected controls, not full-page flicker.
+
+**Potential Risks or Edge Cases:**
+
+- Over-prefetching can inflate initial payload and memory usage if role/scope boundaries are not strict.
+- Incorrect compare semantics can suppress legitimate updates or cause stale UI.
+- Optimistic updates across relational datasets can drift without deterministic reconciliation contracts.
+- Retry loops on transient connection errors can degrade UX if backoff/circuit-breaker policy is weak.
+- Mixed legacy fetch patterns and new runtime subscriptions can create inconsistent state sources during migration.
+
+**Architecture Doc Updates Needed:**
+
+- Add a dedicated "Unified Data Runtime Flow" section to `.ai-system/agents/system-architecture.md`.
+- Extend module breakdown to include `lib/data-runtime/*` runtime services.
+- Add migration guidance for retiring page-local ad hoc fetch patterns in favor of registry-driven resource access.
+
+**Implementation Approach Decision (Planning):**
+
+- Primary rollout uses existing Zustand-compatible ecosystem and extends current smart-resource patterns to a centralized runtime.
+- Redux Toolkit and RxJS were considered; introduce adapter boundaries so either can be added incrementally where justified (for example, high-frequency streaming domains), but avoid immediate full-stack rewrite risk.
+
+**Rollout Order:**
+
+1. Define runtime architecture contracts and resource registry.
+2. Implement core runtime store/reconciler/mutation coordinator.
+3. Add role-aware warm-start prefetch during app bootstrap.
+4. Migrate highest-latency/high-churn pages first (operations + core buyer flows).
+5. Add telemetry + guardrails for refresh churn and connection error retries.
+6. Expand migration coverage and retire legacy page-local fetch anti-patterns.
+7. Validate full regression matrix and finalize documentation.
+
+---
+
 ## Completed
 
 > **Section summary:** Tasks that have already shipped in the current repository state.

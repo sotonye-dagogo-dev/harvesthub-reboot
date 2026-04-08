@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
@@ -12,6 +12,7 @@ import { Input, Select, Table, message, Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/lib/constants";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 export default function OperationsUsersPage() {
   const { user } = useAuth();
@@ -20,55 +21,46 @@ export default function OperationsUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<{
-    page: number;
-    totalPages: number;
-  } | null>(null);
+  const loadUsersResource = useCallback(async (): Promise<User[]> => {
+    const limit = 100;
+    let page = 1;
+    let totalPages = 1;
+    const collected: User[] = [];
 
-  useEffect(() => {
-    let mounted = true;
-    async function loadUsers() {
-      setIsLoadingUsers(true);
-      try {
-        const limit = 100;
-        let page = 1;
-        let totalPages = 1;
-        const collected: User[] = [];
-
-        while (page <= totalPages) {
-          if (mounted) setLoadingProgress({ page, totalPages });
-          const res = await fetch(`/api/users?page=${page}&limit=${limit}`);
-          if (!res.ok) break;
-
-          const json = await res.json();
-          const usersPayload = Array.isArray(json.users)
-            ? json.users
-            : Array.isArray(json.data)
-              ? json.data
-              : [];
-          collected.push(...usersPayload);
-          totalPages = Number(json?.pagination?.totalPages ?? 1);
-          page += 1;
-        }
-
-        if (mounted) setUsers(collected);
-      } catch {
-        if (!mounted) return;
-        setUsers([]);
-      } finally {
-        if (mounted) {
-          setIsLoadingUsers(false);
-          setLoadingProgress(null);
-        }
+    while (page <= totalPages) {
+      const res = await fetch(`/api/users?page=${page}&limit=${limit}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch users");
       }
+
+      const json = await res.json();
+      const usersPayload = Array.isArray(json.users)
+        ? json.users
+        : Array.isArray(json.data)
+          ? json.data
+          : [];
+      collected.push(...usersPayload);
+      totalPages = Number(json?.pagination?.totalPages ?? 1);
+      page += 1;
     }
-    loadUsers();
-    return () => {
-      mounted = false;
-    };
+
+    return collected;
   }, []);
+
+  const {
+    data: usersData,
+    isLoading: isLoadingUsers,
+    isRefreshing,
+    error,
+    mutate,
+    refresh,
+  } = useSmartResource(loadUsersResource, {
+    key: "operations-users-resource",
+    refreshIntervalMs: 90_000,
+    staleTimeMs: 15_000,
+  });
+
+  const users = useMemo(() => usersData ?? [], [usersData]);
 
   const filteredUsers = useMemo(() => {
     let filtered = [...users];
@@ -132,8 +124,8 @@ export default function OperationsUsersPage() {
           if (!res.ok) throw new Error(data.error || "Failed to update user status");
 
           const updatedStatus = targetUser.isActive ? "INACTIVE" : "ACTIVE";
-          setUsers((prev) =>
-            prev.map((item) =>
+          mutate((prev) =>
+            (prev ?? []).map((item) =>
               item.id === targetUser.id
                 ? { ...item, status: updatedStatus, isActive: updatedStatus === "ACTIVE" }
                 : item
@@ -153,7 +145,7 @@ export default function OperationsUsersPage() {
         const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Failed to delete user");
-        setUsers((prev) => prev.filter((item) => item.id !== userId));
+        mutate((prev) => (prev ?? []).filter((item) => item.id !== userId));
         message.success("User deleted");
       } catch (err) {
         message.error(err instanceof Error ? err.message : "Failed to delete user");
@@ -277,11 +269,13 @@ export default function OperationsUsersPage() {
         <p className="mt-1 text-ds-text-secondary">
           Manage platform users and access control ({filteredUsers.length} users)
         </p>
-        {isLoadingUsers && loadingProgress ? (
-          <p className="mt-1 text-xs text-ds-text-tertiary">
-            Loading users page {loadingProgress.page} of {loadingProgress.totalPages}...
-          </p>
+        {isLoadingUsers ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">Loading users...</p>
         ) : null}
+        {isRefreshing ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing users...</p>
+        ) : null}
+        {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
       </div>
 
       {/* Stats */}
@@ -338,6 +332,9 @@ export default function OperationsUsersPage() {
               { value: "INACTIVE", label: "Suspended" },
             ]}
           />
+          <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+            Refresh
+          </Button>
         </div>
       </Card>
 

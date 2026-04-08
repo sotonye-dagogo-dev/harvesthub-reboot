@@ -39,6 +39,124 @@
 
 ---
 
+## Session 39 — 2026-04-08
+
+**Goal:**
+Implement unified in-memory runtime slices (contracts through resilience), migrate high-impact client surfaces, and sync `.ai-system` artifacts.
+
+**Completed:**
+
+- Added `lib/data-runtime/*` runtime core modules (contracts, registry, reconciler, runtime client, runtime store, mutation coordinator, prefetch, telemetry, exports).
+- Added config-driven runtime defaults and route/role prefetch hints in `lib/config/runtime.ts`, exported via config index.
+- Added `useRuntimeResource` hook and upgraded `useSmartResource` to run on runtime core.
+- Added role + route-scoped warm-start prefetch bootstrap in `app/providers.tsx`.
+- Migrated runtime subscriptions/background refresh continuity for:
+  - operations users + bug reports,
+  - home + products discovery client surfaces,
+  - checkout vendor verification support data,
+  - wallet data + optimistic mutation reconcile/rollback path,
+  - notification preferences.
+- Added runtime core tests for reconcile semantics and retry/cooldown behavior.
+- Updated architecture, queue, repair notes, and decisions docs for unified runtime rollout.
+
+**Files Modified:**
+
+- lib/config/runtime.ts
+- lib/config/index.ts
+- lib/data-runtime/contracts.ts
+- lib/data-runtime/resourceRegistry.ts
+- lib/data-runtime/reconciler.ts
+- lib/data-runtime/runtimeStore.ts
+- lib/data-runtime/runtimeClient.ts
+- lib/data-runtime/mutationCoordinator.ts
+- lib/data-runtime/prefetch.ts
+- lib/data-runtime/telemetry.ts
+- lib/data-runtime/index.ts
+- lib/data-runtime/__tests__/runtime-core.test.ts
+- lib/hooks/useRuntimeResource.ts
+- lib/hooks/useSmartResource.ts
+- app/providers.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/bug-reports/page.tsx
+- app/components/HomeContent.tsx
+- components/features/ProductsContent.tsx
+- app/checkout/page.tsx
+- app/wallet/page.tsx
+- components/features/NotificationPreferences.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run full final quality gate (`npm run lint`, `npx tsc --noEmit`, targeted/high-risk Vitest, route audits), then close remaining blocked migration surfaces in dedicated follow-up slices.
+
+**Notes / Blockers:**
+
+- Baseline repository Vitest suite has many pre-existing unrelated failures; targeted runtime/domain suites pass.
+- Remaining runtime migration blockers in this run:
+  - operations dashboard/orders remain server-auth SSR data flows,
+  - operations products migration is tightly coupled to large CRUD form state and needs isolated split,
+  - buyer orders/profile need dedicated runtime API normalization.
+
+---
+
+## Session 38 — 2026-04-08
+
+**Goal:**
+Package the Unified In-Memory Data Runtime plan into a temporary cloud-session execution file and provide a one-shot implementation prompt.
+
+**Completed:**
+
+- Created a dedicated temporary execution handoff plan at `.ai-system/planning/cloud-session-temp-plan-2026-04-08-unified-runtime.md`.
+- Captured full runtime implementation slices (contracts, registry, store/reconciler, mutation coordinator, prefetch, migrations, resilience, telemetry, final validation).
+- Included a copy-paste cloud kickoff prompt with strict `.ai-system` compliance, per-slice validation gates, and mandatory documentation updates.
+
+**Files Modified:**
+
+- .ai-system/planning/cloud-session-temp-plan-2026-04-08-unified-runtime.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Start cloud implementation using the prompt in the new temporary plan file and execute the runtime queue block end-to-end.
+
+**Notes / Blockers:**
+
+- This session is packaging/handoff only; no runtime production code changes were made.
+
+---
+
+## Session 37 — 2026-04-08
+
+**Goal:**
+Execute `plan-feature.md` for a unified in-memory data runtime that supports preload, silent refresh, safe optimistic mutation sync, and minimal UI interruption across major surfaces.
+
+**Completed:**
+
+- Audited planning prerequisites (`.ai-context.md`, architecture/design docs, plan/queue state) and aligned feature direction with current operations reliability work.
+- Appended a new feature spec section in `.ai-system/planning/project-plan.md`: **Unified In-Memory Data Runtime + Seamless Refresh (Planned 2026-04-08)**.
+- Appended a concrete implementation task package in `.ai-system/planning/task-queue.md` covering runtime contracts, registry policies, reconciler/mutation coordinator, warm-start prefetch, phased page migration, retries/circuit-breakers, and validation gates.
+- Logged a formal architecture decision in `.ai-system/memory/project-decisions.md` selecting a Zustand-first runtime core with an explicit adapter boundary for future Redux/RxJS compatibility.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Begin execution from the new queue in order: define `lib/data-runtime` contracts and typed registry policy model, then pilot migration on one high-impact operations surface before wider rollout.
+
+**Notes / Blockers:**
+
+- Planning-only session completed; no production feature code was changed in this step.
+- Architecture documentation updates to `.ai-system/agents/system-architecture.md` are queued and should be applied at the start of implementation.
+
+---
+
 ## Session 36 — 2026-04-08
 
 **Goal:**

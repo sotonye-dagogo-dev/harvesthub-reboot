@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
@@ -11,6 +11,7 @@ import { Store, Wallet, CreditCard, Truck, CheckCircle, Info, CalendarClock } fr
 import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("WALLET");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [vendorVerificationAcknowledged, setVendorVerificationAcknowledged] = useState(false);
-  const [vendorStatus, setVendorStatus] = useState<string | null>(null);
 
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 : 0;
   const total = totalPrice + deliveryFee;
@@ -40,65 +40,53 @@ export default function CheckoutPage() {
     const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
     return vendorIds.size > 1;
   }, [items]);
-  const [hasAnyUnverifiedVendor, setHasAnyUnverifiedVendor] = useState(false);
-  const hasUnverifiedVendorItems =
-    hasMultipleVendors ? hasAnyUnverifiedVendor : !!vendorStatus && vendorStatus !== "APPROVED";
+  const vendorIds = useMemo(
+    () => Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean))),
+    [items]
+  );
+  const vendorStatusKey = useMemo(
+    () => vendorIds.slice().sort().join(","),
+    [vendorIds]
+  );
 
-  useEffect(() => {
-    const vendorId = items[0]?.vendorId;
-    if (!vendorId || hasMultipleVendors) {
-      setVendorStatus(null);
-      return;
-    }
-
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch(`/api/vendors/${vendorId}`);
-        const data = await res.json();
-        if (!active) return;
-        setVendorStatus(data?.vendor?.status || null);
-      } catch (error) {
-        console.error("Failed to load vendor status for checkout", error);
-        if (!active) return;
-        setVendorStatus(null);
+  const fetchVendorStatuses = useMemo(
+    () => async (): Promise<Record<string, string | null>> => {
+      if (vendorIds.length === 0) {
+        return {};
       }
-    })();
 
-    return () => {
-      active = false;
-    };
-  }, [hasMultipleVendors, items]);
-
-  useEffect(() => {
-    if (!hasMultipleVendors) {
-      setHasAnyUnverifiedVendor(false);
-      return;
-    }
-
-    const vendorIds = Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean)));
-    let active = true;
-    (async () => {
-      try {
-        const statuses = await Promise.all(
-          vendorIds.map(async (vendorId) => {
+      const entries = await Promise.all(
+        vendorIds.map(async (vendorId) => {
+          try {
             const res = await fetch(`/api/vendors/${vendorId}`);
-            const data = await res.json();
-            return data?.vendor?.status || null;
-          })
-        );
-        if (!active) return;
-        setHasAnyUnverifiedVendor(statuses.some((status) => status && status !== "APPROVED"));
-      } catch {
-        if (!active) return;
-        setHasAnyUnverifiedVendor(false);
-      }
-    })();
+            const data = await res.json().catch(() => ({}));
+            return [vendorId, (data?.vendor?.status ?? null) as string | null] as const;
+          } catch {
+            return [vendorId, null] as const;
+          }
+        })
+      );
 
-    return () => {
-      active = false;
-    };
-  }, [hasMultipleVendors, items]);
+      return Object.fromEntries(entries);
+    },
+    [vendorIds]
+  );
+
+  const { data: vendorStatuses } = useSmartResource(fetchVendorStatuses, {
+    key: `checkout-vendor-status:${vendorStatusKey}`,
+    enabled: vendorIds.length > 0,
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 30_000,
+  });
+
+  const primaryVendorId = vendorIds[0];
+  const primaryVendorStatus = primaryVendorId ? (vendorStatuses?.[primaryVendorId] ?? null) : null;
+  const hasAnyUnverifiedVendor = vendorIds.some((vendorId) => {
+    const status = vendorStatuses?.[vendorId];
+    return Boolean(status && status !== "APPROVED");
+  });
+  const hasUnverifiedVendorItems =
+    hasMultipleVendors ? hasAnyUnverifiedVendor : !!primaryVendorStatus && primaryVendorStatus !== "APPROVED";
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },

@@ -24,6 +24,72 @@
 
 ---
 
+## 2026-04-08 — Unified Runtime Implementation Pass (Cloud)
+
+**Summary:**
+Implemented a full unified runtime foundation on a Zustand-first core with adapter-safe contracts, resilience controls, and route-scoped warm prefetch. Migrated multiple high-impact operations and buyer client surfaces to runtime-backed subscriptions with silent background refresh and last-good-data continuity.
+
+**Completed:**
+
+- Added `lib/data-runtime/*` runtime modules for contracts, registry, store, reconciler, retry/cooldown load client, mutation coordinator, prefetch, and telemetry.
+- Added runtime config defaults and route/role prefetch hints in `lib/config/runtime.ts`.
+- Added `useRuntimeResource` and upgraded `useSmartResource` to use runtime core.
+- Added provider bootstrap prefetch orchestration (`app/providers.tsx`).
+- Migrated runtime-backed surfaces: operations users, operations bug reports, home content, products discovery content, checkout vendor-status support data, wallet, notification preferences.
+- Added runtime core tests for no-op reconcile and retry/cooldown behavior.
+
+**Key Changes:**
+
+- Runtime now provides bounded retry with jitter/backoff plus cooldown anti-storm behavior and preserves visible last-good data during refresh windows.
+- Optimistic mutation coordinator path now supports deterministic rollback/reconcile integration for client mutation flows.
+- Architecture/docs now include a dedicated unified runtime flow and migration status.
+
+**Next Sprint Focus:**
+Close blocked remaining migrations (operations dashboard/products/orders, buyer orders/profile) and rerun full end-to-end quality gate once those surfaces are finalized.
+
+---
+
+## 2026-04-08 — Cloud Handoff Package: Unified Runtime Slices
+
+**Summary:**
+Prepared a temporary execution package for cloud implementation of the unified in-memory runtime feature. The package consolidates the approved planning artifacts into an ordered slice strategy with mandatory validation and documentation rules.
+
+**Completed:**
+
+- Added `.ai-system/planning/cloud-session-temp-plan-2026-04-08-unified-runtime.md`.
+- Documented full slice-by-slice execution order and acceptance criteria for runtime rollout.
+- Added a ready-to-paste cloud kickoff prompt enforcing `.ai-system` compliance and quality gates.
+
+**Key Changes:**
+
+- Cloud execution can now run the entire runtime queue in one controlled pass with clear stop conditions and reporting expectations.
+
+**Next Sprint Focus:**
+Execute the cloud run from the new handoff plan and close runtime queue items with per-slice verification artifacts.
+
+---
+
+## 2026-04-08 — Plan Package: Unified In-Memory Data Runtime + Seamless Refresh
+
+**Summary:**
+Executed `plan-feature.md` for a cross-project data-runtime redesign focused on preload-first in-memory reads, silent background refresh, and optimistic mutation safety with rollback/reconciliation. The planning output formalizes a phased migration strategy that minimizes visual interruption while improving resilience against transient API/DB instability.
+
+**Completed:**
+
+- Added a full feature spec to `.ai-system/planning/project-plan.md` with architecture impact, data flow, UX constraints, risks, and rollout order.
+- Added concrete implementation tasks to `.ai-system/planning/task-queue.md` for runtime contracts, registry policies, store/reconciler, mutation coordination, warm-start prefetch, migration rollout, retries/circuit-breakers, and telemetry/test gates.
+- Recorded decision in `.ai-system/memory/project-decisions.md` to implement a Zustand-first runtime core with adapter boundaries for future Redux/RxJS compatibility.
+
+**Key Changes:**
+
+- Platform data-loading strategy is now planned around a centralized runtime contract instead of page-local fetch orchestration.
+- Queue is implementation-ready with explicit sequencing and validation criteria before broad rollout.
+
+**Next Sprint Focus:**
+Start implementation with `lib/data-runtime` contracts and a pilot migration of one high-impact operations surface, then validate no-flicker and rollback safety before scaling to additional domains.
+
+---
+
 ## 2026-04-08 — Checkout Access Policy + Bug Screenshot Inline Preview
 
 **Summary:**

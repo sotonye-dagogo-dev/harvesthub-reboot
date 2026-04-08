@@ -27,6 +27,47 @@
 
 ## Decisions
 
+## Unified Runtime Warm-Start Is Route-and-Role Scoped
+
+**Decision:** Runtime prefetch at bootstrap must be scoped by auth role plus route tags, instead of broad eager loading of all resources.
+**Date:** 2026-04-08
+**Made by:** AI cloud implementation session (GitHub Copilot)
+
+**Reason:**
+The unified runtime needs warm data for continuity, but broad prefetch would increase payload/memory pressure and hurt low-bandwidth users. Route+role scoped prefetch keeps first render fast while still preserving last-good in-memory data and background refresh continuity.
+
+**Alternatives Considered:**
+
+- Prefetch everything on boot (rejected: over-fetching and unnecessary memory churn).
+- No prefetch, refresh only on-demand (rejected: visible cold-state flicker and repeated loading transitions).
+
+**Implications:**
+
+- Runtime registry entries should carry tags/scope metadata.
+- Provider bootstrap must derive tags from pathname and role hints.
+- Remaining migrations should preserve this bounded prefetch contract.
+
+## Unified Data Runtime Uses Zustand-First Core with Adapter Boundary
+
+**Decision:** Implement the cross-project in-memory data runtime on top of the existing Zustand foundation first, while enforcing a strict runtime adapter boundary so Redux/RxJS integrations remain possible without domain-level rewrites.
+**Date:** 2026-04-08
+**Made by:** AI planning session (GitHub Copilot) with user directive
+
+**Reason:**
+The platform already has active Zustand-driven state patterns and a newly established smart-resource foundation. A Zustand-first implementation minimizes migration disruption and delivery risk, while an adapter boundary preserves extensibility for future orchestration layers where stream-heavy workflows may benefit from RxJS or enterprise governance may prefer Redux.
+
+**Alternatives Considered:**
+
+- Immediate Redux migration as primary runtime core (rejected: higher migration overhead and broader short-term refactor risk).
+- Immediate RxJS stream-first runtime (rejected: unnecessary complexity for current CRUD-heavy reliability goals).
+- Keep page-local fetch patterns only (rejected: continued loading flicker, duplicated logic, and inconsistent cache/mutation behavior).
+
+**Implications:**
+
+- Runtime interfaces (resource registry, reconciler, mutation coordinator) must remain framework-agnostic at the domain boundary.
+- New high-traffic surfaces should migrate to runtime subscriptions instead of ad hoc page-local fetch orchestration.
+- Architecture docs must define adapter seams and migration guardrails before broad rollout.
+
 ## TOP Banner Is Image-Only and Title-Optional
 
 **Decision:** Treat `TOP` banners as image-only strips with no frontend title/text overlay, and allow empty title payloads for `TOP` banner creation while keeping strict image and position validation.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import Link from "next/link";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
 import { useCart } from "@/lib/store/cartStore";
@@ -15,6 +16,8 @@ import {
   PRODUCT_DISCOVERY_CATEGORIES,
   buildProductDiscoveryQueryString,
 } from "@/lib/config/productDiscovery";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { getBannersClient, getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -32,6 +35,29 @@ function normalizeBannerText(value: string | null | undefined): string {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
+  const fetchHomeResource = useCallback(
+    async (): Promise<{ banners: Banner[]; products: Product[]; vendors: Vendor[] }> => ({
+      banners: await getBannersClient(),
+      products: await getProductsClient({ limit: 120 }),
+      vendors: await getVendorsClient(120),
+    }),
+    []
+  );
+
+  const {
+    data: homeResource,
+    isRefreshing,
+    error,
+  } = useSmartResource(fetchHomeResource, {
+    key: "home-runtime-resource",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 30_000,
+  });
+
+  const liveBanners = homeResource?.banners ?? banners;
+  const liveProducts = homeResource?.products ?? products;
+  const liveVendors = homeResource?.vendors ?? vendors;
+
   const getProductReviewMetrics = (product: Product) => {
     const reviewCount =
       typeof product.totalReviews === "number"
@@ -53,7 +79,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   };
 
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
-  const activeBanners = banners
+  const activeBanners = liveBanners
     .filter(
       (b) =>
         b.isActive &&
@@ -83,27 +109,27 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     }));
 
   // Get featured products
-  const featuredProducts = products
+  const featuredProducts = liveProducts
     .filter((product) => product.isFeatured && product.isActive)
     .slice(0, 8);
 
   // Get trending products (sort by reviews count)
-  const trendingProducts = products
+  const trendingProducts = liveProducts
     .filter((product) => product.isActive)
     .sort((a, b) => getProductReviewMetrics(b).reviewCount - getProductReviewMetrics(a).reviewCount)
     .slice(0, 8);
 
   // Get new arrivals (sort by createdAt)
-  const newArrivals = products
+  const newArrivals = liveProducts
     .filter((product) => product.isActive)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8);
 
   // Get popular vendors (vendors with most products)
-  const popularVendors = vendors
+  const popularVendors = liveVendors
     .map((vendor) => ({
       ...vendor,
-      productCount: products.filter((p) => p.vendorId === vendor.id && p.isActive).length,
+      productCount: liveProducts.filter((p) => p.vendorId === vendor.id && p.isActive).length,
     }))
     .sort((a, b) => b.productCount - a.productCount)
     .slice(0, 6);
@@ -129,7 +155,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
   const handleAddToCart = (product: (typeof featuredProducts)[number]) => {
     if (!requireAuth("add items to your cart")) return;
-    const vendor = vendors.find((v) => v.id === product.vendorId);
+    const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     addItem({
       productId: product.id,
@@ -162,7 +188,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
         </section>
 
         {/*Fallback for when there are no products using EmptyState component*/}
-        {products.length === 0 && <EmptyState title={"No Products Found"} />}
+        {liveProducts.length === 0 && <EmptyState title={"No Products Found"} />}
+        {isRefreshing ? (
+          <p className="mb-3 text-xs text-ds-text-tertiary">Refreshing marketplace data...</p>
+        ) : null}
+        {error ? <p className="mb-3 text-xs text-ds-status-error-text">{error}</p> : null}
 
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
@@ -180,7 +210,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             </div>
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {featuredProducts.map((product) => {
-                const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
@@ -230,7 +260,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             </div>
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {trendingProducts.map((product) => {
-                const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
@@ -280,7 +310,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             </div>
             <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {newArrivals.map((product) => {
-                const vendor = vendors.find((v) => v.id === product.vendorId);
+                const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                 const vendorStatus = vendor?.status || product.vendor?.status;
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
