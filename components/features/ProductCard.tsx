@@ -49,7 +49,10 @@ export function ProductCard({
   isFavorite = false,
   className,
 }: ProductCardProps) {
-  const discountedPrice = discount ? price - (price * discount) / 100 : price;
+  const normalizedDiscount = typeof discount === "number" ? discount : Number(discount ?? 0);
+  const hasDiscount = Number.isFinite(normalizedDiscount) && normalizedDiscount > 0;
+  const discountRate = hasDiscount ? Math.min(normalizedDiscount, 100) : 0;
+  const discountedPrice = hasDiscount ? Math.max(price - (price * discountRate) / 100, 0) : price;
   const isService = isServiceProp || stock >= SERVICE_UNLIMITED_STOCK;
   const isOutOfStock = !isService && stock === 0;
 
@@ -75,7 +78,7 @@ export function ProductCard({
           <div className="absolute left-1 top-1 flex flex-col gap-0.5 sm:left-1.5 sm:top-1.5 sm:gap-1">
             {isService && <Badge variant="info">Service</Badge>}
             {isFeatured && <Badge variant="primary">Featured</Badge>}
-            {discount && discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
+            {hasDiscount && <Badge variant="danger">-{discountRate}%</Badge>}
             {isOutOfStock && <Badge variant="default">Out of Stock</Badge>}
           </div>
 
@@ -130,13 +133,14 @@ export function ProductCard({
 
         {/* Price + Cart Row */}
         <div className="flex items-center justify-between gap-1">
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-bold text-ds-text-brand sm:text-sm truncate">
-                {rateLabel && isService ? `${rateLabel} ` : ""}{formatCurrency(discountedPrice)}
+          <div className="flex min-w-0 flex-col">
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-xs font-bold text-ds-text-brand sm:text-sm">
+                {rateLabel && isService ? `${rateLabel} ` : ""}
+                {formatCurrency(discountedPrice)}
               </span>
-              {discount && discount > 0 && (
-                <span className="text-[10px] text-ds-text-tertiary line-through sm:text-xs dark:text-ds-text-placeholder">
+              {hasDiscount && (
+                <span className="truncate text-[10px] text-ds-text-tertiary line-through sm:text-xs dark:text-ds-text-placeholder">
                   {formatCurrency(price)}
                 </span>
               )}

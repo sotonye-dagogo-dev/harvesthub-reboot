@@ -37,10 +37,7 @@ export async function GET(req: NextRequest) {
         const banners = await prismaAdapter.bannerDb.findAll(filters as any);
 
         const normalizedBanners = Array.isArray(banners)
-            ? banners.filter((banner: any) => {
-                if (banner?.position !== 'TOP') return true;
-                return typeof banner?.title === 'string' && banner.title.trim().length > 0;
-            })
+            ? banners.filter((banner: any) => typeof banner?.imageUrl === 'string' && banner.imageUrl.trim().length > 0)
             : [];
 
         const result = { success: true, banners: normalizedBanners };
@@ -66,9 +63,21 @@ export async function POST(req: NextRequest) {
             accentColor, details, knowMoreLabel, isActive, startDate, endDate,
             displayOrder, targetAudience } = body;
 
+        const normalizedPosition = typeof position === 'string' ? position.trim().toUpperCase() : '';
+        const validPositions = ['TOP', 'HERO', 'SIDEBAR'];
+        if (!validPositions.includes(normalizedPosition)) {
+            return NextResponse.json({ error: 'A valid banner position is required' }, { status: 400 });
+        }
+
         const normalizedTitle = typeof title === 'string' ? title.trim() : '';
-        if (!normalizedTitle || !imageUrl) {
-            return NextResponse.json({ error: 'title and imageUrl are required' }, { status: 400 });
+        const isTopBanner = normalizedPosition === 'TOP';
+
+        if (!imageUrl) {
+            return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 });
+        }
+
+        if (!isTopBanner && !normalizedTitle) {
+            return NextResponse.json({ error: 'title is required for hero and sidebar banners' }, { status: 400 });
         }
 
         const banner = await prismaAdapter.bannerDb.create({
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
             imageUrl,
             linkUrl,
             actions,
-            position: position || 'HERO',
+            position: normalizedPosition,
             theme: theme || 'BUSINESS',
             accentColor,
             details,

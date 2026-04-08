@@ -9,6 +9,7 @@ import { Users, Search, Eye, Ban, CheckCircle, Trash2 } from "lucide-react";
 
 import { StatusTag } from "@/components/ui";
 import { Input, Select, Table, message, Avatar } from "antd";
+import { UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/lib/constants";
 
@@ -21,9 +22,10 @@ export default function OperationsUsersPage() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<{ page: number; totalPages: number } | null>(
-    null
-  );
+  const [loadingProgress, setLoadingProgress] = useState<{
+    page: number;
+    totalPages: number;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -163,20 +165,23 @@ export default function OperationsUsersPage() {
     {
       title: "User",
       key: "user",
-      render: (_: unknown, record: User) => (
-        <div className="flex items-center gap-3">
-          <Avatar src={record.profilePicture} size={40}>
-            {record.firstName[0]}
-            {record.lastName[0]}
-          </Avatar>
-          <div>
-            <p className="font-medium text-ds-text-primary">
-              {record.firstName} {record.lastName}
-            </p>
-            <p className="text-xs text-ds-text-tertiary">{record.email}</p>
+      render: (_: unknown, record: User) => {
+        const initials = `${record.firstName?.[0] ?? ""}${record.lastName?.[0] ?? ""}`.trim();
+
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar src={record.profilePicture || undefined} size={40} icon={<UserOutlined />}>
+              {initials || undefined}
+            </Avatar>
+            <div>
+              <p className="font-medium text-ds-text-primary">
+                {record.firstName} {record.lastName}
+              </p>
+              <p className="text-xs text-ds-text-tertiary">{record.email}</p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: "Phone",
@@ -349,7 +354,7 @@ export default function OperationsUsersPage() {
             dataSource={filteredUsers}
             columns={columns}
             rowKey="id"
-            pagination={{ pageSize: 10, showSizeChanger: true }}
+            pagination={{ defaultPageSize: 10, showSizeChanger: true }}
             scroll={{ x: 900 }}
           />
         </Card>

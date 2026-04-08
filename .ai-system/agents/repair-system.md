@@ -18,6 +18,105 @@
 
 ---
 
+## [Vendor-content moderation feed mixed marketing submissions with non-marketing media]
+
+**Symptom:**
+
+- Operations moderation reviewers saw content that did not clearly belong to vendor marketing campaigns.
+- Moderation context became ambiguous between campaign review and product-media handling.
+
+**Root Cause:**
+
+- Admin moderation query semantics were too broad for the intended marketing-review workflow.
+- UI/navigation labels still used generic vendor-content language, reinforcing domain ambiguity.
+
+**Fix Applied:**
+
+- Constrained `/api/admin/vendor-content` filtering toward marketing-scoped submissions.
+- Updated operations moderation page copy and navigation label to marketing-review terminology.
+- Enforced explicit `targetPlatform` enum/default in vendor-content schema.
+
+**Prevention:**
+
+- Keep moderation endpoints aligned to explicit business-domain intent (marketing vs catalog media).
+- Require channel metadata for campaign assets so moderation scope stays machine-filterable.
+
+**Files Affected:**
+
+- app/api/admin/vendor-content/route.ts
+- app/(operations)/operations/vendor-content/page.tsx
+- app/(operations)/operations/marketing-content/page.tsx
+- lib/schemas/vendor-content.schemas.ts
+- lib/navigation.ts
+
+**Date:** 2026-04-08
+
+---
+
+## [Operations vendor stats collapse to zero from multi-status fan-out requests]
+
+**Symptom:**
+
+- Operations vendor stats/cards intermittently show `0` across statuses despite existing vendor records.
+- Vendor management list can render empty after transient fetch failures.
+
+**Root Cause:**
+
+- Client page requested each vendor status in parallel (`APPROVED`, `PENDING`, `REJECTED`, `SUSPENDED`) and treated the batch as all-or-nothing.
+- Request fan-out increased rate-limit and transient failure likelihood, causing fallback to empty arrays.
+
+**Fix Applied:**
+
+- Added admin-scoped `includeAllStatuses=true` support to `/api/vendors`.
+- Updated operations vendors page to use one paginated all-status vendor fetch path and one paginated products fetch path.
+
+**Prevention:**
+
+- Avoid status-fan-out request patterns for core stats surfaces when a single paginated feed can serve as source of truth.
+- Keep admin-only expanded status reads explicit and isolated from public defaults.
+
+**Files Affected:**
+
+- app/api/vendors/route.ts
+- app/(operations)/operations/vendors/page.tsx
+
+**Date:** 2026-04-08
+
+---
+
+## [TOP banner title requirement drift with image-only UX contract]
+
+**Symptom:**
+
+- Top banners still displayed title/text overlays even after UX requirement changed to image-only strip.
+- TOP banners without title were filtered out by API/frontend guards.
+
+**Root Cause:**
+
+- Banner contracts still inherited HERO-oriented title assumptions.
+- API and component guards rejected empty-title TOP records.
+
+**Fix Applied:**
+
+- Switched `TopAdBanner` to image-only rendering (no title/text overlay).
+- Allowed TOP banners with empty title in banner API create path while keeping position/image validation.
+- Updated admin banner editor UX to avoid forcing title input for TOP position.
+
+**Prevention:**
+
+- Keep per-position banner contracts explicit (TOP visual-only vs HERO text-driven).
+- Avoid carrying shared validation rules across placement types when UX intent differs.
+
+**Files Affected:**
+
+- components/features/TopAdBanner.tsx
+- app/api/banners/route.ts
+- app/(operations)/operations/banners/page.tsx
+
+**Date:** 2026-04-08
+
+---
+
 ## [Product discovery query drift: category/sort links do not consistently affect products results]
 
 **Symptom:**

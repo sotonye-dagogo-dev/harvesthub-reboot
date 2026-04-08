@@ -109,6 +109,25 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 5. Feature page runs under consolidated operations namespace while old bookmarks remain valid.
 ```
 
+### Operations Smart-Resource Refresh Flow
+
+```
+1. Operations page defines a fetcher and calls `useSmartResource(fetcher, { key, staleTimeMs, refreshIntervalMs })`.
+2. Hook serves warm in-memory data immediately when cache exists.
+3. Hook performs stale-check and background refresh without blocking existing UI.
+4. Hook updates state only when payload materially changes (equality guard), reducing unnecessary rerenders.
+5. Manual refresh actions can force a fresh pull for operator-driven recency.
+```
+
+### Vendor Marketing Moderation Boundary Flow
+
+```
+1. Vendor submits marketing content through `/api/vendors/[vendorId]/content` with explicit `targetPlatform` metadata.
+2. Operations moderation reads `/api/admin/vendor-content` using marketing-scoped query semantics.
+3. Moderators approve/reject marketing submissions in `/operations/vendor-content` (labeled as marketing review).
+4. Product media/catalog workflows remain separate from this moderation path.
+```
+
 ### Profile + Store Settings Persistence Flow
 
 ```

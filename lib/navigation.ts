@@ -39,7 +39,7 @@ const labelMap: Record<string, string> = {
     adminAds: 'Ads',
     adminBugReports: 'Bug Reports',
     adminSettings: 'Settings',
-    adminVendorContent: 'Vendor Content',
+    adminVendorContent: 'Marketing Review',
     vendorMarketingContent: 'Marketing Content',
 };
 

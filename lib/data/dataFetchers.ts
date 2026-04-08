@@ -8,17 +8,42 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Banner, Product, Vendor, Order, Review } from '@/lib/types';
 
+async function withPrismaReconnect<T>(action: () => Promise<T>): Promise<T> {
+    try {
+        return await action();
+    } catch (error: any) {
+        const message = String(error?.message ?? error);
+        if (
+            message.includes('Server has closed the connection') ||
+            message.includes('Connection is closed') ||
+            message.includes('Closed connection') ||
+            message.includes('socket hang up') ||
+            message.includes('ECONNRESET')
+        ) {
+            try {
+                await prisma.$disconnect();
+            } catch {
+                // ignore disconnect errors during reconnect flow
+            }
+            await prisma.$connect();
+            return action();
+        }
+        throw error;
+    }
+}
+
 // ==================== BANNERS ====================
 
 export async function getBanners(): Promise<Banner[]> {
     try {
-        const banners = await prisma.banner.findMany({
+        const banners = await withPrismaReconnect(() => prisma.banner.findMany({
             where: { isActive: true },
             orderBy: { displayOrder: 'asc' },
-        });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return banners as any;
-    } catch {
+    } catch (error) {
+        console.error('getBanners failed', error);
         return [];
     }
 }
@@ -26,19 +51,44 @@ export async function getBanners(): Promise<Banner[]> {
 export async function getHeroBanners(): Promise<Banner[]> {
     try {
         const now = new Date();
-        const banners = await prisma.banner.findMany({
-            where: {
-                isActive: true,
-                position: 'HERO',
-                startDate: { lte: now },
-                OR: [{ endDate: null }, { endDate: { gte: now } }],
-            },
-            orderBy: { displayOrder: 'asc' },
-        });
+        const [heroBanners, topBanners] = await withPrismaReconnect(() =>
+            Promise.all([
+                prisma.banner.findMany({
+                    where: {
+                        isActive: true,
+                        position: 'HERO',
+                        startDate: { lte: now },
+                        OR: [{ endDate: null }, { endDate: { gte: now } }],
+                    },
+                    orderBy: { displayOrder: 'asc' },
+                }),
+                prisma.banner.findMany({
+                    where: {
+                        isActive: true,
+                        position: 'TOP',
+                        startDate: { lte: now },
+                        OR: [{ endDate: null }, { endDate: { gte: now } }],
+                    },
+                    select: { imageUrl: true, title: true },
+                }),
+            ])
+        );
+
+        const normalize = (value: string | null | undefined) => String(value || '').trim().toLowerCase();
+        const topSignatures = new Set(
+            topBanners.map((banner) => `${normalize(banner.imageUrl)}::${normalize(banner.title)}`)
+        );
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return banners
-            .filter((b) => b.position === 'HERO' && String(b.title || '').trim().length > 0) as any;
-    } catch {
+        return heroBanners
+            .filter((banner) => {
+                if (banner.position !== 'HERO') return false;
+                if (String(banner.title || '').trim().length === 0) return false;
+                const signature = `${normalize(banner.imageUrl)}::${normalize(banner.title)}`;
+                return !topSignatures.has(signature);
+            }) as any;
+    } catch (error) {
+        console.error('getHeroBanners failed', error);
         return [];
     }
 }
@@ -47,24 +97,25 @@ export async function getHeroBanners(): Promise<Banner[]> {
 
 export async function getProducts(): Promise<Product[]> {
     try {
-        const products = await prisma.product.findMany({
+        const products = await withPrismaReconnect(() => prisma.product.findMany({
             where: { isActive: true },
             include: {
                 vendor: true,
                 reviews: true,
             },
             orderBy: { createdAt: 'desc' },
-        });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
-    } catch {
+    } catch (error) {
+        console.error('getProducts failed', error);
         return [];
     }
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
     try {
-        const products = await prisma.product.findMany({
+        const products = await withPrismaReconnect(() => prisma.product.findMany({
             where: { isFeatured: true, isActive: true },
             include: {
                 vendor: true,
@@ -72,17 +123,18 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
             },
             take: limit,
             orderBy: { createdAt: 'desc' },
-        });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
-    } catch {
+    } catch (error) {
+        console.error('getFeaturedProducts failed', error);
         return [];
     }
 }
 
 export async function getTrendingProducts(limit = 8): Promise<Product[]> {
     try {
-        const products = await prisma.product.findMany({
+        const products = await withPrismaReconnect(() => prisma.product.findMany({
             where: { isActive: true },
             include: {
                 vendor: true,
@@ -91,24 +143,26 @@ export async function getTrendingProducts(limit = 8): Promise<Product[]> {
             },
             take: limit,
             orderBy: { reviews: { _count: 'desc' } },
-        });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return products as any;
-    } catch {
+    } catch (error) {
+        console.error('getTrendingProducts failed', error);
         return [];
     }
 }
 
 export async function getProductById(id: string) {
     try {
-        return await prisma.product.findUnique({
+        return await withPrismaReconnect(() => prisma.product.findUnique({
             where: { id },
             include: {
                 vendor: true,
                 reviews: true,
             },
-        });
-    } catch {
+        }));
+    } catch (error) {
+        console.error('getProductById failed', error);
         return null;
     }
 }
@@ -117,14 +171,15 @@ export async function getProductById(id: string) {
 
 export async function getVendors(): Promise<Vendor[]> {
     try {
-        const vendors = await prisma.vendor.findMany({
+        const vendors = await withPrismaReconnect(() => prisma.vendor.findMany({
             where: { status: { in: ['APPROVED', 'PENDING'] } },
             include: { user: true },
             orderBy: { createdAt: 'desc' },
-        });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return vendors as any;
-    } catch {
+    } catch (error) {
+        console.error('getVendors failed', error);
         return [];
     }
 }

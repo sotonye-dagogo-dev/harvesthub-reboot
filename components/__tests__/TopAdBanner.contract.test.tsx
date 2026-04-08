@@ -43,15 +43,18 @@ describe("TopAdBanner contract", () => {
     vi.clearAllMocks();
   });
 
-  it("renders a top banner when text content is present", async () => {
+  it("renders a top banner strip even when title text is not displayed", async () => {
     vi.mocked(getTopBannersClient).mockResolvedValue([buildBanner()]);
 
-    render(<TopAdBanner />);
+    const { container } = render(<TopAdBanner />);
 
-    expect(await screen.findByText("Spring Market Deals")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Spring Market Deals")).not.toBeInTheDocument();
   });
 
-  it("does not render top banner when title text is empty/whitespace", async () => {
+  it("renders top banner when title is empty/whitespace", async () => {
     vi.mocked(getTopBannersClient).mockResolvedValue([
       buildBanner({ title: "   " }),
       buildBanner({ id: "banner-2", title: "<span> </span>" }),
@@ -60,7 +63,7 @@ describe("TopAdBanner contract", () => {
     const { container } = render(<TopAdBanner />);
 
     await waitFor(() => {
-      expect(container.firstChild).toBeNull();
+      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
     });
   });
 

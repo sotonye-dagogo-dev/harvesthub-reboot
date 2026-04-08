@@ -27,6 +27,101 @@
 
 ## Decisions
 
+## TOP Banner Is Image-Only and Title-Optional
+
+**Decision:** Treat `TOP` banners as image-only strips with no frontend title/text overlay, and allow empty title payloads for `TOP` banner creation while keeping strict image and position validation.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The product requirement is that top banners should not render textual content. Requiring title text in API/form contracts created drift and confusing behavior where operators had to input content that should never be shown.
+
+**Alternatives Considered:**
+
+- Keep top-banner text in payload and hide only in CSS (rejected: contract drift and repeated operator confusion).
+- Keep title required for all positions (rejected: conflicts with image-only top-banner UX intent).
+
+**Implications:**
+
+- Banner creation/editing UX must treat `TOP` as visual-only placement.
+- `HERO`/`SIDEBAR` still require title content and keep text-forward rendering behavior.
+
+## Operations Vendor Stats Must Use Admin All-Status Paginated Fetch
+
+**Decision:** Replace multi-status parallel vendor fetch calls in operations vendor management with a single paginated fetch path using admin-scoped `includeAllStatuses=true`.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Parallel per-status requests increased rate-limit/error risk and could collapse vendor stats to zero despite existing data.
+
+**Alternatives Considered:**
+
+- Keep one request per status in parallel (rejected: brittle and prone to all-or-nothing failure behavior).
+- Keep per-status requests but run sequentially (rejected: still repetitive and slower, with avoidable failure surface).
+
+**Implications:**
+
+- Operations vendor counts now depend on one authoritative paginated feed.
+- `/api/vendors` must keep admin-only all-status expansion isolated from public defaults.
+
+## Operations Data Refresh Uses In-Memory Smart Resource Cache
+
+**Decision:** Standardize key operations pages on a shared `useSmartResource` hook that combines in-memory cache reuse, stale-time guarded refresh, interval background refresh, and equality-based state update suppression.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Operations pages were repeatedly issuing full reload fetches that increased backend pressure and produced disruptive loading flashes. A shared retrieval contract reduces request abuse while keeping data fresh.
+
+**Alternatives Considered:**
+
+- Keep page-specific fetch/useEffect implementations (rejected: duplicated logic and inconsistent loading/refresh behavior).
+- Introduce a heavier external query library immediately (rejected: unnecessary migration scope for current reliability objective).
+
+**Implications:**
+
+- Operations pages using this pattern should provide non-blocking refresh indicators and optional manual refresh actions.
+- New operations surfaces should prefer `useSmartResource` unless a documented exception exists.
+
+## Vendor Marketing Moderation Is a Separate Operational Entity
+
+**Decision:** Treat operations vendor-content moderation as a marketing-submission domain distinct from product-media management; constrain moderation query semantics and UI labeling accordingly.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Mixed moderation feeds made it unclear whether reviewers were handling campaign assets or product catalog media, causing operational ambiguity and higher mis-review risk.
+
+**Alternatives Considered:**
+
+- Keep one mixed feed and rely on ad hoc reviewer interpretation (rejected: error-prone and unclear responsibility boundaries).
+- Split into fully separate tables immediately (rejected for this slice: larger migration than needed for immediate behavior correction).
+
+**Implications:**
+
+- Moderation route copy/navigation should use marketing-review terminology.
+- Vendor marketing submissions should always carry explicit target-platform metadata.
+
+## Entity Avatar Rendering Uses Shared Fallback Component
+
+**Decision:** Use shared `EntityAvatar`/`VendorAvatar` for vendor and user image rendering with deterministic fallback icon/initial behavior on missing or failed image loads.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Repeated ad hoc avatar implementations caused inconsistent empty states and broken-image visual artifacts.
+
+**Alternatives Considered:**
+
+- Keep per-page avatar logic with local fallback snippets (rejected: duplication and inconsistency).
+- Force placeholder URLs only at data layer (rejected: does not handle runtime image load failures).
+
+**Implications:**
+
+- New vendor/user avatar surfaces should compose through shared avatar component exports.
+- UI behavior is now consistent when profile/store image URLs are absent or invalid.
+
 ## Shared Client Dashboard Shell for Non-Operations Vendor/Admin Routes
 
 **Decision:** Reuse a single `ClientDashboardShell` wrapper for vendor/admin pages outside the operations route group (notably `/store-settings` and `/notifications/settings`) and keep buyer rendering outside this shell.

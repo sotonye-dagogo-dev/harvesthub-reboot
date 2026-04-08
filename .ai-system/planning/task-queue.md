@@ -425,3 +425,46 @@
 - [x] Finalize documentation and architecture notes.
   - [x] Update `.ai-system/agents/system-architecture.md` with product discovery query flow and config module reference.
   - [x] Log implementation decisions/checkpoints/history updates in `.ai-system` artifacts.
+
+---
+
+## Session Hotfix Queue (2026-04-08) — Home/Product/Banner/Data Integrity
+
+> **Section summary:** Immediate bug-fix slice for discount rendering, top-banner image-only behavior, and stale/zero data regressions on home + operations vendor metrics.
+
+- [x] Fix product-card discount rendering contract.
+  - [x] Hide discount badge/old-price rendering when discount is zero or invalid.
+  - [x] Ensure discounted/current price remains visible on narrow/mobile cards.
+- [x] Enforce top-banner image-only display contract.
+  - [x] Remove top-banner title/text overlay rendering from frontend strip.
+  - [x] Allow TOP banners with empty title while still requiring an image.
+  - [x] Update operations banner editor UX so TOP position does not force title input.
+- [x] Stabilize home and vendor-stat data reliability.
+  - [x] Add Prisma reconnect retry hardening to server data fetchers used by home/products/vendors pages.
+  - [x] Add hero/top dedupe guard for accidentally duplicated banner content.
+  - [x] Replace multi-request vendor-status loading in operations vendors page with admin all-status paginated fetch.
+- [x] Add/refresh focused regression coverage.
+  - [x] Update top-banner tests for image-only + empty-title TOP behavior.
+  - [x] Add product-card discount rendering tests.
+  - [x] Re-run targeted Vitest suites for touched scope.
+
+---
+
+## Session Feature Queue (2026-04-08) — Vendor Marketing Separation + Smart Refresh
+
+> **Section summary:** Follow-up implementation slice to separate marketing moderation concerns from product media, add resilient avatar fallbacks, and reduce operations request churn with in-memory cached silent refresh.
+
+- [x] Enforce vendor marketing-content entity boundaries.
+  - [x] Restrict admin moderation feed to marketing-scoped vendor submissions.
+  - [x] Clarify operations copy/navigation that moderation is marketing-review scope.
+  - [x] Require/normalize target-platform metadata for vendor marketing submissions.
+- [x] Add robust image/avatar fallback behavior.
+  - [x] Introduce reusable entity avatar component with icon/initial fallback and image-failure recovery.
+  - [x] Apply fallback avatar rendering to operations vendors/users views and shared `VendorCard`.
+- [x] Introduce non-abusive operations data retrieval strategy.
+  - [x] Add shared in-memory smart-resource hook with stale-time cache, background refresh, and compare-before-state-update guard.
+  - [x] Migrate operations vendors, vendor-content moderation, and vendor marketing-content pages to smart-resource retrieval.
+  - [x] Add manual refresh controls and non-blocking refresh indicators on migrated pages.
+- [x] Validate touched scope.
+  - [x] Run focused lint for edited files.
+  - [x] Run focused Vitest regression suites for vendor/banner/product contracts.
