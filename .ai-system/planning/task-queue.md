@@ -468,3 +468,54 @@
 - [x] Validate touched scope.
   - [x] Run focused lint for edited files.
   - [x] Run focused Vitest regression suites for vendor/banner/product contracts.
+
+---
+
+## Feature Planning Queue (2026-04-08) — Unified In-Memory Data Runtime + Seamless Refresh
+
+> **Section summary:** Cross-project reliability feature to preload role-accessible data, keep it in-memory, apply safe optimistic updates, and refresh from DB with minimal visual interruption.
+
+- [ ] Define runtime architecture contracts and migration boundaries.
+  - [ ] Add `lib/data-runtime` module blueprint (registry, store, reconciler, mutation coordinator, prefetch, telemetry).
+  - [ ] Define canonical resource key policy, scope policy (public/auth/role), and cache invalidation contract.
+  - [ ] Document coexistence strategy for legacy fetch patterns during phased migration.
+
+- [ ] Build config-driven resource registry + policy system.
+  - [ ] Implement declarative `resourceRegistry` entries with stale/ttl/retry/compare policy fields.
+  - [ ] Add runtime config defaults in `lib/config` for spinner thresholds, retry backoff, and silent-refresh behavior.
+  - [ ] Ensure policy overrides are typed and domain-safe.
+
+- [ ] Implement centralized runtime store and reconciler.
+  - [ ] Build in-memory resource state graph with status/timestamp/in-flight metadata.
+  - [ ] Implement semantic compare pipeline to suppress no-op UI updates.
+  - [ ] Add stale-safe merge behavior that preserves visible data during background refresh.
+
+- [ ] Implement mutation coordinator with optimistic safety.
+  - [ ] Add optimistic patch application and deterministic rollback on backend failure.
+  - [ ] Add reconciliation hooks for server-normalized payloads after successful commits.
+  - [ ] Enforce domain-level error mapping so mutation failures do not silently corrupt runtime state.
+
+- [ ] Add role-aware warm-start prefetch at app bootstrap.
+  - [ ] Resolve auth/role context and preload role-accessible resources from registry on initial app load.
+  - [ ] Gate prefetch breadth by route/feature scope to avoid over-fetching.
+  - [ ] Ensure first paint uses warm in-memory data where available.
+
+- [ ] Migrate high-impact pages from page-local fetch to runtime subscriptions.
+  - [ ] Operations surfaces: dashboard, users, vendors, products, bug reports, orders.
+  - [ ] Core buyer surfaces: home, products, cart/checkout support data, orders, profile/wallet notifications.
+  - [ ] Remove duplicate per-page loading flags where runtime status already provides equivalent state.
+
+- [ ] Harden transient DB/API error handling in runtime.
+  - [ ] Add retry with jitter/backoff + bounded attempts for connection-closed class errors.
+  - [ ] Add circuit-breaker/cooldown logic to avoid refresh storms.
+  - [ ] Preserve last-good data during retry windows and show non-blocking status cues.
+
+- [ ] Add observability and quality gates for runtime behavior.
+  - [ ] Track load latency, refresh churn, no-op refresh ratio, retry counts, and mutation rollback frequency.
+  - [ ] Add regression tests for warm-start behavior, optimistic updates, reconcile/rollback, and silent-refresh no-flicker behavior.
+  - [ ] Run full matrix (`lint`, `tsc --noEmit`, targeted/full Vitest, route audits) after staged migrations.
+
+- [ ] Finalize architecture/docs synchronization.
+  - [ ] Update `.ai-system/agents/system-architecture.md` with unified runtime data flow.
+  - [ ] Record decisions in `.ai-system/memory/project-decisions.md` and update checkpoint/history artifacts.
+  - [ ] Mark completion status and residual risks in queue and summary docs.
