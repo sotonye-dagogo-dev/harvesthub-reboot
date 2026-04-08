@@ -10,6 +10,11 @@ import type { Banner, Product, Vendor } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { isVendorVerified } from "@/lib/utils/vendor";
 import { useToast } from "@/lib/contexts/ToastContext";
+import {
+  DEFAULT_PRODUCT_SORT,
+  PRODUCT_DISCOVERY_CATEGORIES,
+  buildProductDiscoveryQueryString,
+} from "@/lib/config/productDiscovery";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -17,12 +22,24 @@ interface HomeContentProps {
   vendors: Vendor[];
 }
 
+function normalizeBannerText(value: string | null | undefined): string {
+  if (!value) return "";
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   // Get active HERO banners – map from the rich Banner type to BannerItem shape
   const activeBanners = banners
     .filter(
       (b) =>
-        b.isActive && b.position === "HERO" && (!b.endDate || new Date(b.endDate) >= new Date())
+        b.isActive &&
+        b.position === "HERO" &&
+        (!b.endDate || new Date(b.endDate) >= new Date()) &&
+        normalizeBannerText(b.title).length > 0
     )
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((b) => ({
@@ -72,14 +89,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     .slice(0, 6);
 
   // Categories for navigation
-  const categories = [
-    { id: "1", name: "Electronics", slug: "electronics" },
-    { id: "2", name: "Fashion", slug: "fashion" },
-    { id: "3", name: "Grocery & Food", slug: "grocery-food" },
-    { id: "4", name: "Beauty & Personal Care", slug: "beauty" },
-    { id: "5", name: "Home Appliances", slug: "home-appliances" },
-    { id: "6", name: "Kitchen & Dining", slug: "kitchen-dining" },
-  ];
+  const categories = PRODUCT_DISCOVERY_CATEGORIES.map((category) => ({
+    id: category.value,
+    name: category.label,
+    slug: category.slug,
+  }));
 
   const { addItem } = useCart();
   const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
@@ -191,7 +205,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 Trending Now
               </h2>
               <Link
-                href="/products?sort=trending"
+                href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
                 className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
               >
                 View All →
@@ -244,7 +258,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 New Arrivals
               </h2>
               <Link
-                href="/products?sort=new"
+                href={`/products?${buildProductDiscoveryQueryString({ sort: DEFAULT_PRODUCT_SORT })}`}
                 className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
               >
                 View All →

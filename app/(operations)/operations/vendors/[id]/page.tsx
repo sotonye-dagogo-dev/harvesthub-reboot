@@ -78,6 +78,9 @@ export default function OperationsVendorDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
       message.success(`Vendor ${status.toLowerCase()} successfully`);
+      if (data?.emailDispatch?.attempted && !data?.emailDispatch?.sent) {
+        message.warning("Status changed, but vendor review email was not delivered.");
+      }
       setVendor(data.vendor);
     } catch (err) {
       message.error(err instanceof Error ? err.message : "Action failed");

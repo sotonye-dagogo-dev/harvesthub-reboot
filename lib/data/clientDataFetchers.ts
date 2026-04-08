@@ -22,6 +22,20 @@ export async function getBannersClient() {
     }
 }
 
+export async function getTopBannersClient() {
+    try {
+        const res = await fetch('/api/banners?active=true&position=TOP');
+        if (!res.ok) return [];
+
+        const data = await res.json();
+        if (Array.isArray(data?.banners)) return data.banners;
+        return [];
+    } catch (err) {
+        console.error('getTopBannersClient error', err);
+        return [];
+    }
+}
+
 // ==================== PRODUCTS ====================
 
 export async function getProductsClient(filters?: {
@@ -78,9 +92,17 @@ export async function getProductByIdClient(id: string) {
 
 // ==================== VENDORS ====================
 
-export async function getVendorsClient(limit = 20) {
+export async function getVendorsClient(limit = 20, status?: string) {
     try {
-        const res = await fetch(`/api/vendors?status=APPROVED&limit=${limit}`);
+        const params = new URLSearchParams({
+            limit: String(limit),
+        });
+
+        if (status) {
+            params.set('status', status);
+        }
+
+        const res = await fetch(`/api/vendors?${params.toString()}`);
         if (!res.ok) throw new Error('Failed to fetch vendors');
 
         const data = await res.json();
@@ -168,6 +190,55 @@ export async function getUsersClient() {
     } catch (err) {
         console.error('getUsersClient error', err);
         return [];
+    }
+}
+
+type UserCounts = {
+    totalUsers: number;
+    buyers: number;
+    vendors: number;
+};
+
+async function fetchUsersTotal(query = ''): Promise<number> {
+    const res = await fetch(`/api/users?page=1&limit=1${query}`);
+    if (!res.ok) {
+        throw new Error('Failed to fetch user count');
+    }
+
+    const data = await res.json();
+    const total = data?.pagination?.total;
+    if (typeof total === 'number' && Number.isFinite(total)) {
+        return total;
+    }
+
+    // Defensive fallback for unexpected payloads.
+    if (Array.isArray(data?.users)) {
+        return data.users.length;
+    }
+
+    return 0;
+}
+
+export async function getUserCountsClient(): Promise<UserCounts> {
+    try {
+        const [totalUsers, buyers, vendors] = await Promise.all([
+            fetchUsersTotal(),
+            fetchUsersTotal('&role=BUYER'),
+            fetchUsersTotal('&role=VENDOR'),
+        ]);
+
+        return {
+            totalUsers,
+            buyers,
+            vendors,
+        };
+    } catch (err) {
+        console.error('getUserCountsClient error', err);
+        return {
+            totalUsers: 0,
+            buyers: 0,
+            vendors: 0,
+        };
     }
 }
 

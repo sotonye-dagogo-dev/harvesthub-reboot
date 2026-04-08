@@ -8,7 +8,7 @@ import {
   getProductsClient,
   getVendorsClient,
   getOrdersClient,
-  getUsersClient,
+  getUserCountsClient,
 } from "@/lib/data/clientDataFetchers";
 import { formatCurrency } from "@/lib/utils";
 import { UserRole, OrderStatus, VendorStatus } from "@/lib/constants";
@@ -22,7 +22,7 @@ export function AnalyticsFeature() {
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [userCounts, setUserCounts] = useState({ totalUsers: 0, buyers: 0, vendors: 0 });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function AnalyticsFeature() {
           getProductsClient(),
           getVendorsClient(),
           getOrdersClient(),
-          getUsersClient(),
+          getUserCountsClient(),
         ]);
 
         if (!mounted) return;
@@ -54,7 +54,15 @@ export function AnalyticsFeature() {
         setProducts(p.status === "fulfilled" && Array.isArray(p.value) ? p.value : []);
         setVendors(v.status === "fulfilled" && Array.isArray(v.value) ? v.value : []);
         setOrders(o.status === "fulfilled" && Array.isArray(o.value) ? o.value : []);
-        setUsers(u.status === "fulfilled" && Array.isArray(u.value) ? u.value : []);
+        setUserCounts(
+          u.status === "fulfilled" && typeof u.value === "object" && u.value !== null
+            ? {
+                totalUsers: typeof u.value.totalUsers === "number" ? u.value.totalUsers : 0,
+                buyers: typeof u.value.buyers === "number" ? u.value.buyers : 0,
+                vendors: typeof u.value.vendors === "number" ? u.value.vendors : 0,
+              }
+            : { totalUsers: 0, buyers: 0, vendors: 0 }
+        );
 
         if (results.every((entry) => entry.status === "rejected")) {
           setError("Failed to load analytics. Please try again later.");
@@ -74,7 +82,9 @@ export function AnalyticsFeature() {
 
   const stats = useMemo(() => {
     const currentVendor = isVendor ? vendors.find((vendor) => vendor.userId === user?.id) : null;
-    const scopedOrders = currentVendor ? orders.filter((order) => order.vendorId === currentVendor.id) : orders;
+    const scopedOrders = currentVendor
+      ? orders.filter((order) => order.vendorId === currentVendor.id)
+      : orders;
     const scopedProducts = currentVendor
       ? products.filter((product) => product.vendorId === currentVendor.id)
       : products;
@@ -103,9 +113,9 @@ export function AnalyticsFeature() {
     const activeProducts = scopedProducts.filter((p) => p.isActive).length;
     const outOfStock = scopedProducts.filter((p) => p.stock === 0).length;
 
-    const totalUsers = isVendor ? 0 : users.length;
-    const buyerCount = isVendor ? 0 : users.filter((u) => u.role === UserRole.BUYER).length;
-    const vendorCount = isVendor ? 1 : users.filter((u) => u.role === UserRole.VENDOR).length;
+    const totalUsers = isVendor ? 0 : userCounts.totalUsers;
+    const buyerCount = isVendor ? 0 : userCounts.buyers;
+    const vendorCount = isVendor ? 1 : userCounts.vendors;
 
     const averageOrderValue = completedOrders > 0 ? totalRevenue / completedOrders : 0;
 
@@ -126,7 +136,7 @@ export function AnalyticsFeature() {
       averageOrderValue,
       totalTransactions: 0,
     };
-  }, [isVendor, orders, products, user?.id, users, vendors]);
+  }, [isVendor, orders, products, user?.id, userCounts, vendors]);
 
   if (isLoading) {
     return <div className="text-center py-12">Loading analytics ...</div>;
@@ -154,7 +164,9 @@ export function AnalyticsFeature() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <p className="text-sm text-ds-text-secondary">Total Revenue</p>
-          <p className="text-2xl font-bold text-ds-text-brand">{formatCurrency(stats.totalRevenue)}</p>
+          <p className="text-2xl font-bold text-ds-text-brand">
+            {formatCurrency(stats.totalRevenue)}
+          </p>
         </Card>
         <Card>
           <p className="text-sm text-ds-text-secondary">Total Orders</p>
@@ -222,9 +234,7 @@ export function AnalyticsFeature() {
         <Card>
           <p className="mb-3 text-sm font-medium text-ds-text-secondary">Catalog Health</p>
           {stats.totalProducts === 0 ? (
-            <p className="text-sm text-ds-text-secondary">
-              No product data is available yet.
-            </p>
+            <p className="text-sm text-ds-text-secondary">No product data is available yet.</p>
           ) : (
             <div className="space-y-2">
               {[

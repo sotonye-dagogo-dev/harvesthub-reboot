@@ -39,6 +39,257 @@
 
 ---
 
+## Session 32 — 2026-04-08
+
+**Goal:**
+Implement the queued Product/Vendor/Layout hotfix follow-up slice: harden `/products/[id]`, enforce dashboard-shell parity on missing pages, and restore unverified vendor visibility on public read paths.
+
+**Completed:**
+
+- Added shared `ClientDashboardShell` and migrated:
+  - `/store-settings` to use shared shell for vendor/admin,
+  - `/notifications/settings` to use shared shell for vendor/admin while keeping buyer plain layout.
+- Updated `RoleDashboardShell` to compose through `ClientDashboardShell` for consistent chrome spacing behavior.
+- Hardened `/products/[id]` with null-safe/defensive normalization for vendor/category/price/discount/stock fields and related-product filter safety.
+- Updated public vendor list defaults to include approved + pending vendors unless explicit status is supplied (`/api/vendors` + `getVendorsClient`).
+- Added focused regression tests for:
+  - store-settings shell contract,
+  - notifications-settings shell contract,
+  - product-detail sparse-field fallbacks,
+  - client vendor-fetch default status behavior,
+  - role dashboard shell composition after wrapper migration.
+- Marked the corresponding hotfix slice queue tasks complete, leaving only screenshot capture pending.
+
+**Files Modified:**
+
+- components/layout/ClientDashboardShell.tsx
+- components/layout/index.ts
+- components/layout/RoleDashboardShell.tsx
+- app/store-settings/page.tsx
+- app/notifications/settings/page.tsx
+- app/products/[id]/page.tsx
+- app/api/vendors/route.ts
+- lib/data/clientDataFetchers.ts
+- components/**tests**/RoleDashboardShell.test.tsx
+- app/store-settings/**tests**/page.layout.test.tsx
+- app/notifications/settings/**tests**/page.layout.test.tsx
+- app/products/[id]/**tests**/page.fallbacks.test.tsx
+- lib/**tests**/clientDataFetchers.vendors.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Capture refreshed UI screenshots for `/products/[id]`, `/store-settings`, and `/notifications/settings`, then continue with the next unchecked queue item outside this hotfix slice.
+
+**Notes / Blockers:**
+
+- Validation executed and passing:
+  - `npx vitest run app/store-settings/__tests__/page.layout.test.tsx app/notifications/settings/__tests__/page.layout.test.tsx app/products/[id]/__tests__/page.fallbacks.test.tsx components/__tests__/RoleDashboardShell.test.tsx lib/__tests__/clientDataFetchers.vendors.test.ts`
+  - `npx eslint app/store-settings/page.tsx app/notifications/settings/page.tsx components/layout/RoleDashboardShell.tsx components/layout/ClientDashboardShell.tsx app/api/vendors/route.ts lib/data/clientDataFetchers.ts app/products/[id]/page.tsx components/__tests__/RoleDashboardShell.test.tsx app/store-settings/__tests__/page.layout.test.tsx app/notifications/settings/__tests__/page.layout.test.tsx app/products/[id]/__tests__/page.fallbacks.test.tsx lib/__tests__/clientDataFetchers.vendors.test.ts`
+  - `npx tsc --noEmit --pretty false`
+
+---
+
+## Session 31 — 2026-04-08
+
+**Goal:**
+Complete the remaining product discovery validation queue by adding regression tests for home category click-through filtering and filter-sidebar canonical query mapping.
+
+**Completed:**
+
+- Added `app/__tests__/home.category-clickthrough.test.tsx` to verify home category links emit canonical query params (`category=<slug>`) that parse into canonical discovery category values.
+- Added `components/__tests__/ProductsContent.discovery-contract.test.tsx` to verify:
+  - category click-through query state filters products correctly,
+  - filter sidebar selections serialize to canonical URL query params (`category`, `vendor`, `location`, `minPrice`, `maxPrice`) with slug normalization.
+- Marked remaining discovery validation subtasks as complete in `.ai-system/planning/task-queue.md`.
+
+**Files Modified:**
+
+- app/**tests**/home.category-clickthrough.test.tsx
+- components/**tests**/ProductsContent.discovery-contract.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run broader discovery/UX regression pass or begin next queued backlog item outside the completed product-discovery hardening slice.
+
+**Notes / Blockers:**
+
+- Validation executed and passing:
+  - `npx vitest run app/__tests__/home.category-clickthrough.test.tsx components/__tests__/ProductsContent.discovery-contract.test.tsx app/__tests__/products.page-query-contract.test.tsx lib/__tests__/productDiscoveryQuery.test.ts`
+  - `npx eslint app/__tests__/home.category-clickthrough.test.tsx components/__tests__/ProductsContent.discovery-contract.test.tsx`
+  - `npx tsc --noEmit --pretty false`
+
+---
+
+## Session 30 — 2026-04-08
+
+**Goal:**
+Implement the first execution slice of the product discovery filter/sort hardening queue so category tags and sort query links actually drive products results using single-source config.
+
+**Completed:**
+
+- Added `lib/config/productDiscovery.ts` as canonical discovery contract (category slug/value mapping, sort keys/options, query parse/serialize helpers).
+- Wired `app/products/page.tsx` to parse `searchParams` and hydrate normalized discovery state.
+- Updated `components/features/ProductsContent.tsx` to:
+  - initialize filters/search/sort from parsed query state,
+  - apply deterministic sorting (`new`, `trending`, `price-low`, `price-high`, `name-asc`, `name-desc`),
+  - synchronize URL query string as discovery controls change,
+  - align price filtering with `FilterSidebar` `priceRange` contract.
+- Updated `app/components/HomeContent.tsx` to use shared discovery categories and shared query serializer for sort links.
+- Added regression tests:
+  - `lib/__tests__/productDiscoveryQuery.test.ts`
+  - `app/__tests__/products.page-query-contract.test.tsx`
+- Updated architecture docs with product discovery query flow and config module reference.
+
+**Files Modified:**
+
+- lib/config/productDiscovery.ts
+- app/products/page.tsx
+- components/features/ProductsContent.tsx
+- app/components/HomeContent.tsx
+- lib/**tests**/productDiscoveryQuery.test.ts
+- app/**tests**/products.page-query-contract.test.tsx
+- .ai-system/agents/system-architecture.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Complete remaining discovery validation items by adding tests for home category click-through filtering and filter sidebar -> canonical query mapping.
+
+**Notes / Blockers:**
+
+- Validation executed: targeted `vitest` (new suites), targeted `eslint` on touched files, and full `npx tsc --noEmit --pretty false`.
+
+---
+
+## Session 29 — 2026-04-08
+
+**Goal:**
+Execute `plan-feature.md` for client-reported category-tag filtering issues and broader product discovery filtering/sorting contract audit.
+
+**Completed:**
+
+- Audited product discovery flow across home and products surfaces (`HomeContent`, `CategoryNav`, `ProductsContent`, `FilterSidebar`, products page/data/API fetchers).
+- Identified drift points:
+  - category/sort query params are generated but not fully consumed by products-page state
+  - category config/mapping is duplicated across components
+  - sort behavior lacks a canonical shared configuration contract
+- Added feature spec to `.ai-system/planning/project-plan.md` with architecture impact, data flow, risks, and rollout order.
+- Appended executable implementation queue in `.ai-system/planning/task-queue.md` for discovery contract hardening.
+- Recorded planning decision and known-error pattern for discovery query drift in project memory/repair docs.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Start implementation from the new queue section: build canonical discovery config + URL query parser/serializer, then wire home tags and products page to it.
+
+**Notes / Blockers:**
+
+- Planning-only session per `plan-feature.md`; no runtime code changes applied.
+
+---
+
+## Session 28 — 2026-04-08
+
+**Goal:**
+Implement the active `Feature Planning Queue (2026-04-08)` items for banner integrity, analytics count correctness, vendor review visibility/email lifecycle, and public-content editor UX.
+
+**Completed:**
+
+- Enforced top-banner rendering contract: TOP feed isolation, whitespace/empty-title suppression, title normalization, and active-window filtering.
+- Separated homepage hero sourcing from generic banner feed (`getHeroBanners`) to prevent top/hero composition drift.
+- Hardened analytics user totals by replacing page-limited `/api/users` list-length assumptions with count fetchers from pagination totals.
+- Fixed operations vendor review discoverability by loading all vendor status buckets and routing review action to operations detail view.
+- Added vendor status lifecycle email dispatch on admin approve/reject transitions with response metadata and structured success/failure logs.
+- Redesigned `PublicContentAdminPanel` for non-technical editing: page presets, structured section blocks, upload-first media insertion, generated HTML fallback contract, and live preview.
+- Added top-banner contract regression tests and completed touched-scope validation.
+
+**Files Modified:**
+
+- components/features/TopAdBanner.tsx
+- app/components/HomeContent.tsx
+- app/page.tsx
+- lib/data/dataFetchers.ts
+- app/api/banners/route.ts
+- app/api/banners/[id]/route.ts
+- lib/data/clientDataFetchers.ts
+- components/features/AnalyticsFeature.tsx
+- app/(operations)/operations/vendors/page.tsx
+- app/(operations)/operations/vendors/[id]/page.tsx
+- app/api/vendors/[id]/route.ts
+- components/features/PublicContentAdminPanel.tsx
+- components/**tests**/TopAdBanner.contract.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run broader non-targeted regression suites and capture screenshots for the redesigned public-content workflow in operations.
+
+**Notes / Blockers:**
+
+- Validation executed: `npx vitest run components/__tests__/TopAdBanner.contract.test.tsx components/__tests__/AnalyticsFeature.counts.test.tsx app/__tests__/page.banner-composition.test.tsx`, `npx eslint` (touched files), `npx tsc --noEmit --pretty false`, `npm run audit:routes`, and `npm run audit:sidebar-routes`.
+- Vitest run emits known warning noise from Next/Image boolean props (`fill`/`priority`) in jsdom; tests still pass.
+
+---
+
+## Session 27 — 2026-04-08
+
+**Goal:**
+Execute `update-ai-system.md` synchronization and `plan-feature.md` planning directives for banner behavior integrity, analytics/count accuracy, vendor-review email wiring, and non-technical public-content editor redesign.
+
+**Completed:**
+
+- Rebuilt `.ai-system/index/repo-map.md` to match current workspace topology and canonical operations namespace.
+- Replaced duplicated/stale `.ai-system/index/dependency-graph.md` with synchronized module edges and dependency inventory.
+- Created missing `.ai-system/index/file-summaries/` and added high-impact module summaries.
+- Updated `.ai-system/agents/system-architecture.md` and both AI context files to remove legacy route-group and mock-primary drift.
+- Added a new project-level feature spec and concrete queue tasks for:
+  - top-banner no-text visibility rules
+  - top/hero banner placement duplication bug
+  - analytics count contract hardening
+  - vendor review visibility + email lifecycle verification
+  - public-content admin editor redesign with preview/upload/fallback parity
+- Marked contradictory stale signup queue item (`Worker` as signup role) as closed/superseded for decision consistency.
+
+**Files Modified:**
+
+- .ai-system/index/repo-map.md
+- .ai-system/index/dependency-graph.md
+- .ai-system/index/file-summaries/README.md
+- .ai-system/index/file-summaries/app-operations-products-page.md
+- .ai-system/index/file-summaries/app-operations-dashboard-page.md
+- .ai-system/index/file-summaries/app-api-upload-route.md
+- .ai-system/index/file-summaries/app-api-users-me-change-email-route.md
+- .ai-system/index/file-summaries/lib-rbac-route-config.md
+- .ai-system/index/file-summaries/components-layout-navigation.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/ai-context.md
+- .ai-context.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/lessons-learned.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Refresh `repomix-current.txt` snapshot and run final touched-scope validation to ensure AI-system docs and planning outputs are committed with a current codebase export.
+
+**Notes / Blockers:**
+
+- Planning-only execution; no feature runtime code changes were made in this session.
+
+---
+
 ## Session 26 — 2026-04-06
 
 **Goal:**
@@ -64,12 +315,12 @@ Address ad-application blocking errors, recover analytics/count reliability, res
 **Files Modified:**
 
 - lib/utils/adPricing.ts
-- lib/utils/__tests__/adPricing.test.ts
+- lib/utils/**tests**/adPricing.test.ts
 - app/api/ad-applications/route.ts
 - app/api/ads/apply/route.ts
 - app/api/admin/ads/rates/route.ts
 - app/advertise/page.tsx
-- app/_styles/globals.css
+- app/\_styles/globals.css
 - lib/data/clientDataFetchers.ts
 - components/features/AnalyticsFeature.tsx
 - app/(operations)/operations/users/page.tsx
@@ -223,14 +474,14 @@ Execute the remaining 2026-04-05 exhaustive-audit queue slices for role/domain p
 - app/api/users/[id]/profile/route.ts
 - components/features/ProfilePage.tsx
 - app/advertise/page.tsx
-- lib/__tests__/rbac-policies.test.ts
-- lib/__tests__/navigation.test.ts
-- lib/__tests__/domain-parity-matrix.test.ts
-- lib/__tests__/middleware.legacy-orders-redirect.test.ts
-- components/__tests__/Sidebar.orders-scope.test.tsx
-- app/(auth)/__tests__/layout.test.tsx
-- app/(operations)/operations/__tests__/layout.test.tsx
-- app/signup/__tests__/layout.test.tsx
+- lib/**tests**/rbac-policies.test.ts
+- lib/**tests**/navigation.test.ts
+- lib/**tests**/domain-parity-matrix.test.ts
+- lib/**tests**/middleware.legacy-orders-redirect.test.ts
+- components/**tests**/Sidebar.orders-scope.test.tsx
+- app/(auth)/**tests**/layout.test.tsx
+- app/(operations)/operations/**tests**/layout.test.tsx
+- app/signup/**tests**/layout.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/memory/project-decisions.md

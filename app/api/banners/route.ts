@@ -26,12 +26,24 @@ export async function GET(req: NextRequest) {
         if (cached) return NextResponse.json(cached);
 
         const filters: any = {};
-        if (active === 'true') filters.isActive = true;
+        if (active === 'true') {
+            const now = new Date();
+            filters.isActive = true;
+            filters.startDate = { lte: now };
+            filters.OR = [{ endDate: null }, { endDate: { gte: now } }];
+        }
         if (position) filters.position = position;
 
         const banners = await prismaAdapter.bannerDb.findAll(filters as any);
 
-        const result = { success: true, banners };
+        const normalizedBanners = Array.isArray(banners)
+            ? banners.filter((banner: any) => {
+                if (banner?.position !== 'TOP') return true;
+                return typeof banner?.title === 'string' && banner.title.trim().length > 0;
+            })
+            : [];
+
+        const result = { success: true, banners: normalizedBanners };
         await cacheSet(cacheKey, result, 300);
         return NextResponse.json(result);
     } catch (error) {
@@ -54,12 +66,13 @@ export async function POST(req: NextRequest) {
             accentColor, details, knowMoreLabel, isActive, startDate, endDate,
             displayOrder, targetAudience } = body;
 
-        if (!title || !imageUrl) {
+        const normalizedTitle = typeof title === 'string' ? title.trim() : '';
+        if (!normalizedTitle || !imageUrl) {
             return NextResponse.json({ error: 'title and imageUrl are required' }, { status: 400 });
         }
 
         const banner = await prismaAdapter.bannerDb.create({
-            title,
+            title: normalizedTitle,
             subtitle,
             description,
             imageUrl,

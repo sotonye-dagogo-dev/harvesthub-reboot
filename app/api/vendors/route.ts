@@ -19,16 +19,23 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
-        const status = (searchParams.get('status') as VendorStatus) || VendorStatus.APPROVED;
+        const statusParam = searchParams.get('status');
+        const explicitStatus =
+            statusParam && statusParam !== 'ALL' && Object.values(VendorStatus).includes(statusParam as VendorStatus)
+                ? (statusParam as VendorStatus)
+                : null;
         const campus = searchParams.get('campus');
         const category = searchParams.get('category');
         const search = searchParams.get('search');
 
-        const cacheKey = vendorListKey(JSON.stringify({ page, limit, status, campus, category, search }));
+        const cacheKey = vendorListKey(JSON.stringify({ page, limit, status: explicitStatus, campus, category, search }));
         const cached = await cacheGet(cacheKey);
         if (cached) return NextResponse.json(cached);
 
-        const where: Prisma.VendorWhereInput = { status };
+        const where: Prisma.VendorWhereInput =
+            explicitStatus
+                ? { status: explicitStatus }
+                : { status: { in: [VendorStatus.APPROVED, VendorStatus.PENDING] } };
         if (campus) where.campus = campus as Campus;
         if (category) where.category = category as VendorCategory;
         if (search) {

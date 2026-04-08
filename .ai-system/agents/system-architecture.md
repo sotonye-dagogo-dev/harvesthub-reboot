@@ -1,6 +1,6 @@
 # System Architecture
 
-> **Overview:** MyHarvestHub is a Next.js 15 App Router application that combines server-side rendering, server actions, and API routes with a mock backend layer. The architecture is designed to support a future migration to Prisma/PostgreSQL while keeping the front-end stable.
+> **Overview:** MyHarvestHub is a Next.js 15 App Router platform using consolidated operations routes (`/operations/*`), role-aware route policy, and a Prisma-first server data layer. The architecture combines Server/Client Components, API routes, and shared service modules for uploads, notifications, and payments.
 
 ---
 
@@ -17,9 +17,9 @@ Next.js App Router (app/)
   ├─ Server Actions
   └─ API Routes (app/api/*)
         ↓
-Mock Data Layer (lib/data/database.ts)
+Data Facade (lib/data/database.ts)
         ↓
-Prisma ORM (prisma/) [future]
+Prisma Adapters + Client (lib/data/prismaAdapter.ts, lib/db/prisma.ts)
         ↓
 PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ```
@@ -30,19 +30,20 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 > **Section summary:** Each module listed here has a single defined responsibility. Agents should not modify a module's scope without updating this document.
 
-| Module                   | Responsibility                                                    | Key Files                                                | Dependencies                            |
-| ------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------- |
-| `app/`                   | UI routing and server components                                  | `app/layout.tsx`, `app/(auth)/*`, `app/signup/*`         | `components/`, `lib/`                   |
-| `app/api/`               | Backend endpoints for auth, products, orders, wallet              | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/` |
-| `app/become-vendor`      | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`   |
-| `lib/api/`               | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                           |
-| `lib/data/`              | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`              |
-| `lib/services/notifications` | Preference-aware notification fan-out across channels          | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
-| `lib/utils/offlineQueue` | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                    |
-| `lib/schemas/`           | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                          |
-| `lib/store/`             | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                             |
-| `components/`            | Reusable UI and feature components                                | `ui/`, `features/`, `layout/RoleDashboardShell.tsx`      | `lib/utils/`, `lib/constants/`          |
-| `prisma/`                | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                               | Prisma client (future)                  |
+| Module                       | Responsibility                                                    | Key Files                                                | Dependencies                                            |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| `app/`                       | UI routing and server/client components                           | `app/layout.tsx`, `app/(auth)/*`, `app/(operations)/*`   | `components/`, `lib/`                                   |
+| `app/api/`                   | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
+| `app/become-vendor`          | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`                   |
+| `lib/api/`                   | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                                           |
+| `lib/config/`                | Canonical runtime and discovery configuration                     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
+| `lib/data/`                  | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
+| `lib/services/notifications` | Preference-aware notification fan-out across channels             | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
+| `lib/utils/offlineQueue`     | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
+| `lib/schemas/`               | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
+| `lib/store/`                 | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
+| `components/`                | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                            | `lib/utils/`, `lib/constants/`                          |
+| `prisma/`                    | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                               | Prisma client                                           |
 
 ---
 
@@ -56,8 +57,17 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 1. User navigates to a page in the browser.
 2. Next.js renders the page (server/client) using components in `app/`.
 3. UI components call API routes (e.g., `fetch('/api/products')`).
-4. API route handler uses `lib/data/database.ts` to read/write mock data.
+4. API route handler uses `lib/data/database.ts` facade which delegates to Prisma adapters.
 5. Response is returned to the browser and UI updates.
+```
+
+### Product Discovery Query Flow
+
+```
+1. Discovery controls (home category tags, products filters/sort/search) write canonical URL query params.
+2. Products page parses query state through shared contract helpers in `lib/config/productDiscovery.ts`.
+3. Products feature applies normalized category mapping (slug/value -> canonical category values) and deterministic sorting.
+4. Filter UI, active category state, pagination counts, and result cards render from the same normalized discovery state.
 ```
 
 ### Authentication Flow
@@ -230,16 +240,26 @@ Migration direction:
 
 > **Section summary:** Core technologies in use. New dependencies should be added here when introduced.
 
-| Layer       | Technology                | Version                |
-| ----------- | ------------------------- | ---------------------- |
-| Frontend    | Next.js (App Router)      | 15.x                   |
-| UI          | React                     | 19.x                   |
-| Styling     | Tailwind CSS + Ant Design | Tailwind 3.x, Antd 5.x |
-| State       | Zustand                   | 4.x                    |
-| Validation  | Zod                       | 3.x                    |
-| Auth        | JWT (jose)                | 6.x                    |
-| Data        | Prisma adapter facade     | n/a                    |
-| DB          | Prisma ORM + PostgreSQL   | 7.x                    |
+| Layer      | Technology                | Version                |
+| ---------- | ------------------------- | ---------------------- |
+| Frontend   | Next.js (App Router)      | 15.x                   |
+| UI         | React                     | 19.x                   |
+| Styling    | Tailwind CSS + Ant Design | Tailwind 3.x, Antd 5.x |
+| State      | Zustand                   | 4.x                    |
+| Validation | Zod                       | 3.x                    |
+| Auth       | JWT (jose)                | 6.x                    |
+| Data       | Prisma adapter facade     | n/a                    |
+| DB         | Prisma ORM + PostgreSQL   | 7.x                    |
+
+---
+
+## Architecture Drift Check (2026-04-08)
+
+> **Section summary:** Recently detected mismatches between docs and current code, now synchronized.
+
+- Legacy route-group references `(buyer)/(vendor)/(admin)` were removed from active architecture descriptions; canonical operations routes are now documented as `app/(operations)/operations/*`.
+- Runtime persistence is Prisma-first; references to mock-backend-as-primary were removed from core flow narratives.
+- Discoverability and policy must stay aligned across `lib/rbac/routeConfig.ts`, `lib/navigation.ts`, and `components/layout/Sidebar.tsx` to avoid parity drift.
 
 ---
 
@@ -259,18 +279,18 @@ Migration direction:
 
 > **Section summary:** Log of major architectural changes. See also memory/architecture-history.md for full details.
 
-| Date       | Change                                                     | Reason                                                                                            |
-| ---------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 2026-03-15 | Initialized `.ai-system` & documented architecture         | Bootstrapped AI-guided workflow for MyHarvestHub                                                  |
-| 2026-03-31 | Hardened signup flow and dashboard route mapping           | Fix `Missing required fields` signup bug and unify role dashboards                                |
-| 2026-04-01 | Added buyer-to-vendor conversion and persistence hardening | Address client concerns on role conversion, editability, and auth UX                              |
-| 2026-04-01 | Standardized ad APIs/uploads + signup layout modernization | Improve production-readiness via API consistency, offline resilience, and UX cleanup              |
-| 2026-04-01 | Introduced `/operations/*` canonical management namespace  | Start grouped-route migration with middleware redirects from legacy role-prefixed URLs            |
-| 2026-04-01 | Removed final operations wrappers and legacy hosts         | Completed migration so operations pages are self-contained and legacy admin/vendor pages redirect |
+| Date       | Change                                                     | Reason                                                                                               |
+| ---------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 2026-03-15 | Initialized `.ai-system` & documented architecture         | Bootstrapped AI-guided workflow for MyHarvestHub                                                     |
+| 2026-03-31 | Hardened signup flow and dashboard route mapping           | Fix `Missing required fields` signup bug and unify role dashboards                                   |
+| 2026-04-01 | Added buyer-to-vendor conversion and persistence hardening | Address client concerns on role conversion, editability, and auth UX                                 |
+| 2026-04-01 | Standardized ad APIs/uploads + signup layout modernization | Improve production-readiness via API consistency, offline resilience, and UX cleanup                 |
+| 2026-04-01 | Introduced `/operations/*` canonical management namespace  | Start grouped-route migration with middleware redirects from legacy role-prefixed URLs               |
+| 2026-04-01 | Removed final operations wrappers and legacy hosts         | Completed migration so operations pages are self-contained and legacy admin/vendor pages redirect    |
 | 2026-04-01 | Enforced server-side payment verification in mutations     | Prevent unverified card orders/wallet credits by verifying payment status at API mutation boundaries |
-| 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings |
-| 2026-04-01 | Added public ad-application intake route                  | Enable unauthenticated ad submissions with validated/rate-limited backend intake |
-| 2026-04-01 | Enforced vendor-scoped analytics KPI computation          | Prevent vendor dashboards from showing platform-wide aggregate metrics |
+| 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings                 |
+| 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                     |
+| 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                               |
 
 ### Email Change + Reverification Flow
 

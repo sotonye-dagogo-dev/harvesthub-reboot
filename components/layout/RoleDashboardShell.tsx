@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { UserRole } from "@/lib/constants";
 import { requireAnyRole } from "@/lib/utils/auth";
-import { Sidebar } from "@/components/layout";
+import { ClientDashboardShell } from "./ClientDashboardShell";
 
 type DashboardSection = "admin" | "vendor" | "operations";
 
@@ -33,14 +33,5 @@ export default async function RoleDashboardShell({ section, children }: RoleDash
         : "vendor"
       : section;
 
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar type={sidebarType} />
-        <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  return <ClientDashboardShell sidebarType={sidebarType}>{children}</ClientDashboardShell>;
 }
