@@ -113,6 +113,7 @@ export default function OperationsVendorsPage() {
   });
 
   const vendors = resource?.vendors;
+  const vendorsList = vendors ?? [];
   const allProducts = resource?.allProducts ?? [];
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -371,25 +372,25 @@ export default function OperationsVendorsPage() {
         <Card className="bg-ds-status-success-bg dark:bg-ds-status-success-bg/20">
           <p className="text-sm text-ds-text-secondary">Approved</p>
           <p className="text-2xl font-bold text-ds-status-success-text">
-            {vendors.filter((v) => v.status === VendorStatus.APPROVED).length}
+            {vendorsList.filter((v) => v.status === VendorStatus.APPROVED).length}
           </p>
         </Card>
         <Card className="bg-ds-status-warning-bg /20">
           <p className="text-sm text-ds-text-secondary">Pending</p>
           <p className="text-2xl font-bold text-ds-status-warning-text">
-            {vendors.filter((v) => v.status === VendorStatus.PENDING).length}
+            {vendorsList.filter((v) => v.status === VendorStatus.PENDING).length}
           </p>
         </Card>
         <Card className="bg-ds-status-error-bg dark:bg-ds-status-error-bg/20">
           <p className="text-sm text-ds-text-secondary">Rejected</p>
           <p className="text-2xl font-bold text-ds-status-error-text">
-            {vendors.filter((v) => v.status === VendorStatus.REJECTED).length}
+            {vendorsList.filter((v) => v.status === VendorStatus.REJECTED).length}
           </p>
         </Card>
         <Card className="bg-ds-brand-surface dark:bg-ds-brand-subtle">
           <p className="text-sm text-ds-text-secondary">Suspended</p>
           <p className="text-2xl font-bold text-ds-text-brand">
-            {vendors.filter((v) => v.status === VendorStatus.SUSPENDED).length}
+            {vendorsList.filter((v) => v.status === VendorStatus.SUSPENDED).length}
           </p>
         </Card>
       </div>
