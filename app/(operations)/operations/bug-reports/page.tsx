@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Card, EmptyState } from "@/components/ui";
@@ -9,6 +9,7 @@ import type { BugReport } from "@/lib/types";
 import { Bug, Eye, Loader2, Filter, RefreshCw } from "lucide-react";
 import { App, Table, Tag, Select, Modal, Input, Image } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 const STATUS_COLORS: Record<string, string> = {
   OPEN: "orange",
@@ -32,52 +33,66 @@ interface BugReportStats {
   closed: number;
 }
 
+type BugReportsResource = {
+  reports: BugReport[];
+  stats: BugReportStats | null;
+  total: number;
+};
+
 export default function OperationsBugReportsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { message } = App.useApp();
 
-  const [reports, setReports] = useState<BugReport[]>([]);
-  const [stats, setStats] = useState<BugReportStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const [detailModal, setDetailModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<BugReport | null>(null);
   const [updating, setUpdating] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
 
-  const fetchReports = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("page", page.toString());
-      params.set("limit", "20");
-      if (statusFilter) params.set("status", statusFilter);
-      if (categoryFilter) params.set("category", categoryFilter);
-      if (priorityFilter) params.set("priority", priorityFilter);
+  const fetchReports = useCallback(async (): Promise<BugReportsResource> => {
+    const params = new URLSearchParams();
+    params.set("page", page.toString());
+    params.set("limit", "20");
+    if (statusFilter) params.set("status", statusFilter);
+    if (categoryFilter) params.set("category", categoryFilter);
+    if (priorityFilter) params.set("priority", priorityFilter);
 
-      const res = await fetch(`/api/bug-reports?${params.toString()}`);
-      const data = await res.json();
+    const res = await fetch(`/api/bug-reports?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
 
-      if (data.success) {
-        setReports(data.reports);
-        setStats(data.stats);
-        setTotal(data.pagination.total);
-      }
-    } catch {
-      message.error("Failed to fetch bug reports");
-    } finally {
-      setLoading(false);
+    if (!res.ok || !data.success) {
+      throw new Error(data?.error || "Failed to fetch bug reports");
     }
-  }, [page, statusFilter, categoryFilter, priorityFilter, message]);
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+    return {
+      reports: Array.isArray(data.reports) ? data.reports : [],
+      stats: (data.stats as BugReportStats | null) ?? null,
+      total: Number(data?.pagination?.total ?? 0),
+    };
+  }, [page, statusFilter, categoryFilter, priorityFilter]);
+
+  const {
+    data: reportsResource,
+    isLoading: loading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(fetchReports, {
+    key: `operations-bug-reports:${page}:${statusFilter}:${categoryFilter}:${priorityFilter}`,
+    refreshIntervalMs: 90_000,
+    staleTimeMs: 15_000,
+    onError: () => {
+      message.error("Failed to fetch bug reports");
+    },
+  });
+
+  const reports = reportsResource?.reports ?? [];
+  const stats = reportsResource?.stats ?? null;
+  const total = reportsResource?.total ?? 0;
 
   // Redirect if not admin
   if (user?.role !== "ADMIN") {
@@ -102,7 +117,7 @@ export default function OperationsBugReportsPage() {
       const data = await res.json();
       if (data.success) {
         message.success(`Status updated to ${newStatus.replace("_", " ")}`);
-        await fetchReports();
+        await refresh(true);
         if (selectedReport?.id === reportId) {
           setSelectedReport(data.report);
         }
@@ -129,7 +144,7 @@ export default function OperationsBugReportsPage() {
       if (data.success) {
         message.success("Notes saved");
         setSelectedReport(data.report);
-        await fetchReports();
+        await refresh(true);
       } else {
         message.error(data.error || "Failed to save notes");
       }
@@ -228,13 +243,17 @@ export default function OperationsBugReportsPage() {
           </p>
         </div>
         <button
-          onClick={fetchReports}
+          onClick={() => void refresh(true)}
           className="flex items-center gap-2 rounded-ds-md border border-ds-border-base px-4 py-2 text-sm text-ds-text-secondary hover:bg-ds-surface-sunken"
         >
           <RefreshCw className="h-4 w-4" />
           Refresh
         </button>
       </div>
+      {isRefreshing ? (
+        <p className="text-xs text-ds-text-tertiary">Refreshing bug reports...</p>
+      ) : null}
+      {error ? <p className="text-xs text-ds-status-error-text">{error}</p> : null}
 
       {/* Stats Cards */}
       {stats && (

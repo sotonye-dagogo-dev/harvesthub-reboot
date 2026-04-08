@@ -5,10 +5,13 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider, App } from "antd";
 import { antdTheme as customAntdTheme, antdDarkTheme } from "@/lib/theme/antd-theme";
 import type { UserFormData } from "@/lib/types";
-import { AuthProvider } from "@/lib/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/lib/contexts/AuthContext";
 import { NotificationProvider } from "@/lib/contexts/NotificationContext";
 import ToastProvider from "@/lib/contexts/ToastContext";
 import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
+import { usePathname } from "next/navigation";
+import { prefetchRuntimeResources } from "@/lib/data-runtime/prefetch";
+import { ROLE_PREFETCH_HINTS, RUNTIME_PREFETCH_ROUTE_TAGS } from "@/lib/config/runtime";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -166,6 +169,7 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
       <ThemeProvider>
         <AntdThemeProvider>
           <AuthProvider>
+            <RuntimeBootstrap />
             <NotificationProvider>
               <ToastProvider>
                 <FormDataProvider>{children}</FormDataProvider>
@@ -190,4 +194,26 @@ function AntdThemeProvider({ children }: { children: ReactNode }): ReactElement 
       <App>{children}</App>
     </ConfigProvider>
   );
+}
+
+function RuntimeBootstrap(): null {
+  const { user, isLoading } = useAuth();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const role = user?.role ?? "GUEST";
+    const routeTags =
+      RUNTIME_PREFETCH_ROUTE_TAGS.find((entry) => entry.match.test(pathname ?? ""))?.tags ?? [];
+    const roleTags = ROLE_PREFETCH_HINTS[role] ?? ROLE_PREFETCH_HINTS.GUEST;
+    const tags = Array.from(new Set([...roleTags, ...routeTags]));
+
+    void prefetchRuntimeResources({
+      role,
+      tags,
+    });
+  }, [isLoading, pathname, user?.role]);
+
+  return null;
 }

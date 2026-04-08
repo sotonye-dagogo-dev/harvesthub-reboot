@@ -513,6 +513,36 @@
 
 ---
 
+## [Client runtime refresh logs ERR_INVALID_URL in Vitest for relative /api fetchers]
+
+**Symptom:**
+
+- Runtime-enabled client surfaces print `Failed to parse URL from /api/...` in Vitest output when background refresh executes.
+
+**Root Cause:**
+
+- Relative browser-style `/api/*` fetch URLs are invoked during Node/Vitest execution where no browser base URL exists.
+
+**Fix Applied:**
+
+- Preserved non-blocking runtime refresh while keeping SSR/initial-prop hydration as primary render source.
+- Added migration guidance to mock fetchers or provide explicit URL base in runtime-focused tests.
+
+**Prevention:**
+
+- In runtime unit tests, inject or mock client fetchers instead of allowing default relative browser fetch to execute in Node.
+- Keep background refresh non-blocking so this class of test warning does not break rendering continuity.
+
+**Files Affected:**
+
+- app/components/HomeContent.tsx
+- components/features/ProductsContent.tsx
+- lib/data-runtime/runtimeClient.ts
+
+**Date:** 2026-04-08
+
+---
+
 ## Known Error Patterns
 
 > **Section summary:** Recurring error categories seen in this tech stack. Agents should check this section when they match the pattern before investigating further.

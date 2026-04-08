@@ -24,6 +24,31 @@
 
 ---
 
+## 2026-04-08 — Unified Runtime Implementation Pass (Cloud)
+
+**Summary:**
+Implemented a full unified runtime foundation on a Zustand-first core with adapter-safe contracts, resilience controls, and route-scoped warm prefetch. Migrated multiple high-impact operations and buyer client surfaces to runtime-backed subscriptions with silent background refresh and last-good-data continuity.
+
+**Completed:**
+
+- Added `lib/data-runtime/*` runtime modules for contracts, registry, store, reconciler, retry/cooldown load client, mutation coordinator, prefetch, and telemetry.
+- Added runtime config defaults and route/role prefetch hints in `lib/config/runtime.ts`.
+- Added `useRuntimeResource` and upgraded `useSmartResource` to use runtime core.
+- Added provider bootstrap prefetch orchestration (`app/providers.tsx`).
+- Migrated runtime-backed surfaces: operations users, operations bug reports, home content, products discovery content, checkout vendor-status support data, wallet, notification preferences.
+- Added runtime core tests for no-op reconcile and retry/cooldown behavior.
+
+**Key Changes:**
+
+- Runtime now provides bounded retry with jitter/backoff plus cooldown anti-storm behavior and preserves visible last-good data during refresh windows.
+- Optimistic mutation coordinator path now supports deterministic rollback/reconcile integration for client mutation flows.
+- Architecture/docs now include a dedicated unified runtime flow and migration status.
+
+**Next Sprint Focus:**
+Close blocked remaining migrations (operations dashboard/products/orders, buyer orders/profile) and rerun full end-to-end quality gate once those surfaces are finalized.
+
+---
+
 ## 2026-04-08 — Cloud Handoff Package: Unified Runtime Slices
 
 **Summary:**
