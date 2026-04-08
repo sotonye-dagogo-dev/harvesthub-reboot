@@ -90,7 +90,6 @@ export default function OperationsMarketingContentPage() {
       if (!user) {
         if (mounted) {
           setVendorId(null);
-          setLoading(false);
           setResolvingVendor(false);
         }
         return;
@@ -99,7 +98,6 @@ export default function OperationsMarketingContentPage() {
       if (user.role !== "VENDOR") {
         if (mounted) {
           setVendorId(null);
-          setLoading(false);
           setResolvingVendor(false);
         }
         return;
