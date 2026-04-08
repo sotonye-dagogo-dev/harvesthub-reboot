@@ -11,11 +11,12 @@
 "use client";
 
 import { SectionLoader } from "@/components/ui";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, Switch, Button, message, TimePicker } from "antd";
 import { Bell, Mail, Smartphone, Clock } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import type { NotificationType } from "@/lib/types";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 interface NotificationPreference {
   type: NotificationType;
@@ -108,7 +109,6 @@ export function NotificationPreferences() {
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(false);
   const [quietHoursStart, setQuietHoursStart] = useState<Dayjs | null>(dayjs("22:00", "HH:mm"));
   const [quietHoursEnd, setQuietHoursEnd] = useState<Dayjs | null>(dayjs("08:00", "HH:mm"));
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const toUiPreferences = (api: ApiNotificationPreferences): NotificationPreference[] => [
@@ -145,29 +145,38 @@ export function NotificationPreferences() {
     };
   };
 
-  const fetchPreferences = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/notifications/preferences");
-      const data = await res.json();
+  const fetchPreferences = useCallback(async (): Promise<NotificationPreference[]> => {
+    const res = await fetch("/api/notifications/preferences");
+    const data = await res.json().catch(() => ({}));
 
-      if (data.success && data.preferences) {
-        setPreferences(toUiPreferences(data.preferences as ApiNotificationPreferences));
-        setQuietHoursEnabled(false);
-        setQuietHoursStart(dayjs("22:00", "HH:mm"));
-        setQuietHoursEnd(dayjs("08:00", "HH:mm"));
-      }
-    } catch (error) {
-      console.error("Failed to fetch preferences:", error);
-    } finally {
-      setLoading(false);
+    if (!res.ok || !data.success || !data.preferences) {
+      throw new Error(data?.error || "Failed to fetch preferences");
     }
+
+    return toUiPreferences(data.preferences as ApiNotificationPreferences);
   }, []);
 
-  // Fetch preferences on mount
+  const {
+    data: fetchedPreferences,
+    isLoading: loading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(fetchPreferences, {
+    key: "notification-preferences-resource",
+    refreshIntervalMs: 90_000,
+    staleTimeMs: 20_000,
+  });
+
+  const effectivePreferences = fetchedPreferences ?? preferences;
+
   useEffect(() => {
-    fetchPreferences();
-  }, [fetchPreferences]);
+    if (!fetchedPreferences) return;
+    setPreferences(fetchedPreferences);
+    setQuietHoursEnabled(false);
+    setQuietHoursStart(dayjs("22:00", "HH:mm"));
+    setQuietHoursEnd(dayjs("08:00", "HH:mm"));
+  }, [fetchedPreferences]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -180,6 +189,7 @@ export function NotificationPreferences() {
 
       if (res.ok) {
         message.success("Preferences saved successfully");
+        await refresh(true);
       } else {
         message.error("Failed to save preferences");
       }
@@ -207,10 +217,14 @@ export function NotificationPreferences() {
 
   return (
     <div className="space-y-6">
+      {isRefreshing ? (
+        <p className="text-xs text-ds-text-tertiary">Refreshing notification preferences...</p>
+      ) : null}
+      {error ? <p className="text-xs text-ds-status-error-text">{error}</p> : null}
       {/* Notification Types */}
       <Card title="Notification Types" className="shadow-ds-sm">
         <div className="space-y-4">
-          {preferences.map((pref) => {
+          {effectivePreferences.map((pref) => {
             const info = notificationLabels[pref.type];
             return (
               <div key={pref.type} className="border-b last:border-b-0 pb-4 last:pb-0">

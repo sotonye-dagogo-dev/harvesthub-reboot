@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
@@ -8,6 +8,8 @@ import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "luci
 import { Input, Modal, message } from "antd";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { Wallet, Transaction } from "@/lib/types";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
 
 export default function WalletPage() {
   const { user } = useAuth();
@@ -19,37 +21,39 @@ export default function WalletPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  const [userWallet, setUserWallet] = useState<Wallet | null>(null);
-  const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
-
-  useEffect(() => {
-    let mounted = true;
-    async function loadWallet() {
-      try {
-        const res = await fetch("/api/wallet");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (mounted && data?.wallet) {
-          setUserWallet(data.wallet);
-          const tx = (data.wallet.transactions || [])
-            .slice()
-            .sort(
-              (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-          setUserTransactions(tx);
-        }
-      } catch (e) {
-        if (!mounted) return;
-        setUserWallet(null);
-        setUserTransactions([]);
-      }
+  const loadWalletResource = useCallback(async (): Promise<{
+    wallet: Wallet | null;
+    transactions: Transaction[];
+  }> => {
+    const res = await fetch("/api/wallet");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to load wallet");
     }
 
-    loadWallet();
-    return () => {
-      mounted = false;
-    };
-  }, [user?.id]);
+    const wallet = (data?.wallet ?? null) as Wallet | null;
+    const transactions = ((wallet?.transactions ?? []) as Transaction[])
+      .slice()
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return { wallet, transactions };
+  }, []);
+
+  const {
+    data: walletResource,
+    isLoading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(loadWalletResource, {
+    key: `wallet-resource:${user?.id ?? "guest"}`,
+    enabled: Boolean(user?.id),
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
+  const userWallet = walletResource?.wallet ?? null;
+  const userTransactions = walletResource?.transactions ?? [];
 
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
   const paginatedTransactions = userTransactions.slice(
@@ -103,8 +107,38 @@ export default function WalletPage() {
         throw new Error(depositData?.error || "Failed to complete wallet deposit");
       }
 
-      setUserWallet(depositData.wallet as Wallet);
-      setUserTransactions((prev) => [depositData.transaction as Transaction, ...prev]);
+      await runOptimisticMutation<
+        { wallet: Wallet | null; transactions: Transaction[] },
+        { wallet: Wallet; transaction: Transaction }
+      >({
+        key: `wallet-resource:${user?.id ?? "guest"}`,
+        applyOptimistic: (previous) => {
+          if (!previous?.wallet) return previous ?? { wallet: null, transactions: [] };
+          return {
+            wallet: {
+              ...previous.wallet,
+              balance: previous.wallet.balance + amount,
+            },
+            transactions: [
+              {
+                ...(depositData.transaction as Transaction),
+                amount,
+              },
+              ...previous.transactions,
+            ],
+          };
+        },
+        commit: async () => ({
+          wallet: depositData.wallet as Wallet,
+          transaction: depositData.transaction as Transaction,
+        }),
+        reconcile: (_, serverResult) => ({
+          wallet: serverResult.wallet,
+          transactions: [serverResult.transaction, ...(walletResource?.transactions ?? [])],
+        }),
+      });
+
+      await refresh(true);
 
       message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
       setShowDepositModal(false);
@@ -166,6 +200,11 @@ export default function WalletPage() {
             ? "Manage your earnings and withdrawals"
             : "Add funds and track your transactions"}
         </p>
+        {isLoading ? <p className="mt-1 text-xs text-ds-text-tertiary">Loading wallet...</p> : null}
+        {isRefreshing ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing wallet data...</p>
+        ) : null}
+        {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
       </div>
 
       {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
@@ -217,6 +256,11 @@ export default function WalletPage() {
         <div className="lg:col-span-2">
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Transaction History</h2>
+            <div className="mb-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+                Refresh
+              </Button>
+            </div>
             {paginatedTransactions.length === 0 ? (
               <EmptyState
                 title="No transactions yet"

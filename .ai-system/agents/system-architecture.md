@@ -119,6 +119,19 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 5. Manual refresh actions can force a fresh pull for operator-driven recency.
 ```
 
+### Unified Data Runtime Flow (Zustand-First + Adapter Boundary)
+
+```
+1. Runtime contracts in `lib/data-runtime/contracts.ts` define resource key/scope/policy and adapter-safe boundaries.
+2. `lib/data-runtime/resourceRegistry.ts` provides declarative resources with stale/ttl/retry/compare/scope policy.
+3. `lib/data-runtime/runtimeStore.ts` holds per-resource in-memory state (status, timestamps, in-flight, last-good snapshot, cooldown window).
+4. `lib/hooks/useRuntimeResource.ts` / `useSmartResource` load resources through `runtimeClient` with bounded retry + jitter/backoff.
+5. Reconciler suppresses no-op refresh updates and keeps visible last-good data during silent background refresh.
+6. Mutation coordinator applies optimistic patch, rolls back deterministically on failure, and reconciles on success.
+7. App bootstrap (`app/providers.tsx`) prefetches role + route-tag scoped resources to warm start without broad over-fetching.
+8. Runtime telemetry tracks load latency, refresh churn, no-op ratio, retry volume, and rollback frequency.
+```
+
 ### Vendor Marketing Moderation Boundary Flow
 
 ```

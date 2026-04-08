@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ProductCard, FilterSidebar, CategoryNav, SearchBar } from "@/components/features";
 import { SimplePagination, EmptyState } from "@/components/ui";
 import { useCart } from "@/lib/store/cartStore";
@@ -19,6 +19,8 @@ import {
   type ProductDiscoveryQueryState,
   type ProductSortKey,
 } from "@/lib/config/productDiscovery";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 
 interface ProductsContentProps {
   products: Product[];
@@ -31,6 +33,27 @@ export default function ProductsContent({
   vendors,
   initialQueryState,
 }: ProductsContentProps) {
+  const fetchProductsResource = useCallback(
+    async () => ({
+      products: await getProductsClient({ limit: 200 }),
+      vendors: await getVendorsClient(200),
+    }),
+    []
+  );
+
+  const {
+    data: productsResource,
+    isRefreshing,
+    error,
+  } = useSmartResource(fetchProductsResource, {
+    key: "buyer-products-runtime-resource",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
+  const liveProducts = productsResource?.products ?? products;
+  const liveVendors = productsResource?.vendors ?? vendors;
+
   const getProductReviewMetrics = (product: Product) => {
     const reviewCount =
       typeof product.totalReviews === "number"
@@ -117,7 +140,7 @@ export default function ProductsContent({
     router.replace(nextUrl, { scroll: false });
   }, [filters, pathname, router, searchQuery, sortBy]);
 
-  let filteredProducts = products.filter((p) => p.isActive);
+  let filteredProducts = liveProducts.filter((p) => p.isActive);
 
   if (searchQuery) {
     filteredProducts = filteredProducts.filter(
@@ -157,7 +180,7 @@ export default function ProductsContent({
 
   if (filters.locations && filters.locations.length > 0) {
     filteredProducts = filteredProducts.filter((p) => {
-      const vendor = vendors.find((v) => v.id === p.vendorId);
+      const vendor = liveVendors.find((v) => v.id === p.vendorId);
       return vendor && filters.locations!.includes(vendor.campus);
     });
   }
@@ -208,13 +231,13 @@ export default function ProductsContent({
         ?.slug
     : undefined;
 
-  const vendorsWithProducts = vendors.map((v) => ({ id: v.id, name: v.storeName }));
+  const vendorsWithProducts = liveVendors.map((v) => ({ id: v.id, name: v.storeName }));
 
-  const locations = Array.from(new Set(vendors.map((v) => v.campus)));
+  const locations = Array.from(new Set(liveVendors.map((v) => v.campus)));
 
   const handleAddToCart = (product: Product) => {
     if (!requireAuth("add items to your cart")) return;
-    const vendor = vendors.find((v) => v.id === product.vendorId);
+    const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     addItem({
       productId: product.id,
@@ -264,6 +287,10 @@ export default function ProductsContent({
             <p className="text-sm text-ds-text-secondary">
               Showing {paginatedProducts.length} of {sortedProducts.length} products
             </p>
+            {isRefreshing ? (
+              <p className="text-xs text-ds-text-tertiary">Refreshing products in background...</p>
+            ) : null}
+            {error ? <p className="text-xs text-ds-status-error-text">{error}</p> : null}
             <div className="flex items-center gap-2">
               <label htmlFor="products-sort" className="text-sm text-ds-text-secondary">
                 Sort by
@@ -296,7 +323,7 @@ export default function ProductsContent({
             <>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedProducts.map((product) => {
-                  const vendor = vendors.find((v) => v.id === product.vendorId);
+                  const vendor = liveVendors.find((v) => v.id === product.vendorId);
                   const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                   const vendorStatus = vendor?.status || product.vendor?.status;
                   const { avgRating, reviewCount } = getProductReviewMetrics(product);

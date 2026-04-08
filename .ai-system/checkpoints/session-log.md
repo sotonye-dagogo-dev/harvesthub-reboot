@@ -39,6 +39,70 @@
 
 ---
 
+## Session 39 — 2026-04-08
+
+**Goal:**
+Implement unified in-memory runtime slices (contracts through resilience), migrate high-impact client surfaces, and sync `.ai-system` artifacts.
+
+**Completed:**
+
+- Added `lib/data-runtime/*` runtime core modules (contracts, registry, reconciler, runtime client, runtime store, mutation coordinator, prefetch, telemetry, exports).
+- Added config-driven runtime defaults and route/role prefetch hints in `lib/config/runtime.ts`, exported via config index.
+- Added `useRuntimeResource` hook and upgraded `useSmartResource` to run on runtime core.
+- Added role + route-scoped warm-start prefetch bootstrap in `app/providers.tsx`.
+- Migrated runtime subscriptions/background refresh continuity for:
+  - operations users + bug reports,
+  - home + products discovery client surfaces,
+  - checkout vendor verification support data,
+  - wallet data + optimistic mutation reconcile/rollback path,
+  - notification preferences.
+- Added runtime core tests for reconcile semantics and retry/cooldown behavior.
+- Updated architecture, queue, repair notes, and decisions docs for unified runtime rollout.
+
+**Files Modified:**
+
+- lib/config/runtime.ts
+- lib/config/index.ts
+- lib/data-runtime/contracts.ts
+- lib/data-runtime/resourceRegistry.ts
+- lib/data-runtime/reconciler.ts
+- lib/data-runtime/runtimeStore.ts
+- lib/data-runtime/runtimeClient.ts
+- lib/data-runtime/mutationCoordinator.ts
+- lib/data-runtime/prefetch.ts
+- lib/data-runtime/telemetry.ts
+- lib/data-runtime/index.ts
+- lib/data-runtime/__tests__/runtime-core.test.ts
+- lib/hooks/useRuntimeResource.ts
+- lib/hooks/useSmartResource.ts
+- app/providers.tsx
+- app/(operations)/operations/users/page.tsx
+- app/(operations)/operations/bug-reports/page.tsx
+- app/components/HomeContent.tsx
+- components/features/ProductsContent.tsx
+- app/checkout/page.tsx
+- app/wallet/page.tsx
+- components/features/NotificationPreferences.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run full final quality gate (`npm run lint`, `npx tsc --noEmit`, targeted/high-risk Vitest, route audits), then close remaining blocked migration surfaces in dedicated follow-up slices.
+
+**Notes / Blockers:**
+
+- Baseline repository Vitest suite has many pre-existing unrelated failures; targeted runtime/domain suites pass.
+- Remaining runtime migration blockers in this run:
+  - operations dashboard/orders remain server-auth SSR data flows,
+  - operations products migration is tightly coupled to large CRUD form state and needs isolated split,
+  - buyer orders/profile need dedicated runtime API normalization.
+
+---
+
 ## Session 38 — 2026-04-08
 
 **Goal:**

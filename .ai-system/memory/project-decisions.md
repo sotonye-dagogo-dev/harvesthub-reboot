@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Unified Runtime Warm-Start Is Route-and-Role Scoped
+
+**Decision:** Runtime prefetch at bootstrap must be scoped by auth role plus route tags, instead of broad eager loading of all resources.
+**Date:** 2026-04-08
+**Made by:** AI cloud implementation session (GitHub Copilot)
+
+**Reason:**
+The unified runtime needs warm data for continuity, but broad prefetch would increase payload/memory pressure and hurt low-bandwidth users. Route+role scoped prefetch keeps first render fast while still preserving last-good in-memory data and background refresh continuity.
+
+**Alternatives Considered:**
+
+- Prefetch everything on boot (rejected: over-fetching and unnecessary memory churn).
+- No prefetch, refresh only on-demand (rejected: visible cold-state flicker and repeated loading transitions).
+
+**Implications:**
+
+- Runtime registry entries should carry tags/scope metadata.
+- Provider bootstrap must derive tags from pathname and role hints.
+- Remaining migrations should preserve this bounded prefetch contract.
+
 ## Unified Data Runtime Uses Zustand-First Core with Adapter Boundary
 
 **Decision:** Implement the cross-project in-memory data runtime on top of the existing Zustand foundation first, while enforcing a strict runtime adapter boundary so Redux/RxJS integrations remain possible without domain-level rewrites.
