@@ -81,11 +81,11 @@
   - [x] Update admin review page to show payment info and set active duration based on price and rates
   - [x] Add tests for rates, payments, and timeline computation.
 
-- [ ] Resolve signup validation and role option bugs:
-  - [ ] Add `Worker` to role options in `app/signup/components/UserSelect.tsx` and any supporting UserType union/type definitions
-  - [ ] Add `Worker` to applicable role-to-dashboard route mapping
-  - [ ] Investigate and fix intermittent ‘fill all required fields’ error in signup workflow (likely a form state/partial/validator or stage skip bug)
-  - [ ] Add regression test coverage for signup step progression and validation state
+- [x] Resolve signup validation and role option bugs (closed via 2026-04-04 correction contract)
+  - [x] Superseded: Do not add `Worker` as signup role; keep `Worker` only as church position where applicable.
+  - [x] Removed role/dashboard mapping drift for deprecated signup role option.
+  - [x] Investigated and fixed intermittent “fill all required fields” signup-stage validation behavior.
+  - [x] Added/updated regression coverage for signup progression and validation-state retention.
 - [x] Fix `SecurityInfo` race condition where `updateFormData` is not flushed before calling `register`; pass final payload explicitly to API call
 - [x] Harden `/api/auth/register` input validation to use zod schemas and reject malformed requests (include `confirmPassword`, `agreeToTerms` checks)
 - [x] Add a fallback catch for service worker `no-response` on `/signup/*` route navigation and document offline handling behavior
@@ -343,21 +343,85 @@
 
 > **Section summary:** Immediate fixes for product detail routing, dashboard shell consistency, and vendor visibility/verification labeling.
 
-- [ ] Restore single-product detail route reliability.
-  - [ ] Add/repair `/products/[id]` page so product cards resolve and not-found behavior is intentional.
-  - [ ] Add null-safe fallbacks for product/vendor/reviews/media fields to avoid runtime crashes.
-- [ ] Apply dashboard shell/menu spacing consistency on missing pages.
-  - [ ] Ensure `/store-settings` renders the same sidebar + mobile bottom nav + bottom spacing used in dashboard shell.
-  - [ ] Ensure `/notifications/settings` uses dashboard shell for vendor/admin while preserving buyer access.
-- [ ] Fix vendor read-path visibility and labeling.
-  - [ ] Ensure public vendor/product surfaces include unverified vendors instead of dropping to empty/Unknown Vendor.
-  - [ ] Keep verification state visible via badges/labels (verified vs unverified) on vendor/product cards and detail pages.
-  - [ ] Preserve order restrictions by relying on existing server-side unverified-vendor acknowledgment gating.
-- [ ] Add/adjust focused tests for changed UI behavior.
+- [x] Restore single-product detail route reliability.
+  - [x] Add/repair `/products/[id]` page so product cards resolve and not-found behavior is intentional.
+  - [x] Add null-safe fallbacks for product/vendor/reviews/media fields to avoid runtime crashes.
+- [x] Apply dashboard shell/menu spacing consistency on missing pages.
+  - [x] Ensure `/store-settings` renders the same sidebar + mobile bottom nav + bottom spacing used in dashboard shell.
+  - [x] Ensure `/notifications/settings` uses dashboard shell for vendor/admin while preserving buyer access.
+- [x] Fix vendor read-path visibility and labeling.
+  - [x] Ensure public vendor/product surfaces include unverified vendors instead of dropping to empty/Unknown Vendor.
+  - [x] Keep verification state visible via badges/labels (verified vs unverified) on vendor/product cards and detail pages.
+  - [x] Preserve order restrictions by relying on existing server-side unverified-vendor acknowledgment gating.
+- [x] Add/adjust focused tests for changed UI behavior.
 - [ ] Re-run touched-scope validations and capture UI screenshots.
+  - [x] Re-ran touched-scope validations (`vitest`, `eslint`, `tsc --noEmit`) for updated product/vendor/layout files.
+  - [ ] Capture updated UI screenshots for `/products/[id]`, `/store-settings`, and `/notifications/settings` shell parity.
 - [x] Restore `/operations/banners` end-to-end management reliability (real API-backed create/update/delete/status toggle + robust non-blocking error/success feedback + cache invalidation parity).
 - [x] Add reusable config-driven confirmation workflow for destructive/removal-like operations and apply across operations surfaces.
   - [x] Added OOP-backed confirmation config builder/presets utility (`components/ui/actionConfirm.ts`).
   - [x] Applied shared confirmation utility in operations marketing content, products, users, vendors, ads, and banners high-risk actions.
   - [x] Standardized concise confirmation copy (title/message/confirm button text).
 - [x] Remove ambiguous placeholder-style messaging in vendor marketing-content table context for production readiness.
+
+---
+
+## Feature Planning Queue (2026-04-08) — Banner Integrity + Content Editor UX
+
+> **Section summary:** Planning backlog derived from `plan-feature.md` directive for banner behavior, analytics integrity, vendor-review communication checks, and non-technical public-content editing.
+
+- [x] Fix top-banner text rendering contract.
+  - [x] Prevent top-banner render when text payload is empty/whitespace and no required media fallback exists.
+  - [x] Normalize empty text handling (`null`, `undefined`, empty string, whitespace) in banner DTO + frontend guard.
+  - [x] Add regression tests for banner hidden/visible state permutations.
+- [x] Resolve top-banner placement duplication with hero region.
+  - [x] Audit homepage composition so top-position banner and hero are rendered once each under valid states.
+  - [x] Harden placement resolver logic for `TOP`/`HERO`/fallback mapping.
+  - [x] Add route-level visual regression checks for homepage banner stack order.
+- [x] Harden analytics/count integrity.
+  - [x] Audit analytics data contracts (API payload shapes vs client count readers) and remove fragile assumptions.
+  - [x] Add count source-of-truth mappers with runtime guards and typed fallbacks.
+  - [x] Add targeted tests for partial-success fetch behavior and KPI count correctness.
+- [x] Validate vendor registration review visibility + email lifecycle.
+  - [x] Ensure operations review surfaces expose pending vendor registrations and status transitions reliably.
+  - [x] Verify approval/rejection actions dispatch expected email notifications through service layer.
+  - [x] Add audit logging/observability markers for vendor-review email send outcomes.
+- [x] Redesign public-content editor for non-technical admins.
+  - [x] Add page/section selector UX with safe defaults and explicit context labels.
+  - [x] Replace raw JSON-style editing with structured section blocks and guided field controls.
+  - [x] Add live preview mode mirroring published render behavior.
+  - [x] Enforce upload-first media workflow in editor and persist canonical managed asset metadata.
+  - [x] Ensure publish-time fallback content remains consistent between DB content, cache, and frontend rendering.
+- [x] Finalize validation and documentation.
+  - [x] Run lint, typecheck, targeted Vitest, route/sidebar audits for touched scope.
+  - [x] Update architecture/docs/history/checkpoint records after implementation.
+
+---
+
+## Feature Planning Queue (2026-04-08) — Product Discovery Filter/Sort Contract Hardening
+
+> **Section summary:** Implementation queue for category-tag filtering correctness, query-state synchronization, and single-source-of-truth filter/sort configuration.
+
+- [x] Audit current category/filter/sort behavior across home and products pages.
+  - [x] Map all current query inputs (`category`, `search`, `sort`, price, rating, vendor, location) and identify non-functional paths.
+  - [x] Document mismatches between category slug values, enum values, and product subcategory storage.
+  - [x] Confirm where filtering is local-only vs API-backed and capture expected source-of-truth behavior.
+- [x] Introduce canonical product discovery configuration.
+  - [x] Add shared config for category groups, URL slugs, supported sort keys, and default filter state.
+  - [x] Replace hardcoded home/category lists with config-derived structures.
+  - [x] Ensure filter controls consume same config primitives as category tags.
+- [x] Implement query-state parser/serializer contract.
+  - [x] Add URL query parsing helper to hydrate products-page filters/sort/search state.
+  - [x] Add query serializer helper so home tags/filter controls write canonical params.
+  - [x] Keep backward compatibility for existing shared links where feasible.
+- [x] Wire products discovery behavior end-to-end.
+  - [x] Update products page/content to apply URL-driven category/search/sort state on initial load.
+  - [x] Add deterministic sorting behavior (`new`, `trending`, `price-low`, `price-high`, etc.) tied to canonical keys.
+  - [x] Align local filtering and API query behavior so counts/pagination/results remain consistent.
+- [x] Validate filtering tools and single-source config adherence.
+  - [x] Add tests for home category tag click-through -> products filtered result behavior.
+  - [x] Add tests for sort query behavior and query-state persistence across reload/share.
+  - [x] Add tests verifying filter sidebar selections map to canonical query/config values.
+- [x] Finalize documentation and architecture notes.
+  - [x] Update `.ai-system/agents/system-architecture.md` with product discovery query flow and config module reference.
+  - [x] Log implementation decisions/checkpoints/history updates in `.ai-system` artifacts.

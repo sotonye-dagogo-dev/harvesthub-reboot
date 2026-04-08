@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/hooks/useAuth";
 import StoreSettingsFeature from "@/components/features/StoreSettingsPage";
 import { PageLoader } from "@/components/ui";
-import { Sidebar } from "@/components/layout";
+import { ClientDashboardShell } from "@/components/layout";
 
 export default function StoreSettingsPage() {
   const { user, isLoading } = useAuth();
@@ -31,13 +31,8 @@ export default function StoreSettingsPage() {
   const sidebarType = user.role === "ADMIN" ? "admin" : "vendor";
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar type={sidebarType} />
-        <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
-          <StoreSettingsFeature />
-        </main>
-      </div>
-    </div>
+    <ClientDashboardShell sidebarType={sidebarType}>
+      <StoreSettingsFeature />
+    </ClientDashboardShell>
   );
 }

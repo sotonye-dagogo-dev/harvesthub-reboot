@@ -1,6 +1,6 @@
 # Dependency Graph
 
-> **Overview:** Maps how modules depend on each other. Agents use this to understand the impact of changes before modifying a module. Updated whenever new dependencies are introduced or modules are refactored.
+> **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
 
@@ -8,146 +8,103 @@
 
 ```
 app/layout.tsx
-  → providers.tsx
-    → lib/theme/*
-    → lib/hooks/useAuth
-    → components/ui/*
+  -> app/providers.tsx
+    -> lib/contexts/*
+    -> lib/theme/*
+    -> components/ui/*
 
-app/(buyer)/page.tsx
-  → components/features/*
-  → lib/data/database.ts (via API routes)
+app/(operations)/operations/*
+  -> components/layout/Sidebar.tsx
+  -> lib/navigation.ts
+  -> lib/rbac/routeConfig.ts
+  -> app/api/* (domain fetch/mutation)
 
-app/api/auth/*
-  → lib/data/database.ts
-  → lib/schemas/auth.schemas.ts
-  → lib/utils/jwt.ts
+components/layout/Header.tsx
+  -> lib/navigation.ts
+  -> lib/utils/*
+  -> role-aware route decisions (/orders vs /operations/orders)
+
+app/api/*
+  -> lib/api/http.ts
+  -> lib/schemas/*
+  -> lib/data/database.ts
+  -> lib/services/*
+  -> lib/rbac/* (authorization checks where required)
 
 lib/data/database.ts
-  → lib/data/mockData.ts
-  → lib/types.ts
+  -> lib/data/prismaAdapter.ts
+  -> lib/db/prisma.ts
+  -> lib/types.ts
 
-components/ui/*
-  → lib/constants/*
-  → lib/utils/format.ts
-
-lib/store/*
-  → lib/data/database.ts (for mock persistence)
-  → lib/utils/api.ts
-
-app/advertise/page.tsx
-  → components/ui/ImageUpload.tsx
-  → lib/utils/localDraft.ts
-  → lib/utils/offlineQueue.ts
-  → app/api/ad-applications/route.ts
-
-app/api/ad-applications/*
-  → lib/api/http.ts
-  → lib/middleware/rate-limit.ts
-  → lib/data/database.ts
+lib/data/prismaAdapter.ts
+  -> @prisma/client
+  -> prisma/schema.prisma (generated types)
 
 app/api/upload/route.ts
-  → lib/api/http.ts
-  → lib/services/cloudinary.ts
-  → lib/services/asset.ts
-  → lib/middleware/rate-limit.ts
+  -> lib/services/cloudinary.ts
+  -> lib/services/asset.ts
+  -> lib/middleware/rate-limit.ts
+  -> lib/api/http.ts
+
+app/advertise/page.tsx + app/ad-application/page.tsx
+  -> components/ui/ImageUpload.tsx
+  -> lib/utils/localDraft.ts
+  -> lib/utils/offlineQueue.ts
+  -> app/api/upload/route.ts
+  -> app/api/ad-applications|ads/apply
+
+lib/services/notifications.ts
+  -> lib/services/email.ts
+  -> lib/services/push.ts
+  -> lib/data/database.ts
 ```
+
+---
+
+## Core Edges
+
+- `app/*` -> `components/*`: UI composition.
+- `app/*` -> `app/api/*`: client/server fetch to domain APIs.
+- `app/api/*` -> `lib/*`: validation, auth checks, business logic, persistence.
+- `lib/data/*` -> `lib/db/*` -> Prisma client: database access path.
+- `lib/services/*` -> external providers (Cloudinary, Resend, Web Push, Paystack stubs).
+- `middleware.ts` -> `lib/rbac/routeConfig.ts`: canonical route normalization + role enforcement.
 
 ---
 
 ## External Dependencies
 
-> **Section summary:** Third-party packages and what they're used for. Review before adding new packages.
-
-| Package               | Purpose                   | Used In                       |
-| --------------------- | ------------------------- | ----------------------------- |
-| `next`                | React framework / routing | app/                          |
-| `react` / `react-dom` | UI library                | app/ components/              |
-| `antd`                | UI components             | components/ui/ and pages      |
-| `tailwindcss`         | Utility-first styling     | global styles and components  |
-| `prisma`              | ORM (future migration)    | prisma/ schema & generator    |
-| `zod`                 | Validation schemas        | lib/schemas/, API routes      |
-| `zustand`             | Client state management   | lib/store/                    |
-| `bcryptjs`            | Password hashing          | lib/utils/auth.ts (mock auth) |
-| `jose`                | JWT creation/validation   | lib/utils/jwt.ts              |
-| `resend`              | Email sending             | lib/services/email (if used)  |
-| `@upstash/redis`      | Cache / pubsub (optional) | lib/services/cache (if used)  |
-
----
-
-## Circular Dependency Warnings
-
-> **Section summary:** Any detected circular dependencies that need to be resolved.
-
-- No known circular dependencies documented yet. Keep an eye on `lib/*` → `components/*` backreferences.
+| Package                                                                          | Purpose                                     | Used In                                   |
+| -------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| `next`                                                                           | App Router framework and API runtime        | `app/`, `middleware.ts`                   |
+| `react`, `react-dom`                                                             | UI runtime                                  | `app/`, `components/`                     |
+| `antd`, `@ant-design/icons`                                                      | UI primitives and iconography               | `components/ui/`, feature pages           |
+| `tailwindcss`                                                                    | Utility styling and token classes           | `app/_styles/`, UI components             |
+| `zod`                                                                            | Request/schema validation                   | `lib/schemas/`, `app/api/*`               |
+| `jose`                                                                           | JWT auth token handling                     | auth helpers and routes                   |
+| `bcryptjs`                                                                       | Password hashing                            | auth/register/login handlers              |
+| `@prisma/client`, `prisma`, `@prisma/adapter-pg`, `@prisma/extension-accelerate` | ORM, schema, and DB access                  | `lib/db/`, `lib/data/`, `prisma/`         |
+| `cloudinary`                                                                     | Managed media upload pipeline               | `lib/services/cloudinary.ts`, upload APIs |
+| `resend`                                                                         | Transactional email transport               | `lib/services/email.ts`                   |
+| `web-push`                                                                       | Browser push notifications                  | `lib/services/push.ts`                    |
+| `@upstash/redis`                                                                 | Cache/invalidation and rate-related helpers | `lib/cache/*`, API endpoints              |
+| `zustand`                                                                        | Client-side state stores                    | `lib/store/*`                             |
+| `@serwist/next`, `serwist`                                                       | PWA/service worker integration              | `app/sw.ts`, build integration            |
 
 ---
 
-# Dependency Graph
+## Drift + Risk Notes
 
-> **Overview:** This file captures the main modules and dependencies in MyHarvestHub and how they connect at a high level. Use it to understand routing, data flow, and where to look when changing APIs, the data layer, or UI components.
-
----
-
-## Modules
-
-> **Section summary:** Major code areas and their responsibilities.
-
-- `app/` — Next.js App Router: pages, layouts, Server and Client Components. Contains route groups: `(auth)`, `(buyer)`, `admin`, `vendor`, `signup`.
-- `app/api/` — Route handlers (REST-like endpoints) for auth, products, orders, wallet, vendors, admin, banners, notifications, upload, reviews, vouchers, etc.
-- `components/` — Shared UI components and feature widgets used across pages.
-- `lib/` — Utilities, hooks, validation, mock data layer (`lib/data/database.ts`), services and stores.
-- `prisma/` — `schema.prisma`, `seed.ts`, and the generated Prisma client (large generated artifacts after build).
-- `public/`, `app/_styles/`, `app/fonts/` — Static assets, fonts, and global styles.
-- `.ai-system/`, `.github/` — Agent/system documentation, planning, and project policies.
+- Historical docs referenced `(buyer)/(vendor)/(admin)` route groups, but canonical management routes now live under `app/(operations)/operations/*`.
+- Avoid reintroducing raw media URL entry for upload-governed fields; upload APIs enforce managed URLs for governed flows.
+- `scripts/auditSidebarRoutes.ts` must stay synchronized with `components/layout/Sidebar.tsx` data-shape changes to avoid false route-audit failures.
 
 ---
 
-## Edges (data & control flow)
+## Hotspots
 
-> **Section summary:** Typical call / dependency relationships between modules.
-
-- `app/` -> `components/` : Pages import and render UI components.
-- `app/` -> `app/api/` : Pages call API routes (fetch) or call Server Actions that use server code.
-- `app/api/` -> `lib/` : Route handlers invoke services, validation, and the mock database in `lib/`.
-- `lib/` -> `prisma/` : Service layer uses the Prisma client (when enabled) or the in-memory DB for queries and mutations.
-- `components/` -> `lib/` : UI components import helper utilities, hooks, and formatters from `lib/`.
-- `prisma/schema.prisma` -> generated Prisma client : schema changes generate client code used by server logic.
-
----
-
-## Notable hotspots
-
-> **Section summary:** Files and areas that are large, frequently changed, or important for analysis.
-
-- Generated Prisma client files (under `prisma/generated/` or build output) — very large; they dominate packed exports and analysis token counts.
-- `lib/data/database.ts` — in-memory mock DB used across many endpoints; changing shape here affects many routes.
-- `app/api/*` — many independent route handlers; good candidates for API-level tests and contract verification.
-- `app/api/upload/route.ts` — mixed auth/guest upload logic and persistence toggles; high regression risk.
-- `app/advertise/page.tsx` — upload + draft + offline replay orchestration.
-
----
-
-## Refactor Notes (2026-04-01)
-
-> **Section summary:** Standardization updates introduced by the production-readiness wave.
-
-- Introduced `lib/api/http.ts` as shared API envelope and handler wrapper for consistent success/error responses.
-- Added `lib/utils/localDraft.ts` for local form retention and `lib/utils/offlineQueue.ts` for queued online replay.
-- Added `components/layout/RoleDashboardShell.tsx` to consolidate admin/vendor shell logic and reduce duplication.
-
----
-
-## Quick ASCII diagram
-
-> **Section summary:** Simple visualization of main data flow.
-
-```
-[app/pages] -> [components]
-   |
-   v
- [app/api routes] -> [lib services] -> [prisma client / mock DB]
-```
-
----
-
-If you want, I can render a Mermaid graph or produce a JSON module graph extracted from the packed `stdout` for automated visualization.
+- `app/api/*` breadth: many mutation surfaces with role constraints.
+- `lib/rbac/routeConfig.ts`: source of truth for route scope behavior.
+- `components/layout/Header.tsx` and `components/layout/Sidebar.tsx`: discoverability and scope entry points.
+- `app/api/upload/route.ts`: security/rate-limit/governed upload contract.
+- `prisma/generated/*`: very large generated artifacts in packed snapshots.

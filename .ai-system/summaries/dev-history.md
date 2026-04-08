@@ -24,12 +24,158 @@
 
 ---
 
+## 2026-04-08 — Product/Vendor/Layout Hotfix Follow-up (Implementation)
+
+**Summary:**
+Implemented the queued hotfix follow-up slice for product detail resilience, dashboard-shell consistency on out-of-group pages, and unverified vendor read-path visibility. The release centralizes client dashboard chrome for vendor/admin pages, hardens sparse-data rendering in product detail, and removes approved-only default filtering in public vendor client fetches.
+
+**Completed:**
+
+- Added shared `ClientDashboardShell` and migrated `/store-settings` + `/notifications/settings` vendor/admin rendering to use it.
+- Refactored `RoleDashboardShell` to compose through `ClientDashboardShell` for unified spacing/mobile-nav behavior.
+- Hardened `app/products/[id]/page.tsx` with defensive fallback normalization for vendor/category/price/discount/stock and safer related-filter construction.
+- Updated `/api/vendors` default read filter and `getVendorsClient()` default behavior to include `APPROVED` + `PENDING` vendors unless status is explicitly requested.
+- Added focused regression tests for shell parity, product detail sparse-field fallbacks, and vendor fetch status defaults.
+- Revalidated touched scope with Vitest, ESLint, and TypeScript (`tsc --noEmit`).
+
+**Key Changes:**
+
+- Dashboard shell composition for vendor/admin now has a reusable client-side contract outside operations routes.
+- Public/vendor card hydration is less likely to degrade to generic vendor placeholders for pending vendors.
+- Product detail route is more resilient to malformed or sparse product payload fields.
+
+**Next Sprint Focus:**
+Capture UI screenshots for the updated pages and continue remaining unchecked queue tasks beyond this hotfix slice.
+
+---
+
+## 2026-04-08 — Product Discovery Contract Implementation (Slice 2: Validation Completion)
+
+**Summary:**
+Completed the remaining validation tasks in the product discovery hardening queue by adding focused regression tests for home category click-through behavior and canonical query serialization from filter sidebar interactions. This closes the discovery test gaps left after slice 1.
+
+**Completed:**
+
+- Added `app/__tests__/home.category-clickthrough.test.tsx` to assert home category links write canonical query params that map back to canonical category values.
+- Added `components/__tests__/ProductsContent.discovery-contract.test.tsx` to assert category query-state filtering and canonical URL serialization for category/vendor/location/price filters.
+- Revalidated discovery test suite, lint, and full typecheck.
+- Marked the final two discovery validation subtasks complete in `.ai-system/planning/task-queue.md`.
+
+**Key Changes:**
+
+- Discovery queue now has explicit regression coverage for both entry-point click-through and filter-tool query mapping.
+- Canonical query contract coverage now spans parser, page hydration, home links, and products filter synchronization.
+
+**Next Sprint Focus:**
+Proceed to the next prioritized queue item outside the completed product-discovery filter/sort hardening feature slice.
+
+---
+
+## 2026-04-08 — Product Discovery Contract Implementation (Slice 1)
+
+**Summary:**
+Implemented the first execution slice of the product discovery hardening queue so category and sort query links now materially affect products results. The implementation introduced a canonical discovery config/query contract and wired products/home surfaces to it with deterministic sorting and URL-state synchronization.
+
+**Completed:**
+
+- Added `lib/config/productDiscovery.ts` for canonical category slug/value mapping, supported sort keys, and query parser/serializer helpers.
+- Updated `app/products/page.tsx` to parse URL query params into normalized discovery state.
+- Updated `components/features/ProductsContent.tsx` to hydrate from query state, apply deterministic sorting, sync discovery controls back to URL, and align price filtering with `FilterSidebar` contract.
+- Updated `app/components/HomeContent.tsx` to consume shared discovery categories and query serializer for sort links.
+- Added regression tests for parser behavior and products-page query hydration contract.
+- Updated architecture documentation with dedicated product discovery query flow.
+
+**Key Changes:**
+
+- Discovery state is now shareable and reproducible through URL query params.
+- Category/sort behavior now draws from one config source rather than duplicated local mappings.
+
+**Next Sprint Focus:**
+Finish remaining discovery tests: home category click-through result behavior and filter sidebar canonical query mapping coverage.
+
+---
+
+## 2026-04-08 — Plan Package: Product Discovery Filter/Sort Contract Hardening
+
+**Summary:**
+Executed `plan-feature.md` for a client-reported discovery regression where category tags and filtering/sorting behavior were inconsistent. The audit confirmed URL query drift, duplicated category mappings, and missing canonical sort/query synchronization across home and products surfaces.
+
+**Completed:**
+
+- Audited category-tag and filter/sort behavior across home links, category nav, products page, filter sidebar, and products API/fetchers.
+- Added a new feature spec to `.ai-system/planning/project-plan.md` covering architecture impact, data flow, UX constraints, and risks.
+- Added a concrete implementation queue to `.ai-system/planning/task-queue.md` for canonical config + query contract wiring.
+- Logged a planning decision in `.ai-system/memory/project-decisions.md` to enforce URL-driven single-source discovery config.
+- Logged discovered drift pattern in `.ai-system/agents/repair-system.md` for future prevention.
+
+**Key Changes:**
+
+- Product discovery is now planned around one shared configuration and URL query contract instead of duplicated local mappings.
+- Queue now includes test-first coverage requirements for category click-through filtering and sort/query persistence behavior.
+
+**Next Sprint Focus:**
+Implement the new queue in order: shared discovery config, query parser/serializer, end-to-end wiring, and regression coverage.
+
+---
+
+## 2026-04-08 — Feature Queue Implementation: Banner + Analytics + Vendor Review + Public Content UX
+
+**Summary:**
+Executed the 2026-04-08 implementation queue from planning through validation. The release hardens top/hero banner behavior, replaces fragile analytics user totals with API-derived counts, restores full vendor review visibility with approval/rejection email lifecycle dispatch, and delivers a guided non-technical public-content editor with upload-first media handling and live preview.
+
+**Completed:**
+
+- Split banner feeds by placement (`TOP` vs `HERO`) and normalized empty-text handling to suppress invalid top-banner renders.
+- Added server/client active-window filtering updates for banner reads and stricter title normalization on banner write paths.
+- Updated analytics to use source-of-truth user counts from `/api/users` pagination totals rather than page-limited array length.
+- Fixed operations vendor list discoverability by merging all vendor status buckets and routing review actions to operations detail.
+- Wired vendor status transitions (`APPROVED`/`REJECTED`) to email dispatch with response metadata and structured send logs.
+- Rebuilt `PublicContentAdminPanel` into a structured section editor with page presets, section controls, upload-first media integration, generated HTML fallback contract, and live preview.
+- Added regression coverage for top-banner hidden/visible contract permutations.
+- Revalidated touched scope with lint, typecheck, targeted Vitest, and route/sidebar audits.
+
+**Key Changes:**
+
+- Banner rendering and placement logic now follow explicit role-of-zone contracts and are less sensitive to malformed content payloads.
+- Vendor moderation now has end-to-end communication lifecycle observability (status changed vs email delivered).
+- Public-content editing is now operationally usable by non-technical admins while preserving fallback compatibility.
+
+**Next Sprint Focus:**
+Run broader non-targeted regression suites and collect UI evidence for operations public-content editor interactions.
+
+---
+
+## 2026-04-08 — AI-System Sync + Feature Planning Package
+
+**Summary:**
+Executed `update-ai-system.md` maintenance sync and `plan-feature.md` planning output in a single pass. Documentation now reflects the canonical operations-route architecture, Prisma-first dependency map, and new high-priority planning backlog for banner behavior integrity, analytics count correctness, vendor-review email wiring, and public-content editor redesign.
+
+**Completed:**
+
+- Rewrote `.ai-system/index/repo-map.md` with current route-group and directory topology.
+- Replaced duplicated/stale `.ai-system/index/dependency-graph.md` with synchronized module edges and dependency inventory.
+- Created `.ai-system/index/file-summaries/` and added concise high-impact module summaries.
+- Updated architecture/context docs to remove stale `(buyer)/(vendor)/(admin)` references and align with `/operations/*` + Prisma-first runtime.
+- Added new feature spec in `.ai-system/planning/project-plan.md` and appended concrete implementation tasks in `.ai-system/planning/task-queue.md`.
+- Resolved contradictory stale queue item that asked to reintroduce `Worker` as signup role (now marked closed/superseded).
+
+**Key Changes:**
+
+- AI-system artifacts are now aligned to current codebase topology and route/policy contracts.
+- Planning queue now contains implementation-ready tasks for banner, analytics, vendor-review email lifecycle, and non-technical content-authoring UX.
+
+**Next Sprint Focus:**
+Implement the 2026-04-08 feature-planning queue in rollout order: banner rendering/placement fixes, analytics contract hardening, vendor-review notification checks, then public-content editor redesign with preview/upload/fallback parity.
+
+---
+
 ## 2026-04-06 — Ad Application Fallback + Analytics/Admin Reliability Recovery
 
 **Summary:**
 Delivered a focused production-readiness recovery slice centered on ad application reliability, analytics/count consistency, and admin user-management functionality. The change set removes hard failures when admin ad-pricing config is absent, restores stable analytics behavior with visualization cues, and enables real CRUD-like admin actions from user management surfaces.
 
 **Completed:**
+
 - Added fallback ad rate resolution in shared pricing utilities and updated ad-application APIs to avoid user-facing submission blockers.
 - Updated `/api/admin/ads/rates` to return safe fallback values when no active rate config exists.
 - Improved `/advertise` form control consistency for Select/Date/InputNumber (dark mode and Safari-friendly styling).
@@ -40,6 +186,7 @@ Delivered a focused production-readiness recovery slice centered on ad applicati
 - Added fallback pricing test coverage and revalidated with targeted tests, lint, and build.
 
 **Key Changes:**
+
 - Ad submission no longer fails solely because admin pricing config is missing; safe fallback values preserve flow continuity.
 - Platform analytics surfaces are more resilient to partial API failures and now include clear visual KPI breakdowns.
 - Admin user-management is now operationally actionable from both list and dedicated user detail views.
@@ -55,6 +202,7 @@ Run final review/security validation sweep and complete PR handoff with CI/env c
 Completed a single-pass operations hardening slice to improve production readiness by unifying confirmatory UX for destructive/removal actions and closing leftover messaging concerns in vendor marketing content surfaces.
 
 **Completed:**
+
 - Added shared OOP-backed confirmation utility (`ActionConfirmBuilder` + presets + opener).
 - Migrated high-risk operations actions (delete/reject/suspend/activate/approve style flows) to shared confirmation patterns.
 - Replaced ambiguous empty-state wording in vendor marketing-content table context with neutral production-safe copy.
@@ -62,6 +210,7 @@ Completed a single-pass operations hardening slice to improve production readine
 - Re-validated with `npm run lint` and `npm run build`.
 
 **Key Changes:**
+
 - Confirm dialogs are now config-driven and reusable with concise, consistent copy conventions.
 - Operations UX now has better guardrails around risky actions and less ad hoc confirm behavior.
 
@@ -76,6 +225,7 @@ Continue residual operations reliability audit on remaining detailed pages/route
 Continued the requested platform-wide audit by closing a high-impact admin workflow gap in operations banners. The banners management page now performs real API mutations for create/update/delete/toggle actions and only surfaces success feedback after backend confirmation.
 
 **Completed:**
+
 - Wired `/operations/banners` mutations to `/api/banners` and `/api/banners/[id]`.
 - Replaced local-only success paths with API-confirmed success/error handling.
 - Added list refresh/state update hooks after successful mutations.
@@ -85,6 +235,7 @@ Continued the requested platform-wide audit by closing a high-impact admin workf
 - Updated `.ai-system` queue, decisions, and checkpoint logs for traceability.
 
 **Key Changes:**
+
 - Admin banner actions are now genuinely end-to-end functional (UI → API → persistence → refreshed UI), reducing false success states.
 - Banner cache correctness is improved for both filtered reads and mutation invalidation.
 
@@ -165,6 +316,7 @@ Refreshed the cloud-session handoff package after mid-implementation progress to
 
 **Next Sprint Focus:**
 Execute the updated cloud queue starting with domain-view parity implementation and validation, then complete profile/advertise usability gaps and final quality/documentation closure.
+
 - Recorded decision-level execution priorities and deferred-risk boundaries in `.ai-system/memory/project-decisions.md`.
 
 **Key Changes:**

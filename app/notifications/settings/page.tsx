@@ -11,7 +11,7 @@ import { Card, Switch, Button } from "antd";
 import { Bell, Mail, MessageSquare, Package, DollarSign, AlertTriangle } from "lucide-react";
 import { useNotifications } from "@/lib/contexts/NotificationContext";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Sidebar } from "@/components/layout";
+import { ClientDashboardShell } from "@/components/layout";
 import { useToast } from "@/lib/contexts/ToastContext";
 
 interface NotificationPreferences {
@@ -123,18 +123,15 @@ export default function NotificationSettingsPage() {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
-  const persistPreferences = useCallback(
-    async (nextPreferences: NotificationPreferences) => {
-      const res = await fetch("/api/notifications/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nextPreferences),
-      });
-      const data = await res.json().catch(() => ({}));
-      return { res, data };
-    },
-    []
-  );
+  const persistPreferences = useCallback(async (nextPreferences: NotificationPreferences) => {
+    const res = await fetch("/api/notifications/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nextPreferences),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
+  }, []);
 
   const enableBrowserPush = async () => {
     setEnablingPush(true);
@@ -179,7 +176,9 @@ export default function NotificationSettingsPage() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-16">
-        <p className="text-center text-ds-text-secondary">Please log in to manage notification settings</p>
+        <p className="text-center text-ds-text-secondary">
+          Please log in to manage notification settings
+        </p>
       </div>
     );
   }
@@ -469,14 +468,5 @@ export default function NotificationSettingsPage() {
     return settingsContent;
   }
 
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar type={sidebarType} />
-        <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
-          {settingsContent}
-        </main>
-      </div>
-    </div>
-  );
+  return <ClientDashboardShell sidebarType={sidebarType}>{settingsContent}</ClientDashboardShell>;
 }

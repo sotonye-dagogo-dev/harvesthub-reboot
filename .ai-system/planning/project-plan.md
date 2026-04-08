@@ -156,6 +156,133 @@ Close the highest-risk post-adjustment gaps affecting operations usability, layo
 
 ---
 
+## Feature Spec - Banner Integrity + Public Content Editor Redesign (Planned 2026-04-08)
+
+> **Section summary:** Planning-only feature package requested for top-banner behavior correctness, analytics/count reliability, vendor-registration review communications, and non-technical content-editing UX.
+
+**Implementation Status (2026-04-08):**
+
+- Implemented: top-banner text normalization + suppression, TOP/HERO feed separation, analytics count contract hardening, vendor review visibility + email lifecycle dispatch, and structured public-content editor redesign with upload-first preview workflow.
+- Validation coverage added for homepage banner composition and analytics partial-success/count behavior; feature queue items are now marked complete.
+
+**Feature Objective:**
+Stabilize user-facing banner presentation and operational metrics integrity while redesigning the public-content admin experience so non-technical administrators can confidently author, preview, and publish content using managed uploads and consistent fallback behavior.
+
+**Why This Is Needed:**
+
+- Top banner behavior still has edge-case regressions when text fields are empty.
+- Banner placement can overlap with hero rendering in some composition states.
+- Analytics counters need stronger source-of-truth validation to avoid drift from API payload changes.
+- Vendor onboarding/review notifications need verified end-to-end email lifecycle checks.
+- Existing public-content editing is too technical and does not provide safe guided preview and upload-first consistency.
+
+**Architecture Impact:**
+
+- `app/page.tsx`, banner rendering components, and banner placement/layout logic.
+- Banner/public-content admin surfaces under `app/(operations)/operations/*`.
+- Analytics data fetchers (`lib/data/clientDataFetchers.ts`, analytics feature modules, and relevant APIs).
+- Vendor review workflow APIs and mail dispatch layers (`app/api/vendors/*`, `lib/services/email.ts`, notification services).
+- Content data path (`app/api/public-content/*`, `lib/data/publicContent.ts`) and upload integration.
+
+**Acceptance Criteria:**
+
+- Top banner is not rendered when configured text content is empty/whitespace-only and no required media fallback is present.
+- Banner placement rules prevent duplicate top-of-page rendering (top banner and hero do not stack unexpectedly).
+- Operations analytics counts are validated against consistent API contract mappings with resilient partial-failure handling.
+- Vendor registration review actions reliably trigger expected email notifications with audit-friendly status tracking.
+- Public-content admin UX supports: page/section picker, structured editor blocks, live preview, upload-first media insertion, and publish-time fallback consistency with frontend rendering.
+
+**UI/UX Constraints (Design-System Aligned):**
+
+- Keep Ant Design form semantics with explicit labels/help states for non-technical users.
+- Include draft-safe preview mode that mirrors published page rendering contract.
+- Preserve required/optional label parity with schema validation.
+- Maintain mobile-friendly editor interactions and clear success/error guidance.
+
+**Risks and Edge Cases:**
+
+- Empty string vs null handling may differ across content APIs and DB records.
+- Banner cache invalidation may delay placement/text behavior after publish.
+- Email provider transient failures can mask vendor-review communication state unless retriable and auditable.
+- Structured editor schema drift can break legacy fallback rendering if migration contracts are not explicit.
+
+**Rollout Order:**
+
+1. Banner visibility and placement bug fixes + regression tests.
+2. Analytics/count contract audit and API/client mapping hardening.
+3. Vendor review + email workflow verification and lifecycle instrumentation.
+4. Public-content editor redesign (structure + preview + uploads + fallback parity).
+5. Full route/content regression verification and documentation sync.
+
+---
+
+## Feature Spec - Product Discovery Filter/Sort Contract Hardening (Planned 2026-04-08)
+
+> **Section summary:** Planning package to audit and correct category-tag filtering, products-page filter/sort behavior, and single-source-of-truth config alignment for product discovery.
+
+**Feature Objective:**
+Ensure category tags and all discovery controls (search/filter/sort) consistently produce the expected product results across home and products pages, using one canonical config contract for category and query behavior.
+
+**Why This Is Needed:**
+
+- Home/category links currently emit URL query parameters that are not fully consumed by products-page state.
+- Home links include sort query parameters (`sort=trending`, `sort=new`) but products-page logic currently does not honor sort query state.
+- Category definitions and slug/value mapping are duplicated, increasing drift risk between UI tags, filters, and backend query semantics.
+- Existing filter coverage is component-level, but end-to-end query-to-results behavior is under-tested.
+
+**Architecture Impact:**
+
+- `app/components/HomeContent.tsx` for category tags and discoverability links.
+- `components/features/CategoryNav.tsx` for URL parameter generation and active state.
+- `app/products/page.tsx` + `components/features/ProductsContent.tsx` for query parsing, filter/sort state hydration, and result rendering.
+- `components/features/FilterSidebar.tsx` for UI filter controls and outward contract shape.
+- `lib/constants/index.ts` (or extracted config module) for canonical category/sort definitions.
+- `app/api/products/route.ts` and `lib/data/clientDataFetchers.ts` for query contract consistency.
+
+**New Modules or Services Required:**
+
+- `lib/config/productDiscovery.ts` (or equivalent): canonical definitions for category groups, URL slug mapping, supported sort keys, and default filter state.
+- `lib/utils/productDiscoveryQuery.ts` (or equivalent): parse/serialize helpers for URL query params <-> filter state <-> API query payload.
+- Optional: lightweight discovery-state hook in `lib/hooks` to centralize products-page query synchronization.
+
+**Data Flow:**
+
+1. User selects category tag or sort control on home/products surface.
+2. UI writes canonical query params using shared query serializer.
+3. Products page hydrates filter/sort state from URL via shared parser.
+4. Products query execution applies canonical mapping (category slug -> category enum/subcategory set) and sort rules.
+5. Results, active chips, and category active-state UI reflect one synchronized contract.
+6. API/client query layer uses identical key set and default behavior.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- Keep filter/sort controls mobile-friendly and consistent with existing DS tokens and spacing.
+- Ensure active category/sort state is visually explicit and keyboard accessible.
+- Preserve clear empty-state messaging when strict filters return no products.
+- Keep query-state behavior shareable/bookmarkable via URL without surprising resets.
+
+**Potential Risks or Edge Cases:**
+
+- Slug-to-enum mismatch for parent category vs product subcategory values may produce false-empty result sets.
+- Mixed local filtering and API filtering can cause inconsistent pagination counts if not unified.
+- Query param backward compatibility is required for previously shared links.
+- Sort behavior for equal timestamps/review counts needs deterministic tie-breaking.
+
+**Architecture Doc Updates Needed:**
+
+- Add a product-discovery query contract note in `.ai-system/agents/system-architecture.md` under data flow.
+- Add `lib/config/productDiscovery.ts` to module breakdown once implemented.
+
+**Rollout Order:**
+
+1. Audit and document current category/filter/sort drift points.
+2. Introduce canonical discovery config + query parser/serializer.
+3. Wire home tags, category nav, and products page to shared query contract.
+4. Align API/client query handling and sorting semantics.
+5. Add integration/regression tests and finalize docs.
+
+---
+
 ## Completed
 
 > **Section summary:** Tasks that have already shipped in the current repository state.

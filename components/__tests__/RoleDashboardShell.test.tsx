@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { UserRole } from "@/lib/constants";
+import type { ReactNode } from "react";
 
 const { requireAnyRoleMock } = vi.hoisted(() => ({
   requireAnyRoleMock: vi.fn(),
@@ -10,10 +11,18 @@ vi.mock("@/lib/utils/auth", () => ({
   requireAnyRole: requireAnyRoleMock,
 }));
 
-vi.mock("@/components/layout", () => ({
-  Header: () => <div data-testid="shell-header">Header</div>,
-  Sidebar: ({ type }: { type: "vendor" | "admin" }) => (
-    <div data-testid="shell-sidebar">{type}</div>
+vi.mock("@/components/layout/ClientDashboardShell", () => ({
+  ClientDashboardShell: ({
+    sidebarType,
+    children,
+  }: {
+    sidebarType: "vendor" | "admin";
+    children: ReactNode;
+  }) => (
+    <div>
+      <div data-testid="shell-sidebar">{sidebarType}</div>
+      <div>{children}</div>
+    </div>
   ),
 }));
 
@@ -24,7 +33,7 @@ describe("RoleDashboardShell", () => {
     requireAnyRoleMock.mockReset();
   });
 
-  it("does not render a nested header in operations shell", async () => {
+  it("renders operations content in dashboard shell", async () => {
     requireAnyRoleMock.mockResolvedValue({ role: UserRole.VENDOR });
 
     const ui = await RoleDashboardShell({
@@ -34,7 +43,6 @@ describe("RoleDashboardShell", () => {
 
     render(ui);
 
-    expect(screen.queryByTestId("shell-header")).not.toBeInTheDocument();
     expect(screen.getByTestId("shell-sidebar")).toHaveTextContent("vendor");
     expect(screen.getByText("Operations Content")).toBeInTheDocument();
   });

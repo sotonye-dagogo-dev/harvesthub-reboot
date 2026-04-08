@@ -1,68 +1,84 @@
 # Repository Map
 
-> **Overview:** Visual map of the project folder structure with a brief description of each directory's purpose. Agents read this first when navigating the codebase. Updated whenever the folder structure changes.
+> **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
 
 ---
 
 ## Folder Structure
 
 ```
-myharvesthub-app/
-├── app/                    → Next.js App Router routes and layouts
-│   ├── (auth)/             → Authentication pages (login, register, reset)
-│   ├── (buyer)/            → Buyer-facing pages (legacy/deprecation path)
-│   ├── (vendor)/           → Vendor dashboard and tools (legacy/deprecation path)
-│   ├── (admin)/            → Admin panel and operations (legacy/deprecation path)
-│   ├── api/                → Server API routes (auth, products, orders, wallet)
-│   ├── components/         → Shared UI components (UI primitives + feature components)
-│   ├── providers.tsx       → Global React providers (theme, auth, config)
-│   ├── _styles/            → Global CSS (Tailwind + custom variables)
-│   └── layout.tsx          → Root layout + metadata
+harvesthub-reboot/
+├── app/                               → Next.js App Router pages, route groups, and API surface
+│   ├── (auth)/                        → Auth pages (login, forgot/reset password)
+│   ├── (operations)/operations/       → Canonical admin/vendor operations workspace routes
+│   ├── api/                           → Route handlers by domain (auth, products, orders, upload, etc.)
+│   ├── components/                    → App-local shared components
+│   ├── _styles/                       → Global CSS and tokenized style overrides
+│   ├── fonts/                         → Local font assets
+│   ├── layout.tsx                     → Root app layout shell
+│   ├── providers.tsx                  → App-wide React providers
+│   └── page.tsx                       → Public homepage entry
 │
-├── components/            → Additional reusable components + tests
-│   └── __tests__/          → Component unit tests
+├── components/                        → Shared feature/layout/ui component library + tests
+│   ├── features/
+│   ├── layout/
+│   ├── ui/
+│   └── __tests__/
 │
-├── lib/                   → Core logic (types, validation, mock backend, hooks)
-│   ├── api/                → Shared API response/handler wrappers
-│   ├── data/               → Mock data and in-memory database
-│   ├── schemas/            → Zod validation schemas
-│   ├── store/              → Zustand stores (cart, wallet, etc.)
-│   ├── utils/              → Utility functions (formatting, offline queue, local draft)
-│   └── types.ts            → Global TypeScript types and interfaces
+├── lib/                               → Core runtime logic, adapters, services, and utilities
+│   ├── api/                           → Shared API response/handler wrappers
+│   ├── config/                        → Typed env + feature configuration
+│   ├── data/                          → Data facade/adapters and fetch helpers
+│   ├── db/                            → Prisma client + transaction helpers
+│   ├── rbac/                          → Route policy and permission logic
+│   ├── schemas/                       → Zod schemas
+│   ├── services/                      → Email, notification, upload, payment, and related services
+│   ├── store/                         → Client state stores
+│   ├── utils/                         → Shared utilities (drafts, offline queue, formatters, etc.)
+│   └── __tests__/
 │
-├── prisma/                → Prisma schema, migrations, and seed scripts
-├── public/                → Static assets (manifest, offline page, icons)
-├── .github/               → Documentation, plans, and CI/CD configs
-├── .ai-system/            → AI guidance and planning artifacts
-├── next.config.mjs        → Next.js configuration
-├── tailwind.config.ts     → Tailwind configuration
-├── tsconfig.json          → TypeScript configuration
-├── package.json           → Dependencies and scripts
-└── README.md              → Project overview and setup
+├── modules/                           → Domain submodules (currently `orders/`)
+├── prisma/                            → Prisma schema, migrations, generated client, seed script
+├── public/                            → Static web assets (icons, manifest, service worker files)
+├── scripts/                           → Audit and maintenance scripts
+├── .ai-system/                        → AI orchestration docs (agents, plans, memory, index)
+│   ├── commands/
+│   ├── index/
+│   │   └── file-summaries/
+│   ├── planning/
+│   ├── memory/
+│   ├── checkpoints/
+│   └── summaries/
+├── middleware.ts                      → Route normalization + RBAC middleware entry
+├── next.config.mjs                    → Next.js configuration
+├── tailwind.config.ts                 → Tailwind config
+├── vitest.config.ts                   → Vitest config
+├── tsconfig.json                      → TypeScript compiler settings
+└── package.json                       → Scripts and dependencies
 ```
 
 ---
 
-## Directory Descriptions
+## Directory Notes
 
-| Directory                                  | Purpose                                                 | Key Files                                       |
-| ------------------------------------------ | ------------------------------------------------------- | ----------------------------------------------- |
-| `app/`                                     | Next.js App Router routes and layouts                   | `app/layout.tsx`, `app/providers.tsx`           |
-| `app/api/`                                 | API routes for auth, products, orders, wallet, etc.     | `app/api/auth/*`, `app/api/products/*`          |
-| `lib/`                                     | Shared business logic, API wrappers, offline resilience | `lib/api/http.ts`, `lib/data/database.ts`       |
-| `components/`                              | Reusable UI components and feature widgets              | `components/ui`, `components/features`          |
-| `components/layout/RoleDashboardShell.tsx` | Shared role dashboard container for admin/vendor shells | `app/admin/layout.tsx`, `app/vendor/layout.tsx` |
-| `prisma/`                                  | Prisma ORM schema and database seeds                    | `prisma/schema.prisma`, `prisma/seed.ts`        |
-| `public/`                                  | Static assets served by Next.js                         | `manifest.json`, `offline.html`, `icons/`       |
+| Directory     | Purpose                                                              | Key Files                                                                        |
+| ------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `app/`        | Main App Router surface for public, auth, and operations experiences | `app/layout.tsx`, `app/page.tsx`, `app/(operations)/operations/layout.tsx`       |
+| `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/route.ts`                  |
+| `components/` | Reusable app-wide UI and feature composition                         | `components/layout/Header.tsx`, `components/layout/Sidebar.tsx`                  |
+| `lib/`        | Core shared runtime utilities and business logic                     | `lib/api/http.ts`, `lib/rbac/routeConfig.ts`, `lib/data/database.ts`             |
+| `prisma/`     | ORM schema/migrations/client generation                              | `prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`                  |
+| `scripts/`    | Route/dead-link/sidebar audits and maintenance tasks                 | `scripts/auditRoutes.ts`, `scripts/auditSidebarRoutes.ts`                        |
+| `.ai-system/` | AI execution protocol, planning queue, and change history            | `.ai-system/agents/general-instructions.md`, `.ai-system/planning/task-queue.md` |
 
 ---
 
 ## Entry Points
 
-| Purpose                   | File                           |
-| ------------------------- | ------------------------------ |
-| Frontend entry & metadata | `app/layout.tsx`               |
-| API backend surface       | `app/api/*`                    |
-| Mock data seed            | `lib/data/mockData.ts`         |
-| Prisma schema             | `prisma/schema.prisma`         |
-| Development start         | `package.json` (`npm run dev`) |
+| Purpose             | File                           |
+| ------------------- | ------------------------------ |
+| App shell           | `app/layout.tsx`               |
+| API boundary        | `app/api/*`                    |
+| Route policy source | `lib/rbac/routeConfig.ts`      |
+| Data model source   | `prisma/schema.prisma`         |
+| Dev startup         | `package.json` (`npm run dev`) |

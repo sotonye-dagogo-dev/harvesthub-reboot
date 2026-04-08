@@ -1,22 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductCard, FilterSidebar, CategoryNav, SearchBar } from "@/components/features";
 import { SimplePagination, EmptyState } from "@/components/ui";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
-import { getSubcategoryValues, VENDOR_CATEGORIES } from "@/lib/constants";
+import { getSubcategoryValues } from "@/lib/constants";
 import type { Product, Vendor } from "@/lib/types";
 import { useToast } from "@/lib/contexts/ToastContext";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  buildProductDiscoveryQueryString,
+  DEFAULT_PRODUCT_SORT,
+  PRODUCT_DISCOVERY_CATEGORIES,
+  PRODUCT_SORT_OPTIONS,
+  type ProductDiscoveryQueryState,
+  type ProductSortKey,
+} from "@/lib/config/productDiscovery";
 
 interface ProductsContentProps {
   products: Product[];
   vendors: Vendor[];
+  initialQueryState?: ProductDiscoveryQueryState;
 }
 
-export default function ProductsContent({ products, vendors }: ProductsContentProps) {
+export default function ProductsContent({
+  products,
+  vendors,
+  initialQueryState,
+}: ProductsContentProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { addItem } = useCart();
   const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
@@ -32,15 +48,54 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
   const [filters, setFilters] = useState<{
     categories?: string[];
     listingType?: string;
+    priceRange?: { min: number; max: number };
     minPrice?: number;
     maxPrice?: number;
     rating?: number;
     locations?: string[];
     vendors?: string[];
-  }>({});
-  const [searchQuery, setSearchQuery] = useState("");
+  }>({
+    categories: initialQueryState?.categories || [],
+    listingType: initialQueryState?.listingType,
+    priceRange:
+      typeof initialQueryState?.minPrice === "number" ||
+      typeof initialQueryState?.maxPrice === "number"
+        ? {
+            min: initialQueryState?.minPrice || 0,
+            max: initialQueryState?.maxPrice || 0,
+          }
+        : undefined,
+    rating: initialQueryState?.rating,
+    locations: initialQueryState?.locations || [],
+    vendors: initialQueryState?.vendors || [],
+  });
+  const [searchQuery, setSearchQuery] = useState(initialQueryState?.search || "");
+  const [sortBy, setSortBy] = useState<ProductSortKey>(
+    initialQueryState?.sort || DEFAULT_PRODUCT_SORT
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, searchQuery, sortBy]);
+
+  useEffect(() => {
+    const queryString = buildProductDiscoveryQueryString({
+      search: searchQuery,
+      sort: sortBy,
+      categories: filters.categories || [],
+      listingType: filters.listingType,
+      minPrice: filters.priceRange?.min,
+      maxPrice: filters.priceRange?.max,
+      rating: filters.rating,
+      vendors: filters.vendors || [],
+      locations: filters.locations || [],
+    });
+
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [filters, pathname, router, searchQuery, sortBy]);
 
   let filteredProducts = products.filter((p) => p.isActive);
 
@@ -61,12 +116,14 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
     filteredProducts = filteredProducts.filter((p) => p.listingType === filters.listingType);
   }
 
-  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    if (filters.minPrice !== undefined && filters.minPrice > 0) {
-      filteredProducts = filteredProducts.filter((p) => p.price >= filters.minPrice!);
+  const minPrice = filters.priceRange?.min ?? filters.minPrice;
+  const maxPrice = filters.priceRange?.max ?? filters.maxPrice;
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    if (minPrice !== undefined && minPrice > 0) {
+      filteredProducts = filteredProducts.filter((p) => p.price >= minPrice);
     }
-    if (filters.maxPrice !== undefined && filters.maxPrice > 0) {
-      filteredProducts = filteredProducts.filter((p) => p.price <= filters.maxPrice!);
+    if (maxPrice !== undefined && maxPrice > 0) {
+      filteredProducts = filteredProducts.filter((p) => p.price <= maxPrice);
     }
   }
 
@@ -89,17 +146,47 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
     filteredProducts = filteredProducts.filter((p) => filters.vendors!.includes(p.vendorId));
   }
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const paginatedProducts = filteredProducts.slice(
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case "trending": {
+        const reviewsA = a.reviews?.length || 0;
+        const reviewsB = b.reviews?.length || 0;
+        if (reviewsB !== reviewsA) return reviewsB - reviewsA;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "name-asc":
+        return a.name.localeCompare(b.name);
+      case "name-desc":
+        return b.name.localeCompare(a.name);
+      case "new":
+      default:
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+  });
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const categories = VENDOR_CATEGORIES.map((cat) => ({
-    id: cat.value,
-    name: cat.label,
-    slug: cat.value.toLowerCase().replace(/_/g, "-"),
+  const categories = PRODUCT_DISCOVERY_CATEGORIES.map((category) => ({
+    id: category.value,
+    name: category.label,
+    slug: category.slug,
   }));
+
+  const selectedCategoryValue =
+    filters.categories && filters.categories.length === 1 ? filters.categories[0] : undefined;
+
+  const activeCategorySlug = selectedCategoryValue
+    ? PRODUCT_DISCOVERY_CATEGORIES.find((category) => category.value === selectedCategoryValue)
+        ?.slug
+    : undefined;
 
   const vendorsWithProducts = vendors.map((v) => ({ id: v.id, name: v.storeName }));
 
@@ -132,7 +219,11 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
       </div>
 
       <div className="mb-6 sm:mb-8">
-        <CategoryNav categories={categories} layout="horizontal" />
+        <CategoryNav
+          categories={categories}
+          currentCategory={activeCategorySlug}
+          layout="horizontal"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
@@ -149,8 +240,30 @@ export default function ProductsContent({ products, vendors }: ProductsContentPr
         </div>
 
         <div className="lg:col-span-3">
-          <div className="mb-4 text-sm text-ds-text-secondary">
-            Showing {paginatedProducts.length} of {filteredProducts.length} products
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-ds-text-secondary">
+              Showing {paginatedProducts.length} of {sortedProducts.length} products
+            </p>
+            <div className="flex items-center gap-2">
+              <label htmlFor="products-sort" className="text-sm text-ds-text-secondary">
+                Sort by
+              </label>
+              <select
+                id="products-sort"
+                value={sortBy}
+                onChange={(event) => {
+                  setSortBy(event.target.value as ProductSortKey);
+                  setCurrentPage(1);
+                }}
+                className="rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-1.5 text-sm text-ds-text-primary"
+              >
+                {PRODUCT_SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {paginatedProducts.length === 0 ? (

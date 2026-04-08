@@ -19,6 +19,9 @@ interface RouteContext { params: Promise<{ id: string }>; }
  * Converts displayOrder to number and start/end date strings to Date objects.
  */
 function normalizeBannerUpdateData(data: Record<string, unknown>) {
+    if (typeof data.title === 'string') {
+        data.title = data.title.trim();
+    }
     if (typeof data.displayOrder === 'string' || typeof data.displayOrder === 'number') {
         data.displayOrder = Number(data.displayOrder);
     }

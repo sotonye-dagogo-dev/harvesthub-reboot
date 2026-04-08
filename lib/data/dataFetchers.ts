@@ -25,15 +25,19 @@ export async function getBanners(): Promise<Banner[]> {
 
 export async function getHeroBanners(): Promise<Banner[]> {
     try {
+        const now = new Date();
         const banners = await prisma.banner.findMany({
             where: {
                 isActive: true,
                 position: 'HERO',
+                startDate: { lte: now },
+                OR: [{ endDate: null }, { endDate: { gte: now } }],
             },
             orderBy: { displayOrder: 'asc' },
         });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return banners.filter((b) => b.position === 'HERO') as any;
+        return banners
+            .filter((b) => b.position === 'HERO' && String(b.title || '').trim().length > 0) as any;
     } catch {
         return [];
     }

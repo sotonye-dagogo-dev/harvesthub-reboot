@@ -83,9 +83,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
-  const relatedOrFilters: Array<Record<string, unknown>> = [{ vendorId: product.vendorId }];
-  if (product.category) {
-    relatedOrFilters.push({ category: product.category });
+  const productVendorId = typeof product.vendorId === "string" ? product.vendorId : "";
+  const productCategory = typeof product.category === "string" ? product.category : null;
+
+  const relatedOrFilters: Array<Record<string, unknown>> =
+    productVendorId.length > 0 ? [{ vendorId: productVendorId }] : [];
+  if (productCategory) {
+    relatedOrFilters.push({ category: productCategory });
   }
 
   const relatedProductsRaw = await prisma.product
@@ -93,7 +97,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       where: {
         id: { not: id },
         isActive: true,
-        OR: relatedOrFilters,
+        OR: relatedOrFilters.length > 0 ? relatedOrFilters : undefined,
       },
       include: {
         vendor: { select: { storeName: true, status: true } },
@@ -102,22 +106,20 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       take: 4,
     })
     .catch(() => []);
-  const relatedProducts = (Array.isArray(relatedProductsRaw) ? relatedProductsRaw : []) as Array<
-    {
-      id: string;
-      name: string;
-      price: number;
-      discount?: number | null;
-      mainImage?: string | null;
-      averageRating?: number | null;
-      totalReviews?: number | null;
-      vendorId: string;
-      stock?: number | null;
-      images?: string[] | null;
-      listingType?: string | null;
-      vendor?: { storeName?: string | null; status?: string | null } | null;
-    }
-  >;
+  const relatedProducts = (Array.isArray(relatedProductsRaw) ? relatedProductsRaw : []) as Array<{
+    id: string;
+    name: string;
+    price: number;
+    discount?: number | null;
+    mainImage?: string | null;
+    averageRating?: number | null;
+    totalReviews?: number | null;
+    vendorId: string;
+    stock?: number | null;
+    images?: string[] | null;
+    listingType?: string | null;
+    vendor?: { storeName?: string | null; status?: string | null } | null;
+  }>;
 
   const reviews = Array.isArray(product.reviews) ? product.reviews : [];
   const averageRating =
@@ -126,13 +128,20 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       : 0;
 
   const image = getFirstValidImageUrl(product.images);
-  const vendorName = product.vendor?.storeName || "Vendor";
+  const vendorName =
+    typeof product.vendor?.storeName === "string" && product.vendor.storeName.trim().length > 0
+      ? product.vendor.storeName
+      : "Vendor";
   const vendorVerified = product.vendor?.status === "APPROVED";
-  const vendorHref = product.vendorId ? `/vendors/${product.vendorId}` : "/vendors";
+  const vendorHref = productVendorId ? `/vendors/${productVendorId}` : "/vendors";
   const orderingAllowed = vendorVerified;
-  const discountedPrice = product.discount
-    ? product.price - (product.price * product.discount) / 100
-    : product.price;
+  const productPrice = Number.isFinite(product.price) ? product.price : 0;
+  const productDiscount = Number.isFinite(product.discount ?? NaN) ? (product.discount ?? 0) : 0;
+  const productStock = Number.isFinite(product.stock) ? product.stock : 0;
+  const productName =
+    typeof product.name === "string" && product.name.trim().length > 0 ? product.name : "Product";
+  const discountedPrice =
+    productDiscount > 0 ? productPrice - (productPrice * productDiscount) / 100 : productPrice;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -140,7 +149,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <div className="overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base">
           <div className="relative aspect-square">
             {image ? (
-              <Image src={image} alt={product.name} fill className="object-cover" />
+              <Image src={image} alt={productName} fill className="object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-ds-surface-sunken text-ds-text-secondary">
                 No image available
@@ -153,12 +162,16 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Product status badges">
             {product.isFeatured ? <Badge variant="primary">Featured</Badge> : null}
             {product.listingType === "SERVICE" ? <Badge variant="info">Service</Badge> : null}
-            {product.category ? <Badge>{product.category}</Badge> : null}
+            {productCategory ? <Badge>{productCategory}</Badge> : null}
           </div>
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Vendor verification status">
-            {!vendorVerified ? <Badge variant="warning">Unverified Vendor</Badge> : <Badge variant="success">Verified Vendor</Badge>}
+            {!vendorVerified ? (
+              <Badge variant="warning">Unverified Vendor</Badge>
+            ) : (
+              <Badge variant="success">Verified Vendor</Badge>
+            )}
           </div>
-          <h1 className="text-3xl font-bold text-ds-text-primary">{product.name}</h1>
+          <h1 className="text-3xl font-bold text-ds-text-primary">{productName}</h1>
           <p className="mt-2 text-sm text-ds-text-secondary">
             Sold by{" "}
             <Link href={vendorHref} className="text-ds-text-brand hover:underline">
@@ -172,10 +185,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
 
           <div className="mt-5">
-            <span className="text-3xl font-bold text-ds-text-brand">{formatCurrency(discountedPrice)}</span>
-            {product.discount ? (
+            <span className="text-3xl font-bold text-ds-text-brand">
+              {formatCurrency(discountedPrice)}
+            </span>
+            {productDiscount > 0 ? (
               <span className="ml-2 text-sm text-ds-text-tertiary line-through">
-                {formatCurrency(product.price)}
+                {formatCurrency(productPrice)}
               </span>
             ) : null}
           </div>
@@ -185,7 +200,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </p>
 
           <p className="mt-4 text-sm text-ds-text-secondary">
-            Stock: {product.stock > 0 ? product.stock : "Out of stock"}
+            Stock: {productStock > 0 ? productStock : "Out of stock"}
           </p>
           {!orderingAllowed && (
             <p
@@ -193,8 +208,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               aria-live="polite"
               className="mt-3 rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-3 text-sm text-ds-status-warning-text"
             >
-              This vendor is currently unverified. You can browse their catalog, but order completion
-              may require extra acknowledgment until verification is approved.
+              This vendor is currently unverified. You can browse their catalog, but order
+              completion may require extra acknowledgment until verification is approved.
             </p>
           )}
         </div>

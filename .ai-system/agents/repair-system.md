@@ -18,6 +18,44 @@
 
 ---
 
+## [Product discovery query drift: category/sort links do not consistently affect products results]
+
+**Symptom:**
+
+- Category tags under discovery surfaces navigate to `/products?category=...` but products filtering does not consistently reflect selected category.
+- Home links with sort query (`/products?sort=trending` or `/products?sort=new`) do not consistently produce sorted results.
+
+**Root Cause:**
+
+- URL query params are emitted by nav links but products-page state is not fully hydrated from those params.
+- Category values/slugs are duplicated across components and not normalized through one shared mapping.
+- Sort keys are not centralized and are partially missing from products-page filtering pipeline.
+
+**Fix Applied:**
+
+- Added canonical discovery contract in `lib/config/productDiscovery.ts` (category slug/value mapping, supported sort keys, query parser/serializer helpers).
+- Updated products page to hydrate discovery state from URL query params and pass normalized state into `ProductsContent`.
+- Updated `ProductsContent` to apply deterministic sorting and query-state URL synchronization using shared helpers.
+- Replaced hardcoded home category/sort link generation with shared discovery config/query serialization.
+- Added focused regression tests for discovery query parsing and products-page query hydration.
+
+**Prevention:**
+
+- Keep category/sort config in one shared module consumed by home tags, category nav, filter sidebar, and products-page query layer.
+- Add regression tests that assert query param -> rendered results behavior, not only control-level interactions.
+
+**Files Affected:**
+
+- app/components/HomeContent.tsx
+- components/features/CategoryNav.tsx
+- app/products/page.tsx
+- components/features/ProductsContent.tsx
+- components/features/FilterSidebar.tsx
+
+**Date:** 2026-04-08
+
+---
+
 ## [Analytics user count silently zero due API payload key mismatch]
 
 **Symptom:**
@@ -176,7 +214,7 @@
 
 **Files Affected:**
 
-- lib/__tests__/publicContent.test.ts
+- lib/**tests**/publicContent.test.ts
 
 **Date:** 2026-04-01
 
@@ -230,7 +268,7 @@
 
 - lib/config/env.ts
 - lib/config/features.ts
-- lib/__tests__/config-env.test.ts
+- lib/**tests**/config-env.test.ts
 - PRODUCTION.md
 
 **Date:** 2026-04-01

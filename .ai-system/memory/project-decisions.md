@@ -27,6 +27,125 @@
 
 ## Decisions
 
+## Shared Client Dashboard Shell for Non-Operations Vendor/Admin Routes
+
+**Decision:** Reuse a single `ClientDashboardShell` wrapper for vendor/admin pages outside the operations route group (notably `/store-settings` and `/notifications/settings`) and keep buyer rendering outside this shell.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Manual per-page shell composition drifted from the canonical dashboard spacing/chrome contract, causing inconsistent sidebar/mobile-bottom-nav spacing behavior between routes.
+
+**Alternatives Considered:**
+
+- Keep per-page manual shell markup in each route (rejected: repeated drift and higher regression risk).
+- Force these pages into operations route-group only (rejected: would change existing public/shared route behavior and compatibility expectations).
+
+**Implications:**
+
+- Vendor/admin pages that need dashboard chrome but live outside operations should compose through `ClientDashboardShell`.
+- Buyer access paths can still render plain page layout when dashboard chrome is not required.
+
+## Public Vendor Visibility Defaults Include Pending Vendors
+
+**Decision:** Default public vendor list reads (`/api/vendors` and `getVendorsClient`) to include both `APPROVED` and `PENDING` vendors unless an explicit status filter is provided.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Public product/vendor surfaces could lose vendor identity for pending/unverified vendors when client vendor hydration was constrained to `APPROVED` only, leading to fallback labels and incomplete visibility.
+
+**Alternatives Considered:**
+
+- Keep `APPROVED`-only defaults and patch each UI surface locally (rejected: inconsistent behavior and repeated per-surface work).
+- Include all statuses including suspended/rejected by default (rejected: exposes non-public moderation states).
+
+**Implications:**
+
+- Public vendor/product cards can resolve vendor identities consistently for unverified vendors.
+- Status-sensitive operational views can still request explicit `status` filters.
+
+## Product Discovery Uses URL-Driven Single Source of Truth Config
+
+**Decision:** Category tags, filter tools, and sorting behavior for product discovery will be driven by a single shared config and URL query contract (shared parser/serializer), rather than duplicated local constants and ad hoc in-component mappings.
+**Date:** 2026-04-08
+**Made by:** AI planning session (GitHub Copilot) with user directive
+
+**Reason:**
+Audit showed drift between category tags and products filtering behavior: links write query params that products state does not consistently consume, sort params are emitted but ignored, and category definitions are duplicated across surfaces.
+
+**Alternatives Considered:**
+
+- Keep local in-component category/filter mappings and patch each bug independently (rejected: recurring drift risk and inconsistent UX).
+- Make products discovery entirely local state without URL query contract (rejected: poor shareability/bookmarkability and weak cross-surface consistency).
+
+**Implications:**
+
+- Product discovery controls must parse and serialize through a shared helper layer.
+- Category slug/value mappings should live in one config module and be reused by home tags, category navigation, and products filtering.
+- Regression tests should validate query-to-results behavior end-to-end, not only isolated UI toggles.
+
+## Product Discovery State Is URL-Synchronized with Deterministic Client Sorting
+
+**Decision:** Products discovery (`/products`) hydrates from URL query params and keeps URL state synchronized as filters/search/sort change, while deterministic sorting is applied in client state using canonical sort keys.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Client-reported issues showed discovery links were not reliably reproducible or shareable. URL synchronization plus canonical sorting provides predictable behavior for click-through navigation, browser reload, and shared links.
+
+**Alternatives Considered:**
+
+- Keep query parsing only on initial page load without URL updates after interactions (rejected: weak shareability and inconsistent back/refresh behavior).
+- Move all discovery sorting to API immediately (rejected for this slice: higher refactor scope; deterministic client sorting closes user-facing gap quickly while preserving existing data flow).
+
+**Implications:**
+
+- Discovery controls must update URL params through the shared serializer.
+- Sort keys should only come from canonical `productDiscovery` config.
+- Follow-up work should expand end-to-end tests for home click-through and filter sidebar mapping persistence.
+
+## Vendor Review Status Updates Are Persistence-First, Email Is Non-Blocking
+
+**Decision:** For admin vendor moderation, status mutation (`APPROVED`/`REJECTED`) is committed first, then review email dispatch is attempted as a non-blocking side effect with explicit response metadata (`emailDispatch`) and structured logging.
+**Date:** 2026-04-08
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Vendor approval/rejection state must stay authoritative even when upstream email providers fail transiently. Blocking or rolling back moderation decisions on transport failures would create inconsistent operations state and admin confusion.
+
+**Alternatives Considered:**
+
+- Hard-fail moderation mutation when email send fails (rejected: ties core workflow correctness to external provider availability).
+- Silent best-effort email with no response/reporting metadata (rejected: poor observability and unclear operator feedback).
+
+**Implications:**
+
+- UI should surface warning-level feedback when status succeeds but email dispatch fails.
+- Retry/remediation can be added later without changing status transition semantics.
+- Logs and API responses now provide audit-friendly send outcome markers.
+
+## Banner Visibility Contract + Guided Public-Content Authoring
+
+**Decision:** Enforce strict banner visibility/placement rules (no top-banner render for empty text payloads; avoid top/hero duplicate stacking) and redesign public-content editing around guided non-technical workflows (structured blocks, preview, upload-first media insertion, and fallback-consistent publishing).
+**Date:** 2026-04-08
+**Made by:** AI planning session (GitHub Copilot) with user directive
+
+**Reason:**
+Production-facing regressions showed that banner rendering and placement logic can create confusing homepage output, while current content-editing UX is too technical for non-developer operators and risks publish-time inconsistencies.
+
+**Alternatives Considered:**
+
+- Keep current permissive banner render behavior with best-effort frontend checks (rejected: repeats visibility/placement regressions).
+- Keep raw/unstructured content editing interface (rejected: high editorial error rate and poor usability for non-technical admins).
+
+**Implications:**
+
+- Banner DTO normalization and frontend render guards must treat empty/whitespace text consistently.
+- Homepage composition must guarantee single-responsibility placement for top and hero banner zones.
+- Public-content tooling should default to guided structured editing with preview and upload-managed media contracts.
+- Cache invalidation and fallback render semantics must remain aligned between editor publish flow and frontend reads.
+
 ## Ad Pricing + Analytics/User-Admin Reliability Fallback Contract
 
 **Decision:** Keep ad application submission non-blocking when admin rate config is missing by applying explicit safe fallback rates, and harden analytics/user-admin pages to prefer partial data/fetch resilience over full-surface failure.

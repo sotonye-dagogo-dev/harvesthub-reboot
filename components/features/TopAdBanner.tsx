@@ -20,7 +20,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
-import { getBannersClient } from "@/lib/data/clientDataFetchers";
+import { getTopBannersClient } from "@/lib/data/clientDataFetchers";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -57,6 +57,15 @@ function getThemeClasses(theme: string | null | undefined): ThemeClasses {
   };
 }
 
+function normalizeBannerText(value: string | null | undefined): string {
+  if (!value) return "";
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // ─── Component ────────────────────────────────────────────────────
 
 export function TopAdBanner() {
@@ -69,14 +78,15 @@ export function TopAdBanner() {
     let mounted = true;
     async function load() {
       try {
-        const res = await getBannersClient();
+        const res = await getTopBannersClient();
         const list = Array.isArray(res) ? res : [];
         const activeTops = list
           .filter(
             (b) =>
               b.isActive &&
               b.position === "TOP" &&
-              (!b.endDate || new Date(b.endDate) >= new Date())
+              (!b.endDate || new Date(b.endDate) >= new Date()) &&
+              normalizeBannerText(b.title).length > 0
           )
           .sort((a, b) => a.displayOrder - b.displayOrder);
         if (!mounted) return;
@@ -121,6 +131,9 @@ export function TopAdBanner() {
 
   const banner = banners[currentIndex];
   if (!banner) return null;
+
+  const displayTitle = normalizeBannerText(banner.title);
+  if (!displayTitle) return null;
 
   const themeClasses = getThemeClasses(banner.theme);
   const primaryAction = banner.actions?.[0];
@@ -172,7 +185,7 @@ export function TopAdBanner() {
 
       {/* Message */}
       <p className="relative z-10 flex-1 truncate text-center text-sm font-semibold sm:text-base">
-        {banner.title}
+        {displayTitle}
       </p>
 
       {/* Right side: CTA label + nav */}

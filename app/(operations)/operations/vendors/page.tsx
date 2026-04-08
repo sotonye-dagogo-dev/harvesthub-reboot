@@ -13,38 +13,62 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { VendorStatus, CAMPUS_LOCATIONS } from "@/lib/constants";
 
+type VendorsApiResponse = {
+  vendors?: Vendor[];
+  data?: Vendor[];
+};
+
+async function fetchVendorsByStatus(status: VendorStatus, limit = 100): Promise<Vendor[]> {
+  const res = await fetch(`/api/vendors?status=${status}&limit=${limit}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${status.toLowerCase()} vendors`);
+  }
+
+  const data = (await res.json()) as VendorsApiResponse;
+  if (Array.isArray(data.vendors)) {
+    return data.vendors;
+  }
+
+  if (Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
 export default function OperationsVendorsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   useEffect(() => {
     let mounted = true;
     async function loadVendors() {
       try {
-        const [vendorsRes, usersRes, productsRes] = await Promise.all([
-          (async () => {
-            const r = await fetch("/api/vendors");
-            return r.ok ? (await r.json()).data : null;
-          })(),
-          (async () => {
-            const r = await fetch("/api/users");
-            return r.ok ? (await r.json()).data : null;
-          })(),
+        const [vendorsByStatus, productsRes] = await Promise.all([
+          Promise.all(
+            Object.values(VendorStatus).map((status) =>
+              fetchVendorsByStatus(status as VendorStatus)
+            )
+          ),
           getProductsClient(),
         ]);
+
+        const mergedVendors = vendorsByStatus.flat();
+        const uniqueById = new Map<string, Vendor>();
+        mergedVendors.forEach((vendor) => {
+          uniqueById.set(vendor.id, vendor);
+        });
+
         if (!mounted) return;
-        if (Array.isArray(vendorsRes)) setVendors(vendorsRes);
-        setAllUsers(Array.isArray(usersRes) ? usersRes : []);
+        setVendors(Array.from(uniqueById.values()));
         setAllProducts(Array.isArray(productsRes) ? productsRes : []);
       } catch (e) {
         if (!mounted) return;
         message.error("Unable to load vendor data. Please try again later.");
         setVendors([]);
-        setAllUsers([]);
         setAllProducts([]);
       }
     }
@@ -92,6 +116,11 @@ export default function OperationsVendorsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
+
+      if (data?.emailDispatch?.attempted && !data?.emailDispatch?.sent) {
+        message.warning("Vendor status updated, but review email delivery failed.");
+      }
+
       setVendors((prev) =>
         prev.map((v) => (v.id === vendorId ? { ...v, status, updatedAt: new Date() } : v))
       );
@@ -132,7 +161,7 @@ export default function OperationsVendorsPage() {
     });
   };
 
-  const getVendorUser = (vendor: Vendor) => allUsers.find((u) => u.id === vendor.userId);
+  const getVendorUser = (vendor: Vendor) => vendor.user as User | undefined;
 
   const getVendorProductCount = (vendorId: string) =>
     allProducts.filter((p) => p.vendorId === vendorId).length;
@@ -209,7 +238,7 @@ export default function OperationsVendorsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/vendors/${record.id}`)}
+            onClick={() => router.push(`/operations/vendors/${record.id}`)}
             title="View Store"
           >
             <Eye className="h-4 w-4" />
