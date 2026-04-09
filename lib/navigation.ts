@@ -16,6 +16,7 @@ const labelMap: Record<string, string> = {
     operationsOrders: 'Orders',
     wallet: 'Wallet',
     notifications: 'Notifications',
+    notificationSettings: 'Notification Settings',
     dashboard: 'Dashboard',
     profile: 'Profile',
     becomeVendor: 'Register Store',

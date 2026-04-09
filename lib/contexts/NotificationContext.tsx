@@ -7,6 +7,7 @@ interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
+  error: string | null;
   fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -23,9 +24,11 @@ interface NotificationContextType {
    */
   getBrowserPushPermission: () => NotificationPermission | "unsupported";
   refreshNotifications: () => void;
+  lastSyncedAt: Date | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NOTIFICATION_REFRESH_INTERVAL_MS = 5 * 60_000;
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -43,19 +46,31 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true);
+  const fetchNotifications = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
     try {
       const res = await fetch("/api/notifications?limit=50");
 
       if (!res.ok) {
         // Silently fail - API might not be ready yet.
         // Avoid logging 401 for anonymous users.
+        if (res.status === 401) {
+          setNotifications([]);
+          setUnreadCount(0);
+          setError(null);
+          setLastSyncedAt(new Date());
+          return;
+        }
         if (res.status !== 401) {
           console.warn("Notifications API not available");
         }
+        setError("Unable to load notifications right now.");
         return;
       }
 
@@ -64,12 +79,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (data.success) {
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
+        setError(null);
+        setLastSyncedAt(new Date());
       }
     } catch (error) {
       // Silently fail - don't break the app if notifications aren't available
       console.warn("Notifications temporarily unavailable:", error);
+      setError("Unable to load notifications right now.");
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -187,15 +207,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshNotifications = useCallback(() => {
-    fetchNotifications();
+    void fetchNotifications();
   }, [fetchNotifications]);
 
   // Fetch on mount
   useEffect(() => {
-    fetchNotifications();
+    void fetchNotifications();
     const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000);
+      void fetchNotifications(true);
+    }, NOTIFICATION_REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [fetchNotifications]);
@@ -212,13 +232,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         notifications,
         unreadCount,
         loading,
-        fetchNotifications,
+        error,
+        fetchNotifications: () => fetchNotifications(),
         markAsRead,
         markAllAsRead,
         deleteNotification,
         enablePushNotifications,
         getBrowserPushPermission,
         refreshNotifications,
+        lastSyncedAt,
       }}
     >
       {children}

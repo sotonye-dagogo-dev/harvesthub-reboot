@@ -44,6 +44,7 @@ const ADMIN_LINK_ORDER = [
   "/analytics",
   "/wallet",
   "/notifications",
+  "/notifications/settings",
   "/profile",
 ] as const;
 
@@ -56,6 +57,7 @@ const VENDOR_LINK_ORDER = [
   "/store-settings",
   "/wallet",
   "/notifications",
+  "/notifications/settings",
   "/profile",
 ] as const;
 
@@ -92,6 +94,7 @@ export function Sidebar({ type }: SidebarProps) {
     "/store-settings": Settings,
     "/wallet": Wallet,
     "/notifications": Bell,
+    "/notifications/settings": Settings,
     "/profile": CircleUser,
   };
 

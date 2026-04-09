@@ -8,6 +8,55 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
+function toPreferencesPayload(prefs: {
+    orderUpdates: boolean;
+    promotions: boolean;
+    vendorMessages: boolean;
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    pushNotifications: boolean;
+}) {
+    return {
+        note: 'Critical system email notifications remain mandatory and cannot be disabled.',
+        editable: {
+            orderUpdates: prefs.orderUpdates,
+            vendorMessages: prefs.vendorMessages,
+            promotions: prefs.promotions,
+            pushNotifications: prefs.pushNotifications,
+            smsNotifications: prefs.smsNotifications,
+        },
+        enforced: {
+            criticalEmailNotifications: true,
+            criticalTypes: [
+                'ORDER_CONFIRMED',
+                'ORDER_READY',
+                'ORDER_DELIVERED',
+                'ORDER_CANCELLED',
+                'PAYMENT_SUCCESS',
+                'PAYMENT_FAILED',
+                'DELIVERY_UPDATE',
+            ],
+        },
+        preferences: {
+            orderConfirmed: prefs.orderUpdates,
+            orderReady: prefs.orderUpdates,
+            orderDelivered: prefs.orderUpdates,
+            orderCancelled: prefs.orderUpdates,
+            paymentSuccess: prefs.orderUpdates,
+            paymentFailed: prefs.orderUpdates,
+            deliveryUpdates: prefs.orderUpdates,
+            vendorMessages: prefs.vendorMessages,
+            lowStock: prefs.orderUpdates,
+            newProducts: prefs.promotions,
+            promotions: prefs.promotions,
+            emailNotifications: true,
+            smsNotifications: prefs.smsNotifications,
+            pushNotifications: prefs.pushNotifications,
+            orderUpdates: prefs.orderUpdates,
+        },
+    };
+}
+
 export async function GET(_req: NextRequest) {
     return withApiHandler('GET /api/notifications/preferences', async () => {
         const user = await getCurrentUser();
@@ -27,26 +76,16 @@ export async function GET(_req: NextRequest) {
             });
         }
 
-        return apiSuccess({
-            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
-            preferences: {
-                orderConfirmed: prefs.orderUpdates,
-                orderReady: prefs.orderUpdates,
-                orderDelivered: prefs.orderUpdates,
-                orderCancelled: prefs.orderUpdates,
-                paymentSuccess: prefs.orderUpdates,
-                paymentFailed: prefs.orderUpdates,
-                deliveryUpdates: prefs.orderUpdates,
-                vendorMessages: prefs.vendorMessages,
-                lowStock: prefs.orderUpdates,
-                newProducts: prefs.promotions,
+        return apiSuccess(
+            toPreferencesPayload({
+                orderUpdates: prefs.orderUpdates,
                 promotions: prefs.promotions,
+                vendorMessages: prefs.vendorMessages,
                 emailNotifications: prefs.emailNotifications,
                 smsNotifications: prefs.smsNotifications,
                 pushNotifications: prefs.pushNotifications,
-                orderUpdates: prefs.orderUpdates,
-            },
-        });
+            })
+        );
     });
 }
 
@@ -61,9 +100,14 @@ export async function PUT(req: NextRequest) {
         const body = await req.json();
         const incoming = body as Record<string, unknown>;
 
+        const editablePayload =
+            incoming.editable && typeof incoming.editable === 'object'
+                ? (incoming.editable as Record<string, unknown>)
+                : incoming;
+
         const orderUpdates =
-            typeof incoming.orderUpdates === 'boolean'
-                ? incoming.orderUpdates
+            typeof editablePayload.orderUpdates === 'boolean'
+                ? editablePayload.orderUpdates
                 : [
                     incoming.orderConfirmed,
                     incoming.orderReady,
@@ -76,21 +120,29 @@ export async function PUT(req: NextRequest) {
                 ].some((value) => value === true);
 
         const promotions =
-            typeof incoming.promotions === 'boolean'
-                ? incoming.promotions
+            typeof editablePayload.promotions === 'boolean'
+                ? editablePayload.promotions
                 : incoming.newProducts === true || incoming.promotions === true;
 
         const updateData: Record<string, boolean> = {
             emailNotifications:
-                typeof incoming.emailNotifications === 'boolean' ? incoming.emailNotifications : true,
+                typeof editablePayload.emailNotifications === 'boolean'
+                    ? editablePayload.emailNotifications
+                    : true,
             smsNotifications:
-                typeof incoming.smsNotifications === 'boolean' ? incoming.smsNotifications : false,
+                typeof editablePayload.smsNotifications === 'boolean'
+                    ? editablePayload.smsNotifications
+                    : false,
             pushNotifications:
-                typeof incoming.pushNotifications === 'boolean' ? incoming.pushNotifications : true,
+                typeof editablePayload.pushNotifications === 'boolean'
+                    ? editablePayload.pushNotifications
+                    : true,
             orderUpdates,
             promotions,
             vendorMessages:
-                typeof incoming.vendorMessages === 'boolean' ? incoming.vendorMessages : true,
+                typeof editablePayload.vendorMessages === 'boolean'
+                    ? editablePayload.vendorMessages
+                    : true,
         };
 
         // Mandatory critical channel remains enabled regardless of optional settings.
@@ -104,25 +156,15 @@ export async function PUT(req: NextRequest) {
             update: updateData,
         });
 
-        return apiSuccess({
-            note: 'Critical system email notifications remain mandatory and cannot be disabled.',
-            preferences: {
-                orderConfirmed: prefs.orderUpdates,
-                orderReady: prefs.orderUpdates,
-                orderDelivered: prefs.orderUpdates,
-                orderCancelled: prefs.orderUpdates,
-                paymentSuccess: prefs.orderUpdates,
-                paymentFailed: prefs.orderUpdates,
-                deliveryUpdates: prefs.orderUpdates,
-                vendorMessages: prefs.vendorMessages,
-                lowStock: prefs.orderUpdates,
-                newProducts: prefs.promotions,
+        return apiSuccess(
+            toPreferencesPayload({
+                orderUpdates: prefs.orderUpdates,
                 promotions: prefs.promotions,
+                vendorMessages: prefs.vendorMessages,
                 emailNotifications: prefs.emailNotifications,
                 smsNotifications: prefs.smsNotifications,
                 pushNotifications: prefs.pushNotifications,
-                orderUpdates: prefs.orderUpdates,
-            },
-        });
+            })
+        );
     });
 }
