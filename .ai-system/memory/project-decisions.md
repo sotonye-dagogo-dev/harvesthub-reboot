@@ -27,6 +27,46 @@
 
 ## Decisions
 
+## Notification Assurance Pass Reuses Existing Persistence and Avoids Schema Migration
+
+**Decision:** For the notifications assurance feature pass, keep the existing persisted in-app notification model (`notification` + `notificationPreference`) and avoid Prisma schema migration; add intelligence through config-driven templates/resolvers and frontend routing/composition changes instead.
+**Date:** 2026-04-09
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+The repository already has functional notification CRUD, unread tracking, and preference persistence. Current user pain is discoverability (`/notifications` not acting as inbox), toggle truthfulness, and noisy processing UX rather than storage-model gaps. Avoiding schema change reduces risk and aligns with user directive for this pass.
+
+**Alternatives Considered:**
+
+- Introduce a new inbox schema or event-store model immediately (rejected: unnecessary migration scope for current assurance goals).
+- Remove persistence and compute inbox purely from transient state (rejected: weak read/unread continuity and inconsistent cross-device experience).
+
+**Implications:**
+
+- Notification improvements should prioritize route accessibility, template resolution, and UI contract correctness.
+- Existing dispatch and preference models remain source-of-truth, with clearer editable/enforced semantics in UI.
+- Schema migrations are deferred unless a future feature requires new durable fields that cannot be derived from existing metadata.
+
+## Notification Dispatch Uses Template Resolver with Mandatory Critical-Email Override
+
+**Decision:** Resolve notification title/body/link/email subject through a config-driven template resolver in `dispatchNotification`, and bypass coarse optional type gating for mandatory order/payment/delivery email delivery.
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The assurance scope required richer, consistent channel copy without schema changes and stronger preference integrity. Existing flow could suppress mandatory emails when grouped optional toggles were disabled because type-level gating short-circuited all channels.
+
+**Alternatives Considered:**
+
+- Keep hardcoded per-call title/body strings only (rejected: drift and no centralized template governance).
+- Keep early type-gate return for all channels (rejected: violates mandatory critical-email guarantee).
+
+**Implications:**
+
+- Notification content is now centrally governed by template config with metadata/context enrichment.
+- Critical system emails (order/payment/delivery) remain deliverable even when optional in-app/push grouped toggles are off.
+- Existing persistence schema remains unchanged while messaging quality and compliance behavior improve.
+
 ## Runtime Processing Feedback Is Global and In-Flight Driven
 
 **Decision:** Surface a universal processing indicator from provider scope by observing runtime store `inFlight` counters, and treat first-load resource states as loading until initial payload exists (to prevent transient false-empty states).

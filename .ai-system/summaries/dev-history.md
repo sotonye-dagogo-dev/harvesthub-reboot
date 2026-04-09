@@ -24,6 +24,77 @@
 
 ---
 
+## 2026-04-09 — Notification Assurance Implementation Pass (Inbox + Integrity + Runtime Tuning)
+
+**Summary:**
+Completed the full notifications assurance feature block in one pass using the existing persistence/API model. The work makes `/notifications` inbox-first, keeps `/notifications/settings` preference-only, adds template-resolved dispatch intelligence, and reduces noisy runtime processing feedback.
+
+**Completed:**
+
+- Replaced `/notifications` preferences rendering with a full `NotificationInbox` timeline surface.
+- Kept `/notifications/settings` for preferences and aligned buyer/vendor/admin shell behavior.
+- Unified bell/inbox state through `NotificationContext` and lowered background refresh cadence to 5 minutes with manual refresh controls.
+- Added config-driven template map + resolver and integrated it into `dispatchNotification`.
+- Preserved mandatory critical-email delivery by decoupling it from optional grouped type toggles.
+- Reworked preference UX/API payloads into explicit editable vs enforced controls with lock/info semantics.
+- Replaced global `Processing... <task count>` copy with threshold-based human messaging and short-churn suppression logic.
+- Added focused tests for inbox route layout, preference lock semantics, template resolver output, and runtime activity threshold policy.
+- Passed required quality gate: lint, typecheck, focused Vitest suites, dead-link audit, sidebar-route audit.
+
+**Key Changes:**
+
+- Notifications are now discoverable and actionable from a first-class inbox route.
+- Preference controls now reflect true backend behavior without false toggle affordances.
+- Runtime global activity signal is calmer and less interruptive while preserving long-running feedback.
+
+**Next Sprint Focus:**
+Gather reviewer feedback from PR and iterate on copy/details if UX sign-off requests additional tuning.
+
+---
+
+## 2026-04-09 — Cloud Handoff Package: Notification Assurance All-Slices Single Pass
+
+**Summary:**
+Prepared a dedicated cloud-session handoff package to execute the full notifications assurance feature in one uninterrupted pass. The package includes strict `.ai-system` compliance rules, ordered implementation slices, validation gates, and a copy/paste kickoff prompt.
+
+**Completed:**
+
+- Added `.ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md` with full slice-by-slice execution contract.
+- Linked the handoff artifact into the corresponding task-queue feature block for traceable execution ownership.
+- Captured checkpoint/session continuity notes to support immediate cloud-run handoff.
+
+**Key Changes:**
+
+- Cloud implementation can now start from one authoritative operation file for this feature without re-planning.
+- Scope is explicitly locked to notifications assurance with no unnecessary schema migration in this pass.
+
+**Next Sprint Focus:**
+Run the cloud session using the new kickoff prompt, execute all slices end-to-end, then close the feature queue with validation and documentation sync.
+
+---
+
+## 2026-04-09 — Plan Package: Notification Inbox Accessibility + Preference Integrity + Runtime Signal Tuning
+
+**Summary:**
+Executed `plan-feature.md` for the user-reported notifications and runtime-feedback UX gaps. The planning package prioritizes making `/notifications` a real inbox, fixing misleading settings toggles, and reducing excessive processing indicators and refresh churn while explicitly avoiding Prisma schema migration for this pass.
+
+**Completed:**
+
+- Audited existing notification stack and confirmed inbox APIs/persistence already exist but are not surfaced as the primary notifications page.
+- Added a full feature spec to `.ai-system/planning/project-plan.md` including architecture impact, modules, data flow, UX constraints, risks, and rollout order.
+- Appended concrete implementation tasks to `.ai-system/planning/task-queue.md` for inbox route restoration, config-driven template resolver, preference lock-state semantics, and notifier/refresh tuning.
+- Recorded project decision in `.ai-system/memory/project-decisions.md` to reuse current notification persistence and avoid schema migration in this assurance pass.
+
+**Key Changes:**
+
+- Notification assurance scope is now implementation-ready with explicit no-migration constraint and modular service/config targets.
+- Runtime processing UX work is now scoped to threshold-based copy and lower-frequency/user-triggered refresh policy.
+
+**Next Sprint Focus:**
+Implement the new queue section starting with route-level inbox accessibility and truthful preference behavior, then harden runtime notifier cadence and messaging thresholds.
+
+---
+
 ## 2026-04-09 — Runtime Closeout Wave: Dashboard/Orders/Products/Profile + Global Processing UX
 
 **Summary:**

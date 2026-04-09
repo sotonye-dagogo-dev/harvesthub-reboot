@@ -39,6 +39,122 @@
 
 ---
 
+## Session 45 — 2026-04-09
+
+**Goal:**
+Implement the full notifications assurance block in one uninterrupted pass: inbox-first route contract, truthful preferences UX, config-driven template resolution, and calmer runtime processing signals.
+
+**Completed:**
+
+- Converted `/notifications` into inbox-first timeline surface and retained `/notifications/settings` as preferences-only route.
+- Added `NotificationInbox` page composition with read/read-all/delete/CTA actions, manual refresh, and loading/empty/error/retry states.
+- Consolidated bell/inbox synchronization by using `NotificationContext` as source-of-truth and reduced background polling cadence to 5 minutes.
+- Added config-driven notification template intelligence via:
+  - `lib/config/notificationTemplates.ts`
+  - `lib/services/notificationTemplateResolver.ts`
+  - `dispatchNotification` integration with metadata/user-context enrichment.
+- Hardened mandatory critical-email delivery semantics so order/payment/delivery emails are not suppressed by optional grouped preference toggles.
+- Reworked preferences UX/API contract to explicit `editable` vs `enforced` semantics and removed false-toggle affordances.
+- Tuned provider runtime activity notifier from `Processing... <task count>` to threshold-based human messaging with short-churn suppression.
+- Added focused regression coverage for route shell parity, preferences lock semantics, template resolver behavior, and runtime copy thresholds.
+- Completed required validation gates:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - focused vitest notifications/runtime suites
+  - `npm run audit:dead-links`
+  - `npm run audit:sidebar-routes`
+
+**Files Modified:**
+
+- app/notifications/page.tsx
+- app/notifications/NotificationInboxPageClient.tsx
+- app/notifications/settings/page.tsx
+- components/features/NotificationInbox.tsx
+- components/features/NotificationBell.tsx
+- components/features/NotificationPreferences.tsx
+- lib/contexts/NotificationContext.tsx
+- lib/services/notifications.ts
+- lib/config/notificationTemplates.ts
+- lib/services/notificationTemplateResolver.ts
+- app/providers.tsx
+- lib/config/runtimeActivityCopy.ts
+- app/api/notifications/preferences/route.ts
+- components/layout/Sidebar.tsx
+- lib/navigation.ts
+- tests under `app/notifications/**`, `components/features/**`, `lib/services/**`, and `lib/config/**`
+- `.ai-system` planning/history/architecture/decision artifacts
+
+**Next Task:**
+Raise PR for review and collect UX sign-off on inbox/settings behavior and runtime messaging tone.
+
+**Notes / Blockers:**
+
+- No Prisma schema migration was needed; existing notification persistence/api model was reused.
+- No blocking issues remain in the notification assurance queue section.
+
+---
+
+## Session 44 — 2026-04-09
+
+**Goal:**
+Prepare a one-shot cloud implementation handoff (all slices) for the notifications assurance feature with strict `.ai-system` compliance and refreshed repo context packaging.
+
+**Completed:**
+
+- Created a dedicated temporary execution plan for cloud run:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md`
+- Included ordered slices, validation gates, mandatory docs synchronization rules, and a copy/paste cloud kickoff prompt.
+- Linked the handoff artifact into the notifications feature queue section for execution traceability.
+- Regenerated `repomix-current.txt` via MCP Repomix server after doc updates so cloud session context is current.
+
+**Files Modified:**
+
+- .ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- repomix-current.txt
+
+**Next Task:**
+Launch cloud session using the new kickoff prompt and execute all slices in one pass.
+
+**Notes / Blockers:**
+
+- Packaging/handoff session only; production feature implementation remains to be executed in cloud run.
+
+---
+
+## Session 43 — 2026-04-09
+
+**Goal:**
+Execute `plan-feature.md` for notification assurance gaps: missing inbox accessibility, misleading notification settings toggles, and overly chatty runtime processing feedback.
+
+**Completed:**
+
+- Re-read required planning/system documents and audited current notification/runtime implementation paths.
+- Confirmed existing notification persistence/API path is functional, while `/notifications` currently renders preferences instead of inbox timeline.
+- Identified preference mismatch source: UI exposes many toggles while backend contract collapses several into coarse grouped flags.
+- Identified refresh/noise hotspots from interval polling and global runtime in-flight notifier copy (`Processing... task N`).
+- Added a full feature spec to project plan with architecture impact, data flow, risks, and rollout order.
+- Appended an executable queue section for inbox route restoration, template resolver modules, toggle truthfulness, and refresh/notifier tuning.
+- Recorded architectural decision to avoid schema migration in this pass and reuse existing notification persistence model.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Start implementation from the new queue section: make `/notifications` a real inbox route, keep `/notifications/settings` for preferences, then refactor preference mapping/lock-state UX and reduce refresh/notifier noise.
+
+**Notes / Blockers:**
+
+- Planning-only session; no production feature code changed.
+- Existing notifications API + DB-backed model is already present and should be reused unless a later requirement proves schema changes are necessary.
+
+---
+
 ## Session 42 — 2026-04-09
 
 **Goal:**

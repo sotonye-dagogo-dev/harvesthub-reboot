@@ -4,6 +4,7 @@ import { featureFlags } from '@/lib/config/features';
 import { sendEmail } from '@/lib/services/email';
 import { sendPushNotification } from '@/lib/services/push';
 import { NotificationType, Prisma } from '../../prisma/generated/client';
+import { resolveNotificationTemplate } from '@/lib/services/notificationTemplateResolver';
 
 interface DeliveryChannels {
   inApp?: boolean;
@@ -14,8 +15,8 @@ interface DeliveryChannels {
 interface DispatchNotificationInput {
   userId: string;
   type: NotificationType;
-  title: string;
-  message: string;
+  title?: string;
+  message?: string;
   link?: string | null;
   metadata?: Prisma.InputJsonValue;
   emailSubject?: string;
@@ -110,7 +111,7 @@ export async function dispatchNotification(
   const [recipient, preferences] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true, firstName: true },
+      select: { email: true, firstName: true, createdAt: true },
     }),
     prisma.notificationPreference.findUnique({
       where: { userId },
@@ -129,23 +130,35 @@ export async function dispatchNotification(
   }
 
   const typeEnabled = shouldDeliverType(type, preferences);
-  if (!typeEnabled) {
-    return { inAppCreated: false, emailSent: false, pushDeliveredCount: 0 };
-  }
 
   let inAppCreated = false;
   let emailSent = false;
   let pushDeliveredCount = 0;
 
-  if (requestedChannels.inApp) {
+  const resolvedTemplate = resolveNotificationTemplate({
+    type,
+    metadata,
+    fallbackTitle: title,
+    fallbackMessage: message,
+    fallbackLink: link,
+    fallbackEmailSubject: emailSubject,
+    userContext: {
+      firstName: recipient.firstName,
+      signupDate: recipient.createdAt,
+    },
+  });
+
+  const allowOptionalChannels = typeEnabled;
+
+  if (requestedChannels.inApp && allowOptionalChannels) {
     await prisma.notification.create({
       data: {
         userId,
         type,
-        title,
-        message,
-        link: link || null,
-        metadata: metadata ?? undefined,
+        title: resolvedTemplate.title,
+        message: resolvedTemplate.message,
+        link: resolvedTemplate.link || null,
+        metadata: resolvedTemplate.metadata as Prisma.InputJsonValue,
       },
     });
     inAppCreated = true;
@@ -154,18 +167,19 @@ export async function dispatchNotification(
   const canSendEmail =
     requestedChannels.email &&
     featureFlags.enableEmail &&
-    ((preferences?.emailNotifications ?? true) || isMandatorySystemEmail(type));
+    (isMandatorySystemEmail(type) ||
+      (allowOptionalChannels && (preferences?.emailNotifications ?? true)));
 
   if (canSendEmail) {
-    const actionLink = link ? toAbsoluteLink(link) : null;
+    const actionLink = resolvedTemplate.link ? toAbsoluteLink(resolvedTemplate.link) : null;
     const emailResult = await sendEmail({
       to: recipient.email,
-      subject: emailSubject || title,
+      subject: resolvedTemplate.emailSubject,
       react: React.createElement(
         'div',
         { style: { fontFamily: 'Arial, sans-serif', lineHeight: 1.6 } },
         React.createElement('p', null, `Hello ${recipient.firstName || 'there'},`),
-        React.createElement('p', null, message),
+        React.createElement('p', null, resolvedTemplate.message),
         actionLink
           ? React.createElement(
               'p',
@@ -183,7 +197,12 @@ export async function dispatchNotification(
     emailSent = emailResult.success;
   }
 
-  if (requestedChannels.push && featureFlags.enablePushNotifications && (preferences?.pushNotifications ?? true)) {
+  if (
+    requestedChannels.push &&
+    allowOptionalChannels &&
+    featureFlags.enablePushNotifications &&
+    (preferences?.pushNotifications ?? true)
+  ) {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId },
       select: { endpoint: true, keys: true },
@@ -205,10 +224,10 @@ export async function dispatchNotification(
                 auth: subscription.keys.auth,
               },
             },
-            title,
-            message,
+            resolvedTemplate.title,
+            resolvedTemplate.message,
             {
-              url: link || '/notifications',
+              url: resolvedTemplate.link || '/notifications',
               type,
             }
           );

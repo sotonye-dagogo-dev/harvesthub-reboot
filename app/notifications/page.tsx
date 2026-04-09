@@ -1,16 +1,11 @@
-/**
- * Notification Preferences Page
- * Buyer/Vendor can configure notification settings
- */
-
 import { Metadata } from "next";
-import { NotificationPreferencesPageClient } from "./NotificationPreferencesPageClient";
+import { NotificationInboxPageClient } from "./NotificationInboxPageClient";
 
 export const metadata: Metadata = {
-  title: "Notification Preferences - MyHarvestHub",
-  description: "Manage your notification settings",
+  title: "Notifications - MyHarvestHub",
+  description: "View and manage your notification inbox",
 };
 
-export default function NotificationPreferencesPage() {
-  return <NotificationPreferencesPageClient />;
+export default function NotificationsPage() {
+  return <NotificationInboxPageClient />;
 }

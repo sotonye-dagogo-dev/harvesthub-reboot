@@ -364,6 +364,80 @@ Design and roll out a unified client data runtime so user-accessible data is loa
 
 ---
 
+## Feature Spec - Notification Inbox Accessibility + Preference Integrity + Runtime Signal Tuning (Planned 2026-04-09)
+
+> **Section summary:** Planning package to make notifications discoverable and trustworthy: expose a real inbox route, enforce truthful toggle behavior, and reduce noisy global processing indicators and refresh churn.
+
+**Feature Summary:**
+Create a clear, user-facing notification inbox experience that matches email/push/in-app delivery expectations, fix preference toggles so UI behavior matches backend reality, and tune runtime activity messaging so background refresh does not constantly interrupt users with repetitive processing copy.
+
+**Why This Is Needed:**
+
+- `/notifications` currently renders preferences instead of an inbox timeline, despite existing notification CRUD APIs and existing bell/drawer components.
+- Preference toggles appear editable but are collapsed into coarse backend flags (`orderUpdates`, `promotions`) and mandatory channels, creating misleading UX when values rebound.
+- Runtime/background refresh cadence and global in-flight messaging can surface frequent `Processing... task N` copy that feels noisy and non-actionable.
+- User requirement is to avoid Prisma schema migration in this pass unless absolutely required.
+
+**Architecture Impact:**
+
+- `app/notifications/page.tsx` and `app/notifications/settings/page.tsx` route semantics and dashboard-shell behavior.
+- `components/features/NotificationDrawer.tsx`, `components/features/NotificationBell.tsx`, and new inbox-page composition surface.
+- `components/features/NotificationPreferences.tsx` plus `app/api/notifications/preferences/route.ts` contract mapping.
+- `lib/contexts/NotificationContext.tsx` polling cadence and explicit user-triggered refresh behavior.
+- `lib/services/notifications.ts` to introduce config-driven template resolution and cross-channel payload shaping.
+- `app/providers.tsx` runtime activity notifier copy/threshold behavior.
+- `lib/config/runtime.ts` and runtime resource policy usage where interval defaults are currently too eager.
+
+**New Modules or Services Required:**
+
+- `lib/config/notificationTemplates.ts`: canonical per-notification-type template configuration (title/body variants, CTA labels, optional preview/media hints, priority).
+- `lib/services/notificationTemplateResolver.ts`: context-aware resolver using user profile/status/audit timestamps to generate channel-safe content.
+- `components/features/NotificationInbox.tsx` (or equivalent): full-page inbox timeline reusing existing mark-read/delete/filter patterns.
+- Optional `lib/config/runtimeActivityCopy.ts` (or in-place config) for threshold-based global status labels.
+
+**Data Flow:**
+
+1. Domain events call `dispatchNotification` with `type`, user target, and metadata.
+2. Template resolver derives per-channel message content (in-app/email/push) from config + contextual state (signup date, verification transitions, ad/content status, order/payment timeline).
+3. Existing in-app persistence path remains source-of-truth (`notification` table) with no schema migration in this feature pass.
+4. Inbox page (`/notifications`) reads notifications via API/runtime context, supports read/unread filters, mark-all-read, and CTA navigation.
+5. Settings page (`/notifications/settings`) manages preferences with explicit lock-state semantics for mandatory channels.
+6. Runtime activity notifier emits calmer threshold-based copy and suppresses short/background-only churn.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- `/notifications` should be a first-class inbox timeline page, not a settings-only surface.
+- Keep `/notifications/settings` as dedicated preferences management with explicit editable vs enforced controls.
+- Use lock/tooltip/info copy for non-editable mandatory switches to avoid false affordances.
+- Support richer cards where needed (status icon, optional image preview, CTA button) without breaking compact list readability.
+- Replace raw task-count copy with human phrasing tiers (for example: `Just a moment`, `Almost there`, `This might take a while`).
+- Prefer manual refresh plus long idle refresh thresholds (5-10 min) over aggressive interval polling.
+
+**Potential Risks or Edge Cases:**
+
+- Template drift across in-app/email/push can create inconsistent user messaging if config ownership is unclear.
+- Mandatory-channel enforcement must remain explicit to avoid compliance/security regressions.
+- Reducing auto refresh too far can leave stale unread counts unless manual refresh affordances are prominent.
+- Existing `NotificationBell` local fetch state and context-based notifications can diverge if not consolidated.
+
+**Architecture Doc Updates Needed:**
+
+- Add `Notification Inbox + Template Resolver Flow` to `.ai-system/agents/system-architecture.md`.
+- Update module breakdown for new notification template config/resolver modules and inbox feature surface.
+- Update runtime flow notes to distinguish user-triggered refresh from low-priority background refresh and describe global notifier suppression thresholds.
+
+**Rollout Order:**
+
+1. Normalize route intent (`/notifications` inbox, `/notifications/settings` preferences) and navigation entry points.
+2. Implement inbox page composition using existing API/context primitives.
+3. Add config-driven template resolver and connect it to notification dispatch.
+4. Refactor preferences mapping so toggles persist truthfully with lock-state UX for enforced channels.
+5. Tune runtime/notification refresh cadence and global processing copy/threshold logic.
+6. Add regression tests and run targeted validation matrix.
+7. Sync architecture/repair/decision/checkpoint artifacts.
+
+---
+
 ## Completed
 
 > **Section summary:** Tasks that have already shipped in the current repository state.
