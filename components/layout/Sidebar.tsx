@@ -106,11 +106,11 @@ export function Sidebar({ type }: SidebarProps) {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden h-[calc(100vh-4rem)] border-r border-ds-border-base bg-ds-surface-base transition-all duration-300  dark:bg-ds-surface-base md:block",
+          "hidden h-[calc(100vh-4rem)] overflow-hidden border-r border-ds-border-base bg-ds-surface-base transition-all duration-300 dark:bg-ds-surface-base md:block",
           collapsed ? "w-16" : "w-64"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full min-h-0 flex-col">
           {/* Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -121,7 +121,7 @@ export function Sidebar({ type }: SidebarProps) {
           </button>
 
           {/* Navigation Links */}
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 py-4">
             {links.map((link) => {
               const href = link.path;
               const Icon = getIcon(href);
@@ -167,7 +167,9 @@ export function Sidebar({ type }: SidebarProps) {
                 )}
               >
                 {Icon ? <Icon className="h-5 w-5" /> : null}
-                <span className="max-w-[72px] whitespace-normal break-words leading-tight">{link.label}</span>
+                <span className="max-w-[72px] whitespace-normal break-words leading-tight">
+                  {link.label}
+                </span>
               </Link>
             );
           })}

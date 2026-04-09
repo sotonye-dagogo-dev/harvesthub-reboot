@@ -1,65 +1,128 @@
-import { getCurrentUser } from "@/lib/utils/auth";
-import {
-  getBuyerByUserId,
-  getOrdersByBuyerId,
-  getOrdersByVendorId,
-  getVendorByUserId,
-} from "@/lib/data/dataFetchers";
+"use client";
+
+import { useCallback } from "react";
+import { DeliveryMethod, OrderStatus } from "@/lib/constants";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { OrderCard } from "@/components/features/OrderCard";
 import { RoleAwareFeatureRenderer } from "@/components/ui/RoleAwareFeatureRenderer";
+import { Button, SectionLoader } from "@/components/ui";
+import { ClientDashboardShell } from "@/components/layout";
 import { orderModule } from "@/modules/orders";
-import { UserRole } from "@/lib/constants";
 
-export const dynamic = "force-dynamic";
+type OrderLike = {
+  id: string;
+  orderNumber: string;
+  status: unknown;
+  total: number;
+  deliveryMethod: unknown;
+  deliveryAddress?: unknown;
+  pickupDetails?: unknown;
+  createdAt: string | Date;
+  items?: unknown[];
+};
 
-async function getVendorOrdersForUser(userId: string) {
-  const vendor = await getVendorByUserId(userId);
-  if (!vendor?.id) return [];
-  return getOrdersByVendorId(vendor.id);
+function resolveDeliveryInfo(order: Pick<OrderLike, "deliveryAddress" | "pickupDetails">) {
+  const deliveryAddress =
+    order.deliveryAddress && typeof order.deliveryAddress === "object"
+      ? (order.deliveryAddress as Record<string, unknown>)
+      : null;
+  if (deliveryAddress && typeof deliveryAddress.address === "string") {
+    return deliveryAddress.address;
+  }
+
+  const pickupDetails =
+    order.pickupDetails && typeof order.pickupDetails === "object"
+      ? (order.pickupDetails as Record<string, unknown>)
+      : null;
+  if (pickupDetails && typeof pickupDetails.location === "string") {
+    return pickupDetails.location;
+  }
+
+  return undefined;
 }
 
-async function getBuyerOrdersForUser(userId: string) {
-  const buyer = await getBuyerByUserId(userId);
-  if (!buyer?.id) return [];
-  return getOrdersByBuyerId(buyer.id);
+function toOrderStatus(value: unknown): OrderStatus {
+  return Object.values(OrderStatus).includes(value as OrderStatus)
+    ? (value as OrderStatus)
+    : OrderStatus.PENDING;
 }
 
-async function getOrdersForAdminUser(userId: string) {
-  const buyerOrders = await getBuyerOrdersForUser(userId);
-  if (buyerOrders.length > 0) return buyerOrders;
-  return getVendorOrdersForUser(userId);
+function toDeliveryMethod(value: unknown): DeliveryMethod {
+  return Object.values(DeliveryMethod).includes(value as DeliveryMethod)
+    ? (value as DeliveryMethod)
+    : DeliveryMethod.PICKUP;
 }
 
-export default async function OrdersPage() {
-  const user = await getCurrentUser();
+export default function OrdersPage() {
+  const { user, isLoading: authLoading } = useAuth();
 
-  if (!user?.userId) {
+  const loadOrders = useCallback(async (): Promise<OrderLike[]> => {
+    const response = await fetch("/api/orders?limit=100");
+    const data = (await response.json().catch(() => ({}))) as {
+      orders?: OrderLike[];
+      error?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load orders");
+    }
+
+    return Array.isArray(data.orders) ? data.orders : [];
+  }, []);
+
+  const {
+    data: orders,
+    isLoading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(loadOrders, {
+    key: `orders:${user?.id ?? "guest"}`,
+    enabled: Boolean(user?.id),
+    refreshIntervalMs: 60_000,
+    staleTimeMs: 20_000,
+  });
+
+  if (authLoading || (isLoading && !orders)) {
+    return <SectionLoader />;
+  }
+
+  if (!user?.id) {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
   }
 
-  const orders =
-    user.role === UserRole.ADMIN
-      ? await getOrdersForAdminUser(user.userId)
-      : user.role === UserRole.VENDOR
-      ? await getVendorOrdersForUser(user.userId)
-      : await getBuyerOrdersForUser(user.userId);
+  const orderList = orders ?? [];
 
-  return (
+  const ordersContent = (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>
-      <div className="container mx-auto px-4 py-8 space-y-4">
-        {orders.length === 0 ? (
+      <div className="container mx-auto space-y-4 px-4 py-8">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-ds-text-primary">My Orders</h1>
+            {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
+            {isRefreshing ? (
+              <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing your orders...</p>
+            ) : null}
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+            Refresh
+          </Button>
+        </div>
+
+        {orderList.length === 0 ? (
           <p className="text-ds-text-secondary">No orders found yet.</p>
         ) : (
-          orders.map((order: any) => (
+          orderList.map((order) => (
             <OrderCard
               key={order.id}
               id={order.id}
               orderNumber={order.orderNumber}
-              status={order.status}
+              status={toOrderStatus(order.status)}
               total={order.total}
               itemCount={order.items?.length ?? 0}
-              deliveryMethod={order.deliveryMethod}
-              deliveryInfo={order.deliveryAddress?.address ?? order.pickupDetails?.location}
+              deliveryMethod={toDeliveryMethod(order.deliveryMethod)}
+              deliveryInfo={resolveDeliveryInfo(order)}
               createdAt={order.createdAt}
             />
           ))
@@ -67,4 +130,14 @@ export default async function OrdersPage() {
       </div>
     </RoleAwareFeatureRenderer>
   );
+
+  if (user.role === "ADMIN" || user.role === "VENDOR") {
+    return (
+      <ClientDashboardShell sidebarType={user.role === "ADMIN" ? "admin" : "vendor"}>
+        {ordersContent}
+      </ClientDashboardShell>
+    );
+  }
+
+  return ordersContent;
 }

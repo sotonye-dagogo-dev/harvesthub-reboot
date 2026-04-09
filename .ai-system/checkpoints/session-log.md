@@ -39,6 +39,126 @@
 
 ---
 
+## Session 42 — 2026-04-09
+
+**Goal:**
+Advance the final closeout evidence item by preparing an executable manual screenshot checklist and reconfirming runtime-route stability.
+
+**Completed:**
+
+- Re-read updated runtime/dashboard/orders/profile files after workspace drift notice and confirmed no new diagnostics issues.
+- Re-ran focused regression tests for orders runtime behavior, operations layout shell, and sidebar orders scope.
+- Re-ran dead-link and sidebar-route audits.
+- Created manual evidence checklist with explicit expected states and screenshot naming contract:
+  - `.ai-system/checkpoints/runtime-closeout-ui-evidence-2026-04-09.md`
+- Linked the checklist from runtime closeout queue for final evidence completion.
+
+**Files Modified:**
+
+- .ai-system/checkpoints/runtime-closeout-ui-evidence-2026-04-09.md
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run the authenticated screenshot capture flow in the new checklist and attach evidence artifacts, then mark final closeout evidence item complete.
+
+**Notes / Blockers:**
+
+- Validation commands passed:
+  - `npx vitest run "app/orders/__tests__/orders-page.admin.test.tsx" "app/(operations)/operations/__tests__/layout.test.tsx" "components/__tests__/Sidebar.orders-scope.test.tsx"`
+  - `npm run audit:dead-links`
+- Screenshot capture itself remains manual because it requires authenticated interactive UI states.
+
+---
+
+## Session 41 — 2026-04-09
+
+**Goal:**
+Close the remaining runtime migration blockers and eliminate misleading loading states with a universal runtime processing indicator.
+
+**Completed:**
+
+- Hardened runtime mutation flow: explicit in-flight status tracking during optimistic commits and deterministic rollback to pre-mutation data.
+- Improved runtime hook loading semantics so first-load states remain in loading mode until resource payload materializes.
+- Added provider-level runtime activity notifier with animated processing ellipsis tied to in-memory `inFlight` resources.
+- Migrated operations dashboard to runtime-backed client flow via new `/api/operations/dashboard` endpoint.
+- Migrated operations orders and unified `/orders` page to runtime-backed client resources with refresh/error states.
+- Refactored operations products list loading to runtime resource subscription while preserving isolated CRUD form draft state.
+- Normalized profile data/email-change status retrieval through runtime resources in `ProfilePage`.
+- Fixed wallet first-render empty-state flicker and ensured loading/empty states preserve dashboard shell for admin/vendor.
+- Updated orders-page tests for client/runtime architecture and revalidated focused runtime/sidebar/layout suites.
+- Completed lint + typecheck + route/sidebar audit + focused vitest matrix for this slice.
+
+**Files Modified:**
+
+- lib/data-runtime/mutationCoordinator.ts
+- lib/hooks/useRuntimeResource.ts
+- app/providers.tsx
+- app/api/operations/dashboard/route.ts
+- app/(operations)/operations/dashboard/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- app/(operations)/operations/products/page.tsx
+- app/orders/page.tsx
+- app/orders/**tests**/orders-page.admin.test.tsx
+- components/features/ProfilePage.tsx
+- app/wallet/page.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Capture manual UI evidence (authenticated screenshot checks) for sidebar consistency and evidence-preview surfaces, then mark final closeout evidence item complete.
+
+**Notes / Blockers:**
+
+- Validation commands passed:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - `npm run audit:dead-links`
+  - `npx vitest run "lib/data-runtime/__tests__/runtime-core.test.ts" "components/__tests__/Sidebar.orders-scope.test.tsx" "app/(operations)/operations/__tests__/layout.test.tsx" "app/orders/__tests__/orders-page.admin.test.tsx"`
+- UI evidence capture remains manual because authenticated visual assertions are not represented by automated artifacts in this run.
+
+---
+
+## Session 40 — 2026-04-09
+
+**Goal:**
+Close immediate post-cloud gaps: fix admin vendor-detail crash, verify admin visibility of submitted documents, and restore dashboard sidebar consistency/scroll behavior.
+
+**Completed:**
+
+- Fixed operations vendor detail crash by normalizing analytics data when nested `vendor.analytics` is absent and only flat metrics are available.
+- Expanded vendor verification document display to support both structured verification arrays and legacy URL-key payloads.
+- Enhanced operations ad-application detail modal with inline previews for ad creative and proof-of-transfer assets.
+- Restored dashboard shell/sidebar visibility for vendor/admin on `/analytics`, `/wallet`, `/profile`, and `/notifications`.
+- Made desktop sidebar navigation scrollable to handle long dashboard menus.
+- Added a dedicated runtime closeout queue section in task planning for remaining blocked migration slices (operations dashboard/orders/products and buyer orders/profile normalization).
+- Revalidated edited files with focused lint and diagnostics checks.
+
+**Files Modified:**
+
+- app/(operations)/operations/vendors/[id]/page.tsx
+- app/(operations)/operations/ads/page.tsx
+- components/layout/Sidebar.tsx
+- app/analytics/page.tsx
+- app/wallet/page.tsx
+- app/profile/page.tsx
+- app/notifications/page.tsx
+- app/notifications/NotificationPreferencesPageClient.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Execute the runtime closeout queue blocker migrations in order, then run targeted/full validation plus UI evidence capture for sidebar and document-preview workflows.
+
+**Notes / Blockers:**
+
+- Focused validation passed:
+  - `npx next lint --file app/(operations)/operations/vendors/[id]/page.tsx --file app/(operations)/operations/ads/page.tsx --file components/layout/Sidebar.tsx --file app/analytics/page.tsx --file app/wallet/page.tsx --file app/profile/page.tsx --file app/notifications/page.tsx --file app/notifications/NotificationPreferencesPageClient.tsx`
+- Remaining blockers continue from cloud runtime migration report and are tracked in task queue.
+
+---
+
 ## Session 39 — 2026-04-08
 
 **Goal:**
@@ -72,7 +192,7 @@ Implement unified in-memory runtime slices (contracts through resilience), migra
 - lib/data-runtime/prefetch.ts
 - lib/data-runtime/telemetry.ts
 - lib/data-runtime/index.ts
-- lib/data-runtime/__tests__/runtime-core.test.ts
+- lib/data-runtime/**tests**/runtime-core.test.ts
 - lib/hooks/useRuntimeResource.ts
 - lib/hooks/useSmartResource.ts
 - app/providers.tsx

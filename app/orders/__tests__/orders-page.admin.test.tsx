@@ -1,89 +1,110 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
+import type { SmartResourceState } from "@/lib/hooks/useSmartResource";
+import type { AuthUser } from "@/lib/contexts/AuthContext";
+import { UserRole } from "@/lib/constants";
 
-vi.mock("@/lib/utils/auth", () => ({
-  getCurrentUser: vi.fn(),
+const useAuthMock = vi.fn();
+const useSmartResourceMock = vi.fn();
+
+vi.mock("@/lib/contexts/AuthContext", () => ({
+  useAuth: () => useAuthMock(),
 }));
 
-vi.mock("@/lib/data/dataFetchers", () => ({
-  getBuyerByUserId: vi.fn(),
-  getOrdersByBuyerId: vi.fn(),
-  getOrdersByVendorId: vi.fn(),
-  getVendorByUserId: vi.fn(),
+vi.mock("@/lib/hooks/useSmartResource", () => ({
+  useSmartResource: () => useSmartResourceMock(),
 }));
 
 vi.mock("@/components/ui/RoleAwareFeatureRenderer", () => ({
-  RoleAwareFeatureRenderer: ({ children }: { children: any }) => <>{children}</>,
+  RoleAwareFeatureRenderer: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("@/components/features/OrderCard", () => ({
   OrderCard: ({ orderNumber }: { orderNumber: string }) => <div>{orderNumber}</div>,
 }));
 
+vi.mock("@/components/layout", () => ({
+  ClientDashboardShell: ({
+    sidebarType,
+    children,
+  }: {
+    sidebarType: "admin" | "vendor";
+    children: ReactNode;
+  }) => (
+    <div data-testid="dashboard-shell" data-sidebar={sidebarType}>
+      {children}
+    </div>
+  ),
+}));
+
 import OrdersPage from "@/app/orders/page";
-import { UserRole } from "@/lib/constants";
-import { getCurrentUser } from "@/lib/utils/auth";
-import {
-  getBuyerByUserId,
-  getOrdersByBuyerId,
-  getOrdersByVendorId,
-  getVendorByUserId,
-} from "@/lib/data/dataFetchers";
 
-describe("OrdersPage admin access", () => {
-  it("prefers buyer orders for admin when admin has buyer profile", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      userId: "admin-user-1",
-      role: UserRole.ADMIN,
-    } as any);
-    vi.mocked(getBuyerByUserId).mockResolvedValue({ id: "buyer-1" } as any);
-    vi.mocked(getOrdersByBuyerId).mockResolvedValue([
-      {
-        id: "order-1",
-        orderNumber: "ORD-1001",
-        status: "PENDING",
-        total: 1000,
-        items: [],
-        deliveryMethod: "DELIVERY",
-        createdAt: new Date().toISOString(),
-      },
-    ] as any);
-    vi.mocked(getVendorByUserId).mockResolvedValue({ id: "vendor-1" } as any);
+function makeResourceState(
+  overrides?: Partial<SmartResourceState<any[]>>
+): SmartResourceState<any[]> {
+  return {
+    data: [],
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    lastUpdatedAt: null,
+    refresh: vi.fn(async () => undefined),
+    mutate: vi.fn(),
+    ...overrides,
+  };
+}
 
-    const page = await OrdersPage();
+function makeUser(overrides?: Partial<AuthUser>): AuthUser {
+  return {
+    id: "user-1",
+    firstName: "Admin",
+    lastName: "User",
+    email: "admin@example.com",
+    phoneNumber: "08000000000",
+    role: UserRole.ADMIN,
+    emailVerified: true,
+    isActive: true,
+    ...overrides,
+  } as AuthUser;
+}
 
-    expect(getBuyerByUserId).toHaveBeenCalledWith("admin-user-1");
-    expect(getOrdersByBuyerId).toHaveBeenCalledWith("buyer-1");
-    expect(getVendorByUserId).not.toHaveBeenCalled();
-    expect(getOrdersByVendorId).not.toHaveBeenCalled();
-    expect(page).toBeTruthy();
+describe("OrdersPage client runtime behavior", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("falls back to vendor orders for admin without buyer orders", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({
-      userId: "admin-user-2",
-      role: UserRole.ADMIN,
-    } as any);
-    vi.mocked(getBuyerByUserId).mockResolvedValue({ id: "buyer-2" } as any);
-    vi.mocked(getOrdersByBuyerId).mockResolvedValue([] as any);
-    vi.mocked(getVendorByUserId).mockResolvedValue({ id: "vendor-2" } as any);
-    vi.mocked(getOrdersByVendorId).mockResolvedValue([
-      {
-        id: "order-2",
-        orderNumber: "ORD-1002",
-        status: "CONFIRMED",
-        total: 2500,
-        items: [],
-        deliveryMethod: "PICKUP",
-        createdAt: new Date().toISOString(),
-      },
-    ] as any);
+  it("renders login prompt when user is missing", () => {
+    useAuthMock.mockReturnValue({ user: null, isLoading: false });
+    useSmartResourceMock.mockReturnValue(makeResourceState());
 
-    const page = await OrdersPage();
+    render(<OrdersPage />);
 
-    expect(getBuyerByUserId).toHaveBeenCalledWith("admin-user-2");
-    expect(getOrdersByBuyerId).toHaveBeenCalledWith("buyer-2");
-    expect(getVendorByUserId).toHaveBeenCalledWith("admin-user-2");
-    expect(getOrdersByVendorId).toHaveBeenCalledWith("vendor-2");
-    expect(page).toBeTruthy();
+    expect(screen.getByText(/please log in to view orders/i)).toBeInTheDocument();
+  });
+
+  it("wraps admin orders in dashboard shell and renders order cards", () => {
+    useAuthMock.mockReturnValue({ user: makeUser({ role: UserRole.ADMIN }), isLoading: false });
+    useSmartResourceMock.mockReturnValue(
+      makeResourceState({
+        data: [
+          {
+            id: "order-1",
+            orderNumber: "ORD-1001",
+            status: "PENDING",
+            total: 1200,
+            deliveryMethod: "DELIVERY",
+            deliveryAddress: { address: "Campus Avenue" },
+            createdAt: new Date().toISOString(),
+            items: [],
+          },
+        ],
+      })
+    );
+
+    render(<OrdersPage />);
+
+    expect(screen.getByTestId("dashboard-shell")).toHaveAttribute("data-sidebar", "admin");
+    expect(screen.getByText("ORD-1001")).toBeInTheDocument();
   });
 });

@@ -18,6 +18,65 @@
 
 ---
 
+## [Server-component tests fail after page migration to client hooks]
+
+**Symptom:**
+
+- Existing tests call page modules as async functions and fail with `Invalid hook call` / `Cannot read properties of null (reading 'useContext')`.
+
+**Root Cause:**
+
+- Page was migrated from server component to client component and now depends on React hooks/context (`useAuth`, runtime hooks).
+- Legacy tests still invoke the component function directly instead of rendering with mocked client hooks.
+
+**Fix Applied:**
+
+- Rewrote affected tests to render components with Testing Library.
+- Mocked hook providers (`useAuth`, `useSmartResource`) and client shell wrappers.
+
+**Prevention:**
+
+- When migrating a page from server to client, update tests in the same change-set.
+- Avoid direct invocation patterns (`await Page()`) for hook-based page components.
+
+**Files Affected:**
+
+- app/orders/**tests**/orders-page.admin.test.tsx
+
+**Date:** 2026-04-09
+
+---
+
+## [Operations vendor detail crashes when analytics is missing]
+
+**Symptom:**
+
+- Opening a vendor from admin operations can throw `TypeError: Cannot read properties of undefined (reading 'totalSales')`.
+
+**Root Cause:**
+
+- Vendor detail UI assumed `vendor.analytics` object always exists.
+- `/api/vendors/[id]` can return flat vendor metrics (for example `totalSales`, `averageRating`) without nested `analytics` object.
+
+**Fix Applied:**
+
+- Added defensive analytics normalization in vendor detail page.
+- Read metrics from `vendor.analytics.*` first, then fallback to flat vendor fields.
+- Guarded rating/sales rendering against undefined values.
+
+**Prevention:**
+
+- Treat nested analytics payloads as optional at UI boundaries.
+- Normalize mixed legacy/new payload shapes before binding to presentation components.
+
+**Files Affected:**
+
+- app/(operations)/operations/vendors/[id]/page.tsx
+
+**Date:** 2026-04-09
+
+---
+
 ## [Checkout route redirected to unauthorized without console errors]
 
 **Symptom:**

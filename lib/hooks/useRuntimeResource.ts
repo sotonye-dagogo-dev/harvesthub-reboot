@@ -117,10 +117,16 @@ export function useRuntimeResource<TData, TParams = unknown>({
     return () => window.clearInterval(interval);
   }, [enabled, key, refreshIntervalMs]);
 
+  const hasAnyData =
+    typeof resource?.data !== "undefined" || typeof resource?.lastGoodData !== "undefined";
+  const isInitialLoading = enabled && !hasAnyData && !resource;
+  const isRefreshingState =
+    resource?.status === "refreshing" || (Boolean(resource?.inFlight) && hasAnyData);
+
   return {
     data: resource?.data as TData | undefined,
-    isLoading: resource?.status === "loading",
-    isRefreshing: resource?.status === "refreshing",
+    isLoading: isInitialLoading || resource?.status === "loading",
+    isRefreshing: isRefreshingState,
     error: resource?.error ?? null,
     lastUpdatedAt: resource?.updatedAt ?? null,
     refresh,

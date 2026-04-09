@@ -4,7 +4,7 @@
  */
 
 import { Metadata } from "next";
-import { NotificationPreferences } from "@/components/features/NotificationPreferences";
+import { NotificationPreferencesPageClient } from "./NotificationPreferencesPageClient";
 
 export const metadata: Metadata = {
   title: "Notification Preferences - MyHarvestHub",
@@ -12,18 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function NotificationPreferencesPage() {
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ds-text-primary">
-          Notification Preferences
-        </h1>
-        <p className="text-ds-text-secondary mt-1">
-          Choose how you want to be notified about important updates
-        </p>
-      </div>
-
-      <NotificationPreferences />
-    </div>
-  );
+  return <NotificationPreferencesPageClient />;
 }

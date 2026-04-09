@@ -130,6 +130,19 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 6. Mutation coordinator applies optimistic patch, rolls back deterministically on failure, and reconciles on success.
 7. App bootstrap (`app/providers.tsx`) prefetches role + route-tag scoped resources to warm start without broad over-fetching.
 8. Runtime telemetry tracks load latency, refresh churn, no-op ratio, retry volume, and rollback frequency.
+9. Provider-level runtime activity notifier surfaces global processing feedback from aggregate in-flight resources.
+
+### Operations Dashboard Runtime API Flow
+
+```
+
+1. Operations dashboard page subscribes through `useSmartResource` instead of direct SSR Prisma calls.
+2. Client fetches `/api/operations/dashboard` for role-scoped metric cards and quick actions.
+3. API route enforces auth + role checks (`ADMIN`/`VENDOR`) and computes Prisma-backed metrics.
+4. Runtime cache serves warm data and background refresh to keep dashboard cards responsive without full page reload.
+
+```
+
 ```
 
 ### Vendor Marketing Moderation Boundary Flow

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { Button, Card, Input as CustomInput } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { Tabs, Upload, message, Badge } from "antd";
@@ -18,7 +19,6 @@ export default function ProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
-  const [loadingEmailStatus, setLoadingEmailStatus] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
   const [emailChangeStatus, setEmailChangeStatus] = useState<{
     hasPendingEmailChange: boolean;
@@ -42,10 +42,94 @@ export default function ProfilePage() {
     businessAddress: "",
   });
 
+  const loadProfileResource = useCallback(async () => {
+    if (!user?.id) {
+      return {
+        profile: null as Record<string, unknown> | null,
+        addresses: [] as Address[],
+      };
+    }
+
+    const [profileRes, addressesRes] = await Promise.all([
+      fetch(`/api/users/${user.id}/profile`),
+      fetch(`/api/users/${user.id}/addresses`),
+    ]);
+
+    const profileData = (await profileRes.json().catch(() => ({}))) as {
+      profile?: Record<string, unknown>;
+    };
+    const addressData = (await addressesRes.json().catch(() => ({}))) as {
+      addresses?: Address[];
+    };
+
+    if (!profileRes.ok && !addressesRes.ok) {
+      throw new Error("Unable to load profile data");
+    }
+
+    return {
+      profile: profileRes.ok ? (profileData.profile ?? null) : null,
+      addresses:
+        addressesRes.ok && Array.isArray(addressData.addresses) ? addressData.addresses : [],
+    };
+  }, [user?.id]);
+
+  const {
+    data: profileResource,
+    error: profileLoadError,
+    isRefreshing: profileRefreshing,
+  } = useSmartResource(loadProfileResource, {
+    key: `profile-resource:${user?.id ?? "guest"}`,
+    enabled: Boolean(user?.id),
+    staleTimeMs: 20_000,
+    refreshIntervalMs: 90_000,
+  });
+
+  const loadEmailChangeStatus = useCallback(async () => {
+    if (!user?.id) {
+      return {
+        hasPendingEmailChange: false,
+        pendingEmail: null,
+        expiresAt: null,
+      };
+    }
+
+    const res = await fetch("/api/users/me/change-email");
+    const data = (await res.json().catch(() => ({}))) as {
+      success?: boolean;
+      data?: {
+        hasPendingEmailChange?: boolean;
+        pendingEmail?: string;
+        expiresAt?: string;
+      };
+    };
+
+    if (!res.ok || !data.success || !data.data) {
+      return {
+        hasPendingEmailChange: false,
+        pendingEmail: null,
+        expiresAt: null,
+      };
+    }
+
+    return {
+      hasPendingEmailChange: Boolean(data.data.hasPendingEmailChange),
+      pendingEmail: typeof data.data.pendingEmail === "string" ? data.data.pendingEmail : null,
+      expiresAt: typeof data.data.expiresAt === "string" ? data.data.expiresAt : null,
+    };
+  }, [user?.id]);
+
+  const { data: emailStatusResource, isLoading: loadingEmailStatus } = useSmartResource(
+    loadEmailChangeStatus,
+    {
+      key: `profile-email-change-status:${user?.id ?? "guest"}`,
+      enabled: Boolean(user?.id),
+      staleTimeMs: 25_000,
+      refreshIntervalMs: 120_000,
+    }
+  );
+
   useEffect(() => {
     if (!user) return;
-
-    let mounted = true;
 
     setFormData((prev) => ({
       ...prev,
@@ -55,104 +139,59 @@ export default function ProfilePage() {
       phoneNumber: user.phoneNumber || "",
       whatsappNumber: user.whatsappNumber || "",
     }));
-
-    async function loadProfile() {
-      try {
-        const [profileRes, addressesRes] = await Promise.all([
-          fetch(`/api/users/${user?.id}/profile`),
-          fetch(`/api/users/${user?.id}/addresses`),
-        ]);
-
-        if (!mounted) return;
-
-        if (profileRes.ok) {
-          const data = await profileRes.json();
-          const profile = data?.profile;
-
-          if (profile) {
-            setFormData((prev) => ({
-              ...(profile?.vendorContext &&
-              Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
-                ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
-                : { whatsappNumber: prev.whatsappNumber }),
-              ...prev,
-              firstName: profile.firstName || "",
-              lastName: profile.lastName || "",
-              email: profile.email || "",
-              phoneNumber: profile.phoneNumber || "",
-              category: profile?.vendorContext?.category || "",
-              campus: profile?.vendorContext?.campus || "",
-              position: profile?.vendorContext?.position || "",
-              businessAddress: profile?.vendorContext?.businessAddress || "",
-            }));
-            }
-        }
-
-        if (addressesRes.ok) {
-          const addressesData = await addressesRes.json();
-          const addresses = Array.isArray(addressesData?.addresses)
-            ? (addressesData.addresses as Address[])
-            : [];
-          setUserAddresses(addresses);
-        } else {
-          setUserAddresses([]);
-        }
-      } catch {
-        // Keep local auth values as fallback.
-        if (!mounted) return;
-        setUserAddresses([]);
-      }
-    }
-
-    loadProfile();
-
-    return () => {
-      mounted = false;
-    };
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
-
-    let mounted = true;
-
-    async function loadEmailChangeStatus() {
-      setLoadingEmailStatus(true);
-      try {
-        const res = await fetch("/api/users/me/change-email");
-        if (!mounted) return;
-        const data = await res.json();
-        if (res.ok && data.success && data.data) {
-          setEmailChangeStatus({
-            hasPendingEmailChange: Boolean(data.data.hasPendingEmailChange),
-            pendingEmail: typeof data.data.pendingEmail === "string" ? data.data.pendingEmail : null,
-            expiresAt: typeof data.data.expiresAt === "string" ? data.data.expiresAt : null,
-          });
-          return;
-        }
-      } catch {
-        // Keep default status if status fetch fails.
-      } finally {
-        if (mounted) {
-          setLoadingEmailStatus(false);
-        }
-      }
-
-      if (mounted) {
-        setEmailChangeStatus({
-          hasPendingEmailChange: false,
-          pendingEmail: null,
-          expiresAt: null,
-        });
-      }
+    if (!profileResource?.profile) {
+      setUserAddresses(profileResource?.addresses ?? []);
+      return;
     }
 
-    loadEmailChangeStatus();
-
-    return () => {
-      mounted = false;
+    const profile = profileResource.profile as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phoneNumber?: string;
+      vendorContext?: {
+        whatsappNumber?: string;
+        category?: string;
+        campus?: string;
+        position?: string;
+        businessAddress?: string;
+      } | null;
     };
-  }, [user]);
+
+    setFormData((prev) => ({
+      ...(profile.vendorContext &&
+      Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
+        ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
+        : { whatsappNumber: prev.whatsappNumber }),
+      ...prev,
+      firstName: profile.firstName || prev.firstName,
+      lastName: profile.lastName || prev.lastName,
+      email: profile.email || prev.email,
+      phoneNumber: profile.phoneNumber || prev.phoneNumber,
+      category: profile.vendorContext?.category || "",
+      campus: profile.vendorContext?.campus || "",
+      position: profile.vendorContext?.position || "",
+      businessAddress: profile.vendorContext?.businessAddress || "",
+    }));
+
+    setUserAddresses(profileResource.addresses ?? []);
+  }, [profileResource]);
+
+  useEffect(() => {
+    if (!emailStatusResource) {
+      setEmailChangeStatus({
+        hasPendingEmailChange: false,
+        pendingEmail: null,
+        expiresAt: null,
+      });
+      return;
+    }
+
+    setEmailChangeStatus(emailStatusResource);
+  }, [emailStatusResource]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -281,7 +320,9 @@ export default function ProfilePage() {
       setEmailChangeStatus({
         hasPendingEmailChange: true,
         pendingEmail:
-          typeof data.data?.pendingEmail === "string" ? data.data.pendingEmail : emailData.newEmail.trim().toLowerCase(),
+          typeof data.data?.pendingEmail === "string"
+            ? data.data.pendingEmail
+            : emailData.newEmail.trim().toLowerCase(),
         expiresAt: null,
       });
       setEmailData({ newEmail: "", confirmEmail: "" });
@@ -312,6 +353,12 @@ export default function ProfilePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-ds-text-primary">My Profile</h1>
         <p className="mt-2 text-ds-text-secondary">Manage your account information</p>
+        {profileRefreshing ? (
+          <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing profile data...</p>
+        ) : null}
+        {profileLoadError ? (
+          <p className="mt-1 text-xs text-ds-status-error-text">{profileLoadError}</p>
+        ) : null}
         {user.role === "BUYER" && (
           <Link
             href="/become-vendor"
@@ -465,6 +512,7 @@ export default function ProfilePage() {
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         disabled={!editMode}
+                        title="Vendor Category"
                         className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       >
                         <option value="">Select category</option>
@@ -483,6 +531,7 @@ export default function ProfilePage() {
                         value={formData.campus}
                         onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
                         disabled={!editMode}
+                        title="Campus"
                         className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       >
                         <option value="">Select campus</option>
@@ -503,6 +552,7 @@ export default function ProfilePage() {
                         value={formData.position}
                         onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                         disabled={!editMode}
+                        title="Church Position"
                         className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       >
                         <option value="">Select position</option>
@@ -673,17 +723,21 @@ export default function ProfilePage() {
             <div className="mt-8 border-t border-ds-border-base pt-6">
               <h3 className="mb-2 text-lg font-semibold text-ds-text-primary">Change Email</h3>
               <p className="mb-4 text-sm text-ds-text-secondary">
-                We&apos;ll send a verification link to your new email. You&apos;ll need to verify it to complete the change.
+                We&apos;ll send a verification link to your new email. You&apos;ll need to verify it
+                to complete the change.
               </p>
 
               {loadingEmailStatus ? (
-                <p className="mb-4 text-sm text-ds-text-secondary">Checking email-change status...</p>
+                <p className="mb-4 text-sm text-ds-text-secondary">
+                  Checking email-change status...
+                </p>
               ) : null}
 
               {emailChangeStatus.hasPendingEmailChange && emailChangeStatus.pendingEmail ? (
                 <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-raised p-3">
                   <p className="text-sm text-ds-text-primary">
-                    Pending email change: <span className="font-semibold">{emailChangeStatus.pendingEmail}</span>
+                    Pending email change:{" "}
+                    <span className="font-semibold">{emailChangeStatus.pendingEmail}</span>
                   </p>
                   <p className="mt-1 text-xs text-ds-text-secondary">
                     {emailChangeStatus.expiresAt
@@ -707,7 +761,9 @@ export default function ProfilePage() {
                   <CustomInput
                     type="email"
                     value={emailData.newEmail}
-                    onChange={(e) => setEmailData((prev) => ({ ...prev, newEmail: e.target.value }))}
+                    onChange={(e) =>
+                      setEmailData((prev) => ({ ...prev, newEmail: e.target.value }))
+                    }
                     prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
                   />
                 </div>
@@ -718,13 +774,17 @@ export default function ProfilePage() {
                   <CustomInput
                     type="email"
                     value={emailData.confirmEmail}
-                    onChange={(e) => setEmailData((prev) => ({ ...prev, confirmEmail: e.target.value }))}
+                    onChange={(e) =>
+                      setEmailData((prev) => ({ ...prev, confirmEmail: e.target.value }))
+                    }
                     prefix={<Mail className="h-4 w-4 text-ds-text-placeholder" />}
                   />
                 </div>
 
                 <Button onClick={handleChangeEmail} loading={savingEmail}>
-                  {emailChangeStatus.hasPendingEmailChange ? "Resend Verification Link" : "Send Verification Link"}
+                  {emailChangeStatus.hasPendingEmailChange
+                    ? "Resend Verification Link"
+                    : "Send Verification Link"}
                 </Button>
               </div>
             </div>

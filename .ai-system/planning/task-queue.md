@@ -523,3 +523,35 @@
   - [x] Update `.ai-system/agents/system-architecture.md` with unified runtime data flow.
   - [x] Record decisions in `.ai-system/memory/project-decisions.md` and update checkpoint/history artifacts.
   - [x] Mark completion status and residual risks in queue and summary docs.
+
+---
+
+## Runtime Closeout Queue (2026-04-09) — Post-Cloud Gap Closure
+
+> **Section summary:** Follow-up closure plan for cloud-session blockers plus newly reported admin/dashboard UX issues.
+
+- [x] Fix vendor detail runtime crash on missing analytics object.
+  - [x] Normalize vendor analytics fallback in operations vendor detail when API returns flat metrics.
+  - [x] Guard `totalSales`/`averageRating` rendering against undefined analytics payloads.
+
+- [x] Improve admin verification evidence visibility sweep.
+  - [x] Expand vendor verification document rendering to support both structured document arrays and legacy URL-key payloads.
+  - [x] Add clearer document labeling in vendor review detail view.
+  - [x] Add inline preview for ad creative and transfer proof in operations ad-application details.
+
+- [x] Restore dashboard shell consistency on non-operations dashboard-linked pages.
+  - [x] Ensure vendor/admin sidebar shell wraps `/analytics`.
+  - [x] Ensure vendor/admin sidebar shell wraps `/wallet`.
+  - [x] Ensure vendor/admin sidebar shell wraps `/profile` and `/notifications`.
+  - [x] Make desktop sidebar navigation vertically scrollable for long nav sets.
+
+- [x] Close remaining runtime migration blockers from cloud run.
+  - [x] Operations dashboard/orders runtime normalization strategy for server-auth SSR flows.
+  - [x] Operations products migration split (isolate CRUD form state from list/resource runtime subscription).
+  - [x] Buyer orders/profile runtime API normalization and migration pass.
+
+- [ ] Final closeout validation + evidence capture.
+  - [x] Run targeted Vitest suites for modified dashboard/admin views.
+  - [ ] Capture UI evidence: sidebar visibility on analytics/wallet/profile/notifications + vendor/ad verification document previews.
+    - [ ] Execute checklist in `.ai-system/checkpoints/runtime-closeout-ui-evidence-2026-04-09.md` and attach screenshots.
+  - [x] Re-run full quality matrix after blocker migrations complete.

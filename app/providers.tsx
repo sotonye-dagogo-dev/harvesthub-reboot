@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, ReactElement } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  ReactNode,
+  ReactElement,
+} from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider, App } from "antd";
 import { antdTheme as customAntdTheme, antdDarkTheme } from "@/lib/theme/antd-theme";
@@ -11,6 +20,7 @@ import ToastProvider from "@/lib/contexts/ToastContext";
 import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
 import { usePathname } from "next/navigation";
 import { prefetchRuntimeResources } from "@/lib/data-runtime/prefetch";
+import { useRuntimeStore } from "@/lib/data-runtime/runtimeStore";
 import { ROLE_PREFETCH_HINTS, RUNTIME_PREFETCH_ROUTE_TAGS } from "@/lib/config/runtime";
 
 // ============================================================================
@@ -170,6 +180,7 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
         <AntdThemeProvider>
           <AuthProvider>
             <RuntimeBootstrap />
+            <RuntimeActivityNotifier />
             <NotificationProvider>
               <ToastProvider>
                 <FormDataProvider>{children}</FormDataProvider>
@@ -214,6 +225,70 @@ function RuntimeBootstrap(): null {
       tags,
     });
   }, [isLoading, pathname, user?.role]);
+
+  return null;
+}
+
+function RuntimeActivityNotifier(): null {
+  const activeRuntimeOps = useRuntimeStore((state) =>
+    Object.values(state.resources).reduce((count, resource) => {
+      return resource.inFlight ? count + 1 : count;
+    }, 0)
+  );
+  const [showIndicator, setShowIndicator] = useState(false);
+  const [dotCount, setDotCount] = useState(1);
+  const { message } = App.useApp();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      message.destroy("runtime-activity");
+    };
+  }, [message]);
+
+  useEffect(() => {
+    if (activeRuntimeOps <= 0) {
+      setShowIndicator(false);
+      message.destroy("runtime-activity");
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (isMountedRef.current) {
+        setShowIndicator(true);
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [activeRuntimeOps, message]);
+
+  useEffect(() => {
+    if (!showIndicator || activeRuntimeOps <= 0) return;
+
+    const interval = window.setInterval(() => {
+      setDotCount((current) => (current >= 3 ? 1 : current + 1));
+    }, 380);
+
+    return () => window.clearInterval(interval);
+  }, [activeRuntimeOps, showIndicator]);
+
+  const dots = useMemo(() => ".".repeat(dotCount), [dotCount]);
+
+  useEffect(() => {
+    if (!showIndicator || activeRuntimeOps <= 0) {
+      message.destroy("runtime-activity");
+      return;
+    }
+
+    const opLabel = activeRuntimeOps > 1 ? `${activeRuntimeOps} tasks` : "1 task";
+    message.open({
+      key: "runtime-activity",
+      type: "loading",
+      duration: 0,
+      content: `Processing${dots} ${opLabel}`,
+    });
+  }, [activeRuntimeOps, dots, message, showIndicator]);
 
   return null;
 }

@@ -21,6 +21,18 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
+type VerificationDocumentView = {
+  label: string;
+  filename: string;
+  url: string;
+};
+
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+
+const toNumber = (value: unknown, fallback = 0): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
 export default function OperationsVendorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -96,6 +108,61 @@ export default function OperationsVendorDetailPage() {
 
   if (!vendor) return null;
 
+  const vendorRecord = asRecord(vendor);
+  const analyticsRecord = asRecord(vendorRecord.analytics);
+  const analytics = {
+    totalSales: toNumber(analyticsRecord.totalSales, toNumber(vendorRecord.totalSales, 0)),
+    averageRating: toNumber(analyticsRecord.averageRating, toNumber(vendorRecord.averageRating, 0)),
+  };
+
+  const verificationRecord = asRecord(vendor.businessVerification);
+  const verificationDocs = (() => {
+    const docsFromArray = Array.isArray(verificationRecord.verificationDocuments)
+      ? (verificationRecord.verificationDocuments as unknown[])
+          .map((item) => {
+            const doc = asRecord(item);
+            const url = typeof doc.url === "string" ? doc.url : "";
+            if (!url) return null;
+
+            const type =
+              typeof doc.documentType === "string"
+                ? doc.documentType.replace(/_/g, " ")
+                : "Verification Document";
+
+            return {
+              label: type,
+              filename:
+                typeof doc.filename === "string" && doc.filename.trim().length > 0
+                  ? doc.filename
+                  : type,
+              url,
+            } as VerificationDocumentView;
+          })
+          .filter((item): item is VerificationDocumentView => Boolean(item))
+      : [];
+
+    if (docsFromArray.length > 0) return docsFromArray;
+
+    const legacyMap: Array<{ key: string; label: string }> = [
+      { key: "idDocumentUrl", label: "ID" },
+      { key: "businessRegistrationUrl", label: "BUSINESS REGISTRATION" },
+      { key: "utilityBillUrl", label: "UTILITY BILL" },
+    ];
+
+    return legacyMap
+      .map(({ key, label }) => {
+        const url = typeof verificationRecord[key] === "string" ? verificationRecord[key] : "";
+        if (!url) return null;
+
+        return {
+          label,
+          filename: `${label.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+          url,
+        } as VerificationDocumentView;
+      })
+      .filter((item): item is VerificationDocumentView => Boolean(item));
+  })();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -152,42 +219,36 @@ export default function OperationsVendorDetailPage() {
               <h2 className="mb-4 text-base font-semibold text-ds-text-primary">
                 Verification Documents
               </h2>
-              {(() => {
-                const bv = vendor.businessVerification as {
-                  verificationDocuments?: { filename: string; url: string }[];
-                };
-                const docs = bv?.verificationDocuments;
-                if (!docs || docs.length === 0) {
-                  return <p className="text-sm text-ds-text-tertiary">No documents uploaded</p>;
-                }
-                return (
-                  <div className="space-y-3">
-                    {docs.map((doc, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-ds-text-brand" />
-                          <div>
-                            <p className="text-sm font-medium text-ds-text-primary">
-                              {doc.filename}
-                            </p>
-                          </div>
+              {verificationDocs.length === 0 ? (
+                <p className="text-sm text-ds-text-tertiary">No documents uploaded</p>
+              ) : (
+                <div className="space-y-3">
+                  {verificationDocs.map((doc, idx) => (
+                    <div
+                      key={`${doc.label}-${idx}`}
+                      className="flex items-center justify-between rounded-ds-md border border-ds-border-subtle p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-ds-text-brand" />
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-ds-text-tertiary">
+                            {doc.label}
+                          </p>
+                          <p className="text-sm font-medium text-ds-text-primary">{doc.filename}</p>
                         </div>
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-ds-text-brand hover:underline"
-                        >
-                          View
-                        </a>
                       </div>
-                    ))}
-                  </div>
-                );
-              })()}
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-ds-text-brand hover:underline"
+                      >
+                        View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           )}
 
@@ -201,14 +262,12 @@ export default function OperationsVendorDetailPage() {
               },
               {
                 label: "Total Sales",
-                value: formatCurrency(vendor.analytics.totalSales),
+                value: formatCurrency(analytics.totalSales),
                 icon: <ShoppingBag className="h-5 w-5 text-ds-status-success-text" />,
               },
               {
                 label: "Rating",
-                value: vendor.analytics.averageRating
-                  ? `${vendor.analytics.averageRating.toFixed(1)} / 5`
-                  : "—",
+                value: analytics.averageRating ? `${analytics.averageRating.toFixed(1)} / 5` : "—",
                 icon: <Star className="h-5 w-5 text-ds-status-warning-text" />,
               },
             ].map((stat) => (
