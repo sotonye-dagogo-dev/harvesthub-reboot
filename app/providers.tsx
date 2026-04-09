@@ -26,6 +26,7 @@ import {
   getRuntimeActivityMessage,
   shouldShowRuntimeActivity,
 } from "@/lib/config/runtimeActivityCopy";
+import { registerActionConfirmPresenter } from "@/components/ui/actionConfirm";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -183,6 +184,7 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
       <ThemeProvider>
         <AntdThemeProvider>
           <AuthProvider>
+            <ActionConfirmBridge />
             <RuntimeBootstrap />
             <RuntimeActivityNotifier />
             <NotificationProvider>
@@ -229,6 +231,22 @@ function RuntimeBootstrap(): null {
       tags,
     });
   }, [isLoading, pathname, user?.role]);
+
+  return null;
+}
+
+function ActionConfirmBridge(): null {
+  const { modal } = App.useApp();
+
+  useEffect(() => {
+    registerActionConfirmPresenter((config) => {
+      modal.confirm(config);
+    });
+
+    return () => {
+      registerActionConfirmPresenter(null);
+    };
+  }, [modal]);
 
   return null;
 }

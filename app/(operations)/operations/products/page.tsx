@@ -228,12 +228,13 @@ export default function OperationsProductsPage() {
         const vendors = await loadVendorOptions();
         if (!mounted) return;
         setVendorOptions(vendors);
-        if (adminVendorFilter === VENDOR_FILTER_ALL && vendors.length > 0) {
-          const firstVendor = vendors[0];
-          if (firstVendor) {
-            setAdminVendorFilter(firstVendor.id);
+        setAdminVendorFilter((current) => {
+          if (current === VENDOR_FILTER_ALL) {
+            return VENDOR_FILTER_ALL;
           }
-        }
+          const exists = vendors.some((vendor) => vendor.id === current);
+          return exists ? current : VENDOR_FILTER_ALL;
+        });
       } catch (error) {
         const description =
           error instanceof Error ? error.message : "Unable to load products workspace context.";
@@ -246,7 +247,7 @@ export default function OperationsProductsPage() {
     return () => {
       mounted = false;
     };
-  }, [adminVendorFilter, loadVendorOptions, loadVendorScope, router, user]);
+  }, [loadVendorOptions, loadVendorScope, router, user]);
 
   const openCreateModal = () => {
     const draft = loadLocalDraft<ProductFormDraft>(draftKey);

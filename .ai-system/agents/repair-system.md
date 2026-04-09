@@ -18,6 +18,100 @@
 
 ---
 
+## [Native browser confirm bypasses shared destructive-action governance]
+
+**Symptom:**
+
+- Some destructive actions (for example content delete in operations/public-content editor) use `window.confirm` instead of the shared confirmation utility.
+- Confirmation UX becomes inconsistent and can drift from app-wide behavior controls.
+
+**Root Cause:**
+
+- Legacy/localized action handlers retained direct `confirm(...)` usage during earlier feature iterations.
+- No enforcement sweep was run after introducing shared `openActionConfirm` infrastructure.
+
+**Fix Applied:**
+
+- Replaced direct browser confirm path in `PublicContentAdminPanel` with `openActionConfirm`.
+- Routed section removal and content deletion actions through shared confirm presets/builder.
+- Verified no remaining `confirm(...)` usage in app/components destructive flows.
+
+**Prevention:**
+
+- Do not introduce `window.confirm` in feature code.
+- Use `openActionConfirm` as the only confirmation entry point for destructive actions.
+- Include a quick grep check for `confirm(` when adding/modifying destructive operations.
+
+**Files Affected:**
+
+- components/features/PublicContentAdminPanel.tsx
+
+**Date:** 2026-04-09
+
+---
+
+## [Operations products vendor selector reverts from All to first store]
+
+**Symptom:**
+
+- In operations product management, selecting `All vendors` reverts to a specific store after a short delay.
+- Product list scope appears to reset unexpectedly after refresh/bootstrap.
+
+**Root Cause:**
+
+- Bootstrap effect loaded vendor options then auto-set admin filter to first vendor whenever current value was `ALL`.
+- Effect depended on the filter state itself, causing re-run loops that re-applied first-vendor override.
+
+**Fix Applied:**
+
+- Removed forced first-vendor override when filter is explicitly `ALL`.
+- Changed filter reconciliation to preserve user selection if still valid, else fallback to `ALL`.
+- Removed `adminVendorFilter` from bootstrap effect dependency list to prevent self-triggered reset loops.
+
+**Prevention:**
+
+- Avoid auto-selecting first option in bootstrap for user-controlled scope filters.
+- For selector bootstraps, reconcile invalid stale values to a neutral option rather than forcing specific entity scope.
+
+**Files Affected:**
+
+- app/(operations)/operations/products/page.tsx
+
+**Date:** 2026-04-09
+
+---
+
+## [Static modal confirm can fail to present reliably across shells]
+
+**Symptom:**
+
+- Some destructive buttons trigger no visible confirmation dialog in certain route/shell contexts.
+- Callback paths exist but user never sees/accepts confirm step.
+
+**Root Cause:**
+
+- Confirmations were using static `Modal.confirm` only, which can be less reliable across app/provider boundaries.
+- No centralized presenter bridge bound to Ant App modal context.
+
+**Fix Applied:**
+
+- Added provider-registered confirmation presenter bridge (`App.useApp().modal.confirm`) in `app/providers.tsx`.
+- Updated `openActionConfirm` utility to use registered presenter first, fallback to static modal otherwise.
+
+**Prevention:**
+
+- Keep destructive-action confirms routed through shared confirm utility only.
+- Prefer context-bound presenter registration for global modal reliability.
+
+**Files Affected:**
+
+- components/ui/actionConfirm.ts
+- app/providers.tsx
+
+**Date:** 2026-04-09
+
+---
+
 ## [Mandatory critical emails suppressed by grouped notification type gating]
 
 **Symptom:**

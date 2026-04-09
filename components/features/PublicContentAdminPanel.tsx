@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Input, Badge } from "@/components/ui";
+import {
+  Button,
+  Input,
+  Badge,
+  openActionConfirm,
+  ActionConfirmBuilder,
+  ActionConfirmPresets,
+} from "@/components/ui";
 import { fetchJson } from "@/lib/utils";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Plus, Eye, FileText, Trash2, GripVertical } from "lucide-react";
@@ -292,7 +299,6 @@ export function PublicContentAdminPanel() {
   };
 
   const onDelete = async (item: PublicContentItem) => {
-    if (!confirm(`Delete content "${item.title}"?`)) return;
     await fetchJson(`/api/admin/public-content?slug=${encodeURIComponent(item.slug)}`, {
       method: "DELETE",
     });
@@ -302,6 +308,18 @@ export function PublicContentAdminPanel() {
       setSelectedItemId(null);
       setEditingId(null);
     }
+  };
+
+  const requestDelete = (item: PublicContentItem) => {
+    openActionConfirm(
+      new ActionConfirmBuilder()
+        .title("Delete content")
+        .message(`Delete content "${item.title}"?`)
+        .confirmText("Delete")
+        .danger()
+        .build(),
+      () => onDelete(item)
+    );
   };
 
   const clearEditor = () => {
@@ -489,7 +507,11 @@ export function PublicContentAdminPanel() {
                         type="button"
                         variant="danger"
                         size="sm"
-                        onClick={() => removeSection(section.id)}
+                        onClick={() =>
+                          openActionConfirm(ActionConfirmPresets.remove("section"), () =>
+                            removeSection(section.id)
+                          )
+                        }
                         disabled={sections.length <= 1}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -680,7 +702,7 @@ export function PublicContentAdminPanel() {
                         <FileText className="mr-1 h-4 w-4" />
                         Load
                       </Button>
-                      <Button onClick={() => onDelete(item)} variant="danger" size="sm">
+                      <Button onClick={() => requestDelete(item)} variant="danger" size="sm">
                         Delete
                       </Button>
                     </td>

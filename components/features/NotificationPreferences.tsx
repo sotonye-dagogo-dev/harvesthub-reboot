@@ -27,6 +27,16 @@ type PreferenceApiResponse = {
   };
 };
 
+const SMS_NOTIFICATIONS_AVAILABLE = false;
+
+type EditableControl = {
+  key: keyof EditablePreferences;
+  title: string;
+  description: string;
+  disabled?: boolean;
+  disabledReason?: string;
+};
+
 const DEFAULT_EDITABLE: EditablePreferences = {
   orderUpdates: true,
   vendorMessages: true,
@@ -35,7 +45,7 @@ const DEFAULT_EDITABLE: EditablePreferences = {
   smsNotifications: false,
 };
 
-const EDITABLE_CONTROLS: Array<{ key: keyof EditablePreferences; title: string; description: string }> = [
+const EDITABLE_CONTROLS: EditableControl[] = [
   {
     key: "orderUpdates",
     title: "Order and payment updates",
@@ -59,7 +69,9 @@ const EDITABLE_CONTROLS: Array<{ key: keyof EditablePreferences; title: string; 
   {
     key: "smsNotifications",
     title: "SMS notifications",
-    description: "Receive supported alerts by SMS where available.",
+    description: "SMS delivery is temporarily unavailable while this channel is being completed.",
+    disabled: !SMS_NOTIFICATIONS_AVAILABLE,
+    disabledReason: "SMS notifications are coming soon and cannot be enabled yet.",
   },
 ];
 
@@ -73,7 +85,9 @@ function normalizeEditable(payload?: PreferenceApiResponse): EditablePreferences
       vendorMessages: toBoolean(payload.editable.vendorMessages, true),
       promotions: toBoolean(payload.editable.promotions, false),
       pushNotifications: toBoolean(payload.editable.pushNotifications, true),
-      smsNotifications: toBoolean(payload.editable.smsNotifications, false),
+      smsNotifications: SMS_NOTIFICATIONS_AVAILABLE
+        ? toBoolean(payload.editable.smsNotifications, false)
+        : false,
     };
   }
 
@@ -83,11 +97,16 @@ function normalizeEditable(payload?: PreferenceApiResponse): EditablePreferences
       vendorMessages: toBoolean(payload.preferences.vendorMessages, true),
       promotions: toBoolean(payload.preferences.promotions, false),
       pushNotifications: toBoolean(payload.preferences.pushNotifications, true),
-      smsNotifications: toBoolean(payload.preferences.smsNotifications, false),
+      smsNotifications: SMS_NOTIFICATIONS_AVAILABLE
+        ? toBoolean(payload.preferences.smsNotifications, false)
+        : false,
     };
   }
 
-  return DEFAULT_EDITABLE;
+  return {
+    ...DEFAULT_EDITABLE,
+    smsNotifications: SMS_NOTIFICATIONS_AVAILABLE ? DEFAULT_EDITABLE.smsNotifications : false,
+  };
 }
 
 export function NotificationPreferences() {
@@ -102,8 +121,13 @@ export function NotificationPreferences() {
     const data = (await res.json()) as PreferenceApiResponse;
 
     if (!res.ok || !data.success) {
-      const details = typeof (data as { error?: unknown }).error === "string" ? (data as { error: string }).error : "Unknown error";
-      throw new Error(`Failed to fetch notification preferences (status ${res.status}): ${details}`);
+      const details =
+        typeof (data as { error?: unknown }).error === "string"
+          ? (data as { error: string }).error
+          : "Unknown error";
+      throw new Error(
+        `Failed to fetch notification preferences (status ${res.status}): ${details}`
+      );
     }
     return data;
   };
@@ -123,6 +147,9 @@ export function NotificationPreferences() {
   }, [data]);
 
   const updateEditable = (key: keyof EditablePreferences, value: boolean) => {
+    if (key === "smsNotifications" && !SMS_NOTIFICATIONS_AVAILABLE) {
+      return;
+    }
     setEditable((current) => ({ ...current, [key]: value }));
   };
 
@@ -132,7 +159,12 @@ export function NotificationPreferences() {
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ editable }),
+        body: JSON.stringify({
+          editable: {
+            ...editable,
+            smsNotifications: SMS_NOTIFICATIONS_AVAILABLE ? editable.smsNotifications : false,
+          },
+        }),
       });
       const payload = (await res.json()) as PreferenceApiResponse;
       if (!res.ok || !payload.success) {
@@ -171,11 +203,22 @@ export function NotificationPreferences() {
               className="flex items-center justify-between border-b border-ds-border-base pb-4 last:border-b-0 last:pb-0"
             >
               <div className="pr-4">
-                <h4 className="font-semibold text-ds-text-primary">{control.title}</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-ds-text-primary">{control.title}</h4>
+                  {control.disabledReason ? (
+                    <Tooltip title={control.disabledReason}>
+                      <Info className="h-4 w-4 text-ds-text-tertiary" />
+                    </Tooltip>
+                  ) : null}
+                </div>
                 <p className="text-sm text-ds-text-secondary">{control.description}</p>
+                {control.disabledReason ? (
+                  <p className="mt-1 text-xs text-ds-text-tertiary">{control.disabledReason}</p>
+                ) : null}
               </div>
               <Switch
                 checked={editable[control.key]}
+                disabled={control.disabled}
                 onChange={(checked) => updateEditable(control.key, checked)}
               />
             </div>

@@ -39,6 +39,72 @@
 
 ---
 
+## Session 47 — 2026-04-09
+
+**Goal:**
+Execute a follow-up destructive-action sweep and patch remaining flows that bypass `openActionConfirm` single-source confirmation.
+
+**Completed:**
+
+- Audited destructive UI actions (`DELETE`-path and explicit danger actions) across app/components.
+- Identified remaining native browser confirm usage in `PublicContentAdminPanel` content deletion path.
+- Replaced native `confirm(...)` with shared `openActionConfirm` + `ActionConfirmBuilder` for content deletion.
+- Routed section removal action in the same editor through shared `openActionConfirm` preset for consistency.
+- Verified no remaining native `confirm(...)` usage in app/components destructive flows.
+- Re-ran focused lint for touched confirmation utility and sweep target files.
+
+**Files Modified:**
+
+- components/features/PublicContentAdminPanel.tsx
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Add focused regression coverage for operations/public-content destructive confirm interactions when test harness is available for this surface.
+
+**Notes / Blockers:**
+
+- Sweep intentionally left `lib/hooks/useGuestGuard.ts` modal prompt unchanged because it is an auth gate prompt, not a destructive action path.
+
+---
+
+## Session 46 — 2026-04-09
+
+**Goal:**
+Fix post-notification-assurance regressions: disable unavailable SMS toggle clearly, stop operations product store selector from reverting, and harden destructive confirmation reliability with a universal bridge.
+
+**Completed:**
+
+- Disabled SMS notifications channel in preference UX with clear "coming soon" info display and lock state.
+- Enforced SMS-disabled behavior at API contract level so payloads do not persist/echo editable SMS state while channel is unavailable.
+- Fixed operations products admin vendor filter reset loop so explicit `All vendors` selection persists and no longer auto-reverts.
+- Added provider-level confirmation presenter bridge using Ant App modal context for global `openActionConfirm` reliability.
+- Updated notification preference tests for new locked-switch semantics and re-ran focused notifications tests.
+- Re-ran focused lint on all touched files.
+
+**Files Modified:**
+
+- components/features/NotificationPreferences.tsx
+- app/api/notifications/preferences/route.ts
+- app/(operations)/operations/products/page.tsx
+- components/ui/actionConfirm.ts
+- app/providers.tsx
+- components/features/**tests**/NotificationPreferences.test.tsx
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Sweep remaining destructive-action surfaces for shared confirm utility adoption gaps and add focused regressions for operations products delete-confirm interaction.
+
+**Notes / Blockers:**
+
+- Focused validation passed:
+  - `npm run test -- components/features/__tests__/NotificationPreferences.test.tsx app/notifications/__tests__/page.layout.test.tsx app/notifications/settings/__tests__/page.layout.test.tsx`
+  - `npx next lint --file app/providers.tsx --file components/ui/actionConfirm.ts --file "app/(operations)/operations/products/page.tsx" --file components/features/NotificationPreferences.tsx --file app/api/notifications/preferences/route.ts --file components/features/__tests__/NotificationPreferences.test.tsx`
+
+---
+
 ## Session 45 — 2026-04-09
 
 **Goal:**
