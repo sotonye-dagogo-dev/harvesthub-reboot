@@ -16,74 +16,22 @@ import { SectionLoader, EmptyState, openActionConfirm, ActionConfirmPresets } fr
 import { Bell, Check, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import type { Notification, NotificationType } from "@/lib/types";
+import type { NotificationType } from "@/lib/types";
+import { useNotifications } from "@/lib/contexts/NotificationContext";
 
 export function NotificationBell() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead, deleteNotification } =
+    useNotifications();
   const [open, setOpen] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/notifications?limit=10");
-      const data = await res.json();
-
-      if (data.success) {
-        setNotifications(data.notifications);
-      }
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Mark as read
-  const markAsRead = async (id: string) => {
-    try {
-      await fetch(`/api/notifications/${id}/read`, { method: "PUT" });
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
-    }
-  };
-
-  // Mark all as read
-  const markAllAsRead = async () => {
-    try {
-      await fetch("/api/notifications/read-all", { method: "PUT" });
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch (error) {
-      console.error("Failed to mark all as read:", error);
-    }
-  };
-
-  // Delete notification
-  const deleteNotification = async (id: string) => {
-    try {
-      await fetch(`/api/notifications/${id}`, { method: "DELETE" });
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    } catch (error) {
-      console.error("Failed to delete notification:", error);
-    }
-  };
-
   // Fetch on mount and when dropdown opens
   useEffect(() => {
     if (open) {
-      fetchNotifications();
+      void fetchNotifications();
     }
-  }, [open]);
-
-  // Poll for new notifications every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications, open]);
 
   // Get notification icon color based on type
   const getNotificationColor = (type: NotificationType) => {

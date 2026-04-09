@@ -24,6 +24,34 @@
 
 ---
 
+## 2026-04-09 — Notification Assurance Implementation Pass (Inbox + Integrity + Runtime Tuning)
+
+**Summary:**
+Completed the full notifications assurance feature block in one pass using the existing persistence/API model. The work makes `/notifications` inbox-first, keeps `/notifications/settings` preference-only, adds template-resolved dispatch intelligence, and reduces noisy runtime processing feedback.
+
+**Completed:**
+
+- Replaced `/notifications` preferences rendering with a full `NotificationInbox` timeline surface.
+- Kept `/notifications/settings` for preferences and aligned buyer/vendor/admin shell behavior.
+- Unified bell/inbox state through `NotificationContext` and lowered background refresh cadence to 5 minutes with manual refresh controls.
+- Added config-driven template map + resolver and integrated it into `dispatchNotification`.
+- Preserved mandatory critical-email delivery by decoupling it from optional grouped type toggles.
+- Reworked preference UX/API payloads into explicit editable vs enforced controls with lock/info semantics.
+- Replaced global `Processing... <task count>` copy with threshold-based human messaging and short-churn suppression logic.
+- Added focused tests for inbox route layout, preference lock semantics, template resolver output, and runtime activity threshold policy.
+- Passed required quality gate: lint, typecheck, focused Vitest suites, dead-link audit, sidebar-route audit.
+
+**Key Changes:**
+
+- Notifications are now discoverable and actionable from a first-class inbox route.
+- Preference controls now reflect true backend behavior without false toggle affordances.
+- Runtime global activity signal is calmer and less interruptive while preserving long-running feedback.
+
+**Next Sprint Focus:**
+Gather reviewer feedback from PR and iterate on copy/details if UX sign-off requests additional tuning.
+
+---
+
 ## 2026-04-09 — Cloud Handoff Package: Notification Assurance All-Slices Single Pass
 
 **Summary:**

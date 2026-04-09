@@ -22,6 +22,10 @@ import { usePathname } from "next/navigation";
 import { prefetchRuntimeResources } from "@/lib/data-runtime/prefetch";
 import { useRuntimeStore } from "@/lib/data-runtime/runtimeStore";
 import { ROLE_PREFETCH_HINTS, RUNTIME_PREFETCH_ROUTE_TAGS } from "@/lib/config/runtime";
+import {
+  getRuntimeActivityMessage,
+  shouldShowRuntimeActivity,
+} from "@/lib/config/runtimeActivityCopy";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -237,6 +241,7 @@ function RuntimeActivityNotifier(): null {
   );
   const [showIndicator, setShowIndicator] = useState(false);
   const [dotCount, setDotCount] = useState(1);
+  const [activityStartedAt, setActivityStartedAt] = useState<number | null>(null);
   const { message } = App.useApp();
   const isMountedRef = useRef(true);
 
@@ -250,18 +255,28 @@ function RuntimeActivityNotifier(): null {
   useEffect(() => {
     if (activeRuntimeOps <= 0) {
       setShowIndicator(false);
+      setActivityStartedAt(null);
       message.destroy("runtime-activity");
       return;
     }
 
+    if (!activityStartedAt) {
+      setActivityStartedAt(Date.now());
+      return;
+    }
+
+    const elapsedMs = Date.now() - activityStartedAt;
+    const visible = shouldShowRuntimeActivity(activeRuntimeOps, elapsedMs);
+    setShowIndicator(visible);
+
     const timer = window.setTimeout(() => {
-      if (isMountedRef.current) {
-        setShowIndicator(true);
-      }
-    }, 350);
+      if (!isMountedRef.current) return;
+      const nextElapsed = Date.now() - activityStartedAt;
+      setShowIndicator(shouldShowRuntimeActivity(activeRuntimeOps, nextElapsed));
+    }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [activeRuntimeOps, message]);
+  }, [activeRuntimeOps, activityStartedAt, message]);
 
   useEffect(() => {
     if (!showIndicator || activeRuntimeOps <= 0) return;
@@ -281,12 +296,12 @@ function RuntimeActivityNotifier(): null {
       return;
     }
 
-    const opLabel = activeRuntimeOps > 1 ? `${activeRuntimeOps} tasks` : "1 task";
+    const humanMessage = getRuntimeActivityMessage(activeRuntimeOps);
     message.open({
       key: "runtime-activity",
       type: "loading",
       duration: 0,
-      content: `Processing${dots} ${opLabel}`,
+      content: `${humanMessage}${dots}`,
     });
   }, [activeRuntimeOps, dots, message, showIndicator]);
 

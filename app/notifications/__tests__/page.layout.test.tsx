@@ -10,8 +10,8 @@ vi.mock("@/lib/hooks/useAuth", () => ({
   useAuth: useAuthMock,
 }));
 
-vi.mock("@/components/features/NotificationPreferences", () => ({
-  NotificationPreferences: () => <div data-testid="notification-preferences">preferences</div>,
+vi.mock("@/components/features/NotificationInbox", () => ({
+  NotificationInbox: () => <div data-testid="notification-inbox">inbox</div>,
 }));
 
 vi.mock("@/components/layout", () => ({
@@ -28,18 +28,18 @@ vi.mock("@/components/layout", () => ({
   ),
 }));
 
-import NotificationSettingsPage from "@/app/notifications/settings/page";
+import NotificationsPage from "@/app/notifications/page";
 
-describe("Notification settings route layout", () => {
-  it("uses dashboard shell for vendor users", () => {
+describe("Notifications inbox route layout", () => {
+  it("uses dashboard shell for admin users", () => {
     useAuthMock.mockReturnValue({
-      user: { role: "VENDOR" },
+      user: { role: "ADMIN" },
       isLoading: false,
     });
 
-    render(<NotificationSettingsPage />);
-    expect(screen.getByTestId("dashboard-shell")).toHaveAttribute("data-sidebar-type", "vendor");
-    expect(screen.getByTestId("notification-preferences")).toBeInTheDocument();
+    render(<NotificationsPage />);
+    expect(screen.getByTestId("dashboard-shell")).toHaveAttribute("data-sidebar-type", "admin");
+    expect(screen.getByTestId("notification-inbox")).toBeInTheDocument();
   });
 
   it("keeps buyer users outside dashboard shell", () => {
@@ -48,8 +48,8 @@ describe("Notification settings route layout", () => {
       isLoading: false,
     });
 
-    render(<NotificationSettingsPage />);
+    render(<NotificationsPage />);
     expect(screen.queryByTestId("dashboard-shell")).not.toBeInTheDocument();
-    expect(screen.getByTestId("notification-preferences")).toBeInTheDocument();
+    expect(screen.getByTestId("notification-inbox")).toBeInTheDocument();
   });
 });

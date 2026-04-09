@@ -1,217 +1,158 @@
-/**
- * Notification Preferences Component
- *
- * Features:
- * - Toggle notification types on/off
- * - Choose delivery methods (in-app, email, push)
- * - Set quiet hours
- * - Configure notification frequency
- */
-
 "use client";
 
+import { useEffect, useState } from "react";
+import { Button, Card, Switch, Tooltip, message } from "antd";
+import { Lock, Info } from "lucide-react";
 import { SectionLoader } from "@/components/ui";
-import { useState, useCallback, useEffect } from "react";
-import { Card, Switch, Button, message, TimePicker } from "antd";
-import { Bell, Mail, Smartphone, Clock } from "lucide-react";
-import dayjs, { Dayjs } from "dayjs";
-import type { NotificationType } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
-interface NotificationPreference {
-  type: NotificationType;
-  enabled: boolean;
-  inApp: boolean;
-  email: boolean;
-  push: boolean;
-}
-
-interface ApiNotificationPreferences {
-  orderConfirmed: boolean;
-  orderReady: boolean;
-  orderDelivered: boolean;
-  orderCancelled: boolean;
-  paymentSuccess: boolean;
-  paymentFailed: boolean;
-  deliveryUpdates: boolean;
+type EditablePreferences = {
+  orderUpdates: boolean;
   vendorMessages: boolean;
-  lowStock: boolean;
-  newProducts: boolean;
   promotions: boolean;
-  emailNotifications: boolean;
+  pushNotifications: boolean;
   smsNotifications: boolean;
-  pushNotifications?: boolean;
-}
-
-const defaultPreferences: NotificationPreference[] = [
-  { type: "ORDER_CONFIRMED", enabled: true, inApp: true, email: true, push: true },
-  { type: "ORDER_READY", enabled: true, inApp: true, email: true, push: true },
-  { type: "ORDER_DELIVERED", enabled: true, inApp: true, email: true, push: false },
-  { type: "ORDER_CANCELLED", enabled: true, inApp: true, email: true, push: true },
-  { type: "PAYMENT_SUCCESS", enabled: true, inApp: true, email: true, push: false },
-  { type: "PAYMENT_FAILED", enabled: true, inApp: true, email: true, push: true },
-  { type: "DELIVERY_UPDATE", enabled: true, inApp: true, email: false, push: true },
-  { type: "VENDOR_MESSAGE", enabled: true, inApp: true, email: false, push: false },
-  { type: "LOW_STOCK", enabled: true, inApp: true, email: true, push: false },
-  { type: "NEW_PRODUCT", enabled: false, inApp: true, email: false, push: false },
-  { type: "PROMOTION", enabled: false, inApp: true, email: false, push: false },
-];
-
-const notificationLabels: Record<NotificationType, { title: string; description: string }> = {
-  ORDER_CONFIRMED: {
-    title: "Order Confirmed",
-    description: "When your order is confirmed by the vendor",
-  },
-  ORDER_READY: {
-    title: "Order Ready",
-    description: "When your order is ready for pickup or delivery",
-  },
-  ORDER_DELIVERED: {
-    title: "Order Delivered",
-    description: "When your order has been delivered",
-  },
-  ORDER_CANCELLED: {
-    title: "Order Cancelled",
-    description: "When an order is cancelled",
-  },
-  PAYMENT_SUCCESS: {
-    title: "Payment Success",
-    description: "When a payment is successfully processed",
-  },
-  PAYMENT_FAILED: {
-    title: "Payment Failed",
-    description: "When a payment fails",
-  },
-  DELIVERY_UPDATE: {
-    title: "Delivery Updates",
-    description: "Updates about your delivery status",
-  },
-  VENDOR_MESSAGE: {
-    title: "Vendor Messages",
-    description: "Messages from vendors about your orders",
-  },
-  LOW_STOCK: {
-    title: "Low Stock Alerts",
-    description: "When products in your wishlist are running low",
-  },
-  NEW_PRODUCT: {
-    title: "New Products",
-    description: "When vendors you follow add new products",
-  },
-  PROMOTION: {
-    title: "Promotions & Offers",
-    description: "Special offers and promotional deals",
-  },
 };
 
-export function NotificationPreferences() {
-  const [preferences, setPreferences] = useState<NotificationPreference[]>(defaultPreferences);
-  const [quietHoursEnabled, setQuietHoursEnabled] = useState(false);
-  const [quietHoursStart, setQuietHoursStart] = useState<Dayjs | null>(dayjs("22:00", "HH:mm"));
-  const [quietHoursEnd, setQuietHoursEnd] = useState<Dayjs | null>(dayjs("08:00", "HH:mm"));
-  const [saving, setSaving] = useState(false);
+type PreferenceApiResponse = {
+  success?: boolean;
+  note?: string;
+  editable?: EditablePreferences;
+  preferences?: {
+    orderUpdates?: boolean;
+    vendorMessages?: boolean;
+    promotions?: boolean;
+    pushNotifications?: boolean;
+    smsNotifications?: boolean;
+  };
+};
 
-  const toUiPreferences = (api: ApiNotificationPreferences): NotificationPreference[] => [
-    { type: "ORDER_CONFIRMED", enabled: api.orderConfirmed, inApp: api.orderConfirmed, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "ORDER_READY", enabled: api.orderReady, inApp: api.orderReady, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "ORDER_DELIVERED", enabled: api.orderDelivered, inApp: api.orderDelivered, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "ORDER_CANCELLED", enabled: api.orderCancelled, inApp: api.orderCancelled, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "PAYMENT_SUCCESS", enabled: api.paymentSuccess, inApp: api.paymentSuccess, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "PAYMENT_FAILED", enabled: api.paymentFailed, inApp: api.paymentFailed, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "DELIVERY_UPDATE", enabled: api.deliveryUpdates, inApp: api.deliveryUpdates, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "VENDOR_MESSAGE", enabled: api.vendorMessages, inApp: api.vendorMessages, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "LOW_STOCK", enabled: api.lowStock, inApp: api.lowStock, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "NEW_PRODUCT", enabled: api.newProducts, inApp: api.newProducts, email: api.emailNotifications, push: api.pushNotifications ?? true },
-    { type: "PROMOTION", enabled: api.promotions, inApp: api.promotions, email: api.emailNotifications, push: api.pushNotifications ?? true },
-  ];
+const DEFAULT_EDITABLE: EditablePreferences = {
+  orderUpdates: true,
+  vendorMessages: true,
+  promotions: false,
+  pushNotifications: true,
+  smsNotifications: false,
+};
 
-  const toApiPreferences = (ui: NotificationPreference[]): ApiNotificationPreferences => {
-    const findByType = (type: NotificationType) => ui.find((item) => item.type === type);
+const EDITABLE_CONTROLS: Array<{ key: keyof EditablePreferences; title: string; description: string }> = [
+  {
+    key: "orderUpdates",
+    title: "Order and payment updates",
+    description: "In-app and push updates for order/payment lifecycle events.",
+  },
+  {
+    key: "vendorMessages",
+    title: "Vendor messages",
+    description: "Messages and operational updates from vendors.",
+  },
+  {
+    key: "promotions",
+    title: "Promotions and new products",
+    description: "Marketing announcements and new listing highlights.",
+  },
+  {
+    key: "pushNotifications",
+    title: "Browser push notifications",
+    description: "Allow this browser to receive push notifications.",
+  },
+  {
+    key: "smsNotifications",
+    title: "SMS notifications",
+    description: "Receive supported alerts by SMS where available.",
+  },
+];
+
+function normalizeEditable(payload?: PreferenceApiResponse): EditablePreferences {
+  const toBoolean = (value: unknown, fallback = false) =>
+    typeof value === "boolean" ? value : fallback;
+
+  if (payload?.editable) {
     return {
-      orderConfirmed: findByType("ORDER_CONFIRMED")?.enabled ?? true,
-      orderReady: findByType("ORDER_READY")?.enabled ?? true,
-      orderDelivered: findByType("ORDER_DELIVERED")?.enabled ?? true,
-      orderCancelled: findByType("ORDER_CANCELLED")?.enabled ?? true,
-      paymentSuccess: findByType("PAYMENT_SUCCESS")?.enabled ?? true,
-      paymentFailed: findByType("PAYMENT_FAILED")?.enabled ?? true,
-      deliveryUpdates: findByType("DELIVERY_UPDATE")?.enabled ?? true,
-      vendorMessages: findByType("VENDOR_MESSAGE")?.enabled ?? true,
-      lowStock: findByType("LOW_STOCK")?.enabled ?? true,
-      newProducts: findByType("NEW_PRODUCT")?.enabled ?? false,
-      promotions: findByType("PROMOTION")?.enabled ?? false,
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: ui.some((item) => item.push),
+      orderUpdates: toBoolean(payload.editable.orderUpdates, true),
+      vendorMessages: toBoolean(payload.editable.vendorMessages, true),
+      promotions: toBoolean(payload.editable.promotions, false),
+      pushNotifications: toBoolean(payload.editable.pushNotifications, true),
+      smsNotifications: toBoolean(payload.editable.smsNotifications, false),
     };
+  }
+
+  if (payload?.preferences) {
+    return {
+      orderUpdates: toBoolean(payload.preferences.orderUpdates, true),
+      vendorMessages: toBoolean(payload.preferences.vendorMessages, true),
+      promotions: toBoolean(payload.preferences.promotions, false),
+      pushNotifications: toBoolean(payload.preferences.pushNotifications, true),
+      smsNotifications: toBoolean(payload.preferences.smsNotifications, false),
+    };
+  }
+
+  return DEFAULT_EDITABLE;
+}
+
+export function NotificationPreferences() {
+  const [editable, setEditable] = useState<EditablePreferences>(DEFAULT_EDITABLE);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState(
+    "Critical order/payment/delivery emails remain enforced for account safety."
+  );
+
+  const fetchPreferences = async (): Promise<PreferenceApiResponse> => {
+    const res = await fetch("/api/notifications/preferences");
+    const data = (await res.json()) as PreferenceApiResponse;
+
+    if (!res.ok || !data.success) {
+      const details = typeof (data as { error?: unknown }).error === "string" ? (data as { error: string }).error : "Unknown error";
+      throw new Error(`Failed to fetch notification preferences (status ${res.status}): ${details}`);
+    }
+    return data;
   };
 
-  const fetchPreferences = useCallback(async (): Promise<NotificationPreference[]> => {
-    const res = await fetch("/api/notifications/preferences");
-    const data = await res.json();
-
-    if (!res.ok || !data.success || !data.preferences) {
-      throw new Error(data?.error || "Failed to fetch preferences");
-    }
-
-    return toUiPreferences(data.preferences as ApiNotificationPreferences);
-  }, []);
-
-  const {
-    data: fetchedPreferences,
-    isLoading: loading,
-    isRefreshing,
-    error,
-    refresh,
-  } = useSmartResource(fetchPreferences, {
+  const { data, isLoading, isRefreshing, error, refresh } = useSmartResource(fetchPreferences, {
     key: "notification-preferences-resource",
-    refreshIntervalMs: 90_000,
-    staleTimeMs: 20_000,
+    refreshIntervalMs: 5 * 60_000,
+    staleTimeMs: 90_000,
   });
 
-  const effectivePreferences = fetchedPreferences ?? preferences;
-
   useEffect(() => {
-    if (!fetchedPreferences) return;
-    setPreferences(fetchedPreferences);
-    setQuietHoursEnabled(false);
-    setQuietHoursStart(dayjs("22:00", "HH:mm"));
-    setQuietHoursEnd(dayjs("08:00", "HH:mm"));
-  }, [fetchedPreferences]);
+    if (!data) return;
+    setEditable(normalizeEditable(data));
+    if (data.note) {
+      setNotice(data.note);
+    }
+  }, [data]);
 
-  const handleSave = async () => {
+  const updateEditable = (key: keyof EditablePreferences, value: boolean) => {
+    setEditable((current) => ({ ...current, [key]: value }));
+  };
+
+  const savePreferences = async () => {
     setSaving(true);
     try {
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toApiPreferences(preferences)),
+        body: JSON.stringify({ editable }),
       });
-
-      if (res.ok) {
-        message.success("Preferences saved successfully");
-        await refresh(true);
-      } else {
-        message.error("Failed to save preferences");
+      const payload = (await res.json()) as PreferenceApiResponse;
+      if (!res.ok || !payload.success) {
+        throw new Error("Save failed");
       }
-    } catch (error) {
-      console.error("Save error:", error);
-      message.error("Failed to save preferences");
+      setEditable(normalizeEditable(payload));
+      if (payload.note) {
+        setNotice(payload.note);
+      }
+      message.success("Notification preferences saved");
+      await refresh(true);
+    } catch (saveError) {
+      console.error("Failed to save notification preferences:", saveError);
+      message.error("Failed to save notification preferences");
     } finally {
       setSaving(false);
     }
   };
 
-  const togglePreference = (
-    type: NotificationType,
-    field: keyof NotificationPreference,
-    value: boolean
-  ) => {
-    setPreferences((prev) =>
-      prev.map((pref) => (pref.type === type ? { ...pref, [field]: value } : pref))
-    );
-  };
-
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader size="lg" className="py-12" />;
   }
 
@@ -221,109 +162,56 @@ export function NotificationPreferences() {
         <p className="text-xs text-ds-text-tertiary">Refreshing notification preferences...</p>
       ) : null}
       {error ? <p className="text-xs text-ds-status-error-text">{error}</p> : null}
-      {/* Notification Types */}
-      <Card title="Notification Types" className="shadow-ds-sm">
+
+      <Card title="Editable Preferences" className="shadow-ds-sm">
         <div className="space-y-4">
-          {effectivePreferences.map((pref) => {
-            const info = notificationLabels[pref.type];
-            return (
-              <div key={pref.type} className="border-b last:border-b-0 pb-4 last:pb-0">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-ds-text-primary">{info.title}</h4>
-                    <p className="text-sm text-ds-text-secondary">{info.description}</p>
-                  </div>
-                  <Switch
-                    checked={pref.enabled}
-                    onChange={(checked) => togglePreference(pref.type, "enabled", checked)}
-                  />
-                </div>
-
-                {pref.enabled && (
-                  <div className="flex gap-4 ml-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <Bell size={16} className="text-ds-brand-primary-light" />
-                      <span>In-App</span>
-                      <Switch
-                        size="small"
-                        checked={pref.inApp}
-                        onChange={(checked) => togglePreference(pref.type, "inApp", checked)}
-                      />
-                    </label>
-
-                    <label className="flex items-center gap-2 text-sm">
-                      <Mail size={16} className="text-ds-status-info" />
-                      <span>Email</span>
-                      <Switch
-                        size="small"
-                        checked={pref.email}
-                        onChange={(checked) => togglePreference(pref.type, "email", checked)}
-                      />
-                    </label>
-
-                    <label className="flex items-center gap-2 text-sm">
-                      <Smartphone size={16} className="text-ds-status-success" />
-                      <span>Push</span>
-                      <Switch
-                        size="small"
-                        checked={pref.push}
-                        onChange={(checked) => togglePreference(pref.type, "push", checked)}
-                      />
-                    </label>
-                  </div>
-                )}
+          {EDITABLE_CONTROLS.map((control) => (
+            <div
+              key={control.key}
+              className="flex items-center justify-between border-b border-ds-border-base pb-4 last:border-b-0 last:pb-0"
+            >
+              <div className="pr-4">
+                <h4 className="font-semibold text-ds-text-primary">{control.title}</h4>
+                <p className="text-sm text-ds-text-secondary">{control.description}</p>
               </div>
-            );
-          })}
+              <Switch
+                checked={editable[control.key]}
+                onChange={(checked) => updateEditable(control.key, checked)}
+              />
+            </div>
+          ))}
         </div>
       </Card>
 
-      {/* Quiet Hours */}
-      <Card title="Quiet Hours" className="shadow-ds-sm">
+      <Card title="Enforced Safety Rules" className="shadow-ds-sm">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-semibold text-ds-text-primary">Enable Quiet Hours</h4>
-              <p className="text-sm text-ds-text-secondary">
-                Mute notifications during specific hours
-              </p>
+          <div className="flex items-center justify-between border-b border-ds-border-base pb-4">
+            <div className="pr-4">
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-ds-text-primary">
+                  Critical order/payment/delivery email alerts
+                </h4>
+                <Tooltip title="This control is enforced for account safety and cannot be disabled.">
+                  <Info className="h-4 w-4 text-ds-text-tertiary" />
+                </Tooltip>
+              </div>
+              <p className="text-sm text-ds-text-secondary">{notice}</p>
             </div>
-            <Switch checked={quietHoursEnabled} onChange={setQuietHoursEnabled} />
+            <div className="flex items-center gap-2 text-ds-text-tertiary">
+              <Lock className="h-4 w-4" />
+              <Switch checked disabled />
+            </div>
           </div>
-
-          {quietHoursEnabled && (
-            <div className="flex items-center gap-4 ml-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Start Time</label>
-                <TimePicker
-                  value={quietHoursStart}
-                  onChange={setQuietHoursStart}
-                  format="HH:mm"
-                  suffixIcon={<Clock size={16} />}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">End Time</label>
-                <TimePicker
-                  value={quietHoursEnd}
-                  onChange={setQuietHoursEnd}
-                  format="HH:mm"
-                  suffixIcon={<Clock size={16} />}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button type="primary" size="large" onClick={handleSave} loading={saving}>
+      <div className="flex justify-end gap-3">
+        <Button onClick={() => refresh(true)} disabled={saving}>
+          Reset
+        </Button>
+        <Button type="primary" onClick={savePreferences} loading={saving}>
           Save Preferences
         </Button>
-        <p className="ml-3 text-xs text-ds-text-secondary">
-          Critical order/payment/delivery emails remain enabled for account safety.
-        </p>
       </div>
     </div>
   );
