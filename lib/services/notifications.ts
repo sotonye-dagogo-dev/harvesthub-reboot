@@ -130,9 +130,6 @@ export async function dispatchNotification(
   }
 
   const typeEnabled = shouldDeliverType(type, preferences);
-  if (!typeEnabled) {
-    return { inAppCreated: false, emailSent: false, pushDeliveredCount: 0 };
-  }
 
   let inAppCreated = false;
   let emailSent = false;
@@ -170,7 +167,8 @@ export async function dispatchNotification(
   const canSendEmail =
     requestedChannels.email &&
     featureFlags.enableEmail &&
-    ((preferences?.emailNotifications ?? true) || isMandatorySystemEmail(type));
+    (isMandatorySystemEmail(type) ||
+      (allowOptionalChannels && (preferences?.emailNotifications ?? true)));
 
   if (canSendEmail) {
     const actionLink = resolvedTemplate.link ? toAbsoluteLink(resolvedTemplate.link) : null;

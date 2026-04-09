@@ -8,6 +8,8 @@ export function getRuntimeActivityTier(activeRuntimeOps: number): RuntimeActivit
 
 export function shouldShowRuntimeActivity(activeRuntimeOps: number, elapsedMs: number): boolean {
   if (activeRuntimeOps <= 0) return false;
+  // Show quickly for higher activity, delay medium activity slightly, and for exactly one
+  // in-flight operation only show if it keeps running long enough to be user-noticeable.
   if (activeRuntimeOps >= 3) return elapsedMs >= 700;
   if (activeRuntimeOps === 2) return elapsedMs >= 1500;
   return elapsedMs >= 4000;

@@ -41,12 +41,17 @@ function renderTemplate(input: string, metadata: NotificationMetadata): string {
     const value = metadata[key];
     if (typeof value === 'number') return value.toLocaleString('en-NG');
     if (typeof value === 'string') return value;
-    return key;
+    return '';
   });
 }
 
 export function resolveNotificationTemplate(context: ResolverContext): ResolvedNotificationTemplate {
   const template = NOTIFICATION_TEMPLATE_CONFIG[context.type];
+  const safeTemplate = template ?? {
+    title: 'Notification',
+    body: 'You have a new notification.',
+    defaultLink: '/notifications',
+  };
   const metadata = toMetadataRecord(context.metadata);
 
   const mergedMetadata: NotificationMetadata = {
@@ -63,9 +68,9 @@ export function resolveNotificationTemplate(context: ResolverContext): ResolvedN
     recipientFirstName: context.userContext?.firstName ?? metadata.recipientFirstName,
   };
 
-  const resolvedTitle = context.fallbackTitle || renderTemplate(template.title, mergedMetadata);
-  const resolvedMessage = context.fallbackMessage || renderTemplate(template.body, mergedMetadata);
-  const resolvedLink = context.fallbackLink ?? template.defaultLink ?? '/notifications';
+  const resolvedTitle = context.fallbackTitle || renderTemplate(safeTemplate.title, mergedMetadata);
+  const resolvedMessage = context.fallbackMessage || renderTemplate(safeTemplate.body, mergedMetadata);
+  const resolvedLink = context.fallbackLink ?? safeTemplate.defaultLink ?? '/notifications';
 
   return {
     title: resolvedTitle,

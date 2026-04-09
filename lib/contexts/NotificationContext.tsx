@@ -8,7 +8,7 @@ interface NotificationContextType {
   unreadCount: number;
   loading: boolean;
   error: string | null;
-  fetchNotifications: () => Promise<void>;
+  fetchNotifications: (silent?: boolean) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -67,9 +67,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           setLastSyncedAt(new Date());
           return;
         }
-        if (res.status !== 401) {
-          console.warn("Notifications API not available");
-        }
+        console.warn("Notifications API not available");
         setError("Unable to load notifications right now.");
         return;
       }
@@ -233,7 +231,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         unreadCount,
         loading,
         error,
-        fetchNotifications: () => fetchNotifications(),
+        fetchNotifications,
         markAsRead,
         markAllAsRead,
         deleteNotification,

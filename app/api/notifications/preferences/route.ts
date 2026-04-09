@@ -8,14 +8,16 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
-function toPreferencesPayload(prefs: {
+type PersistedPreferenceShape = {
     orderUpdates: boolean;
     promotions: boolean;
     vendorMessages: boolean;
     emailNotifications: boolean;
     smsNotifications: boolean;
     pushNotifications: boolean;
-}) {
+};
+
+function toPreferencesPayload(prefs: PersistedPreferenceShape) {
     return {
         note: 'Critical system email notifications remain mandatory and cannot be disabled.',
         editable: {
@@ -26,7 +28,7 @@ function toPreferencesPayload(prefs: {
             smsNotifications: prefs.smsNotifications,
         },
         enforced: {
-            criticalEmailNotifications: true,
+            criticalEmail: true,
             criticalTypes: [
                 'ORDER_CONFIRMED',
                 'ORDER_READY',

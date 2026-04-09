@@ -64,23 +64,26 @@ const EDITABLE_CONTROLS: Array<{ key: keyof EditablePreferences; title: string; 
 ];
 
 function normalizeEditable(payload?: PreferenceApiResponse): EditablePreferences {
+  const toBoolean = (value: unknown, fallback = false) =>
+    typeof value === "boolean" ? value : fallback;
+
   if (payload?.editable) {
     return {
-      orderUpdates: Boolean(payload.editable.orderUpdates),
-      vendorMessages: Boolean(payload.editable.vendorMessages),
-      promotions: Boolean(payload.editable.promotions),
-      pushNotifications: Boolean(payload.editable.pushNotifications),
-      smsNotifications: Boolean(payload.editable.smsNotifications),
+      orderUpdates: toBoolean(payload.editable.orderUpdates, true),
+      vendorMessages: toBoolean(payload.editable.vendorMessages, true),
+      promotions: toBoolean(payload.editable.promotions, false),
+      pushNotifications: toBoolean(payload.editable.pushNotifications, true),
+      smsNotifications: toBoolean(payload.editable.smsNotifications, false),
     };
   }
 
   if (payload?.preferences) {
     return {
-      orderUpdates: Boolean(payload.preferences.orderUpdates),
-      vendorMessages: Boolean(payload.preferences.vendorMessages),
-      promotions: Boolean(payload.preferences.promotions),
-      pushNotifications: Boolean(payload.preferences.pushNotifications),
-      smsNotifications: Boolean(payload.preferences.smsNotifications),
+      orderUpdates: toBoolean(payload.preferences.orderUpdates, true),
+      vendorMessages: toBoolean(payload.preferences.vendorMessages, true),
+      promotions: toBoolean(payload.preferences.promotions, false),
+      pushNotifications: toBoolean(payload.preferences.pushNotifications, true),
+      smsNotifications: toBoolean(payload.preferences.smsNotifications, false),
     };
   }
 
@@ -99,7 +102,8 @@ export function NotificationPreferences() {
     const data = (await res.json()) as PreferenceApiResponse;
 
     if (!res.ok || !data.success) {
-      throw new Error("Failed to fetch notification preferences");
+      const details = typeof (data as { error?: unknown }).error === "string" ? (data as { error: string }).error : "Unknown error";
+      throw new Error(`Failed to fetch notification preferences (status ${res.status}): ${details}`);
     }
     return data;
   };
