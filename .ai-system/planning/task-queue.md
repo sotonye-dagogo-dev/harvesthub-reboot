@@ -555,3 +555,49 @@
   - [ ] Capture UI evidence: sidebar visibility on analytics/wallet/profile/notifications + vendor/ad verification document previews.
     - [ ] Execute checklist in `.ai-system/checkpoints/runtime-closeout-ui-evidence-2026-04-09.md` and attach screenshots.
   - [x] Re-run full quality matrix after blocker migrations complete.
+
+---
+
+## Feature Planning Queue (2026-04-09) - Notification Inbox Accessibility + Preference Integrity + Runtime Signal Tuning
+
+> **Section summary:** Planning backlog from `plan-feature.md` directive to expose a real notifications inbox, make preference toggles truthful, and reduce noisy runtime processing refresh behavior.
+
+- [x] Package single-pass cloud execution handoff for this feature.
+  - [x] Added temporary execution plan: `.ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md`.
+  - [x] Added copy/paste cloud kickoff prompt for all-slices implementation with mandatory validation + .ai-system update rules.
+
+- [ ] Establish canonical notifications UX route contract.
+  - [ ] Make `/notifications` the user inbox timeline route and keep `/notifications/settings` for preferences only.
+  - [ ] Ensure buyer/vendor/admin shell parity and sidebar/nav discoverability for both routes.
+  - [ ] Reuse existing notifications APIs/components where possible; avoid schema migration in this feature pass.
+
+- [ ] Deliver full-page inbox experience from existing notification services.
+  - [ ] Build `NotificationInbox` page composition using existing read/unread, mark-read, mark-all-read, delete, and CTA link actions.
+  - [ ] Consolidate overlapping bell/drawer/context fetch patterns so unread count and inbox list stay in sync.
+  - [ ] Add empty/error/loading states with clear retry actions.
+
+- [ ] Introduce config-driven notification template intelligence.
+  - [ ] Add canonical template config per notification type (title/body variants, CTA labels, optional media/preview metadata).
+  - [ ] Add resolver service that enriches messages using existing user context and domain metadata (signup date, verification transitions, ad/content status, order/payment lifecycle).
+  - [ ] Integrate resolver into `dispatchNotification` while preserving existing channel preference and mandatory delivery logic.
+
+- [ ] Fix preference toggle integrity and enforceability semantics.
+  - [ ] Remove misleading per-toggle behavior where backend collapses values into coarse flags without clear UI explanation.
+  - [ ] Explicitly separate editable toggles from enforced mandatory channels.
+  - [ ] Add lock/tooltip/info display for non-editable controls and align save/reset copy with actual persistence behavior.
+
+- [ ] Tune refresh cadence and global processing notifier behavior.
+  - [ ] Reduce aggressive polling/auto-refresh defaults across notifications/runtime resources.
+  - [ ] Prefer user-triggered refresh plus long idle-time refresh windows (5-10 minutes) for non-critical domains.
+  - [ ] Replace `Processing... <task count>` with threshold-based copy and suppress short/background-only churn.
+  - [ ] Keep real-time feedback for explicitly user-triggered long-running flows (checkout/payment/order status transitions).
+
+- [ ] Add regression coverage for notifications and runtime feedback contracts.
+  - [ ] Inbox route rendering and role-aware shell/navigation coverage.
+  - [ ] Preference toggles: editable vs enforced lock semantics and persistence mapping.
+  - [ ] Template resolver contract tests (context-aware title/body/CTA selection).
+  - [ ] Runtime activity copy threshold and suppression behavior tests.
+
+- [ ] Finalize validation and documentation sync.
+  - [ ] Run targeted lint, `tsc --noEmit`, focused Vitest suites, and route/sidebar audits for touched scope.
+  - [ ] Update `.ai-system/agents/system-architecture.md`, `.ai-system/agents/repair-system.md`, `.ai-system/memory/project-decisions.md`, `.ai-system/checkpoints/session-log.md`, and `.ai-system/summaries/dev-history.md`.

@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Notification Assurance Pass Reuses Existing Persistence and Avoids Schema Migration
+
+**Decision:** For the notifications assurance feature pass, keep the existing persisted in-app notification model (`notification` + `notificationPreference`) and avoid Prisma schema migration; add intelligence through config-driven templates/resolvers and frontend routing/composition changes instead.
+**Date:** 2026-04-09
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+The repository already has functional notification CRUD, unread tracking, and preference persistence. Current user pain is discoverability (`/notifications` not acting as inbox), toggle truthfulness, and noisy processing UX rather than storage-model gaps. Avoiding schema change reduces risk and aligns with user directive for this pass.
+
+**Alternatives Considered:**
+
+- Introduce a new inbox schema or event-store model immediately (rejected: unnecessary migration scope for current assurance goals).
+- Remove persistence and compute inbox purely from transient state (rejected: weak read/unread continuity and inconsistent cross-device experience).
+
+**Implications:**
+
+- Notification improvements should prioritize route accessibility, template resolution, and UI contract correctness.
+- Existing dispatch and preference models remain source-of-truth, with clearer editable/enforced semantics in UI.
+- Schema migrations are deferred unless a future feature requires new durable fields that cannot be derived from existing metadata.
+
 ## Runtime Processing Feedback Is Global and In-Flight Driven
 
 **Decision:** Surface a universal processing indicator from provider scope by observing runtime store `inFlight` counters, and treat first-load resource states as loading until initial payload exists (to prevent transient false-empty states).

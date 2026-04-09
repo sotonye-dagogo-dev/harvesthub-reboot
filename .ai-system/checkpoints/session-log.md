@@ -39,6 +39,67 @@
 
 ---
 
+## Session 44 — 2026-04-09
+
+**Goal:**
+Prepare a one-shot cloud implementation handoff (all slices) for the notifications assurance feature with strict `.ai-system` compliance and refreshed repo context packaging.
+
+**Completed:**
+
+- Created a dedicated temporary execution plan for cloud run:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md`
+- Included ordered slices, validation gates, mandatory docs synchronization rules, and a copy/paste cloud kickoff prompt.
+- Linked the handoff artifact into the notifications feature queue section for execution traceability.
+- Regenerated `repomix-current.txt` via MCP Repomix server after doc updates so cloud session context is current.
+
+**Files Modified:**
+
+- .ai-system/planning/cloud-session-temp-plan-2026-04-09-notification-assurance.md
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- repomix-current.txt
+
+**Next Task:**
+Launch cloud session using the new kickoff prompt and execute all slices in one pass.
+
+**Notes / Blockers:**
+
+- Packaging/handoff session only; production feature implementation remains to be executed in cloud run.
+
+---
+
+## Session 43 — 2026-04-09
+
+**Goal:**
+Execute `plan-feature.md` for notification assurance gaps: missing inbox accessibility, misleading notification settings toggles, and overly chatty runtime processing feedback.
+
+**Completed:**
+
+- Re-read required planning/system documents and audited current notification/runtime implementation paths.
+- Confirmed existing notification persistence/API path is functional, while `/notifications` currently renders preferences instead of inbox timeline.
+- Identified preference mismatch source: UI exposes many toggles while backend contract collapses several into coarse grouped flags.
+- Identified refresh/noise hotspots from interval polling and global runtime in-flight notifier copy (`Processing... task N`).
+- Added a full feature spec to project plan with architecture impact, data flow, risks, and rollout order.
+- Appended an executable queue section for inbox route restoration, template resolver modules, toggle truthfulness, and refresh/notifier tuning.
+- Recorded architectural decision to avoid schema migration in this pass and reuse existing notification persistence model.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Start implementation from the new queue section: make `/notifications` a real inbox route, keep `/notifications/settings` for preferences, then refactor preference mapping/lock-state UX and reduce refresh/notifier noise.
+
+**Notes / Blockers:**
+
+- Planning-only session; no production feature code changed.
+- Existing notifications API + DB-backed model is already present and should be reused unless a later requirement proves schema changes are necessary.
+
+---
+
 ## Session 42 — 2026-04-09
 
 **Goal:**
