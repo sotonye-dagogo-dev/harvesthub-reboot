@@ -27,6 +27,63 @@
 
 ## Decisions
 
+## Destructive Action Confirmation Uses a Provider-Registered Presenter Bridge
+
+**Decision:** Route all `openActionConfirm` calls through a provider-registered presenter bridge (`App.useApp().modal.confirm`) with fallback to static `Modal.confirm`, so destructive confirmation dialogs render consistently across route groups.
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Destructive actions in some surfaces (including operations product delete) could miss showing confirmation reliably when relying on static modal pathways only. Centralizing presenter wiring improves consistency and preserves single-source confirmation semantics.
+
+**Alternatives Considered:**
+
+- Keep static `Modal.confirm` only (rejected: context/render reliability drift across page shells).
+- Replace each action with local `Popconfirm` wrappers (rejected: repeated per-action duplication and weaker global governance).
+
+**Implications:**
+
+- New destructive actions should continue using `openActionConfirm` presets and inherit shared behavior.
+- Provider bootstrap must keep confirmation presenter registration active.
+
+## SMS Channel Is Explicitly Disabled Until Delivery Support Ships
+
+**Decision:** Keep SMS notification controls visible but disabled with clear "coming soon" messaging in UI and enforce `smsNotifications=false` in preferences API until SMS infrastructure is available.
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+User-facing SMS toggle implied functionality that is not operational yet. Disabling both UX toggle and backend persistence path avoids false affordance and inconsistent expectations.
+
+**Alternatives Considered:**
+
+- Hide SMS setting completely (rejected: loses roadmap visibility for users/admins).
+- Leave toggle editable and ignore server-side (rejected: misleading and erodes trust).
+
+**Implications:**
+
+- Preference payloads must report SMS as disabled regardless of persisted historical value.
+- Re-enable only when channel delivery path and test coverage are ready.
+
+## Operations Product Vendor Filter Must Preserve Explicit "All" Selection
+
+**Decision:** In operations product management, preserve explicit `All vendors` selection and stop bootstrap logic from auto-forcing admin filter to the first vendor.
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Admin filter selection reverted shortly after user interaction due to effect logic that reset filter state during vendor-options bootstrap, causing selector and list instability.
+
+**Alternatives Considered:**
+
+- Keep first-vendor auto-default behavior on every options refresh (rejected: overrides user intent and causes UI flicker/revert).
+- Persist first-vendor default only in local draft state (rejected: still hides explicit all-vendor scope by default).
+
+**Implications:**
+
+- Selector state now reflects user intent and remains stable across refresh cycles.
+- Similar filter bootstraps should avoid forced first-item selection unless explicitly required by business rules.
+
 ## Notification Assurance Pass Reuses Existing Persistence and Avoids Schema Migration
 
 **Decision:** For the notifications assurance feature pass, keep the existing persisted in-app notification model (`notification` + `notificationPreference`) and avoid Prisma schema migration; add intelligence through config-driven templates/resolvers and frontend routing/composition changes instead.

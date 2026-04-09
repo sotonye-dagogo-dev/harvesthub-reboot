@@ -2,6 +2,10 @@
 
 import { Modal } from "antd";
 
+type ActionConfirmPresenter = (config: Parameters<typeof Modal.confirm>[0]) => void;
+
+let actionConfirmPresenter: ActionConfirmPresenter | null = null;
+
 export interface ActionConfirmConfig {
   title: string;
   message: string;
@@ -111,16 +115,32 @@ export class ActionConfirmPresets {
   }
 }
 
+/**
+ * Registers a runtime-specific confirmation presenter.
+ * When available, this lets confirmation dialogs use Ant App context
+ * (`App.useApp().modal.confirm`) for better reliability and consistency.
+ */
+export function registerActionConfirmPresenter(presenter: ActionConfirmPresenter | null) {
+  actionConfirmPresenter = presenter;
+}
+
 export function openActionConfirm(
   config: ActionConfirmConfig,
   onConfirm: () => void | Promise<void>
 ) {
-  Modal.confirm({
+  const modalConfig: Parameters<typeof Modal.confirm>[0] = {
     title: config.title,
     content: config.message,
     okText: config.confirmText,
     cancelText: config.cancelText ?? "Cancel",
     okButtonProps: { danger: !!config.danger },
     onOk: onConfirm,
-  });
+  };
+
+  if (actionConfirmPresenter) {
+    actionConfirmPresenter(modalConfig);
+    return;
+  }
+
+  Modal.confirm(modalConfig);
 }

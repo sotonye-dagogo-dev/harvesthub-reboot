@@ -96,7 +96,12 @@ describe("NotificationPreferences integrity semantics", () => {
   it("renders enforced lock row and keeps locked switch disabled", () => {
     render(<NotificationPreferences />);
     expect(screen.getByText("Enforced Safety Rules")).toBeInTheDocument();
-    expect(screen.getByTestId("locked-switch")).toHaveAttribute("aria-disabled", "true");
+    const lockedSwitches = screen.getAllByTestId("locked-switch");
+    expect(lockedSwitches.length).toBeGreaterThanOrEqual(1);
+    lockedSwitches.forEach((control) => {
+      expect(control).toHaveAttribute("aria-disabled", "true");
+    });
+    expect(screen.getByText(/SMS notifications are coming soon/i)).toBeInTheDocument();
   });
 
   it("saves editable preferences payload only", async () => {

@@ -8,6 +8,10 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
+const SMS_NOTIFICATIONS_AVAILABLE = false;
+const PREFERENCE_NOTE =
+    'Critical system email notifications remain mandatory and cannot be disabled. SMS notifications are temporarily unavailable.';
+
 type PersistedPreferenceShape = {
     orderUpdates: boolean;
     promotions: boolean;
@@ -19,13 +23,13 @@ type PersistedPreferenceShape = {
 
 function toPreferencesPayload(prefs: PersistedPreferenceShape) {
     return {
-        note: 'Critical system email notifications remain mandatory and cannot be disabled.',
+        note: PREFERENCE_NOTE,
         editable: {
             orderUpdates: prefs.orderUpdates,
             vendorMessages: prefs.vendorMessages,
             promotions: prefs.promotions,
             pushNotifications: prefs.pushNotifications,
-            smsNotifications: prefs.smsNotifications,
+            smsNotifications: SMS_NOTIFICATIONS_AVAILABLE ? prefs.smsNotifications : false,
         },
         enforced: {
             criticalEmail: true,
@@ -52,7 +56,7 @@ function toPreferencesPayload(prefs: PersistedPreferenceShape) {
             newProducts: prefs.promotions,
             promotions: prefs.promotions,
             emailNotifications: true,
-            smsNotifications: prefs.smsNotifications,
+            smsNotifications: SMS_NOTIFICATIONS_AVAILABLE ? prefs.smsNotifications : false,
             pushNotifications: prefs.pushNotifications,
             orderUpdates: prefs.orderUpdates,
         },
@@ -132,7 +136,7 @@ export async function PUT(req: NextRequest) {
                     ? editablePayload.emailNotifications
                     : true,
             smsNotifications:
-                typeof editablePayload.smsNotifications === 'boolean'
+                SMS_NOTIFICATIONS_AVAILABLE && typeof editablePayload.smsNotifications === 'boolean'
                     ? editablePayload.smsNotifications
                     : false,
             pushNotifications:

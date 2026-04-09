@@ -24,6 +24,53 @@
 
 ---
 
+## 2026-04-09 — Follow-up Sweep: Destructive Confirm Single-Source Consolidation
+
+**Summary:**
+Completed a targeted follow-up sweep to patch remaining destructive actions that bypassed the shared confirmation utility. This pass removed legacy browser-confirm usage from the public-content operations editor and aligned local destructive section removal with the same single-source confirmation workflow.
+
+**Completed:**
+
+- Audited destructive UI actions for delete/remove patterns and confirm usage drift.
+- Replaced `window.confirm` in public-content delete flow with `openActionConfirm` + shared config builder.
+- Routed public-content section removal through shared `openActionConfirm` preset.
+- Re-validated that app/components destructive paths no longer rely on browser-native confirm dialogs.
+
+**Key Changes:**
+
+- Destructive confirmations now remain under shared utility governance for consistency and reliability.
+- Public-content editor behavior now matches operations-wide destructive-action confirmation patterns.
+
+**Next Sprint Focus:**
+Add focused regression tests for public-content destructive confirms and continue periodic sweeps when new destructive actions are introduced.
+
+---
+
+## 2026-04-09 — Regression Patch: SMS Toggle Guard + Products Filter Stability + Global Confirm Bridge
+
+**Summary:**
+Applied a targeted reliability patch after user QA feedback to fix three issues: unavailable SMS toggle affordance, operations product vendor filter reversion, and inconsistent destructive-action confirmation display. The patch keeps behavior consistent with existing architecture and avoids schema changes.
+
+**Completed:**
+
+- Disabled SMS preference editing with explicit "coming soon" UX guidance.
+- Enforced SMS-disabled semantics in notification preferences API payload mapping.
+- Fixed operations products admin filter logic so explicit `All vendors` selection persists.
+- Added provider-registered action-confirm presenter bridge for more reliable global destructive confirmations.
+- Updated and passed focused notification preference and notifications route tests.
+- Passed focused lint for all touched files.
+
+**Key Changes:**
+
+- User-facing settings now avoid false affordances for unavailable notification channels.
+- Operations product scope selector no longer auto-reverts to first vendor.
+- Destructive actions now use a stronger single-source confirmation pathway across app shells.
+
+**Next Sprint Focus:**
+Add focused regression for operations products delete confirmation interaction and complete a broader sweep for remaining destructive actions not yet using the shared confirmation utility.
+
+---
+
 ## 2026-04-09 — Notification Assurance Implementation Pass (Inbox + Integrity + Runtime Tuning)
 
 **Summary:**
