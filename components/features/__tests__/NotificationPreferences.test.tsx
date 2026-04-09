@@ -101,7 +101,11 @@ describe("NotificationPreferences integrity semantics", () => {
 
   it("saves editable preferences payload only", async () => {
     render(<NotificationPreferences />);
-    fireEvent.click(screen.getAllByTestId("editable-switch")[0]);
+    const [firstEditableSwitch] = screen.getAllByTestId("editable-switch");
+    if (!firstEditableSwitch) {
+      throw new Error("Expected at least one editable switch");
+    }
+    fireEvent.click(firstEditableSwitch);
     fireEvent.click(screen.getByText("Save Preferences"));
 
     await waitFor(() => {

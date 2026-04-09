@@ -39,6 +39,61 @@
 
 ---
 
+## Session 45 — 2026-04-09
+
+**Goal:**
+Implement the full notifications assurance block in one uninterrupted pass: inbox-first route contract, truthful preferences UX, config-driven template resolution, and calmer runtime processing signals.
+
+**Completed:**
+
+- Converted `/notifications` into inbox-first timeline surface and retained `/notifications/settings` as preferences-only route.
+- Added `NotificationInbox` page composition with read/read-all/delete/CTA actions, manual refresh, and loading/empty/error/retry states.
+- Consolidated bell/inbox synchronization by using `NotificationContext` as source-of-truth and reduced background polling cadence to 5 minutes.
+- Added config-driven notification template intelligence via:
+  - `lib/config/notificationTemplates.ts`
+  - `lib/services/notificationTemplateResolver.ts`
+  - `dispatchNotification` integration with metadata/user-context enrichment.
+- Hardened mandatory critical-email delivery semantics so order/payment/delivery emails are not suppressed by optional grouped preference toggles.
+- Reworked preferences UX/API contract to explicit `editable` vs `enforced` semantics and removed false-toggle affordances.
+- Tuned provider runtime activity notifier from `Processing... <task count>` to threshold-based human messaging with short-churn suppression.
+- Added focused regression coverage for route shell parity, preferences lock semantics, template resolver behavior, and runtime copy thresholds.
+- Completed required validation gates:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - focused vitest notifications/runtime suites
+  - `npm run audit:dead-links`
+  - `npm run audit:sidebar-routes`
+
+**Files Modified:**
+
+- app/notifications/page.tsx
+- app/notifications/NotificationInboxPageClient.tsx
+- app/notifications/settings/page.tsx
+- components/features/NotificationInbox.tsx
+- components/features/NotificationBell.tsx
+- components/features/NotificationPreferences.tsx
+- lib/contexts/NotificationContext.tsx
+- lib/services/notifications.ts
+- lib/config/notificationTemplates.ts
+- lib/services/notificationTemplateResolver.ts
+- app/providers.tsx
+- lib/config/runtimeActivityCopy.ts
+- app/api/notifications/preferences/route.ts
+- components/layout/Sidebar.tsx
+- lib/navigation.ts
+- tests under `app/notifications/**`, `components/features/**`, `lib/services/**`, and `lib/config/**`
+- `.ai-system` planning/history/architecture/decision artifacts
+
+**Next Task:**
+Raise PR for review and collect UX sign-off on inbox/settings behavior and runtime messaging tone.
+
+**Notes / Blockers:**
+
+- No Prisma schema migration was needed; existing notification persistence/api model was reused.
+- No blocking issues remain in the notification assurance queue section.
+
+---
+
 ## Session 44 — 2026-04-09
 
 **Goal:**

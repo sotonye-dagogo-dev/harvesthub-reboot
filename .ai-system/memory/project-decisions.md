@@ -47,6 +47,26 @@ The repository already has functional notification CRUD, unread tracking, and pr
 - Existing dispatch and preference models remain source-of-truth, with clearer editable/enforced semantics in UI.
 - Schema migrations are deferred unless a future feature requires new durable fields that cannot be derived from existing metadata.
 
+## Notification Dispatch Uses Template Resolver with Mandatory Critical-Email Override
+
+**Decision:** Resolve notification title/body/link/email subject through a config-driven template resolver in `dispatchNotification`, and bypass coarse optional type gating for mandatory order/payment/delivery email delivery.
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The assurance scope required richer, consistent channel copy without schema changes and stronger preference integrity. Existing flow could suppress mandatory emails when grouped optional toggles were disabled because type-level gating short-circuited all channels.
+
+**Alternatives Considered:**
+
+- Keep hardcoded per-call title/body strings only (rejected: drift and no centralized template governance).
+- Keep early type-gate return for all channels (rejected: violates mandatory critical-email guarantee).
+
+**Implications:**
+
+- Notification content is now centrally governed by template config with metadata/context enrichment.
+- Critical system emails (order/payment/delivery) remain deliverable even when optional in-app/push grouped toggles are off.
+- Existing persistence schema remains unchanged while messaging quality and compliance behavior improve.
+
 ## Runtime Processing Feedback Is Global and In-Flight Driven
 
 **Decision:** Surface a universal processing indicator from provider scope by observing runtime store `inFlight` counters, and treat first-load resource states as loading until initial payload exists (to prevent transient false-empty states).

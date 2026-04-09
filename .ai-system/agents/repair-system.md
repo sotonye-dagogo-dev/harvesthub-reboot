@@ -18,6 +18,39 @@
 
 ---
 
+## [Mandatory critical emails suppressed by grouped notification type gating]
+
+**Symptom:**
+
+- Critical order/payment/delivery email notifications could fail to send when users disabled grouped `orderUpdates`.
+- UI suggested critical emails were mandatory, but backend short-circuited all channels for that type group.
+
+**Root Cause:**
+
+- `dispatchNotification` returned early when coarse type preference (`orderUpdates`) was false.
+- Mandatory email override logic existed later in dispatch and was never reached in that branch.
+
+**Fix Applied:**
+
+- Added template resolution + channel gating split in dispatch flow.
+- Kept optional in-app/push channel gating tied to grouped preferences.
+- Preserved mandatory email delivery path for critical system types regardless of optional grouped toggle state.
+
+**Prevention:**
+
+- Avoid single early-return gates when channel policies differ (mandatory vs optional channels).
+- Assert mandatory-channel behavior with unit tests whenever preference mapping is changed.
+
+**Files Affected:**
+
+- lib/services/notifications.ts
+- lib/services/notificationTemplateResolver.ts
+- app/api/notifications/preferences/route.ts
+
+**Date:** 2026-04-09
+
+---
+
 ## [Server-component tests fail after page migration to client hooks]
 
 **Symptom:**

@@ -36,9 +36,9 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 | `app/api/`                   | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
 | `app/become-vendor`          | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`                   |
 | `lib/api/`                   | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                                           |
-| `lib/config/`                | Canonical runtime and discovery configuration                     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
+| `lib/config/`                | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
 | `lib/data/`                  | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
-| `lib/services/notifications` | Preference-aware notification fan-out across channels             | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
+| `lib/services/notifications` | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
 | `lib/utils/offlineQueue`     | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
 | `lib/schemas/`               | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
 | `lib/store/`                 | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
@@ -131,6 +131,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 7. App bootstrap (`app/providers.tsx`) prefetches role + route-tag scoped resources to warm start without broad over-fetching.
 8. Runtime telemetry tracks load latency, refresh churn, no-op ratio, retry volume, and rollback frequency.
 9. Provider-level runtime activity notifier surfaces global processing feedback from aggregate in-flight resources.
+10. Runtime activity copy uses threshold tiers (`Just a moment`, `Almost there`, `This might take a while`) and suppresses short background churn.
 
 ### Operations Dashboard Runtime API Flow
 
@@ -227,10 +228,20 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 ```
 1. Domain mutation (for example order creation or wallet deposit) calls `dispatchNotification`.
-2. Notification service checks user-level notification preferences.
-3. Service persists in-app notification record in Prisma.
-4. Service optionally sends email through Resend-backed email service.
-5. Service optionally sends web push to stored user subscriptions.
+2. Notification template resolver (`lib/services/notificationTemplateResolver.ts`) merges config-driven templates with event metadata + user context.
+3. Service checks user-level notification preferences and preserves mandatory critical-email delivery for order/payment/delivery events.
+4. Service persists in-app notification record in Prisma when optional type/channel is enabled.
+5. Service optionally sends email through Resend-backed email service.
+6. Service optionally sends web push to stored user subscriptions.
+
+### Notification Inbox + Preference Route Flow
+
+```
+1. `/notifications` renders full inbox timeline (`NotificationInbox`) with shared context actions (read, read-all, delete, refresh, CTA navigation).
+2. `/notifications/settings` renders preference controls only (`NotificationPreferences`) with explicit editable vs enforced sections.
+3. Sidebar/nav include both inbox and settings links for vendor/admin discoverability; buyer flows discover settings through inbox and bell-entry links.
+4. Notification context is source-of-truth for bell/drawer/inbox synchronization and now refreshes on a calmer 5-minute cadence plus manual refresh.
+```
 ```
 
 ### Data Persistence Flow
@@ -336,6 +347,7 @@ Migration direction:
 | 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings                 |
 | 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                     |
 | 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                               |
+| 2026-04-09 | Added notifications inbox-first route + template resolver  | Restore `/notifications` inbox discoverability, make preference UI truthful, and reduce churny runtime copy |
 
 ### Email Change + Reverification Flow
 
