@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Button, Card, SimplePagination, EmptyState } from "@/components/ui";
+import { Button, Card, SimplePagination, EmptyState, SectionLoader } from "@/components/ui";
+import { ClientDashboardShell } from "@/components/layout";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { Input, Modal, message } from "antd";
@@ -10,6 +11,7 @@ import { PLATFORM_DEFAULTS, TransactionStatus, TransactionType } from "@/lib/con
 import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
+import type { ReactElement } from "react";
 
 export default function WalletPage() {
   const { user } = useAuth();
@@ -54,12 +56,26 @@ export default function WalletPage() {
 
   const userWallet = walletResource?.wallet ?? null;
   const userTransactions = walletResource?.transactions ?? [];
+  const hasWalletPayload = typeof walletResource !== "undefined";
+  const isWalletBootstrapLoading = Boolean(user?.id) && !hasWalletPayload && !error;
 
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
   const paginatedTransactions = userTransactions.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const renderWithDashboardShell = (content: ReactElement): ReactElement => {
+    if (user?.role === "ADMIN" || user?.role === "VENDOR") {
+      return (
+        <ClientDashboardShell sidebarType={user.role === "ADMIN" ? "admin" : "vendor"}>
+          {content}
+        </ClientDashboardShell>
+      );
+    }
+
+    return content;
+  };
 
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount);
@@ -195,19 +211,30 @@ export default function WalletPage() {
     );
   }
 
+  if (isWalletBootstrapLoading || (isLoading && !hasWalletPayload)) {
+    return renderWithDashboardShell(
+      <div className="container mx-auto px-4 py-16">
+        <SectionLoader />
+        <p className="mt-2 text-center text-sm text-ds-text-secondary">
+          Loading wallet information...
+        </p>
+      </div>
+    );
+  }
+
   if (!userWallet) {
-    return (
+    return renderWithDashboardShell(
       <div className="container mx-auto px-4 py-16">
         <EmptyState
           icon={<WalletIcon className="h-12 w-12" />}
-          title="Wallet not found"
-          description="Unable to load your wallet information"
+          title={error ? "Unable to load wallet" : "Wallet not found"}
+          description={error || "Unable to load your wallet information"}
         />
       </div>
     );
   }
 
-  return (
+  const walletContent = (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-ds-text-primary">My Wallet</h1>
@@ -373,4 +400,6 @@ export default function WalletPage() {
       </Modal>
     </div>
   );
+
+  return renderWithDashboardShell(walletContent);
 }

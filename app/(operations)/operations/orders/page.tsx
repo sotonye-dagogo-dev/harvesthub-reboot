@@ -1,10 +1,26 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/utils/auth";
-import { DeliveryMethod, OrderStatus, UserRole } from "@/lib/constants";
-import { getOrdersByUserRole } from "@/lib/data/dataFetchers";
-import { OrderCard } from "@/components/features/OrderCard";
+"use client";
 
-function resolveDeliveryInfo(order: { deliveryAddress?: unknown; pickupDetails?: unknown }) {
+import { useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { DeliveryMethod, OrderStatus, UserRole } from "@/lib/constants";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { OrderCard } from "@/components/features/OrderCard";
+import { Button, SectionLoader } from "@/components/ui";
+
+type OrderLike = {
+  id: string;
+  orderNumber: string;
+  status: unknown;
+  total: number;
+  deliveryMethod: unknown;
+  deliveryAddress?: unknown;
+  pickupDetails?: unknown;
+  createdAt: string | Date;
+  items?: unknown[];
+};
+
+function resolveDeliveryInfo(order: Pick<OrderLike, "deliveryAddress" | "pickupDetails">) {
   const deliveryAddress =
     order.deliveryAddress && typeof order.deliveryAddress === "object"
       ? (order.deliveryAddress as Record<string, unknown>)
@@ -36,34 +52,87 @@ function toDeliveryMethod(value: unknown): DeliveryMethod {
     : DeliveryMethod.PICKUP;
 }
 
-export const dynamic = "force-dynamic";
+export default function OperationsOrdersPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
 
-export default async function OperationsOrdersPage() {
-  const user = await getCurrentUser();
+  useEffect(() => {
+    if (authLoading) return;
 
-  if (!user?.userId) {
-    redirect("/login?from=/operations/orders");
+    if (!user?.id) {
+      router.replace("/login?from=/operations/orders");
+      return;
+    }
+
+    if (user.role !== UserRole.ADMIN && user.role !== UserRole.VENDOR) {
+      router.replace("/unauthorized");
+    }
+  }, [authLoading, router, user?.id, user?.role]);
+
+  const loadOrders = useCallback(async (): Promise<OrderLike[]> => {
+    const response = await fetch("/api/orders?limit=100");
+    const data = (await response.json().catch(() => ({}))) as {
+      orders?: OrderLike[];
+      error?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load orders");
+    }
+
+    return Array.isArray(data.orders) ? data.orders : [];
+  }, []);
+
+  const {
+    data: orders,
+    isLoading,
+    isRefreshing,
+    error,
+    refresh,
+  } = useSmartResource(loadOrders, {
+    key: `operations-orders:${user?.id ?? "guest"}`,
+    enabled: Boolean(user?.id) && (user?.role === UserRole.ADMIN || user?.role === UserRole.VENDOR),
+    refreshIntervalMs: 60_000,
+    staleTimeMs: 15_000,
+  });
+
+  if (authLoading || (isLoading && !orders)) {
+    return <SectionLoader />;
   }
 
-  if (user.role !== UserRole.VENDOR && user.role !== UserRole.ADMIN) {
-    redirect("/unauthorized");
+  if (!user?.id) {
+    return null;
   }
 
-  const orders = await getOrdersByUserRole(user);
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VENDOR) {
+    return null;
+  }
+
+  const orderList = orders ?? [];
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-ds-text-primary">Orders Operations</h1>
-        <p className="text-ds-text-secondary">
-          Manage {user.role === UserRole.ADMIN ? "platform-wide" : "store"} orders.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ds-text-primary">Orders Operations</h1>
+          <p className="text-ds-text-secondary">
+            Manage {user.role === UserRole.ADMIN ? "platform-wide" : "store"} orders.
+          </p>
+          {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
+          {isRefreshing ? (
+            <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing orders...</p>
+          ) : null}
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+          Refresh
+        </Button>
       </div>
-      {orders.length === 0 ? (
+
+      {orderList.length === 0 ? (
         <p className="text-ds-text-secondary">No orders found yet.</p>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => (
+          {orderList.map((order) => (
             <OrderCard
               key={order.id}
               id={order.id}

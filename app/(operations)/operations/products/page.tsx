@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { LISTING_TYPES, PRODUCT_SUBCATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { loadLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/utils/localDraft";
@@ -79,12 +80,10 @@ export default function OperationsProductsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [products, setProducts] = useState<Product[]>([]);
   const [vendorOptions, setVendorOptions] = useState<VendorOption[]>([]);
   const [vendorScopeId, setVendorScopeId] = useState<string | null>(null);
   const [adminVendorFilter, setAdminVendorFilter] = useState<string>(VENDOR_FILTER_ALL);
 
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -106,11 +105,65 @@ export default function OperationsProductsPage() {
     return new Map<string, string>(LISTING_TYPES.map((item) => [item.value, item.label]));
   }, []);
 
+  const scopedVendorId =
+    user?.role === UserRole.VENDOR
+      ? vendorScopeId
+      : adminVendorFilter === VENDOR_FILTER_ALL
+        ? null
+        : adminVendorFilter;
+
+  const loadProductsResource = useCallback(async (): Promise<Product[]> => {
+    if (!user) return [];
+
+    if (user.role === UserRole.VENDOR && !vendorScopeId) {
+      return [];
+    }
+
+    const params = new URLSearchParams({ limit: "100" });
+    if (scopedVendorId) {
+      params.set("vendorId", scopedVendorId);
+    }
+
+    const response = await fetch(`/api/products?${params.toString()}`);
+    const data = (await response.json().catch(() => ({}))) as {
+      products?: Product[];
+      error?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to load products");
+    }
+
+    return Array.isArray(data.products) ? data.products : [];
+  }, [scopedVendorId, user, vendorScopeId]);
+
+  const {
+    data: productsResource,
+    isLoading: loading,
+    isRefreshing,
+    error: productsError,
+    refresh,
+  } = useSmartResource(loadProductsResource, {
+    key: `operations-products:${user?.id ?? "guest"}:${scopedVendorId ?? "all"}`,
+    enabled:
+      Boolean(user?.id) &&
+      (user?.role === UserRole.ADMIN || (user?.role === UserRole.VENDOR && Boolean(vendorScopeId))),
+    staleTimeMs: 20_000,
+    refreshIntervalMs: 60_000,
+    onError: (error) => {
+      const description = error instanceof Error ? error.message : "Failed to load products";
+      message.error(description);
+    },
+  });
+
+  const products = productsResource;
+
   const stats = useMemo(() => {
+    const productList = products ?? [];
     return {
-      total: products.length,
-      active: products.filter((item) => item.isActive).length,
-      inactive: products.filter((item) => !item.isActive).length,
+      total: productList.length,
+      active: productList.filter((item) => item.isActive).length,
+      inactive: productList.filter((item) => !item.isActive).length,
     };
   }, [products]);
 
@@ -150,44 +203,6 @@ export default function OperationsProductsPage() {
 
     return id;
   }, []);
-
-  const loadProducts = useCallback(async () => {
-    if (!user) return;
-
-    const vendorId =
-      user.role === UserRole.VENDOR
-        ? vendorScopeId
-        : adminVendorFilter === VENDOR_FILTER_ALL
-          ? null
-          : adminVendorFilter;
-
-    if (user.role === UserRole.VENDOR && !vendorId) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ limit: "100" });
-      if (vendorId) {
-        params.set("vendorId", vendorId);
-      }
-
-      const response = await fetch(`/api/products?${params.toString()}`);
-      const data = (await response.json()) as { products?: Product[]; error?: string };
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load products");
-      }
-
-      setProducts(Array.isArray(data.products) ? data.products : []);
-    } catch (error) {
-      const description = error instanceof Error ? error.message : "Failed to load products";
-      message.error(description);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [adminVendorFilter, user, vendorScopeId]);
 
   useEffect(() => {
     if (!user) return;
@@ -232,10 +247,6 @@ export default function OperationsProductsPage() {
       mounted = false;
     };
   }, [adminVendorFilter, loadVendorOptions, loadVendorScope, router, user]);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
 
   const openCreateModal = () => {
     const draft = loadLocalDraft<ProductFormDraft>(draftKey);
@@ -358,7 +369,7 @@ export default function OperationsProductsPage() {
       );
       clearLocalDraft(draftKey);
       closeModal();
-      await loadProducts();
+      await refresh(true);
     } catch (error) {
       const description = error instanceof Error ? error.message : "Unable to save product";
       message.error(description);
@@ -379,7 +390,7 @@ export default function OperationsProductsPage() {
       }
 
       message.success("Product deleted successfully");
-      await loadProducts();
+      await refresh(true);
     } catch (error) {
       const description = error instanceof Error ? error.message : "Unable to delete product";
       message.error(description);
@@ -521,6 +532,12 @@ export default function OperationsProductsPage() {
           <p className="mt-1 text-ds-text-secondary">
             Create, update, and deactivate products from the operations workspace.
           </p>
+          {productsError ? (
+            <p className="mt-1 text-xs text-ds-status-error-text">{productsError}</p>
+          ) : null}
+          {isRefreshing ? (
+            <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing products...</p>
+          ) : null}
           <div className="mt-3 flex flex-wrap gap-3 text-sm">
             <Tag color="blue">Total: {stats.total}</Tag>
             <Tag color="green">Active: {stats.active}</Tag>
@@ -543,7 +560,7 @@ export default function OperationsProductsPage() {
               ]}
             />
           )}
-          <Button icon={<ReloadOutlined />} onClick={loadProducts}>
+          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
             Refresh
           </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
@@ -554,9 +571,9 @@ export default function OperationsProductsPage() {
 
       <Table
         rowKey="id"
-        loading={loading}
+        loading={loading || isRefreshing}
         columns={columns}
-        dataSource={products}
+        dataSource={products ?? []}
         pagination={{ defaultPageSize: 10 }}
         scroll={{ x: 1100 }}
       />

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { Table, Button, Modal, message, Tag, Tooltip } from "antd";
+import { Table, Button, Modal, message, Tag, Tooltip, Image } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { AdApplication } from "@/lib/types";
 import { AD_BANNER_DIMENSIONS } from "@/lib/constants";
@@ -109,9 +109,7 @@ export default function OperationsAdsPage() {
     const confirmConfig = new ActionConfirmBuilder()
       .title(status === "APPROVED" ? "Approve application" : "Reject application")
       .message(
-        status === "APPROVED"
-          ? "Approve this ad application?"
-          : "Reject this ad application?"
+        status === "APPROVED" ? "Approve this ad application?" : "Reject this ad application?"
       )
       .confirmText(status === "APPROVED" ? "Approve" : "Reject")
       .danger(status !== "APPROVED")
@@ -227,6 +225,16 @@ export default function OperationsAdsPage() {
                       <p>
                         <strong>Image URL:</strong> {record.imageUrl}
                       </p>
+                      {record.imageUrl ? (
+                        <div className="my-2">
+                          <Image
+                            src={record.imageUrl}
+                            alt="Ad creative"
+                            width={320}
+                            className="max-w-full rounded-ds-md"
+                          />
+                        </div>
+                      ) : null}
                       <p>
                         <strong>Link:</strong> {record.linkUrl || "n/a"}
                       </p>
@@ -237,9 +245,19 @@ export default function OperationsAdsPage() {
                       <p>
                         <strong>Proof of Transfer:</strong>{" "}
                         {record.proofOfTransferUrl ? (
-                          <a href={record.proofOfTransferUrl} target="_blank" rel="noreferrer">
-                            View proof
-                          </a>
+                          <span>
+                            <a href={record.proofOfTransferUrl} target="_blank" rel="noreferrer">
+                              View proof
+                            </a>
+                            <div className="mt-2">
+                              <Image
+                                src={record.proofOfTransferUrl}
+                                alt="Payment proof"
+                                width={320}
+                                className="max-w-full rounded-ds-md"
+                              />
+                            </div>
+                          </span>
                         ) : (
                           "n/a"
                         )}

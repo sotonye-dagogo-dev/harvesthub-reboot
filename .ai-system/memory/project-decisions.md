@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Runtime Processing Feedback Is Global and In-Flight Driven
+
+**Decision:** Surface a universal processing indicator from provider scope by observing runtime store `inFlight` counters, and treat first-load resource states as loading until initial payload exists (to prevent transient false-empty states).
+**Date:** 2026-04-09
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Page-local loading text was inconsistent and could briefly show misleading empty/error copy (notably wallet). A global runtime signal improves user trust during silent refresh/mutation windows and aligns feedback with actual in-memory runtime activity.
+
+**Alternatives Considered:**
+
+- Keep per-page ad hoc loading labels only (rejected: inconsistent and easy to drift).
+- Add processing toasts only around explicit button mutations (rejected: misses background refresh and bootstrap fetch activity).
+
+**Implications:**
+
+- Runtime store/state transitions must maintain accurate `inFlight` semantics for both load and mutation paths.
+- Initial empty screens should gate on runtime bootstrap/loading state before rendering no-data messaging.
+- Provider-level feedback reduces need for duplicated per-page processing indicators.
+
 ## Unified Runtime Warm-Start Is Route-and-Role Scoped
 
 **Decision:** Runtime prefetch at bootstrap must be scoped by auth role plus route tags, instead of broad eager loading of all resources.

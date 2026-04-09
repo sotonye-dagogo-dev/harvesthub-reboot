@@ -24,6 +24,59 @@
 
 ---
 
+## 2026-04-09 — Runtime Closeout Wave: Dashboard/Orders/Products/Profile + Global Processing UX
+
+**Summary:**
+Completed the remaining post-cloud runtime migration blockers and loading-trust UX hardening. This wave moves operations dashboard/orders and buyer/shared orders/profile flows onto runtime-backed resources, adds universal runtime activity feedback, and removes wallet first-render false-empty behavior.
+
+**Completed:**
+
+- Added global provider-level runtime activity notifier (`Processing...`) driven by in-memory runtime `inFlight` signals.
+- Hardened optimistic mutation state transitions/rollback semantics in runtime mutation coordinator.
+- Migrated operations dashboard to runtime-backed client rendering via new `/api/operations/dashboard` endpoint.
+- Migrated operations orders and unified `/orders` to runtime resources with refresh/error states.
+- Refactored operations products list loading from local isolated state to runtime subscription.
+- Normalized profile page profile/address/email-status retrieval through runtime resources.
+- Fixed wallet bootstrap flicker and preserved dashboard shell on loading/empty states for vendor/admin.
+- Updated affected orders-page tests for client/runtime architecture.
+- Re-ran quality matrix: lint, typecheck, route/sidebar audits, and focused vitest suites.
+
+**Key Changes:**
+
+- Runtime now surfaces a consistent global processing signal during in-flight loads/mutations.
+- Remaining cloud-reported runtime blocker pages are aligned to runtime resource contracts instead of server-coupled page-level fetching.
+- Buyer/vendor/admin order and profile surfaces now follow shared runtime loading/refresh semantics.
+
+**Next Sprint Focus:**
+Complete manual authenticated UI evidence capture for closeout checklist (sidebar/evidence preview surfaces), then mark final evidence item done.
+
+---
+
+## 2026-04-09 — Post-Cloud Gap Closure: Admin Vendor Crash + Sidebar Consistency
+
+**Summary:**
+Applied a focused post-cloud stabilization pass to address newly reported runtime/admin UX regressions and align remaining work with a concrete closeout queue. The patch fixes the admin vendor-detail crash, improves evidence visibility for vendor/ad verification assets, and restores consistent dashboard sidebar behavior on key vendor/admin pages.
+
+**Completed:**
+
+- Fixed vendor detail crash caused by assuming nested `vendor.analytics` exists for all API payload shapes.
+- Added defensive vendor verification document normalization (structured + legacy keys) with clearer labels in admin detail view.
+- Added inline previews for ad creative and proof-of-transfer in operations ad review modal.
+- Restored vendor/admin dashboard shell/sidebar on analytics, wallet, profile, and notifications pages.
+- Made desktop sidebar navigation scrollable to prevent clipped long-menu access.
+- Added a dedicated runtime closeout queue section for remaining migration blockers.
+
+**Key Changes:**
+
+- Admin review workflows now surface verification evidence more directly without context switching.
+- Dashboard navigation consistency is improved across key non-operations utility routes.
+- Remaining runtime migration blockers are now explicitly scoped for follow-up execution.
+
+**Next Sprint Focus:**
+Complete runtime blocker migrations (operations dashboard/orders/products and buyer orders/profile normalization), then run full matrix validation and UI evidence capture.
+
+---
+
 ## 2026-04-08 — Unified Runtime Implementation Pass (Cloud)
 
 **Summary:**
