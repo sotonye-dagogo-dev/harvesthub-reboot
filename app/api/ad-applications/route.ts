@@ -6,6 +6,7 @@ import { UserRole } from '@/lib/constants';
 import { z } from 'zod';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 import { estimateAdAmount, isPaymentSufficient, normalizeAdDuration, resolveAdRateConfig } from '@/lib/utils/adPricing';
+import { verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 
 const adApplicationStatusSchema = z.enum([
     'PENDING',
@@ -34,8 +35,11 @@ const createAdApplicationSchema = z.object({
     requestedEnd: z.string().datetime().optional().nullable(),
     paymentMethod: z.enum(['BANK_TRANSFER', 'CARD', 'USSD']),
     amountPaid: z.coerce.number().positive('Amount paid must be greater than zero'),
-    proofOfTransferUrl: z.string().trim().url('A valid proof of payment URL is required'),
+    proofOfTransferUrl: z.string().trim().url('A valid proof of payment URL is required').optional().nullable(),
     proofPublicId: z.string().trim().optional().nullable(),
+    paymentGateway: z.enum(['PAYSTACK', 'FLUTTERWAVE']).optional(),
+    paymentReference: z.string().trim().min(6).max(100).optional(),
+    paymentVerificationReference: z.string().trim().min(6).max(100).optional(),
     durationType: z.enum(['HOURLY', 'DAILY']).optional(),
     durationValue: z.coerce.number().int().min(1).optional(),
 });
@@ -91,7 +95,7 @@ export async function POST(req: NextRequest) {
         if (!data.imageUrl.startsWith('https://res.cloudinary.com/')) {
             return apiError('Banner image must be uploaded via managed Cloudinary flow.', 400);
         }
-        if (!data.proofOfTransferUrl.startsWith('https://res.cloudinary.com/')) {
+        if (data.proofOfTransferUrl && !data.proofOfTransferUrl.startsWith('https://res.cloudinary.com/')) {
             return apiError('Proof of transfer must be uploaded via managed Cloudinary flow.', 400);
         }
         const rateConfig = await db.adRateConfig.getActive();
@@ -116,6 +120,23 @@ export async function POST(req: NextRequest) {
             });
         }
 
+        if (data.paymentMethod === 'BANK_TRANSFER') {
+            if (!data.proofOfTransferUrl) {
+                return apiError('Proof of transfer is required for bank transfer applications.', 400);
+            }
+        } else {
+            if (!data.paymentGateway || !data.paymentReference || !data.paymentVerificationReference) {
+                return apiError('paymentGateway, paymentReference, and paymentVerificationReference are required for card/USSD applications.', 400);
+            }
+            const verification = await verifyPayment({
+                gateway: data.paymentGateway as SupportedPaymentGateway,
+                reference: data.paymentVerificationReference,
+            });
+            if (verification.status !== 'SUCCESS') {
+                return apiError('Payment verification is not successful', 400, { verification });
+            }
+        }
+
         const application = await db.adApplications.create({
             userId: data.userId ?? null,
             name: data.name,
@@ -130,10 +151,10 @@ export async function POST(req: NextRequest) {
             theme: data.theme ?? 'BUSINESS',
             requestedStart: data.requestedStart ? new Date(data.requestedStart) : new Date(),
             requestedEnd: data.requestedEnd ? new Date(data.requestedEnd) : null,
-            status: 'PENDING_PAYMENT',
+            status: data.paymentMethod === 'BANK_TRANSFER' ? 'PENDING_PAYMENT' : 'PENDING_APPROVAL',
             paymentMethod: data.paymentMethod,
             amountPaid: data.amountPaid,
-            proofOfTransferUrl: data.proofOfTransferUrl,
+            proofOfTransferUrl: data.proofOfTransferUrl ?? null,
             durationType: normalizedDuration.durationType,
             durationValue: normalizedDuration.durationValue,
             reviewComment: null,

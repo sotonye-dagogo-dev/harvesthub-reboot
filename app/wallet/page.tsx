@@ -13,6 +13,8 @@ import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
 import type { ReactElement } from "react";
 
+const NIGERIAN_ACCOUNT_NUMBER_LENGTH = 10;
+
 export default function WalletPage() {
   const { user } = useAuth();
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -20,6 +22,10 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isProcessingDeposit, setIsProcessingDeposit] = useState(false);
+  const [isProcessingWithdraw, setIsProcessingWithdraw] = useState(false);
+  const [withdrawBankName, setWithdrawBankName] = useState("");
+  const [withdrawAccountNumber, setWithdrawAccountNumber] = useState("");
+  const [withdrawAccountName, setWithdrawAccountName] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
@@ -201,20 +207,68 @@ export default function WalletPage() {
     }
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     const amount = parseFloat(withdrawAmount);
-    if (isNaN(amount) || amount < 100) {
-      message.error("Minimum withdrawal amount is ₦100");
+    if (isNaN(amount) || amount < 1000) {
+      message.error("Minimum withdrawal amount is ₦1,000");
       return;
     }
     if (!userWallet || amount > userWallet.balance) {
       message.error("Insufficient balance");
       return;
     }
+    if (user?.role !== "VENDOR") {
+      message.error("Withdrawals are currently available for vendor wallets only");
+      return;
+    }
+    if (!withdrawBankName.trim() || !withdrawAccountName.trim()) {
+      message.error("Bank name and account name are required");
+      return;
+    }
+    const normalizedAccountNumber = withdrawAccountNumber.trim();
+    const isDigitsOnly = /^\d+$/.test(normalizedAccountNumber);
+    if (
+      normalizedAccountNumber.length !== NIGERIAN_ACCOUNT_NUMBER_LENGTH ||
+      !isDigitsOnly
+    ) {
+      message.error(
+        `Account number must be ${NIGERIAN_ACCOUNT_NUMBER_LENGTH} digits`
+      );
+      return;
+    }
 
-    message.success(`Withdrawal of ${formatCurrency(amount)} initiated`);
-    setShowWithdrawModal(false);
-    setWithdrawAmount("");
+    setIsProcessingWithdraw(true);
+    try {
+      const withdrawRes = await fetch("/api/wallet/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          bankName: withdrawBankName.trim(),
+          accountName: withdrawAccountName.trim(),
+          accountNumber: normalizedAccountNumber,
+        }),
+      });
+      const withdrawData = await withdrawRes.json().catch(() => ({}));
+      if (!withdrawRes.ok) {
+        throw new Error(withdrawData?.error || "Unable to process withdrawal");
+      }
+
+      message.success(
+        withdrawData?.message || `Withdrawal of ${formatCurrency(amount)} initiated successfully`
+      );
+      setShowWithdrawModal(false);
+      setWithdrawAmount("");
+      setWithdrawBankName("");
+      setWithdrawAccountName("");
+      setWithdrawAccountNumber("");
+      await refresh(true);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unable to process withdrawal";
+      message.error(errorMessage);
+    } finally {
+      setIsProcessingWithdraw(false);
+    }
   };
 
   if (!user) {
@@ -302,12 +356,14 @@ export default function WalletPage() {
                       Deposit
                     </>
                   </Button>
-                  <Button fullWidth variant="outline" onClick={() => setShowWithdrawModal(true)}>
-                    <>
-                      <ArrowUpCircle className="mr-2 h-5 w-5" />
-                      Withdraw
-                    </>
-                  </Button>
+                  {user.role === "VENDOR" && (
+                    <Button fullWidth variant="outline" onClick={() => setShowWithdrawModal(true)}>
+                      <>
+                        <ArrowUpCircle className="mr-2 h-5 w-5" />
+                        Withdraw
+                      </>
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -409,12 +465,31 @@ export default function WalletPage() {
         open={showWithdrawModal}
         onOk={handleWithdraw}
         onCancel={() => setShowWithdrawModal(false)}
+        confirmLoading={isProcessingWithdraw}
       >
-        <Input
-          value={withdrawAmount}
-          onChange={(e) => setWithdrawAmount(e.target.value)}
-          placeholder="Enter amount"
-        />
+        <div className="space-y-3">
+          <Input
+            value={withdrawAmount}
+            onChange={(e) => setWithdrawAmount(e.target.value)}
+            placeholder="Enter amount"
+          />
+          <Input
+            value={withdrawBankName}
+            onChange={(e) => setWithdrawBankName(e.target.value)}
+            placeholder="Bank name"
+          />
+          <Input
+            value={withdrawAccountNumber}
+            onChange={(e) => setWithdrawAccountNumber(e.target.value)}
+            placeholder="Account number"
+            maxLength={NIGERIAN_ACCOUNT_NUMBER_LENGTH}
+          />
+          <Input
+            value={withdrawAccountName}
+            onChange={(e) => setWithdrawAccountName(e.target.value)}
+            placeholder="Account name"
+          />
+        </div>
       </Modal>
     </div>
   );
