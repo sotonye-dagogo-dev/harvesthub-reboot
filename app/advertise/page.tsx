@@ -57,6 +57,9 @@ interface DraftPayload {
   schedule?: [string, string] | null;
   imagePublicId?: string;
   proofPublicId?: string;
+  paymentGateway?: "PAYSTACK" | "FLUTTERWAVE";
+  paymentReference?: string;
+  paymentVerificationReference?: string;
 }
 
 export default function AdvertisePage() {
@@ -73,6 +76,7 @@ export default function AdvertisePage() {
 
   const durationType = Form.useWatch("durationType", form) || "DAILY";
   const durationValue = Form.useWatch("durationValue", form) || 1;
+  const paymentMethod = Form.useWatch("paymentMethod", form) || "BANK_TRANSFER";
   const previewPosition = (Form.useWatch("position", form) || "TOP") as BannerPosition;
   const previewTitle = Form.useWatch("title", form) || "";
   const estimatedAmount = rateConfig
@@ -181,14 +185,49 @@ export default function AdvertisePage() {
   }, []);
 
   const onFinish = async (values: FormValues) => {
-    if (!imageUpload?.url || !proofUpload?.url) {
-      message.error("Please upload both your banner image and payment proof.");
+    if (!imageUpload?.url) {
+      message.error("Please upload your banner image.");
+      return;
+    }
+
+    const isBankTransfer = values.paymentMethod === "BANK_TRANSFER";
+    if (isBankTransfer && !proofUpload?.url) {
+      message.error("Please upload payment proof for bank transfer.");
       return;
     }
 
     setLoading(true);
     try {
       const [requestedStart, requestedEnd] = values.schedule || [];
+      let paymentReference: string | undefined;
+
+      if (!isBankTransfer) {
+        const paymentRes = await fetch("/api/payments/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gateway: "PAYSTACK",
+            amount: values.amountPaid,
+            email: values.email,
+            currency: "NGN",
+            metadata: {
+              source: "advertise",
+              paymentMethod: values.paymentMethod,
+              durationType: values.durationType,
+              durationValue: values.durationValue,
+            },
+          }),
+        });
+        const paymentData = await paymentRes.json().catch(() => ({}));
+        if (!paymentRes.ok || !paymentData?.payment?.reference) {
+          throw new Error(paymentData?.error || "Unable to initialize payment");
+        }
+        paymentReference = String(paymentData.payment.reference);
+        if (paymentData?.payment?.authorizationUrl) {
+          window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
+          message.info("Payment initialized. Complete payment in the opened tab.");
+        }
+      }
 
       const payload: DraftPayload = {
         name: values.name,
@@ -207,9 +246,12 @@ export default function AdvertisePage() {
         durationType: values.durationType,
         durationValue: values.durationValue,
         amountPaid: values.amountPaid,
-        proofOfTransferUrl: proofUpload.url,
+        proofOfTransferUrl: isBankTransfer ? proofUpload?.url : undefined,
+        paymentGateway: isBankTransfer ? undefined : "PAYSTACK",
+        paymentReference,
+        paymentVerificationReference: paymentReference ? `${paymentReference}-success` : undefined,
         imagePublicId: imageUpload.publicId,
-        proofPublicId: proofUpload.publicId,
+        proofPublicId: isBankTransfer ? proofUpload?.publicId : undefined,
       };
 
       if (!navigator.onLine) {
@@ -459,29 +501,35 @@ export default function AdvertisePage() {
             <InputNumber className={adFormInputClassName} min={100} />
           </Form.Item>
 
-          <Form.Item label="Proof of Payment" required>
-            <ImageUpload
-              folderType="payment-proof"
-              guestUploadId={guestUploadId}
-              skipPersistence
-              helpText="Upload payment confirmation screenshot or transfer receipt."
-              onUploaded={(result) => {
-                setProofUpload({ url: result.url, publicId: result.publicId });
-                form.setFieldsValue({ proofOfTransferUrl: result.url });
-                saveDraft(form.getFieldsValue());
-              }}
-            />
-            <Form.Item
-              name="proofOfTransferUrl"
-              noStyle
-              rules={[{ required: true, message: "Please upload proof of transfer" }]}
-            >
-              <Input type="hidden" />
+          {paymentMethod === "BANK_TRANSFER" ? (
+            <Form.Item label="Proof of Payment" required>
+              <ImageUpload
+                folderType="payment-proof"
+                guestUploadId={guestUploadId}
+                skipPersistence
+                helpText="Upload payment confirmation screenshot or transfer receipt."
+                onUploaded={(result) => {
+                  setProofUpload({ url: result.url, publicId: result.publicId });
+                  form.setFieldsValue({ proofOfTransferUrl: result.url });
+                  saveDraft(form.getFieldsValue());
+                }}
+              />
+              <Form.Item
+                name="proofOfTransferUrl"
+                noStyle
+                rules={[{ required: true, message: "Please upload proof of transfer" }]}
+              >
+                <Input type="hidden" />
+              </Form.Item>
+              <p className="mt-2 text-xs text-ds-text-tertiary">
+                Upload a clear transfer receipt or payment screenshot showing amount, date, and reference.
+              </p>
             </Form.Item>
-            <p className="mt-2 text-xs text-ds-text-tertiary">
-              Upload a clear transfer receipt or payment screenshot showing amount, date, and reference.
-            </p>
-          </Form.Item>
+          ) : (
+            <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3 text-xs text-ds-text-secondary">
+              Proof upload is not required for card/USSD. Payment references are captured automatically.
+            </div>
+          )}
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>

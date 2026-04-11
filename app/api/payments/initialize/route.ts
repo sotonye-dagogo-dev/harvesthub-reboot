@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 import { getCurrentUser } from '@/lib/utils/auth';
-import { getRateLimitResponse, rateLimitByUser } from '@/lib/middleware/rate-limit';
+import { getRateLimitResponse, rateLimitByIP, rateLimitByUser } from '@/lib/middleware/rate-limit';
 import { initializePayment } from '@/lib/services/payments';
 
 const initializeSchema = z.object({
@@ -18,9 +18,7 @@ const initializeSchema = z.object({
 export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/payments/initialize', async () => {
         const user = await getCurrentUser();
-        if (!user) return apiError('Unauthorized', 401);
-
-        const rl = await rateLimitByUser(user.userId);
+        const rl = user ? await rateLimitByUser(user.userId) : await rateLimitByIP(req);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const parsed = initializeSchema.safeParse(await req.json());
@@ -31,10 +29,13 @@ export async function POST(req: NextRequest) {
         }
 
         const payload = parsed.data;
+        if (!user && !payload.email) {
+            return apiError('email is required for unauthenticated payment initialization', 400);
+        }
         const initialized = await initializePayment({
             gateway: payload.gateway,
             amount: payload.amount,
-            email: payload.email || user.email,
+            email: payload.email || user?.email || '',
             currency: payload.currency,
             reference: payload.reference,
             callbackUrl: payload.callbackUrl,

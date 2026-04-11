@@ -2561,3 +2561,51 @@ Execute the cloud continuation queue for signup reliability, email-change reveri
 
 - Full API wrapper standardization across every route and full high-risk regression matrix still need exhaustive completion beyond this session slice.
 - `lib/utils/jwt.ts` retains debug logging that predates this session; not modified in this slice.
+
+## Session 50 — 2026-04-11 (Issue: toast/auth persistence/wallet+checkout+ad payments)
+
+**Goal:**
+Restore feedback toast reliability, harden remember-me session behavior, unblock wallet/checkout transaction flow, and wire payment processing into ad transaction paths while safely reducing manual evidence dependence for non-bank methods.
+
+**Completed:**
+
+- Restored toast context to Ant Design App-scoped instances (`App.useApp`) to avoid static message/notification drift.
+- Updated auth cookie persistence semantics:
+  - `rememberMe=true`: persistent access/refresh cookies (8h / 30d).
+  - `rememberMe=false`: session cookies (no maxAge), preserving safer non-persistent browser-session behavior.
+- Unblocked checkout order placement for authenticated non-buyer roles by auto-provisioning buyer profiles in `POST /api/orders` instead of hard blocking by role.
+- Implemented real wallet withdrawal submit flow from wallet page:
+  - Added bank details fields/validation and API call to `/api/wallet/withdraw`.
+  - Added processing state and post-success resource refresh.
+- Extended payment initialization endpoint to support unauthenticated ad flows with IP rate limiting + required email when unauthenticated.
+- Wired ad application flows (public and advertise) to initialize gateway payments for card/USSD and send payment references for server verification.
+- Updated ad application APIs (`/api/ads/apply`, `/api/ad-applications`) to:
+  - Require proof upload only for bank transfer.
+  - Verify card/USSD payment references before persistence.
+  - Advance verified non-bank submissions directly to `PENDING_APPROVAL`.
+- Added focused regression coverage for public ad flow to ensure card flow initializes payment and submits with captured reference.
+
+**Files Modified:**
+
+- `lib/contexts/ToastContext.tsx`
+- `lib/utils/cookies.ts`
+- `app/api/orders/route.ts`
+- `app/wallet/page.tsx`
+- `app/api/payments/initialize/route.ts`
+- `app/api/ads/apply/route.ts`
+- `app/api/ad-applications/route.ts`
+- `app/ad-application/page.tsx`
+- `app/advertise/page.tsx`
+- `app/ad-application/__tests__/page.test.tsx`
+
+**Validation:**
+
+- `npx vitest run app/ad-application/__tests__/page.test.tsx` ✅
+- `npx vitest run components/__tests__/ProductsContent.discovery-contract.test.tsx` ✅
+- `npm run lint` ✅
+- `npm run build` ✅
+
+**UI Verification Artifacts:**
+
+- Provided screenshot URL: `https://github.com/user-attachments/assets/5c952b37-e593-47c2-be52-798f1d1aac28`
+- Local Playwright capture: `/tmp/playwright-logs/ad-application-ui.png`

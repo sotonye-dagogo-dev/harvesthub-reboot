@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode } from "react";
-import { message, notification } from "antd";
+import { App } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 
 type ToastSeverity = "success" | "info" | "warning" | "error";
@@ -24,7 +24,7 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const msg = message;
+  const { message: msg, notification } = App.useApp();
 
   const notify = ({
     type = "info",
