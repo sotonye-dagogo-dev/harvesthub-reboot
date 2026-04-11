@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, Button } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -9,7 +9,16 @@ import {
   VENDOR_CATEGORIES,
   CATEGORY_COMMISSION_DEFAULTS,
 } from "@/lib/constants";
-import { Settings, Percent, CreditCard, Calendar, Info, Tag } from "lucide-react";
+import {
+  Settings,
+  Percent,
+  CreditCard,
+  Calendar,
+  Info,
+  Tag,
+  AlertTriangle,
+  ShieldCheck,
+} from "lucide-react";
 import { Input, Switch, message, Tabs } from "antd";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +34,26 @@ interface CategoryRate {
   category: string;
   label: string;
   rate: number;
+}
+
+interface AdminPaymentConfig {
+  gateway: "PAYSTACK";
+  mode: "test" | "live";
+  paystack: {
+    mode: "test" | "live";
+    callbackUrl: string | null;
+    dashboardWebhookUrl: string;
+    keyStatus: {
+      publicKeyConfigured: boolean;
+      secretKeyConfigured: boolean;
+      webhookSecretConfigured: boolean;
+    };
+    webhooksEnabled: boolean;
+    whitelistIps: readonly string[];
+  };
+  fallback: {
+    bankTransferEnabled: boolean;
+  };
 }
 
 const initialTiers: CommissionTier[] = [
@@ -58,7 +87,49 @@ export default function OperationsSettingsPage() {
   const [maxBookingDays, setMaxBookingDays] = useState<number>(
     PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
   );
+  const [paymentConfig, setPaymentConfig] = useState<AdminPaymentConfig | null>(null);
+  const [paymentConfigLoading, setPaymentConfigLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadPaymentConfig = async () => {
+      setPaymentConfigLoading(true);
+      try {
+        const res = await fetch("/api/admin/payments/config", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.error || "Unable to load payment gateway config");
+        }
+
+        if (active) {
+          setPaymentConfig({
+            gateway: data.gateway,
+            mode: data.mode,
+            paystack: data.paystack,
+            fallback: data.fallback,
+          } as AdminPaymentConfig);
+        }
+      } catch (error) {
+        if (active) {
+          setPaymentConfig(null);
+          message.error(
+            error instanceof Error ? error.message : "Unable to load payment gateway config"
+          );
+        }
+      } finally {
+        if (active) {
+          setPaymentConfigLoading(false);
+        }
+      }
+    };
+
+    void loadPaymentConfig();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleTierRateChange = (tierId: string, value: string) => {
     const numValue = parseFloat(value);
@@ -246,6 +317,107 @@ export default function OperationsSettingsPage() {
               prefix="₦"
               className="!w-36"
             />
+          </div>
+
+          <div className="rounded-ds-md border border-ds-border-base p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-ds-text-primary">
+                  Paystack Gateway Panel
+                </h3>
+                <p className="text-xs text-ds-text-secondary">
+                  Environment-driven status and dashboard setup guidance for payment operations.
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  paymentConfig?.mode === "live"
+                    ? "bg-ds-status-error-bg text-ds-status-error"
+                    : "bg-ds-status-info-bg text-ds-status-info"
+                }`}
+              >
+                {paymentConfigLoading
+                  ? "Checking..."
+                  : paymentConfig?.mode === "live"
+                    ? "LIVE MODE"
+                    : "TEST MODE"}
+              </span>
+            </div>
+
+            {paymentConfigLoading ? (
+              <p className="text-xs text-ds-text-secondary">
+                Loading payment gateway configuration...
+              </p>
+            ) : paymentConfig ? (
+              <div className="space-y-3">
+                <div className="grid gap-2 text-xs text-ds-text-secondary sm:grid-cols-2">
+                  <p>
+                    Public key configured:{" "}
+                    {paymentConfig.paystack.keyStatus.publicKeyConfigured ? "Yes" : "No"}
+                  </p>
+                  <p>
+                    Secret key configured:{" "}
+                    {paymentConfig.paystack.keyStatus.secretKeyConfigured ? "Yes" : "No"}
+                  </p>
+                  <p>Webhooks enabled: {paymentConfig.paystack.webhooksEnabled ? "Yes" : "No"}</p>
+                  <p>
+                    Webhook signing secret configured:{" "}
+                    {paymentConfig.paystack.keyStatus.webhookSecretConfigured ? "Yes" : "No"}
+                  </p>
+                </div>
+
+                <div className="rounded-ds-sm bg-ds-surface-sunken p-3 text-xs text-ds-text-secondary">
+                  <p>
+                    Callback URL (mode-aware):{" "}
+                    {paymentConfig.paystack.callbackUrl || "Not set in env"}
+                  </p>
+                  <p className="mt-1">
+                    Webhook URL for dashboard: {paymentConfig.paystack.dashboardWebhookUrl}
+                  </p>
+                  <p className="mt-1">
+                    IP whitelist: {paymentConfig.paystack.whitelistIps.join(", ")}
+                  </p>
+                </div>
+
+                {paymentConfig.mode === "test" ? (
+                  <div className="rounded-ds-sm border border-ds-status-info-border bg-ds-status-info-bg p-3">
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-ds-status-info" />
+                      <div>
+                        <p className="text-xs font-semibold text-ds-status-info-text">
+                          Test mode behavior (safe for QA)
+                        </p>
+                        <p className="mt-1 text-xs text-ds-text-secondary">
+                          No real money moves in Paystack test mode. Charges and refunds are
+                          simulated for integration testing only, so no actual bank transfer should
+                          occur.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-ds-sm border border-ds-status-warning/30 bg-ds-status-warning-bg p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-ds-status-warning" />
+                      <div>
+                        <p className="text-xs font-semibold text-ds-status-warning-text">
+                          Live mode behavior (real transactions)
+                        </p>
+                        <p className="mt-1 text-xs text-ds-text-secondary">
+                          Real money will be charged in live mode. Confirm dashboard
+                          callback/webhook URLs and keys before enabling this in production.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-ds-status-warning-text">
+                Payment gateway configuration is unavailable right now. Confirm admin auth and API
+                health.
+              </p>
+            )}
           </div>
         </div>
       </Card>

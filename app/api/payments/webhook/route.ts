@@ -1,26 +1,66 @@
 import { NextRequest } from 'next/server';
-import { apiSuccess, withApiHandler } from '@/lib/api/http';
+import { createHmac, timingSafeEqual } from 'crypto';
+import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { env } from '@/lib/config/env';
+
+function isSignatureValid(signature: string, rawBody: string, secretKey: string): boolean {
+    const computed = createHmac('sha512', secretKey).update(rawBody).digest('hex');
+
+    const providedBuffer = Buffer.from(signature, 'utf8');
+    const computedBuffer = Buffer.from(computed, 'utf8');
+    if (providedBuffer.length !== computedBuffer.length) return false;
+
+    return timingSafeEqual(providedBuffer, computedBuffer);
+}
 
 export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/payments/webhook', async () => {
         const signature = req.headers.get('x-paystack-signature');
-        const eventType = req.headers.get('x-paystack-event') || 'unknown';
-        const payload = await req.json().catch(() => ({}));
+        const rawBody = await req.text();
 
-        const webhooksEnabled = process.env.PAYSTACK_WEBHOOKS_ENABLED === 'true';
-        const signatureConfigured = !!process.env.PAYSTACK_WEBHOOK_SECRET;
-        const fallbackBankTransferEnabled = process.env.PAYMENT_FALLBACK_BANK_TRANSFER !== 'false';
+        if (!env.paystackWebhooksEnabled) {
+            return apiSuccess({
+                acknowledged: true,
+                webhooksEnabled: false,
+                message: 'Paystack webhooks are disabled by feature flag.',
+            });
+        }
+
+        const signingSecret = env.paystackWebhookSecret || env.paystackSecretKey;
+        if (!signingSecret) {
+            return apiError('Paystack webhook secret key is not configured for active mode', 503);
+        }
+
+        if (!signature) {
+            return apiError('Missing x-paystack-signature header', 401);
+        }
+
+        if (!isSignatureValid(signature, rawBody, signingSecret)) {
+            return apiError('Invalid Paystack webhook signature', 401);
+        }
+
+        let payload: {
+            event?: unknown;
+            data?: { reference?: unknown };
+        } = {};
+        try {
+            payload = JSON.parse(rawBody || '{}') as {
+                event?: unknown;
+                data?: { reference?: unknown };
+            };
+        } catch {
+            return apiError('Invalid webhook payload', 400);
+        }
+        const eventType = typeof payload.event === 'string' ? payload.event : 'unknown';
+        const reference = typeof payload.data?.reference === 'string' ? payload.data.reference : null;
 
         return apiSuccess({
             acknowledged: true,
             eventType,
-            signaturePresent: !!signature,
-            webhooksEnabled,
-            signatureConfigured,
-            fallbackBankTransferEnabled,
+            reference,
+            paystackMode: env.paystackMode,
             message:
-                'Webhook scaffolding endpoint is active. Add signature verification and idempotent mutation handling before production cutover.',
-            payload,
+                'Webhook signature verified. Add idempotent mutation handling before production cutover.',
         });
     });
 }

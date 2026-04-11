@@ -60,6 +60,7 @@
   - [x] Add gateway-agnostic payment stub service (`lib/services/payments.ts`) and initialize/verify API routes.
   - [x] Wire checkout/wallet flows to consume initialize/verify stubs instead of placeholder copy-only UI states.
   - [x] Persist payment verification outcomes in order/wallet domain records and enforce gateway status before final order confirmation.
+  - [x] Add mode-aware Paystack env configuration (test/live key sets + `PAYSTACK_MODE`) and admin-facing operations context panel for safe test-mode understanding.
 - [x] Implement notifications (email + in-app) using `resend` / `web-push`
 - [x] Add vendor analytics dashboards (sales, orders, revenue)
 - [x] Add public ad application page + footer CTA link (accessible to unauthenticated users)

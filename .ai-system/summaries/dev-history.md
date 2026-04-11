@@ -24,6 +24,30 @@
 
 ---
 
+## 2026-04-11 — Paystack Mode-Switch Hardening + Admin Operations Context Panel
+
+**Summary:**
+Extended the payment integration baseline with safer Paystack environment switching and clearer admin runtime visibility. This pass adds explicit test/live key-mode handling, webhook signature validation aligned to Paystack guidance, and a settings-panel explainer so admins can clearly understand sandbox vs real-money behavior.
+
+**Completed:**
+
+- Added mode-aware Paystack env contract (`PAYSTACK_MODE`, test/live key sets, callback URLs).
+- Updated environment templates and production checklist docs for test/live key management.
+- Hardened webhook endpoint to validate `x-paystack-signature` before processing.
+- Added `GET /api/admin/payments/config` (admin-only, sanitized) for gateway readiness/status context.
+- Added operations settings Paystack panel with mode badge, readiness indicators, dashboard URL guidance, whitelist IPs, and plain-language test/live behavior copy.
+- Re-ran focused lint and payment tests.
+
+**Key Changes:**
+
+- Payment runtime now resolves active Paystack credentials from explicit mode selection rather than ambiguous single-key assumptions.
+- Admin operations UI now communicates whether transactions are simulated (test) or real-money (live), reducing cutover mistakes.
+
+**Next Sprint Focus:**
+Complete webhook idempotency persistence and event replay-safety before declaring full Paystack live cutover readiness.
+
+---
+
 ## 2026-04-09 — Follow-up Sweep: Destructive Confirm Single-Source Consolidation
 
 **Summary:**
