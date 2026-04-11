@@ -63,6 +63,7 @@ export default function AdApplicationPage() {
 
     try {
       let paymentReference = form.paymentReference;
+      let paymentVerificationReference: string | undefined;
       const isBankTransfer = form.paymentMethod === "BANK_TRANSFER";
 
       if (!isBankTransfer) {
@@ -85,6 +86,10 @@ export default function AdApplicationPage() {
           throw new Error(paymentData?.error || "Unable to initialize payment");
         }
         paymentReference = String(paymentData.payment.reference);
+        if (!paymentData.payment.verificationReference) {
+          throw new Error("Unable to determine payment verification reference");
+        }
+        paymentVerificationReference = String(paymentData.payment.verificationReference);
         if (paymentData?.payment?.authorizationUrl) {
           window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
           message.info("Payment initialized. Complete payment in the opened tab.");
@@ -103,7 +108,7 @@ export default function AdApplicationPage() {
           paymentVerificationReference:
             form.paymentMethod === "BANK_TRANSFER" || !paymentReference
               ? undefined
-              : `${paymentReference}-success`,
+              : paymentVerificationReference,
           proofOfTransferUrl: form.paymentMethod === "BANK_TRANSFER" ? form.proofOfTransferUrl : undefined,
           durationValue: Number(form.durationValue),
           amountPaid: Number(form.amountPaid),

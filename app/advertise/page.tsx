@@ -200,6 +200,7 @@ export default function AdvertisePage() {
     try {
       const [requestedStart, requestedEnd] = values.schedule || [];
       let paymentReference: string | undefined;
+      let paymentVerificationReference: string | undefined;
 
       if (!isBankTransfer) {
         const paymentRes = await fetch("/api/payments/initialize", {
@@ -223,6 +224,10 @@ export default function AdvertisePage() {
           throw new Error(paymentData?.error || "Unable to initialize payment");
         }
         paymentReference = String(paymentData.payment.reference);
+        if (!paymentData.payment.verificationReference) {
+          throw new Error("Unable to determine payment verification reference");
+        }
+        paymentVerificationReference = String(paymentData.payment.verificationReference);
         if (paymentData?.payment?.authorizationUrl) {
           window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
           message.info("Payment initialized. Complete payment in the opened tab.");
@@ -249,7 +254,7 @@ export default function AdvertisePage() {
         proofOfTransferUrl: isBankTransfer ? proofUpload?.url : undefined,
         paymentGateway: isBankTransfer ? undefined : "PAYSTACK",
         paymentReference,
-        paymentVerificationReference: paymentReference ? `${paymentReference}-success` : undefined,
+        paymentVerificationReference: isBankTransfer ? undefined : paymentVerificationReference,
         imagePublicId: imageUpload.publicId,
         proofPublicId: isBankTransfer ? proofUpload?.publicId : undefined,
       };

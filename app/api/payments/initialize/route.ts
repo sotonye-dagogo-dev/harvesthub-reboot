@@ -32,10 +32,14 @@ export async function POST(req: NextRequest) {
         if (!user && !payload.email) {
             return apiError('email is required for unauthenticated payment initialization', 400);
         }
+        const payerEmail = payload.email || user?.email;
+        if (!payerEmail) {
+            return apiError('Unable to resolve payer email', 400);
+        }
         const initialized = await initializePayment({
             gateway: payload.gateway,
             amount: payload.amount,
-            email: payload.email || user?.email || '',
+            email: payerEmail,
             currency: payload.currency,
             reference: payload.reference,
             callbackUrl: payload.callbackUrl,

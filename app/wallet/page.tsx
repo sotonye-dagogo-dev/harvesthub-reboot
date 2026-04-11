@@ -13,6 +13,8 @@ import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
 import type { ReactElement } from "react";
 
+const NIGERIAN_ACCOUNT_NUMBER_LENGTH = 10;
+
 export default function WalletPage() {
   const { user } = useAuth();
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -223,8 +225,15 @@ export default function WalletPage() {
       message.error("Bank name and account name are required");
       return;
     }
-    if (!/^\d{10}$/.test(withdrawAccountNumber.trim())) {
-      message.error("Account number must be 10 digits");
+    const normalizedAccountNumber = withdrawAccountNumber.trim();
+    const isDigitsOnly = /^\d+$/.test(normalizedAccountNumber);
+    if (
+      normalizedAccountNumber.length !== NIGERIAN_ACCOUNT_NUMBER_LENGTH ||
+      !isDigitsOnly
+    ) {
+      message.error(
+        `Account number must be ${NIGERIAN_ACCOUNT_NUMBER_LENGTH} digits`
+      );
       return;
     }
 
@@ -237,7 +246,7 @@ export default function WalletPage() {
           amount,
           bankName: withdrawBankName.trim(),
           accountName: withdrawAccountName.trim(),
-          accountNumber: withdrawAccountNumber.trim(),
+          accountNumber: normalizedAccountNumber,
         }),
       });
       const withdrawData = await withdrawRes.json().catch(() => ({}));
@@ -473,7 +482,7 @@ export default function WalletPage() {
             value={withdrawAccountNumber}
             onChange={(e) => setWithdrawAccountNumber(e.target.value)}
             placeholder="Account number"
-            maxLength={10}
+            maxLength={NIGERIAN_ACCOUNT_NUMBER_LENGTH}
           />
           <Input
             value={withdrawAccountName}

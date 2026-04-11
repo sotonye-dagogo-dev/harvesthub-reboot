@@ -78,12 +78,12 @@ export async function POST(req: NextRequest) {
                 return apiError('Proof of transfer is required for bank transfer applications.', 400);
             }
         } else {
-            if (!data.paymentGateway || !data.paymentReference) {
-                return apiError('paymentGateway and paymentReference are required for card/USSD applications.', 400);
+            if (!data.paymentGateway || !data.paymentReference || !data.paymentVerificationReference) {
+                return apiError('paymentGateway, paymentReference, and paymentVerificationReference are required for card/USSD applications.', 400);
             }
             const verification = await verifyPayment({
                 gateway: data.paymentGateway as SupportedPaymentGateway,
-                reference: data.paymentVerificationReference || data.paymentReference,
+                reference: data.paymentVerificationReference,
             });
             if (verification.status !== 'SUCCESS') {
                 return apiError('Payment verification is not successful', 400, { verification });

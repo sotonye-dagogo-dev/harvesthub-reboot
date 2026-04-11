@@ -72,6 +72,7 @@ describe('AdApplicationPage', () => {
         json: async () => ({
           payment: {
             reference: 'PAY-TEST-REF',
+            verificationReference: 'PAY-TEST-REF-success',
             authorizationUrl: 'https://checkout.paystack.com/PAY-TEST-REF',
           },
         }),
