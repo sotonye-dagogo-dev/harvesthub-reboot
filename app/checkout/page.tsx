@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
@@ -88,6 +88,24 @@ export default function CheckoutPage() {
   const hasUnverifiedVendorItems =
     hasMultipleVendors ? hasAnyUnverifiedVendor : !!primaryVendorStatus && primaryVendorStatus !== "APPROVED";
 
+  const loadPaymentConfig = useCallback(async (): Promise<{ paymentsEnabled: boolean }> => {
+    const res = await fetch("/api/payments/config", { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.error || "Unable to load payment processing status");
+    }
+    return { paymentsEnabled: Boolean(data?.paymentsEnabled) };
+  }, []);
+
+  const { data: paymentConfig } = useSmartResource(loadPaymentConfig, {
+    key: "checkout-payment-config",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
+  const paymentsEnabled =
+    paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
     { value: "SUNDAY_SECOND", label: "Sunday Service (Second)", time: "9:30 AM - 12:00 PM" },
@@ -113,7 +131,7 @@ export default function CheckoutPage() {
       }
 
       let paymentReference: string | null = null;
-      if (PLATFORM_DEFAULTS.PAYMENTS_ENABLED && paymentMethod === "CARD") {
+      if (paymentsEnabled && paymentMethod === "CARD") {
         const paymentRes = await fetch("/api/payments/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -197,7 +215,7 @@ export default function CheckoutPage() {
       <h1 className="mb-4 text-2xl font-bold text-ds-text-primary sm:text-3xl">Checkout</h1>
 
       {/* Payment Notice */}
-      {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+      {!paymentsEnabled && (
         <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-4">
           <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
           <div>
@@ -449,10 +467,10 @@ export default function CheckoutPage() {
               disabled={hasUnverifiedVendorItems && !vendorVerificationAcknowledged}
             >
               <CheckCircle className="mr-2 h-5 w-5" />
-              {PLATFORM_DEFAULTS.PAYMENTS_ENABLED ? "Place Order" : "Place Order (Pay Later)"}
+              {paymentsEnabled ? "Place Order" : "Place Order (Pay Later)"}
             </Button>
 
-            {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+            {!paymentsEnabled && (
               <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
                 Your order will be placed with payment pending. You&apos;ll be notified when payment processing is available.
               </p>

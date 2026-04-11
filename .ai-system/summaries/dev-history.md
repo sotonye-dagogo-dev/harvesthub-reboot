@@ -48,6 +48,31 @@ Complete webhook idempotency persistence and event replay-safety before declarin
 
 ---
 
+## 2026-04-11 — Payment Gating Unblock + Banner/Preview UX Reliability
+
+**Summary:**
+Implemented a focused reliability pass to align payment availability behavior with active Paystack runtime configuration and to close key banner/homepage UX gaps. This ensures checkout/wallet/order flows no longer remain falsely blocked when Paystack test/live keys are active, while improving ad/banner visual integrity and preview confidence before submission.
+
+**Completed:**
+
+- Added shared payment runtime config and public endpoint for payment-enabled status.
+- Updated checkout/wallet/order payment gating to use runtime key readiness.
+- Improved add-to-cart feedback toast copy by including product names.
+- Converted homepage Popular Vendors into horizontal scroll rail with snap behavior.
+- Updated top/hero banner rendering to preserve image aspect ratio without clipping.
+- Added reusable banner placement preview and integrated it into operations banners, advertise, and public ad-application forms.
+- Added focused tests for payment runtime enablement helper.
+
+**Key Changes:**
+
+- Payment processing availability is now source-of-truth driven by active Paystack key configuration instead of static constant flags.
+- Banner/ad submission flows now provide placement previews that reflect frontend behavior across desktop/mobile contexts.
+
+**Next Sprint Focus:**
+Follow with parallel code/security validation outcomes and iterate on any review findings before merge.
+
+---
+
 ## 2026-04-09 — Follow-up Sweep: Destructive Confirm Single-Source Consolidation
 
 **Summary:**

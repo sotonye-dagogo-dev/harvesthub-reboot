@@ -166,7 +166,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       vendorName,
       stock: product.stock,
     });
-    toast.success("Added to cart");
+    toast.success(`${product.name} added to cart`);
   };
 
   return (
@@ -358,20 +358,24 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
               {popularVendors.map((vendor) => (
-                <VendorCard
+                <div
                   key={vendor.id}
-                  id={vendor.id}
-                  name={vendor.storeName}
-                  description={vendor.storeDescription || ""}
-                  logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
-                  category={formatVendorCategory(vendor.category)}
-                  campus={vendor.campus}
-                  rating={vendor.analytics?.averageRating || 0}
-                  productCount={vendor.productCount}
-                  isVerified={isVendorVerified(vendor)}
-                />
+                  className="min-w-[220px] max-w-[220px] snap-start sm:min-w-[260px] sm:max-w-[260px]"
+                >
+                  <VendorCard
+                    id={vendor.id}
+                    name={vendor.storeName}
+                    description={vendor.storeDescription || ""}
+                    logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
+                    category={formatVendorCategory(vendor.category)}
+                    campus={vendor.campus}
+                    rating={vendor.analytics?.averageRating || 0}
+                    productCount={vendor.productCount}
+                    isVerified={isVendorVerified(vendor)}
+                  />
+                </div>
               ))}
             </div>
           </section>

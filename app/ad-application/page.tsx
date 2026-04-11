@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { BannerPlacementPreview } from "@/components/features";
 
 type ApplyFormState = {
   name: string;
@@ -179,6 +180,7 @@ export default function AdApplicationPage() {
             }}
           />
         </div>
+        <BannerPlacementPreview position="TOP" imageUrl={form.imageUrl} title={form.title} />
         <input
           aria-label="Destination Link URL"
           type="url"

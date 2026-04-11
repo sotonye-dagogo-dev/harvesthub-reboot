@@ -39,6 +39,7 @@ interface CategoryRate {
 interface AdminPaymentConfig {
   gateway: "PAYSTACK";
   mode: "test" | "live";
+  paymentsEnabled: boolean;
   paystack: {
     mode: "test" | "live";
     callbackUrl: string | null;
@@ -107,9 +108,11 @@ export default function OperationsSettingsPage() {
           setPaymentConfig({
             gateway: data.gateway,
             mode: data.mode,
+            paymentsEnabled: Boolean(data.paymentsEnabled),
             paystack: data.paystack,
             fallback: data.fallback,
           } as AdminPaymentConfig);
+          setPaymentsEnabled(Boolean(data.paymentsEnabled));
         }
       } catch (error) {
         if (active) {
@@ -276,11 +279,10 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Enable Payment Processing</div>
               <div className="text-xs text-ds-text-secondary">
-                When enabled, buyers can make payments at checkout. When disabled, orders are placed
-                with pending payment status.
+                Payments are enabled automatically when active-mode Paystack keys are configured.
               </div>
             </div>
-            <Switch checked={paymentsEnabled} onChange={(checked) => setPaymentsEnabled(checked)} />
+            <Switch checked={paymentsEnabled} disabled />
           </div>
 
           {!paymentsEnabled && (

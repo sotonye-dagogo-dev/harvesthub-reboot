@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Payment Availability Is Runtime-Gated By Active Paystack Keys
+
+**Decision:** Drive checkout/wallet payment-enabled UX and order payment-gating logic from active-mode Paystack key readiness (`env.paystackPublicKey` + `env.paystackSecretKey`) via shared runtime config, instead of static `PLATFORM_DEFAULTS.PAYMENTS_ENABLED`.
+**Date:** 2026-04-11
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Operations settings already communicate that payment processing is controlled by live/test Paystack configuration. Static constants kept wallet/checkout in "coming soon" mode even when admin had enabled test-mode integration, creating product-behavior drift and blocking QA.
+
+**Alternatives Considered:**
+
+- Keep static constant + editable UI switch (rejected: not persisted and still drifts from real env-driven gateway readiness).
+- Add DB-backed payment toggle model immediately (rejected: higher scope than needed for this bug-fix slice).
+
+**Implications:**
+
+- Frontend and order API now share one source of truth for whether gateway-assisted payment paths are active.
+- Admin settings "Enable Payment Processing" switch is now read-only status derived from runtime config.
+- If active-mode Paystack keys are removed, payment paths safely fall back to pending/pay-later behavior.
+
 ## Paystack Configuration Uses Mode-Switched Key Sets with Admin Read-Only Clarity Panel
 
 **Decision:** Use `PAYSTACK_MODE` (`test`/`live`) to select mode-specific key sets (`PAYSTACK_TEST_*`, `PAYSTACK_LIVE_*`) and expose a sanitized admin-only configuration/status panel in operations settings instead of editable runtime credential toggles.

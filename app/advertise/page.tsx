@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
 import { BannerTheme, BannerPosition, AD_BANNER_DIMENSIONS } from "@/lib/constants";
+import { BannerPlacementPreview } from "@/components/features";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
 import { enqueueOfflineItem, replayOfflineQueue } from "@/lib/utils/offlineQueue";
@@ -72,6 +73,8 @@ export default function AdvertisePage() {
 
   const durationType = Form.useWatch("durationType", form) || "DAILY";
   const durationValue = Form.useWatch("durationValue", form) || 1;
+  const previewPosition = (Form.useWatch("position", form) || "TOP") as BannerPosition;
+  const previewTitle = Form.useWatch("title", form) || "";
   const estimatedAmount = rateConfig
     ? (durationType === "HOURLY" ? rateConfig.hourlyRate : rateConfig.dailyRate) * durationValue
     : null;
@@ -358,6 +361,13 @@ export default function AdvertisePage() {
               Choose where your ad should appear first; final placement depends on approved inventory.
             </p>
           </Form.Item>
+
+          <BannerPlacementPreview
+            position={previewPosition}
+            imageUrl={imageUpload?.url}
+            title={previewTitle}
+          />
+
           <Form.Item name="theme" label="Theme" rules={[{ required: true }]}>
             <Select className={adFormInputClassName}>
               <Select.Option value="BUSINESS">Business</Select.Option>

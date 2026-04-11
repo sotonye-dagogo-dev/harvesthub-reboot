@@ -39,6 +39,55 @@
 
 ---
 
+## Session 49 — 2026-04-11
+
+**Goal:**
+Resolve payment gating drift and complete homepage/banner UX fixes (cart feedback, vendor layout, responsive banner integrity, and banner placement previews) with minimal safe changes.
+
+**Completed:**
+
+- Added shared payment runtime config (`lib/config/payments.ts`) and public config endpoint (`GET /api/payments/config`) to expose environment-driven payment availability.
+- Updated checkout, wallet, and order creation payment gating to use runtime payment availability rather than static default constant.
+- Updated add-to-cart success messaging to include product name across home/products/favourites surfaces.
+- Converted homepage Popular Vendors section to horizontal snap-scroll layout for overflow consistency with product rails.
+- Updated top/hero banner render image behavior to preserve aspect ratio (`object-contain`) and avoid clipping.
+- Added reusable `BannerPlacementPreview` and integrated previews in operations banners form, advertise page, and public ad-application form.
+- Added focused unit tests for payment runtime enablement helper.
+- Ran validation: focused tests, lint, and build.
+
+**Files Modified:**
+
+- lib/config/payments.ts
+- app/api/payments/config/route.ts
+- app/api/admin/payments/config/route.ts
+- app/(operations)/operations/settings/page.tsx
+- app/api/orders/route.ts
+- app/checkout/page.tsx
+- app/wallet/page.tsx
+- app/components/HomeContent.tsx
+- components/features/ProductsContent.tsx
+- app/favourites/page.tsx
+- components/features/TopAdBanner.tsx
+- components/features/BannerCarousel.tsx
+- components/features/BannerPlacementPreview.tsx
+- components/features/index.ts
+- app/(operations)/operations/banners/page.tsx
+- app/advertise/page.tsx
+- app/ad-application/page.tsx
+- lib/config/__tests__/payments.test.ts
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run parallel validation (Code Review + CodeQL), apply valid findings if any, then publish final PR update with screenshot links.
+
+**Notes / Blockers:**
+
+- Baseline full test suite still has pre-existing unrelated failures (including localhost ECONNREFUSED integration tests).
+- Manual UI snapshots captured for advertise/ad-application preview surfaces.
+
+---
+
 ## Session 48 — 2026-04-11
 
 **Goal:**
