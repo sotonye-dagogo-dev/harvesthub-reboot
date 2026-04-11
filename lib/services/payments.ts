@@ -57,8 +57,8 @@ function buildReference(gateway: SupportedPaymentGateway): string {
 function getGatewayMessage(gateway: SupportedPaymentGateway): string {
   if (gateway === 'PAYSTACK') {
     return env.paystackSecretKey
-      ? 'Paystack integration stub initialized (credentials detected).'
-      : 'Paystack integration stub initialized (credentials missing).';
+      ? `Paystack integration stub initialized for ${env.paystackMode} mode (credentials detected).`
+      : `Paystack integration stub initialized for ${env.paystackMode} mode (credentials missing).`;
   }
 
   return env.flutterwaveSecretKey
@@ -81,6 +81,9 @@ export async function initializePayment(
   const amount = normalizeAmount(input.amount);
   const currency = input.currency || 'NGN';
 
+  const callbackUrl =
+    (input.gateway === 'PAYSTACK' ? env.paystackCallbackUrl : undefined) || input.callbackUrl;
+
   return {
     gateway: input.gateway,
     status: 'STUBBED',
@@ -90,7 +93,7 @@ export async function initializePayment(
     message: getGatewayMessage(input.gateway),
     amount,
     currency,
-    callbackUrl: input.callbackUrl,
+    callbackUrl,
     metadata: input.metadata,
   };
 }

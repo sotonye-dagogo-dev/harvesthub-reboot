@@ -39,6 +39,45 @@
 
 ---
 
+## Session 48 — 2026-04-11
+
+**Goal:**
+Advance Paystack implementation readiness by introducing mode-aware env switching, secure webhook signature handling, and explicit admin-facing test/live operating context.
+
+**Completed:**
+
+- Added mode-switched Paystack env model (`PAYSTACK_MODE` + `PAYSTACK_TEST_*` and `PAYSTACK_LIVE_*`) while keeping compatibility fallback support.
+- Updated `.env`, `.env.local`, `.env.example`, and `PRODUCTION.md` with the new key/callback/webhook variable contract.
+- Hardened `/api/payments/webhook` to verify `x-paystack-signature` using HMAC-SHA512 with active-mode signing secret.
+- Added admin-only payment config endpoint (`GET /api/admin/payments/config`) that returns sanitized status (mode, key readiness, callback/webhook targets, whitelist IP guidance).
+- Extended operations settings payment section with a Paystack gateway panel that explains test-vs-live behavior in plain language.
+- Re-ran focused lint and payment tests for touched payment/config files.
+
+**Files Modified:**
+
+- lib/config/env.ts
+- lib/services/payments.ts
+- app/api/payments/webhook/route.ts
+- app/api/admin/payments/config/route.ts
+- app/(operations)/operations/settings/page.tsx
+- .env
+- .env.local
+- .env.example
+- PRODUCTION.md
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Implement webhook idempotency handling and persistence of processed webhook event IDs before full live cutover.
+
+**Notes / Blockers:**
+
+- Focused validation passed:
+  - `npx next lint --file app/api/admin/payments/config/route.ts --file "app/(operations)/operations/settings/page.tsx" --file lib/services/payments.ts --file lib/config/env.ts --file app/api/payments/webhook/route.ts`
+  - `npm run test -- lib/services/__tests__/payments.test.ts`
+
 ## Session 47 — 2026-04-09
 
 **Goal:**

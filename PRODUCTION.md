@@ -9,7 +9,11 @@ This document lists minimal steps and environment variables required to deploy M
 
 2. Environment variables (see `.env.example`)
    - `DATABASE_URL`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `REDIS_URL`
-   - `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `FLUTTERWAVE_PUBLIC_KEY`, `FLUTTERWAVE_SECRET_KEY` (required once gateway calls are enabled)
+   - `PAYSTACK_MODE` (`test` or `live`)
+   - `PAYSTACK_TEST_PUBLIC_KEY`, `PAYSTACK_TEST_SECRET_KEY`, `PAYSTACK_TEST_CALLBACK_URL`
+   - `PAYSTACK_LIVE_PUBLIC_KEY`, `PAYSTACK_LIVE_SECRET_KEY`, `PAYSTACK_LIVE_CALLBACK_URL`
+   - `PAYSTACK_WEBHOOKS_ENABLED` and optional `PAYSTACK_WEBHOOK_SECRET` (defaults to active mode secret key)
+   - `FLUTTERWAVE_PUBLIC_KEY`, `FLUTTERWAVE_SECRET_KEY` (required once Flutterwave calls are enabled)
    - `NEXT_PUBLIC_BASE_URL` — public host
 
 3. Secrets & security

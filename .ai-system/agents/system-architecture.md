@@ -224,6 +224,16 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 5. On failure/unverified status, endpoint rejects mutation with a payment error response.
 ```
 
+### Operations Payment Mode Visibility Flow
+
+```
+1. Admin opens `/operations/settings` and loads payment processing section.
+2. Client requests `/api/admin/payments/config` to retrieve sanitized gateway config status.
+3. API resolves active Paystack mode from env (`PAYSTACK_MODE`) and selected key set (test/live) without exposing secrets.
+4. Response includes mode-aware callback URL, expected dashboard webhook URL, key/webhook readiness booleans, and Paystack webhook whitelist IPs.
+5. UI surfaces explicit test-vs-live behavior guidance so admins understand whether transactions are simulated or real-money.
+```
+
 ### Notification Delivery Flow
 
 ```
@@ -237,11 +247,14 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Notification Inbox + Preference Route Flow
 
 ```
+
 1. `/notifications` renders full inbox timeline (`NotificationInbox`) with shared context actions (read, read-all, delete, refresh, CTA navigation).
 2. `/notifications/settings` renders preference controls only (`NotificationPreferences`) with explicit editable vs enforced sections.
 3. Sidebar/nav include both inbox and settings links for vendor/admin discoverability; buyer flows discover settings through inbox and bell-entry links.
 4. Notification context is source-of-truth for bell/drawer/inbox synchronization and now refreshes on a calmer 5-minute cadence plus manual refresh.
+
 ```
+
 ```
 
 ### Data Persistence Flow
@@ -335,18 +348,18 @@ Migration direction:
 
 > **Section summary:** Log of major architectural changes. See also memory/architecture-history.md for full details.
 
-| Date       | Change                                                     | Reason                                                                                               |
-| ---------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| 2026-03-15 | Initialized `.ai-system` & documented architecture         | Bootstrapped AI-guided workflow for MyHarvestHub                                                     |
-| 2026-03-31 | Hardened signup flow and dashboard route mapping           | Fix `Missing required fields` signup bug and unify role dashboards                                   |
-| 2026-04-01 | Added buyer-to-vendor conversion and persistence hardening | Address client concerns on role conversion, editability, and auth UX                                 |
-| 2026-04-01 | Standardized ad APIs/uploads + signup layout modernization | Improve production-readiness via API consistency, offline resilience, and UX cleanup                 |
-| 2026-04-01 | Introduced `/operations/*` canonical management namespace  | Start grouped-route migration with middleware redirects from legacy role-prefixed URLs               |
-| 2026-04-01 | Removed final operations wrappers and legacy hosts         | Completed migration so operations pages are self-contained and legacy admin/vendor pages redirect    |
-| 2026-04-01 | Enforced server-side payment verification in mutations     | Prevent unverified card orders/wallet credits by verifying payment status at API mutation boundaries |
-| 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings                 |
-| 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                     |
-| 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                               |
+| Date       | Change                                                     | Reason                                                                                                      |
+| ---------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 2026-03-15 | Initialized `.ai-system` & documented architecture         | Bootstrapped AI-guided workflow for MyHarvestHub                                                            |
+| 2026-03-31 | Hardened signup flow and dashboard route mapping           | Fix `Missing required fields` signup bug and unify role dashboards                                          |
+| 2026-04-01 | Added buyer-to-vendor conversion and persistence hardening | Address client concerns on role conversion, editability, and auth UX                                        |
+| 2026-04-01 | Standardized ad APIs/uploads + signup layout modernization | Improve production-readiness via API consistency, offline resilience, and UX cleanup                        |
+| 2026-04-01 | Introduced `/operations/*` canonical management namespace  | Start grouped-route migration with middleware redirects from legacy role-prefixed URLs                      |
+| 2026-04-01 | Removed final operations wrappers and legacy hosts         | Completed migration so operations pages are self-contained and legacy admin/vendor pages redirect           |
+| 2026-04-01 | Enforced server-side payment verification in mutations     | Prevent unverified card orders/wallet credits by verifying payment status at API mutation boundaries        |
+| 2026-04-01 | Added unified notification fan-out service                 | Centralize in-app/email/web-push delivery and honor notification preference settings                        |
+| 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                            |
+| 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                                      |
 | 2026-04-09 | Added notifications inbox-first route + template resolver  | Restore `/notifications` inbox discoverability, make preference UI truthful, and reduce churny runtime copy |
 
 ### Email Change + Reverification Flow

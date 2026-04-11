@@ -11,6 +11,13 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   NEXT_PUBLIC_EMAIL_FROM: z.string().optional(),
+  PAYSTACK_MODE: z.string().optional(),
+  PAYSTACK_TEST_PUBLIC_KEY: z.string().optional(),
+  PAYSTACK_TEST_SECRET_KEY: z.string().optional(),
+  PAYSTACK_LIVE_PUBLIC_KEY: z.string().optional(),
+  PAYSTACK_LIVE_SECRET_KEY: z.string().optional(),
+  PAYSTACK_TEST_CALLBACK_URL: z.string().optional(),
+  PAYSTACK_LIVE_CALLBACK_URL: z.string().optional(),
   PAYSTACK_PUBLIC_KEY: z.string().optional(),
   PAYSTACK_SECRET_KEY: z.string().optional(),
   FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
@@ -33,6 +40,11 @@ if (!parsed.success) {
 }
 
 const raw = parsed.data;
+
+function toPaystackMode(value: string | undefined): 'test' | 'live' {
+  if (!value) return 'test';
+  return value.trim().toLowerCase() === 'live' ? 'live' : 'test';
+}
 
 /**
  * Naming convention:
@@ -64,8 +76,25 @@ export const env = {
   upstashUrl: raw.UPSTASH_REDIS_REST_URL,
   upstashToken: raw.UPSTASH_REDIS_REST_TOKEN,
   resendApiKey: raw.RESEND_API_KEY,
-  paystackPublicKey: raw.PAYSTACK_PUBLIC_KEY,
-  paystackSecretKey: raw.PAYSTACK_SECRET_KEY,
+  paystackMode: toPaystackMode(raw.PAYSTACK_MODE),
+  paystackTestPublicKey: raw.PAYSTACK_TEST_PUBLIC_KEY,
+  paystackTestSecretKey: raw.PAYSTACK_TEST_SECRET_KEY,
+  paystackLivePublicKey: raw.PAYSTACK_LIVE_PUBLIC_KEY,
+  paystackLiveSecretKey: raw.PAYSTACK_LIVE_SECRET_KEY,
+  paystackTestCallbackUrl: raw.PAYSTACK_TEST_CALLBACK_URL,
+  paystackLiveCallbackUrl: raw.PAYSTACK_LIVE_CALLBACK_URL,
+  paystackPublicKey:
+    toPaystackMode(raw.PAYSTACK_MODE) === 'live'
+      ? raw.PAYSTACK_LIVE_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY
+      : raw.PAYSTACK_TEST_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY,
+  paystackSecretKey:
+    toPaystackMode(raw.PAYSTACK_MODE) === 'live'
+      ? raw.PAYSTACK_LIVE_SECRET_KEY || raw.PAYSTACK_SECRET_KEY
+      : raw.PAYSTACK_TEST_SECRET_KEY || raw.PAYSTACK_SECRET_KEY,
+  paystackCallbackUrl:
+    toPaystackMode(raw.PAYSTACK_MODE) === 'live'
+      ? raw.PAYSTACK_LIVE_CALLBACK_URL
+      : raw.PAYSTACK_TEST_CALLBACK_URL,
   flutterwavePublicKey: raw.FLUTTERWAVE_PUBLIC_KEY,
   flutterwaveSecretKey: raw.FLUTTERWAVE_SECRET_KEY,
   emailFrom: raw.NEXT_PUBLIC_EMAIL_FROM || 'noreply@myharvesthub.ng',

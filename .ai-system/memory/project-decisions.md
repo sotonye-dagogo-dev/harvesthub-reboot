@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Paystack Configuration Uses Mode-Switched Key Sets with Admin Read-Only Clarity Panel
+
+**Decision:** Use `PAYSTACK_MODE` (`test`/`live`) to select mode-specific key sets (`PAYSTACK_TEST_*`, `PAYSTACK_LIVE_*`) and expose a sanitized admin-only configuration/status panel in operations settings instead of editable runtime credential toggles.
+**Date:** 2026-04-11
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The team needs both test and live credentials ready while reducing accidental live-money processing. A clear, read-only admin panel improves operational awareness (mode, callback/webhook targets, key readiness, webhook flag/IP whitelist) without exposing secrets or pretending env-backed settings are editable in UI.
+
+**Alternatives Considered:**
+
+- Keep single generic `PAYSTACK_PUBLIC_KEY`/`PAYSTACK_SECRET_KEY` only (rejected: ambiguous environment switching and higher cutover risk).
+- Add mutable dashboard-like credential form in app UI (rejected: conflicts with env/secret-store governance and increases secret leakage risk).
+
+**Implications:**
+
+- Deployments must set both test/live keys and explicit `PAYSTACK_MODE` for predictable behavior.
+- Admins get clear test-mode guidance that no real money moves in sandbox mode.
+- Webhook signature verification now depends on active mode keying (`PAYSTACK_WEBHOOK_SECRET` override or active mode secret key).
+
 ## Destructive Action Confirmation Uses a Provider-Registered Presenter Bridge
 
 **Decision:** Route all `openActionConfirm` calls through a provider-registered presenter bridge (`App.useApp().modal.confirm`) with fallback to static `Modal.confirm`, so destructive confirmation dialogs render consistently across route groups.
