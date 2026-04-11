@@ -133,7 +133,7 @@ export function TopAdBanner() {
   const stripContent = (
     <div
       className={cn(
-        "relative flex h-[72px] w-full items-center justify-between gap-2 overflow-hidden px-3 text-sm sm:h-[84px]",
+        "relative flex aspect-[64/10] min-h-[56px] max-h-[84px] w-full items-center justify-between gap-2 overflow-hidden px-3 text-sm",
         !hasImage && themeClasses.bg,
         themeClasses.text
       )}
@@ -147,11 +147,11 @@ export function TopAdBanner() {
             src={banner.imageUrl}
             alt=""
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="100vw"
             priority
           />
-          <div className="absolute inset-0 bg-black/25" />
+          <div className="absolute inset-0 bg-black/15" />
         </>
       )}
 

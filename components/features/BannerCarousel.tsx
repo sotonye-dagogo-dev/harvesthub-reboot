@@ -246,7 +246,7 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
               src={banner.image}
               alt={banner.title}
               fill
-              className="object-cover"
+              className="object-contain"
               sizes="(max-width: 640px) 100vw, 512px"
             />
           </div>
@@ -397,12 +397,12 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
       {/* ── LARGE SCREEN: dual panel layout ── */}
       <div className="hidden md:flex h-full">
         {/* Display panel */}
-        <div className="relative w-[65%] overflow-hidden">
+        <div className="relative w-[65%] overflow-hidden bg-ds-surface-sunken">
           <Image
             src={banner.image}
             alt={banner.title}
             fill
-            className="object-cover"
+            className="object-contain"
             priority={isActive}
             sizes="(min-width: 768px) 65vw, 100vw"
           />
@@ -444,12 +444,12 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
       {/* ── SMALL SCREEN: stacked dual-section — image panel + action strip ── */}
       <div className="flex h-full flex-col md:hidden">
         {/* ▌ Display section – image fills remaining height */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-ds-surface-sunken">
           <Image
             src={banner.image}
             alt={banner.title}
             fill
-            className="object-cover"
+            className="object-contain"
             priority={isActive}
             sizes="100vw"
           />

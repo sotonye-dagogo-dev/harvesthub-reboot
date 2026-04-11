@@ -59,6 +59,24 @@ export default function WalletPage() {
   const hasWalletPayload = typeof walletResource !== "undefined";
   const isWalletBootstrapLoading = Boolean(user?.id) && !hasWalletPayload && !error;
 
+  const loadPaymentConfig = useCallback(async (): Promise<{ paymentsEnabled: boolean }> => {
+    const res = await fetch("/api/payments/config", { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.error || "Unable to load payment processing status");
+    }
+    return { paymentsEnabled: Boolean(data?.paymentsEnabled) };
+  }, []);
+
+  const { data: paymentConfig } = useSmartResource(loadPaymentConfig, {
+    key: "wallet-payment-config",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
+  const paymentsEnabled =
+    paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
   const paginatedTransactions = userTransactions.slice(
     (currentPage - 1) * itemsPerPage,
@@ -250,7 +268,7 @@ export default function WalletPage() {
         {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
       </div>
 
-      {!PLATFORM_DEFAULTS.PAYMENTS_ENABLED && (
+      {!paymentsEnabled && (
         <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-4">
           <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
           <div>
