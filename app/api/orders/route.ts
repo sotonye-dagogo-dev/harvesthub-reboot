@@ -6,7 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { PLATFORM_DEFAULTS, UserRole } from '@/lib/constants';
+import { UserRole } from '@/lib/constants';
+import { isPaymentProcessingEnabled } from '@/lib/config/payments';
 import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 import { dispatchNotification } from '@/lib/services/notifications';
 import { PaymentMethod, PaymentStatus, Prisma } from '../../../prisma/generated/client';
@@ -90,8 +91,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
         }
 
-        const requiresGatewayVerification =
-            PLATFORM_DEFAULTS.PAYMENTS_ENABLED && paymentMethod === PaymentMethod.CARD;
+        const paymentsEnabled = isPaymentProcessingEnabled();
+        const requiresGatewayVerification = paymentsEnabled && paymentMethod === PaymentMethod.CARD;
 
         let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
         let paymentAuditNote = 'Payment pending confirmation.';
@@ -126,7 +127,7 @@ export async function POST(req: NextRequest) {
             }
 
             paymentAuditNote = `Payment verified via ${gateway} (ref: ${paymentReference}).`;
-        } else if (paymentMethod === PaymentMethod.WALLET && PLATFORM_DEFAULTS.PAYMENTS_ENABLED) {
+        } else if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
             paymentAuditNote = 'Wallet payment selected.';
         } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
             const fallback = getPaymentFallbackTelemetry();
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
         const total = subtotal + deliveryFee;
         const paymentStatus =
             requiresGatewayVerification ||
-            (paymentMethod === PaymentMethod.WALLET && PLATFORM_DEFAULTS.PAYMENTS_ENABLED)
+            (paymentMethod === PaymentMethod.WALLET && paymentsEnabled)
                 ? PaymentStatus.PAID
                 : PaymentStatus.PENDING;
 

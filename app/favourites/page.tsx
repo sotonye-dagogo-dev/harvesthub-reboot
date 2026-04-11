@@ -60,7 +60,7 @@ export default function FavouritesPage() {
       vendorName,
       stock: product.stock,
     });
-    toast.success("Added to cart");
+    toast.success(`${product.name} added to cart`);
   };
 
   const handleToggleFavorite = (productId: string) => {

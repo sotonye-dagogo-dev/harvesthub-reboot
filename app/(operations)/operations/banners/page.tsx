@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
+import { BannerPlacementPreview } from "@/components/features";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
 import type { Banner } from "@/lib/types";
@@ -25,6 +26,12 @@ export default function OperationsBannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
 
   const [form] = Form.useForm();
+  const previewPosition = (Form.useWatch("position", form) ?? "HERO") as
+    | "TOP"
+    | "HERO"
+    | "SIDEBAR";
+  const previewImageUrl = Form.useWatch("imageUrl", form) ?? "";
+  const previewTitle = Form.useWatch("title", form) ?? "";
 
   const reloadBanners = useCallback(async () => {
     const res = await fetch("/api/banners");
@@ -397,6 +404,12 @@ export default function OperationsBannersPage() {
           <Form.Item name="isActive" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
+
+          <BannerPlacementPreview
+            position={previewPosition}
+            imageUrl={previewImageUrl}
+            title={previewTitle}
+          />
         </Form>
       </Modal>
     </div>

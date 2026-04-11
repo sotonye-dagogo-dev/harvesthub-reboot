@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 import { env } from '@/lib/config/env';
 import { featureFlags } from '@/lib/config/features';
+import { isPaymentProcessingEnabled } from '@/lib/config/payments';
 import { UserRole } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { getRateLimitResponse, rateLimitByUser } from '@/lib/middleware/rate-limit';
@@ -30,6 +31,7 @@ export async function GET(_req: NextRequest) {
         return apiSuccess({
             gateway: 'PAYSTACK',
             mode: env.paystackMode,
+            paymentsEnabled: isPaymentProcessingEnabled(),
             paystack: {
                 mode: env.paystackMode,
                 callbackUrl: env.paystackCallbackUrl || null,

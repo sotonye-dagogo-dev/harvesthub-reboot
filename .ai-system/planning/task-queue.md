@@ -120,6 +120,18 @@
 
 ---
 
+## Session 49 Fix Slice — Payment/Banner UX Consistency (2026-04-11)
+
+> **Section summary:** Small reliability patch set for payment availability, cart feedback messaging, vendor rail layout, banner rendering integrity, and ad/banner placement previews.
+
+- [x] Align checkout/wallet/order payment gating with runtime Paystack key readiness.
+- [x] Improve add-to-cart feedback message clarity (product-specific success toast).
+- [x] Convert homepage popular vendors to horizontal overflow rail.
+- [x] Preserve top/hero banner image aspect ratios responsively without clipping.
+- [x] Add frontend placement previews for top/ad banners on advertise, public ad application, and operations banner form surfaces.
+
+---
+
 ## Feature: Signup & Mobile UI Fixes
 
 > **Section summary:** Tasks implementing the UI/UX fixes and signup enhancements requested on 2026-03-17.
