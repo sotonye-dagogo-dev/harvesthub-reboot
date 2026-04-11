@@ -46,16 +46,16 @@ export async function setRefreshTokenCookie(token: string): Promise<void> {
  */
 export async function setAuthCookies(accessToken: string, refreshToken: string, rememberMe = false): Promise<void> {
     const cookieStore = await cookies();
+    const accessCookieOptions = rememberMe
+        ? { ...COOKIE_OPTIONS, maxAge: 8 * 60 * 60 } // 8h when remembered
+        : { ...COOKIE_OPTIONS }; // session cookie when not remembered
+    const refreshCookieOptions = rememberMe
+        ? { ...COOKIE_OPTIONS, maxAge: 30 * 24 * 60 * 60 } // 30d when remembered
+        : { ...COOKIE_OPTIONS }; // session cookie when not remembered
 
-    cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: rememberMe ? 8 * 60 * 60 : 15 * 60, // 8h if remembered, 15m otherwise
-    });
+    cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, accessCookieOptions);
 
-    cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60, // 30d if remembered, 7d otherwise
-    });
+    cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, refreshCookieOptions);
 }
 
 /**

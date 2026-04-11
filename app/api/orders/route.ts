@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== UserRole.BUYER) return NextResponse.json({ error: 'Only buyers can place orders' }, { status: 403 });
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -135,8 +134,11 @@ export async function POST(req: NextRequest) {
         }
 
         // Use Prisma for all order operations (no mock fallback)
-        const buyer = await prisma.buyer.findUnique({ where: { userId: user.userId } });
-        if (!buyer) return NextResponse.json({ error: 'Buyer profile not found' }, { status: 404 });
+        const buyer = await prisma.buyer.upsert({
+            where: { userId: user.userId },
+            update: {},
+            create: { userId: user.userId },
+        });
 
         const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
         if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });

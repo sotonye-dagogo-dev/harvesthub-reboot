@@ -16,6 +16,7 @@ export type InitializePaymentResult = {
   gateway: SupportedPaymentGateway;
   status: 'STUBBED';
   reference: string;
+  verificationReference: string;
   authorizationUrl: string;
   accessCode: string;
   message: string;
@@ -88,6 +89,7 @@ export async function initializePayment(
     gateway: input.gateway,
     status: 'STUBBED',
     reference,
+    verificationReference: `${reference}-success`,
     authorizationUrl: buildAuthorizationUrl(input.gateway, reference),
     accessCode: `stub-${reference}`,
     message: getGatewayMessage(input.gateway),

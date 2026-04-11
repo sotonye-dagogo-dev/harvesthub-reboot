@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { BannerPlacementPreview } from "@/components/features";
+import { message } from "antd";
 
 type ApplyFormState = {
   name: string;
@@ -14,6 +15,8 @@ type ApplyFormState = {
   imageUrl: string;
   linkUrl: string;
   paymentMethod: "BANK_TRANSFER" | "CARD" | "USSD";
+  paymentGateway?: "PAYSTACK" | "FLUTTERWAVE";
+  paymentReference?: string;
   durationType: "HOURLY" | "DAILY";
   durationValue: string;
   amountPaid: string;
@@ -32,6 +35,8 @@ const initialState: ApplyFormState = {
   imageUrl: "",
   linkUrl: "",
   paymentMethod: "BANK_TRANSFER",
+  paymentGateway: "PAYSTACK",
+  paymentReference: "",
   durationType: "DAILY",
   durationValue: "1",
   amountPaid: "",
@@ -57,11 +62,54 @@ export default function AdApplicationPage() {
     setIsSubmitting(true);
 
     try {
+      let paymentReference = form.paymentReference;
+      let paymentVerificationReference: string | undefined;
+      const isBankTransfer = form.paymentMethod === "BANK_TRANSFER";
+
+      if (!isBankTransfer) {
+        const paymentRes = await fetch("/api/payments/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gateway: "PAYSTACK",
+            amount: Number(form.amountPaid),
+            email: form.email,
+            currency: "NGN",
+            metadata: {
+              source: "public-ad-application",
+              paymentMethod: form.paymentMethod,
+            },
+          }),
+        });
+        const paymentData = await paymentRes.json().catch(() => ({}));
+        if (!paymentRes.ok || !paymentData?.payment?.reference) {
+          throw new Error(paymentData?.error || "Unable to initialize payment");
+        }
+        paymentReference = String(paymentData.payment.reference);
+        if (!paymentData.payment.verificationReference) {
+          throw new Error("Unable to determine payment verification reference");
+        }
+        paymentVerificationReference = String(paymentData.payment.verificationReference);
+        if (paymentData?.payment?.authorizationUrl) {
+          window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
+          message.info("Payment initialized. Complete payment in the opened tab.");
+        }
+      } else if (!form.proofOfTransferUrl) {
+        throw new Error("Please upload proof of transfer for bank transfer.");
+      }
+
       const response = await fetch("/api/ads/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          paymentGateway: form.paymentMethod === "BANK_TRANSFER" ? undefined : "PAYSTACK",
+          paymentReference: form.paymentMethod === "BANK_TRANSFER" ? undefined : paymentReference,
+          paymentVerificationReference:
+            form.paymentMethod === "BANK_TRANSFER" || !paymentReference
+              ? undefined
+              : paymentVerificationReference,
+          proofOfTransferUrl: form.paymentMethod === "BANK_TRANSFER" ? form.proofOfTransferUrl : undefined,
           durationValue: Number(form.durationValue),
           amountPaid: Number(form.amountPaid),
           position: "TOP",
@@ -89,11 +137,11 @@ export default function AdApplicationPage() {
       <h1 className="text-3xl font-bold text-ds-text-primary">Public Ad Application</h1>
       <p className="mt-2 text-ds-text-secondary">
         Promote your business, event, or announcement on MyHarvestHub. Submit your campaign details
-        and payment proof for admin review.
+        for admin review.
       </p>
 
       <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4 text-sm text-ds-text-secondary">
-        Upload your banner image and proof-of-transfer using the managed uploader below.
+        Upload your banner image using the managed uploader below.
         Applications are reviewed in the order they are received.
       </div>
 
@@ -237,24 +285,28 @@ export default function AdApplicationPage() {
           onChange={(e) => updateField("amountPaid", e.target.value)}
           placeholder="Amount Paid"
         />
-        <input
-          aria-label="Proof of Transfer Upload Reference"
-          type="hidden"
-          required
-          value={form.proofOfTransferUrl}
-          onChange={(e) => updateField("proofOfTransferUrl", e.target.value)}
-        />
-        <div className="rounded-ds-md border border-ds-border-base p-3">
-          <p className="mb-2 text-sm font-medium text-ds-text-primary">Proof of Transfer *</p>
-          <ImageUpload
-            folderType="payment-proof"
-            skipPersistence
-            onUploaded={(result) => {
-              updateField("proofOfTransferUrl", result.url);
-              updateField("proofPublicId", result.publicId);
-            }}
-          />
-        </div>
+        {form.paymentMethod === "BANK_TRANSFER" && (
+          <>
+            <input
+              aria-label="Proof of Transfer Upload Reference"
+              type="hidden"
+              required
+              value={form.proofOfTransferUrl}
+              onChange={(e) => updateField("proofOfTransferUrl", e.target.value)}
+            />
+            <div className="rounded-ds-md border border-ds-border-base p-3">
+              <p className="mb-2 text-sm font-medium text-ds-text-primary">Proof of Transfer *</p>
+              <ImageUpload
+                folderType="payment-proof"
+                skipPersistence
+                onUploaded={(result) => {
+                  updateField("proofOfTransferUrl", result.url);
+                  updateField("proofPublicId", result.publicId);
+                }}
+              />
+            </div>
+          </>
+        )}
 
         <button
           type="submit"
