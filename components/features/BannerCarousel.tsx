@@ -300,78 +300,6 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
   );
 }
 
-// ─── Action Panel (large-screen sidebar) ─────────────────────────
-
-interface ActionPanelProps {
-  banner: BannerItem;
-}
-
-function ActionPanel({ banner }: ActionPanelProps) {
-  const tokens = getTheme(banner.theme);
-  const hasActions = banner.actions && banner.actions.length > 0;
-
-  return (
-    <div
-      className={cn(
-        "flex h-full flex-col justify-center gap-4 p-6 xl:p-8",
-        tokens.actionBg,
-        tokens.actionText
-      )}
-      // CSS custom property must be set via inline style (cannot be a Tailwind class)
-      style={
-        banner.accentColor ? ({ "--accent": banner.accentColor } as React.CSSProperties) : undefined
-      }
-    >
-      {/* Badge / theme label */}
-      {banner.subtitle && (
-        <span
-          className={cn("self-start rounded-ds-full px-3 py-1 text-xs font-semibold", tokens.badge)}
-        >
-          {banner.subtitle}
-        </span>
-      )}
-
-      {/* Title */}
-      <h2 className="text-2xl font-bold leading-tight xl:text-3xl">{banner.title}</h2>
-
-      {/* Description */}
-      {banner.description && (
-        <p className="text-sm leading-relaxed opacity-90 xl:text-base">{banner.description}</p>
-      )}
-
-      {/* Details line (date / address / info) */}
-      {banner.details && (
-        <p className="flex items-start gap-1.5 text-xs opacity-75 xl:text-sm">
-          <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-          {banner.details}
-        </p>
-      )}
-
-      {/* CTA buttons */}
-      {hasActions && (
-        <div className="flex flex-col gap-2 pt-1">
-          {banner.actions!.slice(0, 2).map((action, i) => (
-            <ActionBtn key={i} action={action} tokens={tokens} size="md" />
-          ))}
-        </div>
-      )}
-
-      {/* Fallback (no actions): simple link */}
-      {!hasActions && (banner.link ?? null) && (
-        <Link
-          href={banner.link!}
-          className={cn(
-            "mt-1 inline-flex items-center gap-1.5 text-sm font-semibold underline-offset-2 hover:underline",
-            tokens.actionText
-          )}
-        >
-          {BANNER_CONFIG.KNOW_MORE_LABEL} →
-        </Link>
-      )}
-    </div>
-  );
-}
-
 // ─── Slide ────────────────────────────────────────────────────────
 
 interface SlideProps {
@@ -382,7 +310,6 @@ interface SlideProps {
 
 function Slide({ banner, isActive, onKnowMore }: SlideProps) {
   const tokens = getTheme(banner.theme);
-  const hasActions = banner.actions && banner.actions.length > 0;
   const knowMoreLabel = banner.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
 
   return (
@@ -394,98 +321,28 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
       )}
       aria-hidden={!isActive ? "true" : "false"}
     >
-      {/* ── LARGE SCREEN: dual panel layout ── */}
-      <div className="hidden md:flex h-full">
-        {/* Display panel */}
-        <div className="relative w-[65%] overflow-hidden bg-ds-surface-sunken">
-          <Image
-            src={banner.image}
-            alt={banner.title}
-            fill
-            className="object-contain"
-            priority={isActive}
-            sizes="(min-width: 768px) 65vw, 100vw"
-          />
-          {/* Gradient overlay with title — fallback for no-action banners */}
-          <div
+      <div className="relative h-full overflow-hidden bg-ds-surface-sunken">
+        <Image
+          src={banner.image}
+          alt={banner.title}
+          fill
+          className="object-cover"
+          priority={isActive}
+          sizes="100vw"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        <div className="absolute bottom-3 right-3 z-20">
+          <button
+            onClick={onKnowMore}
             className={cn(
-              "absolute inset-0 flex items-end bg-gradient-to-t to-transparent p-6",
-              tokens.overlayFrom,
-              // When there's an action panel, we still show title for context but lighter
-              hasActions ? "from-black/30" : "from-black/70"
+              "rounded-ds-md px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors sm:px-4 sm:py-2 sm:text-sm",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+              tokens.primaryBtn
             )}
+            aria-label={`${knowMoreLabel} about ${banner.title}`}
           >
-            <div className="text-white">
-              <h2 className="text-2xl font-bold drop-shadow-ds-md xl:text-4xl">{banner.title}</h2>
-              {!hasActions && banner.description && (
-                <p className="mt-1 max-w-lg text-sm text-white/90 xl:text-base">
-                  {banner.description}
-                </p>
-              )}
-              {/* Fallback link on large screen when no actions */}
-              {!hasActions && (banner.link ?? null) && (
-                <Link
-                  href={banner.link!}
-                  className="mt-3 inline-flex items-center gap-1 rounded-ds-md bg-ds-surface-base/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-ds-surface-base/30"
-                >
-                  {knowMoreLabel} →
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Action panel */}
-        <div className="flex-shrink-0 w-[35%]">
-          <ActionPanel banner={banner} />
-        </div>
-      </div>
-
-      {/* ── SMALL SCREEN: stacked dual-section — image panel + action strip ── */}
-      <div className="flex h-full flex-col md:hidden">
-        {/* ▌ Display section – image fills remaining height */}
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-ds-surface-sunken">
-          <Image
-            src={banner.image}
-            alt={banner.title}
-            fill
-            className="object-contain"
-            priority={isActive}
-            sizes="100vw"
-          />
-          {/* Subtle vignette for visual depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-        </div>
-
-        {/* ▌ Action strip – themed colour, fixed height, always visible */}
-        <div
-          className={cn(
-            "flex min-h-[64px] flex-shrink-0 items-center gap-3 px-4 py-2",
-            tokens.actionBg,
-            tokens.actionText
-          )}
-        >
-          {/* Info block */}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-snug">{banner.title}</p>
-            {banner.subtitle && <p className="truncate text-xs opacity-75">{banner.subtitle}</p>}
-          </div>
-
-          {/* "Know More" CTA — only shown when there is content / actions to reveal;
-               suppressed when banner has no actions AND no description/details (fallback). */}
-          {(hasActions || banner.description || banner.details) && (
-            <button
-              onClick={onKnowMore}
-              className={cn(
-                "flex-shrink-0 whitespace-nowrap rounded-ds-md px-3 py-1.5 text-xs font-semibold",
-                "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-                tokens.primaryBtn
-              )}
-              aria-label={`${knowMoreLabel} about ${banner.title}`}
-            >
-              {knowMoreLabel}
-            </button>
-          )}
+            {knowMoreLabel}
+          </button>
         </div>
       </div>
     </div>
@@ -556,12 +413,10 @@ export function BannerCarousel({
       <div className={cn("relative overflow-hidden rounded-ds-lg", className)}>
         {/*
          * Height breakdown:
-         *   < md  → image flex-1 + action-strip min-h-[64px] inside the Slide
-         *          280px = ~216px image + 64px strip (mobile)
-         *   sm    → 336px = ~272px image + 64px strip (large phone / tablet-portrait)
-         *   md+   → dual-panel (no strip) so plain height for the whole card
+         *   < md  → compact hero visual
+         *   md+   → wider desktop hero visual
          */}
-        <div className="relative h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] xl:h-[360px]">
+        <div className="relative h-[220px] sm:h-[260px] md:h-[320px] lg:h-[360px] xl:h-[400px]">
           {banners.map((banner, index) => (
             <Slide
               key={banner.id}
@@ -577,14 +432,14 @@ export function BannerCarousel({
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Previous banner"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-3 top-[38%] z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base md:top-1/2 /90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Next banner"
             >
               <ChevronRight className="h-5 w-5" />
@@ -592,11 +447,9 @@ export function BannerCarousel({
           </>
         )}
 
-        {/* Dot Indicators
-             On small screens the action strip is at the bottom (~64 px), so dots
-             are nudged up above it. On md+ the strip is gone → back to bottom-3. */}
+        {/* Dot Indicators */}
         {banners.length > 1 && (
-          <div className="absolute bottom-[76px] left-1/2 z-20 flex -translate-x-1/2 gap-1.5 md:bottom-3">
+          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
             {banners.map((_, index) => (
               <button
                 key={index}

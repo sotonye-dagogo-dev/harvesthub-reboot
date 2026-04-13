@@ -24,6 +24,53 @@
 
 ---
 
+## 2026-04-13 — UI Adjustment Pass: Konga-inspired Banner Deck + Menu Category Access + Query-Synced Category Tags
+
+**Summary:**
+Implemented a UI refinement pass to improve ad-banner composition, category discoverability in header/hamburger navigation, and products filtering reliability from category-tag interactions. The change keeps existing config-driven/banner-position contracts while improving visual hierarchy and responsive behavior.
+
+**Completed:**
+- Updated home banner area to a Konga-inspired split layout with hero carousel and sidebar ad cards.
+- Simplified hero slide viewport to image-first rendering and kept `Know More` modal interaction for detailed copy.
+- Added desktop header category strip (`All Categories` dropdown + quick category links).
+- Added hamburger menu category access via expandable `Browse Categories` section.
+- Fixed products-page URL-query-to-filter synchronization so category-tag taps apply filtering without requiring manual sidebar filter input.
+- Added focused regression tests for hero visual contract, header category accessibility, and updated products discovery sync behavior.
+
+**Key Changes:**
+- Banner rendering now emphasizes media-first promo surfaces with better desktop/mobile compositional parity.
+- Category navigation now has stronger discoverability and accessibility from both desktop and mobile menu entry points.
+- Query state is now source-of-truth synchronized for products category filtering behavior.
+
+**Next Sprint Focus:**
+Capture UX sign-off screenshots for header/banner behavior and continue incremental accessibility polish for expanded menu/dropdown interactions.
+
+---
+
+## 2026-04-13 — Commerce Assurance Wave (Order-to-Payout + Banner Parity + Vendor Contact Safety)
+
+**Summary:**
+Completed a reliability-focused commerce assurance pass covering three locked slices: deterministic order lifecycle/payout automation, preview-runtime parity for banner placements, and guarded vendor WhatsApp handoff safety. The implementation prioritized idempotent transitions and external-contact risk reduction without requiring schema changes.
+
+**Completed:**
+- Hardened order status mutation lifecycle with strict enum-safe transitions and idempotent no-op replay handling.
+- Added automatic vendor wallet payout creation on paid-order delivery, with deterministic duplicate-prevention guard.
+- Added focused route tests for transition validation, payout creation path, and idempotent replay behavior.
+- Updated shared banner placement preview so TOP placement remains image-only, matching runtime banner rendering.
+- Added focused preview tests to prevent TOP overlay drift.
+- Added `/contact/whatsapp` guard page with safety disclaimer and explicit continue action before external handoff.
+- Rewired vendor detail WhatsApp CTA through guard-first path and added focused guard-page tests.
+
+**Key Changes:**
+- Delivered-order payout processing is now deterministic and idempotent at the order status API boundary.
+- Banner operator previews now align more closely with production TOP-banner runtime behavior.
+- Vendor WhatsApp contact now uses an internal safety checkpoint before leaving MyHarvestHub.
+
+**Next Sprint Focus:**
+Complete final full-matrix validation + PR review pass, then follow up on missing 2026-04-13 cloud temp-plan source artifact to keep planning docs fully synchronized.
+
+---
+
 ## 2026-04-11 — Paystack Mode-Switch Hardening + Admin Operations Context Panel
 
 **Summary:**

@@ -39,6 +39,98 @@
 
 ---
 
+## Session 51 — 2026-04-13
+
+**Goal:**
+Apply requested UI adjustments: Konga-inspired top/hero/side banner presentation improvements, better category access from hamburger/menu surfaces, and fix category-tag filtering sync on products page.
+
+**Completed:**
+
+- Refactored home banner composition to a split hero + sidebar-ad rail using existing `HERO`/`SIDEBAR` positions.
+- Updated hero carousel slide rendering to image-first viewport behavior and removed direct title/description surface copy while keeping `Know More` modal access.
+- Added desktop category strip (`All Categories` dropdown + quick links) in header.
+- Added expandable `Browse Categories` section inside hamburger menu for accessible category discoverability.
+- Fixed products-page query/filter synchronization by hydrating local state from URL query params (`useSearchParams` + canonical discovery parser).
+- Restored category-tag click-through behavior so category taps apply filtering immediately without requiring manual sidebar filter interaction.
+- Added/updated focused tests:
+  - `components/__tests__/BannerCarousel.visual-contract.test.tsx`
+  - `components/__tests__/Header.category-menu.test.tsx`
+  - `components/__tests__/ProductsContent.discovery-contract.test.tsx` (query-state sync updates)
+- Ran touched-scope validation (`eslint`, `tsc --noEmit`, focused Vitest suites).
+
+**Files Modified:**
+
+- app/components/HomeContent.tsx
+- components/features/BannerCarousel.tsx
+- components/layout/Header.tsx
+- components/features/ProductsContent.tsx
+- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- components/__tests__/Header.category-menu.test.tsx
+- components/__tests__/ProductsContent.discovery-contract.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+
+**Next Task:**
+Run full final gate (`npm run lint`, `npx tsc --noEmit`, focused vitest touched scope, `npm run audit:dead-links`, `npm run audit:sidebar-routes`) and finalize PR notes.
+
+**Notes / Blockers:**
+
+- Focused tests pass; noisy `ERR_INVALID_URL` logs from client fetchers in jsdom are non-fatal in touched contract tests.
+- Repository-wide full test suite still has known unrelated integration failures (localhost `ECONNREFUSED`) from baseline.
+
+---
+
+## Session 50 — 2026-04-13
+
+**Goal:**
+Implement the commerce assurance wave in one pass: deterministic order-to-payout lifecycle automation, banner preview/runtime parity, and guarded vendor WhatsApp contact safety.
+
+**Completed:**
+
+- Detected and logged blocker: referenced source temp-plan file for this wave is missing in this clone (`.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`), then continued with locked prompt scope.
+- Hardened `PATCH /api/orders/[id]/status` with enum-safe lifecycle transitions, idempotent no-op replay semantics, and transaction-safe payout automation on paid delivered orders.
+- Added payout idempotency guard so delivered-status replays cannot double-credit vendor wallets.
+- Added focused status-route regression tests for invalid transitions, delivered payout creation, and idempotent replay path.
+- Updated shared `BannerPlacementPreview` so TOP placement is image-only (no title overlay), aligned with runtime `TopAdBanner` behavior.
+- Added focused banner preview parity tests.
+- Added public `/contact/whatsapp` guard page with safety disclaimer and explicit continue action before external handoff.
+- Updated vendor detail WhatsApp CTA to route through guard-first safety page.
+- Added focused contact-guard tests for valid/invalid handoff behavior.
+- Ran touched-scope validation:
+  - targeted `eslint` (changed files)
+  - `npx tsc --noEmit`
+  - focused Vitest suites for touched behavior.
+
+**Files Modified:**
+
+- app/api/orders/[id]/status/route.ts
+- app/api/orders/__tests__/status.route.test.ts
+- components/features/BannerPlacementPreview.tsx
+- components/__tests__/BannerPlacementPreview.test.tsx
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/vendors/[id]/page.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+
+**Next Task:**
+Run full final quality gate (`npm run lint`, `npx tsc --noEmit`, focused/full vitest for touched scope, `npm run audit:dead-links`, `npm run audit:sidebar-routes`), then publish final schema/migration report.
+
+**Notes / Blockers:**
+
+- Required cloud temp plan file for this feature wave was not present in repository clone; scope execution proceeded using locked user prompt directives.
+- Baseline repository still has pre-existing unrelated full-test failures outside touched scope (known integration failures including localhost `ECONNREFUSED`).
+
+---
+
 ## Session 49 — 2026-04-11
 
 **Goal:**

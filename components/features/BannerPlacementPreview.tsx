@@ -15,11 +15,13 @@ function PreviewFrame({
   className,
   imageUrl,
   title,
+  showTitleOverlay = true,
 }: {
   label: string;
   className: string;
   imageUrl?: string | null;
   title: string;
+  showTitleOverlay?: boolean;
 }) {
   return (
     <div>
@@ -32,9 +34,11 @@ function PreviewFrame({
             Upload an image to preview this placement.
           </div>
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1 text-[10px] text-white">
-          {title}
-        </div>
+        {showTitleOverlay ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1 text-[10px] text-white">
+            {title}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -56,10 +60,27 @@ export function BannerPlacementPreview({
     <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3">
       <p className="mb-2 text-sm font-medium text-ds-text-primary">Frontend Preview</p>
       {position === "TOP" ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <PreviewFrame label="Desktop top strip" className="aspect-[64/10] max-h-[84px]" imageUrl={imageUrl} title={previewTitle} />
-          <PreviewFrame label="Mobile top strip" className="aspect-[64/10] max-h-[64px]" imageUrl={imageUrl} title={previewTitle} />
-        </div>
+        <>
+          <p className="mb-2 text-xs text-ds-text-secondary">
+            Top placement is image-only at runtime (no title overlay).
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PreviewFrame
+              label="Desktop top strip"
+              className="aspect-[64/10] max-h-[84px]"
+              imageUrl={imageUrl}
+              title={previewTitle}
+              showTitleOverlay={false}
+            />
+            <PreviewFrame
+              label="Mobile top strip"
+              className="aspect-[64/10] max-h-[64px]"
+              imageUrl={imageUrl}
+              title={previewTitle}
+              showTitleOverlay={false}
+            />
+          </div>
+        </>
       ) : position === "SIDEBAR" ? (
         <PreviewFrame label="Sidebar card" className="aspect-[3/4] max-h-[260px] w-full sm:max-w-[240px]" imageUrl={imageUrl} title={previewTitle} />
       ) : (

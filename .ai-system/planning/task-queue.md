@@ -614,3 +614,63 @@
 - [x] Finalize validation and documentation sync.
   - [x] Run targeted lint, `tsc --noEmit`, focused Vitest suites, and route/sidebar audits for touched scope.
   - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/agents/repair-system.md`, `.ai-system/memory/project-decisions.md`, `.ai-system/checkpoints/session-log.md`, and `.ai-system/summaries/dev-history.md`.
+
+---
+
+## Feature Planning Queue (2026-04-13) - Commerce Assurance Wave: Order-to-Payout Automation + Banner Parity + Vendor Contact Safety
+
+> **Section summary:** Cloud continuation execution block for deterministic order lifecycle/payout automation, banner preview-runtime parity, and guarded vendor WhatsApp handoff safety.
+
+- [x] Blocker accounting and execution handoff alignment.
+  - [x] Noted missing source temp-plan file in this clone: `.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`.
+  - [x] Proceeded with implementation using locked scope from cloud prompt slices while preserving deterministic/idempotent behavior.
+
+- [x] Slice 1 — Order-to-Payout automation with deterministic lifecycle transitions.
+  - [x] Replaced invalid/non-enum order transition map with canonical `OrderStatus` transitions only.
+  - [x] Added idempotent no-op handling when requested status already equals persisted status.
+  - [x] Added transaction-safe delivered-order payout automation (`TransactionType.PAYOUT`) for paid orders.
+  - [x] Enforced payout idempotency via deterministic reference + existing payout check before crediting vendor wallet.
+  - [x] Added focused route tests for invalid transition rejection, payout creation path, and idempotent replay.
+
+- [x] Slice 2 — Banner placement preview parity with runtime rendering.
+  - [x] Updated shared `BannerPlacementPreview` so TOP placement remains image-only (no title overlay), matching `TopAdBanner` runtime contract.
+  - [x] Added focused preview tests for TOP image-only behavior and HERO title-overlay continuity.
+
+- [x] Slice 3 — Vendor contact safety guard for WhatsApp handoff.
+  - [x] Added public guard page (`/contact/whatsapp`) that shows safety disclaimer before external handoff.
+  - [x] Rewired vendor detail WhatsApp CTA to route through guard-first page instead of direct external deep-link.
+  - [x] Added focused tests for safe handoff path and invalid-number blocking behavior.
+
+- [x] Validation gates for touched scope.
+  - [x] Targeted lint for modified route/page/component/test files.
+  - [x] `npx tsc --noEmit`.
+  - [x] Focused Vitest suites for order status route, contact guard page, banner preview parity, and top-banner contract.
+
+---
+
+## UI Adjustment Queue (2026-04-13) - Konga-inspired Banner Composition + Category Navigation Accessibility + Category Tag Filter Sync
+
+> **Section summary:** UI-focused refinement pass for home ad composition, menu/category discoverability, and products-page category-tag filter correctness.
+
+- [x] Hero + side banner composition refresh.
+  - [x] Refactored home banner deck to a Konga-inspired split layout (hero surface + sidebar ad rail) using existing `HERO` + `SIDEBAR` banner positions.
+  - [x] Kept config/data-driven behavior and existing banner links/actions fallback paths.
+
+- [x] Hero banner rendering contract refinement.
+  - [x] Updated hero carousel viewport to image-first rendering and removed direct title/description copy from slide surface.
+  - [x] Preserved `View more` (`Know More`) CTA and modal detail experience for full content access.
+  - [x] Added focused regression for image-first hero visual contract.
+
+- [x] Hamburger/menu category accessibility.
+  - [x] Added expandable mobile categories section inside hamburger menu.
+  - [x] Added desktop category strip with `All Categories` dropdown + quick category links.
+  - [x] Added focused header menu test for category-link accessibility in hamburger flow.
+
+- [x] Category tag filtering sync fix.
+  - [x] Synchronized products-page local filter/search/sort state with URL query params via `useSearchParams` + canonical parser.
+  - [x] Fixed category-tag click-through behavior so horizontal category nav applies filtering immediately without requiring sidebar interaction.
+  - [x] Updated focused products discovery tests for query-state synchronization.
+
+- [x] Validation gates for touched scope.
+  - [x] Targeted lint + `npx tsc --noEmit`.
+  - [x] Focused Vitest suites: home category click-through, products discovery contract, header category menu, and banner visual contract.

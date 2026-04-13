@@ -10,10 +10,11 @@ import { Package } from "lucide-react";
 import { getSubcategoryValues } from "@/lib/constants";
 import type { Product, Vendor } from "@/lib/types";
 import { useToast } from "@/lib/contexts/ToastContext";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   buildProductDiscoveryQueryString,
   DEFAULT_PRODUCT_SORT,
+  parseProductDiscoveryQueryState,
   PRODUCT_DISCOVERY_CATEGORIES,
   PRODUCT_SORT_OPTIONS,
   type ProductDiscoveryQueryState,
@@ -76,6 +77,7 @@ export default function ProductsContent({
 
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { addItem } = useCart();
   const { toggleFavorite: rawToggleFavorite, isFavorite } = useFavorites();
   const { requireAuth } = useGuestGuard();
@@ -119,9 +121,39 @@ export default function ProductsContent({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  const normalizeFilterState = (queryState: ProductDiscoveryQueryState) => ({
+    categories: queryState.categories || [],
+    listingType: queryState.listingType,
+    priceRange:
+      typeof queryState.minPrice === "number" || typeof queryState.maxPrice === "number"
+        ? {
+            min: queryState.minPrice || 0,
+            max: queryState.maxPrice || 0,
+          }
+        : undefined,
+    rating: queryState.rating,
+    locations: queryState.locations || [],
+    vendors: queryState.vendors || [],
+  });
+
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, searchQuery, sortBy]);
+
+  useEffect(() => {
+    const parsedState = parseProductDiscoveryQueryState(
+      Object.fromEntries(searchParams.entries())
+    );
+    const nextFilters = normalizeFilterState(parsedState);
+
+    setSearchQuery((prev) => (prev === parsedState.search ? prev : parsedState.search));
+    setSortBy((prev) => (prev === parsedState.sort ? prev : parsedState.sort));
+    setFilters((prev) => {
+      const prevSerialized = JSON.stringify(prev);
+      const nextSerialized = JSON.stringify(nextFilters);
+      return prevSerialized === nextSerialized ? prev : nextFilters;
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     const queryString = buildProductDiscoveryQueryString({

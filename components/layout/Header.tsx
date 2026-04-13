@@ -7,6 +7,8 @@ import {
   User,
   Search,
   Menu,
+  ChevronDown,
+  ChevronRight,
   Wallet,
   LayoutDashboard,
   LogOut,
@@ -21,12 +23,15 @@ import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { Button, ThemeToggle } from "@/components/ui";
 import { useCart } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
+import { PRODUCT_DISCOVERY_CATEGORIES } from "@/lib/config/productDiscovery";
 
 export function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileCategories, setShowMobileCategories] = useState(false);
+  const [showDesktopCategories, setShowDesktopCategories] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -208,7 +213,13 @@ export function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            onClick={() => {
+              const next = !showMobileMenu;
+              setShowMobileMenu(next);
+              if (!next) {
+                setShowMobileCategories(false);
+              }
+            }}
             aria-label="Toggle mobile menu"
             aria-controls="mobile-menu"
             data-expanded={showMobileMenu ? "true" : "false"}
@@ -218,6 +229,51 @@ export function Header() {
           </button>
         </div>
 
+        <div className="hidden items-center gap-2 border-t border-ds-border-base py-2 md:flex">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowDesktopCategories((prev) => !prev)}
+              aria-expanded={showDesktopCategories}
+              aria-controls="desktop-categories-menu"
+              className="inline-flex items-center gap-2 rounded-ds-md bg-ds-brand-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-ds-brand-primary-hover"
+            >
+              All Categories
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            {showDesktopCategories && (
+              <div
+                id="desktop-categories-menu"
+                className="absolute left-0 top-12 z-40 max-h-[60vh] w-80 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 shadow-ds-lg"
+              >
+                <div className="grid grid-cols-1 gap-1">
+                  {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
+                    <Link
+                      key={category.value}
+                      href={`/products?category=${category.slug}`}
+                      className="rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
+                      onClick={() => setShowDesktopCategories(false)}
+                    >
+                      {category.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+            {PRODUCT_DISCOVERY_CATEGORIES.slice(0, 8).map((category) => (
+              <Link
+                key={category.value}
+                href={`/products?category=${category.slug}`}
+                className="whitespace-nowrap rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
+              >
+                {category.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {/* Mobile Menu */}
         {showMobileMenu && (
           <div id="mobile-menu" className="border-t border-ds-border-base py-4 md:hidden">
@@ -225,6 +281,46 @@ export function Header() {
               <div className="flex items-center justify-between px-4">
                 <span className="text-sm font-medium text-ds-text-primary">Theme</span>
                 <ThemeToggle className="p-2" />
+              </div>
+
+              <div className="px-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMobileCategories((prev) => !prev)}
+                  aria-expanded={showMobileCategories}
+                  aria-controls="mobile-categories-menu"
+                  className="flex w-full items-center justify-between rounded-ds-md px-3 py-3 text-left text-sm font-medium text-ds-text-primary transition-colors hover:bg-ds-surface-sunken"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Menu className="h-4 w-4" />
+                    Browse Categories
+                  </span>
+                  {showMobileCategories ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                {showMobileCategories && (
+                  <div
+                    id="mobile-categories-menu"
+                    className="mt-1 max-h-72 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-1"
+                  >
+                    {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
+                      <Link
+                        key={category.value}
+                        href={`/products?category=${category.slug}`}
+                        className="block rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-base hover:text-ds-text-primary"
+                        onClick={() => {
+                          setShowMobileMenu(false);
+                          setShowMobileCategories(false);
+                        }}
+                      >
+                        {category.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {user ? (
