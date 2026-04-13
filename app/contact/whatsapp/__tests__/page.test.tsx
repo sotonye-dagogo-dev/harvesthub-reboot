@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import WhatsAppContactGuardPage from "@/app/contact/whatsapp/page";
+import { normalizePhone } from "@/app/contact/whatsapp/page";
 
 const mockUseSearchParams = vi.fn();
 
@@ -28,7 +29,10 @@ describe("WhatsAppContactGuardPage", () => {
     expect(screen.getByText(/leave MyHarvestHub/i)).toBeInTheDocument();
 
     const continueLink = screen.getByRole("link", { name: /continue to whatsapp/i });
-    expect(continueLink).toHaveAttribute("href", "https://wa.me/2348012345678");
+    expect(continueLink).toHaveAttribute(
+      "href",
+      `https://wa.me/${normalizePhone("+234 801 234 5678")}`
+    );
   });
 
   it("blocks handoff when phone number is invalid", () => {
@@ -45,5 +49,19 @@ describe("WhatsAppContactGuardPage", () => {
     expect(
       screen.getByText("This vendor’s WhatsApp number is currently unavailable.")
     ).toBeInTheDocument();
+  });
+
+  it("guards against protocol-relative return path injection", () => {
+    mockUseSearchParams.mockReturnValue(
+      new URLSearchParams({
+        vendorName: "Fresh Farm",
+        phone: "+2348012345678",
+        returnTo: "//evil.example/path",
+      })
+    );
+
+    render(<WhatsAppContactGuardPage />);
+
+    expect(screen.getByRole("link", { name: /^back$/i })).toHaveAttribute("href", "/vendors");
   });
 });

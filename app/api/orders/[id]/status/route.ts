@@ -19,14 +19,14 @@ interface RouteContext {
 }
 
 type StatusHistoryEntry = {
-    status?: string;
-    timestamp?: string;
+    status: string;
+    timestamp: string;
     note?: string;
-    updatedBy?: string;
+    updatedBy: string;
     [key: string]: unknown;
 };
 
-const PAYOUT_REFERENCE_PREFIX = 'PAYOUT-ORDER-';
+const ORDER_PAYOUT_REFERENCE_PREFIX = 'PAYOUT-ORDER-';
 
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
@@ -44,15 +44,37 @@ function isOrderStatus(value: string): value is OrderStatus {
 }
 
 function parseStatusHistory(input: Prisma.JsonValue | null): StatusHistoryEntry[] {
+    const normalize = (value: unknown): StatusHistoryEntry[] => {
+        if (!Array.isArray(value)) return [];
+        return value
+            .filter((entry) => entry && typeof entry === 'object')
+            .map((entry) => {
+                const candidate = entry as Record<string, unknown>;
+                const rawStatus =
+                    typeof candidate.status === 'string'
+                        ? candidate.status.trim().toUpperCase()
+                        : OrderStatus.PENDING;
+                return {
+                    ...candidate,
+                    status: rawStatus.length > 0 ? rawStatus : OrderStatus.PENDING,
+                    timestamp:
+                        typeof candidate.timestamp === 'string' && candidate.timestamp.trim().length > 0
+                            ? candidate.timestamp
+                            : new Date(0).toISOString(),
+                    updatedBy:
+                        typeof candidate.updatedBy === 'string' && candidate.updatedBy.trim().length > 0
+                            ? candidate.updatedBy
+                            : 'system',
+                };
+            });
+    };
+
     if (Array.isArray(input)) {
-        return input.filter((entry) => entry && typeof entry === 'object') as StatusHistoryEntry[];
+        return normalize(input);
     }
     if (typeof input === 'string') {
         try {
-            const parsed = JSON.parse(input);
-            if (Array.isArray(parsed)) {
-                return parsed.filter((entry) => entry && typeof entry === 'object') as StatusHistoryEntry[];
-            }
+            return normalize(JSON.parse(input));
         } catch {
             return [];
         }
@@ -66,7 +88,7 @@ function appendStatusHistoryEntry(
     updatedBy: string,
 ): StatusHistoryEntry[] {
     const lastEntry = history.at(-1);
-    if (lastEntry?.status === status) {
+    if (lastEntry?.status?.trim().toUpperCase() === status) {
         return history;
     }
     return [
@@ -81,7 +103,7 @@ function appendStatusHistoryEntry(
 }
 
 function getPayoutReference(orderId: string) {
-    return `${PAYOUT_REFERENCE_PREFIX}${orderId}`;
+    return `${ORDER_PAYOUT_REFERENCE_PREFIX}${orderId}`;
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
@@ -223,7 +245,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 data: {
                     status: requestedStatus,
                     statusHistory: nextHistory as Prisma.InputJsonValue,
-                    completedAt: shouldSetCompletedAt ? currentOrder.completedAt ?? new Date() : null,
+                    completedAt: shouldSetCompletedAt
+                        ? currentOrder.completedAt ?? new Date()
+                        : currentOrder.completedAt,
                 },
             });
 

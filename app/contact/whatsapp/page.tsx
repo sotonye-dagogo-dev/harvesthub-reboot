@@ -4,20 +4,36 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, MessageCircle } from "lucide-react";
 
+const VENDOR_NAME_MAX_LENGTH = 80;
+const MIN_WHATSAPP_DIGITS = 10;
+const MAX_WHATSAPP_DIGITS = 15;
+
 function sanitizeReturnPath(value: string | null): string {
-  if (!value || !value.startsWith("/")) {
+  if (!value) {
     return "/vendors";
   }
-  return value;
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return "/vendors";
+  }
+  try {
+    const parsed = new URL(trimmed, "https://myharvesthub.local");
+    if (parsed.origin !== "https://myharvesthub.local") {
+      return "/vendors";
+    }
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/vendors";
+  }
 }
 
-function sanitizeVendorName(value: string | null): string {
+export function sanitizeVendorName(value: string | null): string {
   if (!value) return "this vendor";
   const clean = value.trim();
-  return clean.length > 0 ? clean.slice(0, 80) : "this vendor";
+  return clean.length > 0 ? clean.slice(0, VENDOR_NAME_MAX_LENGTH) : "this vendor";
 }
 
-function normalizePhone(value: string | null): string {
+export function normalizePhone(value: string | null): string {
   return (value || "").replace(/[^0-9]/g, "");
 }
 
@@ -27,7 +43,8 @@ export default function WhatsAppContactGuardPage() {
   const vendorName = sanitizeVendorName(searchParams.get("vendorName"));
   const returnTo = sanitizeReturnPath(searchParams.get("returnTo"));
   const phone = normalizePhone(searchParams.get("phone"));
-  const isValidPhone = phone.length >= 10 && phone.length <= 15;
+  const isValidPhone =
+    phone.length >= MIN_WHATSAPP_DIGITS && phone.length <= MAX_WHATSAPP_DIGITS;
   const externalHref = isValidPhone ? `https://wa.me/${phone}` : null;
 
   return (
