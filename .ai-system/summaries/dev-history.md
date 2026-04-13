@@ -24,6 +24,29 @@
 
 ---
 
+## 2026-04-13 — UI Adjustment Pass: Konga-inspired Banner Deck + Menu Category Access + Query-Synced Category Tags
+
+**Summary:**
+Implemented a UI refinement pass to improve ad-banner composition, category discoverability in header/hamburger navigation, and products filtering reliability from category-tag interactions. The change keeps existing config-driven/banner-position contracts while improving visual hierarchy and responsive behavior.
+
+**Completed:**
+- Updated home banner area to a Konga-inspired split layout with hero carousel and sidebar ad cards.
+- Simplified hero slide viewport to image-first rendering and kept `Know More` modal interaction for detailed copy.
+- Added desktop header category strip (`All Categories` dropdown + quick category links).
+- Added hamburger menu category access via expandable `Browse Categories` section.
+- Fixed products-page URL-query-to-filter synchronization so category-tag taps apply filtering without requiring manual sidebar filter input.
+- Added focused regression tests for hero visual contract, header category accessibility, and updated products discovery sync behavior.
+
+**Key Changes:**
+- Banner rendering now emphasizes media-first promo surfaces with better desktop/mobile compositional parity.
+- Category navigation now has stronger discoverability and accessibility from both desktop and mobile menu entry points.
+- Query state is now source-of-truth synchronized for products category filtering behavior.
+
+**Next Sprint Focus:**
+Capture UX sign-off screenshots for header/banner behavior and continue incremental accessibility polish for expanded menu/dropdown interactions.
+
+---
+
 ## 2026-04-13 — Commerce Assurance Wave (Order-to-Payout + Banner Parity + Vendor Contact Safety)
 
 **Summary:**

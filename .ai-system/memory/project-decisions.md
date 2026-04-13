@@ -27,6 +27,46 @@
 
 ## Decisions
 
+## Hero Banner Viewport Is Image-First; Detail Copy Lives Behind "Know More"
+
+**Decision:** Render hero carousel slides without direct title/description text overlays in the viewport and preserve copy/details access through the existing `Know More` modal flow.
+**Date:** 2026-04-13
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The UI adjustment request prioritized a Konga-like ad composition with stronger media focus. Keeping textual detail in modal prevents visual clutter while retaining campaign context and extended metadata when users explicitly request it.
+
+**Alternatives Considered:**
+
+- Keep desktop overlay/action-panel text and only hide mobile text (rejected: inconsistent cross-device contract).
+- Remove detail copy entirely (rejected: loses campaign context and metadata discoverability).
+
+**Implications:**
+
+- Hero carousel viewport remains image-first across breakpoints.
+- Banner operators should continue supplying descriptive fields because modal content still uses them.
+- Preview/runtime contracts should emphasize media-first rendering for hero visuals.
+
+## Products Discovery State Must Rehydrate From URL Query Changes
+
+**Decision:** Products page local filter/search/sort state must synchronize with URL query params (`useSearchParams` + canonical parser) so category tag clicks and shared links immediately apply filtering behavior.
+**Date:** 2026-04-13
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Category tags were updating URL params but not always updating local state in the client component, causing mismatch where filtering appeared inactive until sidebar interaction. Query-driven rehydration restores single-source-of-truth behavior and predictable tag click-through UX.
+
+**Alternatives Considered:**
+
+- Convert category tags to local-only state buttons (rejected: loses URL shareability/bookmarkability).
+- Force full page reload on each category click (rejected: heavier UX and unnecessary churn).
+
+**Implications:**
+
+- URL query becomes authoritative for products discovery initialization and on-route updates.
+- Future filter controls should maintain parser/serializer contract parity to avoid drift.
+- Tests should validate both URL generation and URL-to-state hydration behavior.
+
 ## Order Status Lifecycle and Delivered Payouts Must Be Deterministic and Idempotent
 
 **Decision:** Enforce canonical enum-safe order status transitions in `PATCH /api/orders/[id]/status`, treat same-status requests as idempotent no-ops, and automate delivered-order vendor payouts only once using deterministic payout references plus existing-transaction checks.

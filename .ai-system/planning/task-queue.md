@@ -645,3 +645,32 @@
   - [x] Targeted lint for modified route/page/component/test files.
   - [x] `npx tsc --noEmit`.
   - [x] Focused Vitest suites for order status route, contact guard page, banner preview parity, and top-banner contract.
+
+---
+
+## UI Adjustment Queue (2026-04-13) - Konga-inspired Banner Composition + Category Navigation Accessibility + Category Tag Filter Sync
+
+> **Section summary:** UI-focused refinement pass for home ad composition, menu/category discoverability, and products-page category-tag filter correctness.
+
+- [x] Hero + side banner composition refresh.
+  - [x] Refactored home banner deck to a Konga-inspired split layout (hero surface + sidebar ad rail) using existing `HERO` + `SIDEBAR` banner positions.
+  - [x] Kept config/data-driven behavior and existing banner links/actions fallback paths.
+
+- [x] Hero banner rendering contract refinement.
+  - [x] Updated hero carousel viewport to image-first rendering and removed direct title/description copy from slide surface.
+  - [x] Preserved `View more` (`Know More`) CTA and modal detail experience for full content access.
+  - [x] Added focused regression for image-first hero visual contract.
+
+- [x] Hamburger/menu category accessibility.
+  - [x] Added expandable mobile categories section inside hamburger menu.
+  - [x] Added desktop category strip with `All Categories` dropdown + quick category links.
+  - [x] Added focused header menu test for category-link accessibility in hamburger flow.
+
+- [x] Category tag filtering sync fix.
+  - [x] Synchronized products-page local filter/search/sort state with URL query params via `useSearchParams` + canonical parser.
+  - [x] Fixed category-tag click-through behavior so horizontal category nav applies filtering immediately without requiring sidebar interaction.
+  - [x] Updated focused products discovery tests for query-state synchronization.
+
+- [x] Validation gates for touched scope.
+  - [x] Targeted lint + `npx tsc --noEmit`.
+  - [x] Focused Vitest suites: home category click-through, products discovery contract, header category menu, and banner visual contract.

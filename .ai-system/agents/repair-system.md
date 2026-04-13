@@ -18,6 +18,36 @@
 
 ---
 
+## [Products category tags updated URL but did not apply filter state until sidebar interaction]
+
+**Symptom:**
+
+- Clicking horizontal category tags on products/home navigation updated route query but product list remained unfiltered.
+- Filtering only reflected after interacting with sidebar filter controls.
+
+**Root Cause:**
+
+- `ProductsContent` initialized client filter state from `initialQueryState` once, but did not rehydrate local state from subsequent URL query updates on same-route navigation.
+
+**Fix Applied:**
+
+- Added URL-query synchronization in `ProductsContent` using `useSearchParams` + `parseProductDiscoveryQueryState`.
+- Rehydrated local search/sort/filter state whenever query params change.
+
+**Prevention:**
+
+- For query-driven pages, treat URL query as source-of-truth and keep local state synchronized.
+- Add regression coverage for route-query updates, not only initial hydration.
+
+**Files Affected:**
+
+- components/features/ProductsContent.tsx
+- components/__tests__/ProductsContent.discovery-contract.test.tsx
+
+**Date:** 2026-04-13
+
+---
+
 ## [Order status API drifted from enum-safe lifecycle and allowed non-deterministic payout side effects]
 
 **Symptom:**
