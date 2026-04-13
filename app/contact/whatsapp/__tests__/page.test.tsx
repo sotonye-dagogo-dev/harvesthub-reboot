@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import WhatsAppContactGuardPage from "@/app/contact/whatsapp/page";
-import { normalizePhone } from "@/app/contact/whatsapp/page";
+
+function normalizePhone(value: string) {
+  return value.replace(/[^0-9]/g, "");
+}
 
 const mockUseSearchParams = vi.fn();
 

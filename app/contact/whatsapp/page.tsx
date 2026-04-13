@@ -27,13 +27,13 @@ function sanitizeReturnPath(value: string | null): string {
   }
 }
 
-export function sanitizeVendorName(value: string | null): string {
+function sanitizeVendorName(value: string | null): string {
   if (!value) return "this vendor";
   const clean = value.trim();
   return clean.length > 0 ? clean.slice(0, VENDOR_NAME_MAX_LENGTH) : "this vendor";
 }
 
-export function normalizePhone(value: string | null): string {
+function normalizePhone(value: string | null): string {
   return (value || "").replace(/[^0-9]/g, "");
 }
 

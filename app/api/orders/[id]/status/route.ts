@@ -28,6 +28,9 @@ type StatusHistoryEntry = {
 
 const ORDER_PAYOUT_REFERENCE_PREFIX = 'PAYOUT-ORDER-';
 
+// PROCESSING transitions branch by fulfilment mode:
+// - DELIVERY orders should progress to OUT_FOR_DELIVERY
+// - PICKUP orders should progress to READY_FOR_PICKUP
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
     CONFIRMED: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
