@@ -27,6 +27,45 @@
 
 ## Decisions
 
+## Order Status Lifecycle and Delivered Payouts Must Be Deterministic and Idempotent
+
+**Decision:** Enforce canonical enum-safe order status transitions in `PATCH /api/orders/[id]/status`, treat same-status requests as idempotent no-ops, and automate delivered-order vendor payouts only once using deterministic payout references plus existing-transaction checks.
+**Date:** 2026-04-13
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+The previous lifecycle map included non-schema statuses (`SHIPPED`, `COMPLETED`) and could not guarantee predictable replay behavior. Commerce assurance requires reliable transition gating and payout safety so retries or duplicate calls never create duplicate wallet credits.
+
+**Alternatives Considered:**
+
+- Keep permissive string-based transitions and rely on caller discipline (rejected: transition drift and retry duplication risk).
+- Introduce a new payout-tracking schema/table first (rejected: unnecessary migration scope for this pass).
+
+**Implications:**
+
+- Order status changes now align strictly with persisted `OrderStatus` enum values.
+- Delivered payout automation now credits vendor wallet once per order with replay-safe behavior.
+- Future lifecycle extensions should preserve enum contracts and idempotent replay semantics.
+
+## Vendor WhatsApp Contact Must Use Guard-First External Handoff
+
+**Decision:** Route vendor WhatsApp contact through an internal guard page (`/contact/whatsapp`) that displays a safety disclaimer before the user can continue to external WhatsApp.
+**Date:** 2026-04-13
+**Made by:** AI coding session (GitHub Copilot)
+
+**Reason:**
+Direct external handoff from vendor profile bypassed an explicit user-safety checkpoint. The commerce assurance requirement mandates a guard-first redirect for external messaging channels.
+
+**Alternatives Considered:**
+
+- Keep direct `wa.me` links with inline warning text only (rejected: no enforced pre-handoff checkpoint).
+- Use browser confirm modal on click (rejected: inconsistent UX and weaker accessibility/discoverability compared to dedicated guard page).
+
+**Implications:**
+
+- Vendor contact flow now includes explicit safety messaging before leaving MyHarvestHub.
+- Any future external messaging handoffs should reuse a guard-first pattern rather than direct links.
+
 ## Payment Availability Is Runtime-Gated By Active Paystack Keys
 
 **Decision:** Drive checkout/wallet payment-enabled UX and order payment-gating logic from active-mode Paystack key readiness (`env.paystackPublicKey` + `env.paystackSecretKey`) via shared runtime config, instead of static `PLATFORM_DEFAULTS.PAYMENTS_ENABLED`.

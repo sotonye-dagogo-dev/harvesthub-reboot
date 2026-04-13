@@ -186,6 +186,16 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 5. Application is persisted with pending-payment review status for operations moderation.
 ```
 
+### Vendor WhatsApp Guard-First Contact Flow
+
+```
+1. Buyer clicks vendor WhatsApp CTA on `/vendors/[id]`.
+2. CTA navigates to internal guard page (`/contact/whatsapp`) with vendor context + sanitized phone params.
+3. Guard page displays safety disclaimer and off-platform warning before any external navigation.
+4. User explicitly confirms with "Continue to WhatsApp" before browser opens `wa.me`.
+5. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
+```
+
 ### Signup Verification + Position Parity Flow
 
 ```
@@ -222,6 +232,18 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. Mutation endpoint verifies payment server-side via `lib/services/payments.ts` before any persistence action.
 4. On success, endpoint persists business record and verification audit metadata.
 5. On failure/unverified status, endpoint rejects mutation with a payment error response.
+```
+
+### Order Status Lifecycle + Delivered Payout Automation Flow
+
+```
+1. Vendor/admin submits status update to `PATCH /api/orders/[id]/status`.
+2. API validates requested status against canonical enum-safe lifecycle transitions.
+3. Same-status requests return idempotent success and skip side effects.
+4. Valid transitions update `order.status` + status history atomically.
+5. If transitioning to `DELIVERED` and payment is already `PAID`, API checks for existing order-linked payout transaction.
+6. If no payout exists, API credits vendor wallet and records deterministic `PAYOUT-ORDER-{orderId}` transaction reference.
+7. Replayed requests remain safe because deterministic payout reference + existing transaction check prevents duplicate credits.
 ```
 
 ### Operations Payment Mode Visibility Flow
@@ -361,6 +383,7 @@ Migration direction:
 | 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                            |
 | 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                                      |
 | 2026-04-09 | Added notifications inbox-first route + template resolver  | Restore `/notifications` inbox discoverability, make preference UI truthful, and reduce churny runtime copy |
+| 2026-04-13 | Added idempotent order lifecycle + delivered payout automation + WhatsApp guard flow | Enforce deterministic status transitions, replay-safe payout automation, and guard-first external vendor contact |
 
 ### Email Change + Reverification Flow
 

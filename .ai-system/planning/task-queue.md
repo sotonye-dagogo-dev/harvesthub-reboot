@@ -614,3 +614,34 @@
 - [x] Finalize validation and documentation sync.
   - [x] Run targeted lint, `tsc --noEmit`, focused Vitest suites, and route/sidebar audits for touched scope.
   - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/agents/repair-system.md`, `.ai-system/memory/project-decisions.md`, `.ai-system/checkpoints/session-log.md`, and `.ai-system/summaries/dev-history.md`.
+
+---
+
+## Feature Planning Queue (2026-04-13) - Commerce Assurance Wave: Order-to-Payout Automation + Banner Parity + Vendor Contact Safety
+
+> **Section summary:** Cloud continuation execution block for deterministic order lifecycle/payout automation, banner preview-runtime parity, and guarded vendor WhatsApp handoff safety.
+
+- [x] Blocker accounting and execution handoff alignment.
+  - [x] Noted missing source temp-plan file in this clone: `.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`.
+  - [x] Proceeded with implementation using locked scope from cloud prompt slices while preserving deterministic/idempotent behavior.
+
+- [x] Slice 1 — Order-to-Payout automation with deterministic lifecycle transitions.
+  - [x] Replaced invalid/non-enum order transition map with canonical `OrderStatus` transitions only.
+  - [x] Added idempotent no-op handling when requested status already equals persisted status.
+  - [x] Added transaction-safe delivered-order payout automation (`TransactionType.PAYOUT`) for paid orders.
+  - [x] Enforced payout idempotency via deterministic reference + existing payout check before crediting vendor wallet.
+  - [x] Added focused route tests for invalid transition rejection, payout creation path, and idempotent replay.
+
+- [x] Slice 2 — Banner placement preview parity with runtime rendering.
+  - [x] Updated shared `BannerPlacementPreview` so TOP placement remains image-only (no title overlay), matching `TopAdBanner` runtime contract.
+  - [x] Added focused preview tests for TOP image-only behavior and HERO title-overlay continuity.
+
+- [x] Slice 3 — Vendor contact safety guard for WhatsApp handoff.
+  - [x] Added public guard page (`/contact/whatsapp`) that shows safety disclaimer before external handoff.
+  - [x] Rewired vendor detail WhatsApp CTA to route through guard-first page instead of direct external deep-link.
+  - [x] Added focused tests for safe handoff path and invalid-number blocking behavior.
+
+- [x] Validation gates for touched scope.
+  - [x] Targeted lint for modified route/page/component/test files.
+  - [x] `npx tsc --noEmit`.
+  - [x] Focused Vitest suites for order status route, contact guard page, banner preview parity, and top-banner contract.

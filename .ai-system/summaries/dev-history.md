@@ -24,6 +24,30 @@
 
 ---
 
+## 2026-04-13 — Commerce Assurance Wave (Order-to-Payout + Banner Parity + Vendor Contact Safety)
+
+**Summary:**
+Completed a reliability-focused commerce assurance pass covering three locked slices: deterministic order lifecycle/payout automation, preview-runtime parity for banner placements, and guarded vendor WhatsApp handoff safety. The implementation prioritized idempotent transitions and external-contact risk reduction without requiring schema changes.
+
+**Completed:**
+- Hardened order status mutation lifecycle with strict enum-safe transitions and idempotent no-op replay handling.
+- Added automatic vendor wallet payout creation on paid-order delivery, with deterministic duplicate-prevention guard.
+- Added focused route tests for transition validation, payout creation path, and idempotent replay behavior.
+- Updated shared banner placement preview so TOP placement remains image-only, matching runtime banner rendering.
+- Added focused preview tests to prevent TOP overlay drift.
+- Added `/contact/whatsapp` guard page with safety disclaimer and explicit continue action before external handoff.
+- Rewired vendor detail WhatsApp CTA through guard-first path and added focused guard-page tests.
+
+**Key Changes:**
+- Delivered-order payout processing is now deterministic and idempotent at the order status API boundary.
+- Banner operator previews now align more closely with production TOP-banner runtime behavior.
+- Vendor WhatsApp contact now uses an internal safety checkpoint before leaving MyHarvestHub.
+
+**Next Sprint Focus:**
+Complete final full-matrix validation + PR review pass, then follow up on missing 2026-04-13 cloud temp-plan source artifact to keep planning docs fully synchronized.
+
+---
+
 ## 2026-04-11 — Paystack Mode-Switch Hardening + Admin Operations Context Panel
 
 **Summary:**

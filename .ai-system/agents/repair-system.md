@@ -18,6 +18,68 @@
 
 ---
 
+## [Order status API drifted from enum-safe lifecycle and allowed non-deterministic payout side effects]
+
+**Symptom:**
+
+- `PATCH /api/orders/[id]/status` contained lifecycle states not present in schema (`SHIPPED`, `COMPLETED`), causing transition drift against persisted enums.
+- Replayed status updates lacked explicit idempotent handling and could not safely guarantee no duplicate payout side effects.
+
+**Root Cause:**
+
+- Legacy transition map was string-based and not constrained to schema enums.
+- Delivered-order payout automation had no deterministic replay guard in this endpoint.
+
+**Fix Applied:**
+
+- Replaced transition map with canonical `OrderStatus` enum transitions only.
+- Added idempotent same-status no-op response path.
+- Added transaction-safe delivered payout automation for paid orders with deterministic payout reference (`PAYOUT-ORDER-{orderId}`) and existing-transaction guard.
+
+**Prevention:**
+
+- Keep lifecycle maps enum-typed instead of free-form strings.
+- Treat status mutation endpoints as replayable APIs and enforce idempotent side-effect guards for financial writes.
+
+**Files Affected:**
+
+- app/api/orders/[id]/status/route.ts
+- app/api/orders/__tests__/status.route.test.ts
+
+**Date:** 2026-04-13
+
+---
+
+## [Direct WhatsApp vendor link bypassed internal safety warning]
+
+**Symptom:**
+
+- Vendor profile WhatsApp CTA opened external `wa.me` link immediately with no internal safety checkpoint.
+
+**Root Cause:**
+
+- Contact CTA was implemented as direct external anchor from vendor detail page.
+
+**Fix Applied:**
+
+- Added public guard page at `/contact/whatsapp` with explicit off-platform safety disclaimer and continue action.
+- Updated vendor detail CTA to route through guard-first page before external handoff.
+
+**Prevention:**
+
+- Route external messaging handoffs through internal safety-interstitial pages instead of direct outbound anchors.
+- Validate/sanitize outbound phone payload before generating external URLs.
+
+**Files Affected:**
+
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/vendors/[id]/page.tsx
+
+**Date:** 2026-04-13
+
+---
+
 ## [Native browser confirm bypasses shared destructive-action governance]
 
 **Symptom:**

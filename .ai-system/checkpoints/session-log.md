@@ -39,6 +39,53 @@
 
 ---
 
+## Session 50 — 2026-04-13
+
+**Goal:**
+Implement the commerce assurance wave in one pass: deterministic order-to-payout lifecycle automation, banner preview/runtime parity, and guarded vendor WhatsApp contact safety.
+
+**Completed:**
+
+- Detected and logged blocker: referenced source temp-plan file for this wave is missing in this clone (`.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`), then continued with locked prompt scope.
+- Hardened `PATCH /api/orders/[id]/status` with enum-safe lifecycle transitions, idempotent no-op replay semantics, and transaction-safe payout automation on paid delivered orders.
+- Added payout idempotency guard so delivered-status replays cannot double-credit vendor wallets.
+- Added focused status-route regression tests for invalid transitions, delivered payout creation, and idempotent replay path.
+- Updated shared `BannerPlacementPreview` so TOP placement is image-only (no title overlay), aligned with runtime `TopAdBanner` behavior.
+- Added focused banner preview parity tests.
+- Added public `/contact/whatsapp` guard page with safety disclaimer and explicit continue action before external handoff.
+- Updated vendor detail WhatsApp CTA to route through guard-first safety page.
+- Added focused contact-guard tests for valid/invalid handoff behavior.
+- Ran touched-scope validation:
+  - targeted `eslint` (changed files)
+  - `npx tsc --noEmit`
+  - focused Vitest suites for touched behavior.
+
+**Files Modified:**
+
+- app/api/orders/[id]/status/route.ts
+- app/api/orders/__tests__/status.route.test.ts
+- components/features/BannerPlacementPreview.tsx
+- components/__tests__/BannerPlacementPreview.test.tsx
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/vendors/[id]/page.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+
+**Next Task:**
+Run full final quality gate (`npm run lint`, `npx tsc --noEmit`, focused/full vitest for touched scope, `npm run audit:dead-links`, `npm run audit:sidebar-routes`), then publish final schema/migration report.
+
+**Notes / Blockers:**
+
+- Required cloud temp plan file for this feature wave was not present in repository clone; scope execution proceeded using locked user prompt directives.
+- Baseline repository still has pre-existing unrelated full-test failures outside touched scope (known integration failures including localhost `ECONNREFUSED`).
+
+---
+
 ## Session 49 — 2026-04-11
 
 **Goal:**
