@@ -68,6 +68,25 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. Products page parses query state through shared contract helpers in `lib/config/productDiscovery.ts`.
 3. Products feature applies normalized category mapping (slug/value -> canonical category values) and deterministic sorting.
 4. Filter UI, active category state, pagination counts, and result cards render from the same normalized discovery state.
+5. Products client state rehydrates from URL query updates (`useSearchParams`) so category-tag clicks and shared links immediately apply filtering without sidebar-only interaction.
+```
+
+### Home Banner Deck Composition Flow
+
+```
+1. Home surface loads active banner payloads and separates them by placement (`HERO`, `SIDEBAR`).
+2. Hero placement renders as image-first carousel with `Know More` CTA for modal details.
+3. Sidebar placement renders as responsive ad rail cards alongside hero on desktop and adaptive grid on smaller screens.
+4. Banner links/actions remain config/data-driven with fallback to non-clickable cards when no destination is configured.
+```
+
+### Header Category Accessibility Flow
+
+```
+1. Header exposes desktop category quick links and an `All Categories` dropdown from canonical product-discovery config.
+2. Hamburger menu exposes `Browse Categories` expandable section for mobile users.
+3. Category entries route to canonical `/products?category=<slug>` query contract.
+4. Products page query rehydration applies category filter state immediately on navigation.
 ```
 
 ### Authentication Flow
@@ -186,6 +205,16 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 5. Application is persisted with pending-payment review status for operations moderation.
 ```
 
+### Vendor WhatsApp Guard-First Contact Flow
+
+```
+1. Buyer clicks vendor WhatsApp CTA on `/vendors/[id]`.
+2. CTA navigates to internal guard page (`/contact/whatsapp`) with vendor context + sanitized phone params.
+3. Guard page displays safety disclaimer and off-platform warning before any external navigation.
+4. User explicitly confirms with "Continue to WhatsApp" before browser opens `wa.me`.
+5. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
+```
+
 ### Signup Verification + Position Parity Flow
 
 ```
@@ -222,6 +251,18 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. Mutation endpoint verifies payment server-side via `lib/services/payments.ts` before any persistence action.
 4. On success, endpoint persists business record and verification audit metadata.
 5. On failure/unverified status, endpoint rejects mutation with a payment error response.
+```
+
+### Order Status Lifecycle + Delivered Payout Automation Flow
+
+```
+1. Vendor/admin submits status update to `PATCH /api/orders/[id]/status`.
+2. API validates requested status against canonical enum-safe lifecycle transitions.
+3. Same-status requests return idempotent success and skip side effects.
+4. Valid transitions update `order.status` + status history atomically.
+5. If transitioning to `DELIVERED` and payment is already `PAID`, API checks for existing order-linked payout transaction.
+6. If no payout exists, API credits vendor wallet and records deterministic `PAYOUT-ORDER-{orderId}` transaction reference.
+7. Replayed requests remain safe because deterministic payout reference + existing transaction check prevents duplicate credits.
 ```
 
 ### Operations Payment Mode Visibility Flow
@@ -361,6 +402,8 @@ Migration direction:
 | 2026-04-01 | Added public ad-application intake route                   | Enable unauthenticated ad submissions with validated/rate-limited backend intake                            |
 | 2026-04-01 | Enforced vendor-scoped analytics KPI computation           | Prevent vendor dashboards from showing platform-wide aggregate metrics                                      |
 | 2026-04-09 | Added notifications inbox-first route + template resolver  | Restore `/notifications` inbox discoverability, make preference UI truthful, and reduce churny runtime copy |
+| 2026-04-13 | Added idempotent order lifecycle + delivered payout automation + WhatsApp guard flow | Enforce deterministic status transitions, replay-safe payout automation, and guard-first external vendor contact |
+| 2026-04-13 | Refined banner deck and category navigation query-sync UX  | Deliver image-first hero/side ad composition and ensure category-tag filtering responds directly to URL navigation |
 
 ### Email Change + Reverification Flow
 

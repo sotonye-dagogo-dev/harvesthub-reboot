@@ -4,8 +4,9 @@ import ProductsContent from "@/components/features/ProductsContent";
 import { parseProductDiscoveryQueryState } from "@/lib/config/productDiscovery";
 import type { Product, Vendor } from "@/lib/types";
 
-const { replaceMock } = vi.hoisted(() => ({
+const { replaceMock, searchParamsMock } = vi.hoisted(() => ({
   replaceMock: vi.fn(),
+  searchParamsMock: vi.fn(() => new URLSearchParams()),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -16,6 +17,7 @@ vi.mock("next/navigation", () => ({
     back: vi.fn(),
   }),
   usePathname: () => "/products",
+  useSearchParams: () => searchParamsMock(),
 }));
 
 vi.mock("@/lib/hooks/useGuestGuard", () => ({
@@ -175,9 +177,13 @@ describe("ProductsContent discovery contract", () => {
 
   beforeEach(() => {
     replaceMock.mockClear();
+    searchParamsMock.mockReset();
+    searchParamsMock.mockReturnValue(new URLSearchParams());
   });
 
   it("filters products from home category click-through query state", () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams("category=electronics"));
+
     const initialQueryState = parseProductDiscoveryQueryState({
       category: "electronics",
     });

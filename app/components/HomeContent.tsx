@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
@@ -108,6 +109,18 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       knowMoreLabel: b.knowMoreLabel ?? undefined,
     }));
 
+  const activeSidebarBanners = liveBanners
+    .filter(
+      (b) =>
+        b.isActive &&
+        b.position === "SIDEBAR" &&
+        (!b.endDate || new Date(b.endDate) >= new Date()) &&
+        typeof b.imageUrl === "string" &&
+        b.imageUrl.trim().length > 0
+    )
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .slice(0, 3);
+
   // Get featured products
   const featuredProducts = liveProducts
     .filter((product) => product.isFeatured && product.isActive)
@@ -171,10 +184,56 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
   return (
     <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
-      {/* Hero Banner Carousel */}
-      {activeBanners.length > 0 && (
-        <section>
-          <BannerCarousel banners={activeBanners} autoPlay />
+      {/* Hero + Side Banner Deck */}
+      {(activeBanners.length > 0 || activeSidebarBanners.length > 0) && (
+        <section className="container mx-auto px-4 py-3">
+          <div className="grid gap-3 lg:grid-cols-12">
+            {activeBanners.length > 0 && (
+              <div className="lg:col-span-8">
+                <BannerCarousel banners={activeBanners} autoPlay />
+              </div>
+            )}
+            {activeSidebarBanners.length > 0 && (
+              <aside
+                className={`grid gap-3 ${
+                  activeSidebarBanners.length > 1
+                    ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-1"
+                    : "grid-cols-1"
+                } ${activeBanners.length > 0 ? "lg:col-span-4" : "lg:col-span-12 lg:grid-cols-3"}`}
+              >
+                {activeSidebarBanners.map((banner) => {
+                  const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
+                  const cardContent = (
+                    <div className="relative overflow-hidden rounded-ds-lg border border-ds-border-base bg-ds-surface-base shadow-ds-sm">
+                      <div className="relative aspect-[4/3] w-full">
+                        <Image
+                          src={banner.imageUrl}
+                          alt={normalizeBannerText(banner.title) || "Sidebar banner"}
+                          fill
+                          className="object-cover"
+                          sizes="(min-width: 1024px) 30vw, 50vw"
+                        />
+                      </div>
+                    </div>
+                  );
+
+                  if (!href) {
+                    return <div key={banner.id}>{cardContent}</div>;
+                  }
+
+                  return (
+                    <Link
+                      key={banner.id}
+                      href={href}
+                      className="transition-opacity hover:opacity-95"
+                    >
+                      {cardContent}
+                    </Link>
+                  );
+                })}
+              </aside>
+            )}
+          </div>
         </section>
       )}
 

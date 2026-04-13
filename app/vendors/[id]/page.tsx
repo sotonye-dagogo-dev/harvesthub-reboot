@@ -233,15 +233,20 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
               {/* Contact Row */}
               <div className="flex flex-wrap gap-3">
                 {vendor.whatsappNumber && (
-                  <a
-                    href={`https://wa.me/${vendor.whatsappNumber.replace(/[^0-9]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href={{
+                      pathname: "/contact/whatsapp",
+                      query: {
+                        phone: vendor.whatsappNumber,
+                        vendorName: vendor.storeName,
+                        returnTo: `/vendors/${vendor.id}`,
+                      },
+                    }}
                     className="inline-flex items-center gap-2 rounded-ds-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
                   >
                     <MessageCircle className="h-4 w-4" />
                     WhatsApp
-                  </a>
+                  </Link>
                 )}
                 {vendorUser?.phoneNumber && (
                   <a
