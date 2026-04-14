@@ -24,6 +24,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { buildNav } from "@/lib/navigation";
 import { UserRole } from "@/lib/constants";
+import { useNotifications } from "@/lib/contexts/NotificationContext";
 
 interface SidebarProps {
   type: "vendor" | "admin";
@@ -74,6 +75,7 @@ function getSidebarLinks(type: "vendor" | "admin") {
 export function Sidebar({ type }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { unreadCount } = useNotifications();
 
   const links = getSidebarLinks(type);
 
@@ -135,7 +137,7 @@ export function Sidebar({ type }: SidebarProps) {
                   key={href}
                   href={href}
                   className={cn(
-                    "flex items-center gap-3 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    "relative flex items-center gap-3 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
                       : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised",
@@ -145,6 +147,16 @@ export function Sidebar({ type }: SidebarProps) {
                 >
                   {Icon ? <Icon className="h-5 w-5 flex-shrink-0" /> : null}
                   {!collapsed && <span>{link.label}</span>}
+                  {href === "/notifications" && unreadCount > 0 ? (
+                    <span
+                      className={cn(
+                        "flex h-5 min-w-[1.25rem] items-center justify-center rounded-ds-full bg-ds-status-error px-1 text-[10px] font-semibold leading-none text-white",
+                        collapsed ? "absolute right-1 top-1" : "ml-auto"
+                      )}
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}
@@ -165,11 +177,16 @@ export function Sidebar({ type }: SidebarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex min-w-[72px] flex-col items-center gap-1 px-2 py-2 text-center text-xs font-medium",
+                  "relative flex min-w-[72px] flex-col items-center gap-1 px-2 py-2 text-center text-xs font-medium",
                   active ? "text-ds-text-brand" : "text-ds-text-secondary"
                 )}
               >
                 {Icon ? <Icon className="h-5 w-5" /> : null}
+                {href === "/notifications" && unreadCount > 0 ? (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-ds-full bg-ds-status-error px-1 text-[9px] font-semibold leading-none text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                ) : null}
                 <span className="max-w-[72px] whitespace-normal break-words leading-tight">
                   {link.label}
                 </span>

@@ -129,7 +129,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   const sidebarGridColumnsClass =
     activeSidebarBanners.length > 1
       ? hasHeroBanners
-        ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-2"
+        ? "grid-cols-2"
         : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
       : "grid-cols-1";
   const sidebarImageSizes = hasHeroBanners
@@ -209,45 +209,88 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
               </div>
             )}
             {activeSidebarBanners.length > 0 && (
-              <aside
-                data-testid="sidebar-banner-grid"
-                className={`grid gap-2 ${sidebarGridColumnsClass} ${
-                  hasHeroBanners ? "lg:col-span-4" : "lg:col-span-12"
-                }`}
-              >
-                {activeSidebarBanners.map((banner) => {
-                  const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
-                  const cardContent = (
-                    <div
-                      data-testid="sidebar-banner-tile"
-                      className="relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
-                    >
-                      <div className="relative aspect-square w-full">
-                        <Image
-                          src={banner.imageUrl}
-                          alt={normalizeBannerText(banner.title) || "Sidebar banner"}
-                          fill
-                          className="object-cover"
-                          sizes={sidebarImageSizes}
-                        />
+              <aside className={hasHeroBanners ? "lg:col-span-4" : "lg:col-span-12"}>
+                <div
+                  data-testid="sidebar-banner-rail-mobile"
+                  className="flex gap-2 overflow-x-auto pb-1 lg:hidden"
+                >
+                  {activeSidebarBanners.map((banner) => {
+                    const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
+                    const cardContent = (
+                      <div
+                        data-testid="sidebar-banner-tile"
+                        className="relative w-40 flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm sm:w-44"
+                      >
+                        <div className="relative aspect-square w-full">
+                          <Image
+                            src={banner.imageUrl}
+                            alt={normalizeBannerText(banner.title) || "Sidebar banner"}
+                            fill
+                            className="object-cover"
+                            sizes={sidebarImageSizes}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
 
-                  if (!href) {
-                    return <div key={banner.id}>{cardContent}</div>;
-                  }
+                    if (!href) {
+                      return <div key={banner.id}>{cardContent}</div>;
+                    }
 
-                  return (
-                    <Link
-                      key={banner.id}
-                      href={href}
-                      className="transition-opacity hover:opacity-95"
-                    >
-                      {cardContent}
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={banner.id}
+                        href={href}
+                        className="transition-opacity hover:opacity-95"
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div
+                  data-testid="sidebar-banner-grid"
+                  className={`hidden gap-2 lg:grid ${sidebarGridColumnsClass} ${
+                    hasHeroBanners
+                      ? "max-h-[26rem] overflow-y-auto pr-1"
+                      : "overflow-visible"
+                  }`}
+                >
+                  {activeSidebarBanners.map((banner) => {
+                    const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
+                    const cardContent = (
+                      <div
+                        data-testid="sidebar-banner-tile"
+                        className="relative w-full max-w-[15rem] overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
+                      >
+                        <div className="relative aspect-square w-full">
+                          <Image
+                            src={banner.imageUrl}
+                            alt={normalizeBannerText(banner.title) || "Sidebar banner"}
+                            fill
+                            className="object-cover"
+                            sizes={sidebarImageSizes}
+                          />
+                        </div>
+                      </div>
+                    );
+
+                    if (!href) {
+                      return <div key={banner.id}>{cardContent}</div>;
+                    }
+
+                    return (
+                      <Link
+                        key={banner.id}
+                        href={href}
+                        className="transition-opacity hover:opacity-95"
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  })}
+                </div>
               </aside>
             )}
           </div>

@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { Input } from "antd";
+import { emitWalletSync } from "@/lib/utils/walletSync";
 
 type OrderStatusHistoryEntry = {
   id?: string;
@@ -36,6 +38,7 @@ type OrderItem = {
 type OrderDetail = {
   id: string;
   orderNumber: string;
+  orderGroupId?: string | null;
   status: string;
   paymentStatus: string;
   deliveryMethod: string;
@@ -44,6 +47,14 @@ type OrderDetail = {
   statusHistory?: unknown;
   items?: OrderItem[];
   transactions?: OrderTransaction[];
+};
+
+type GroupedOrderSummary = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  total: number;
 };
 
 function formatStatusLabel(value?: string): string {
@@ -71,6 +82,9 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [groupedOrders, setGroupedOrders] = useState<GroupedOrderSummary[]>([]);
+  const [groupedLoading, setGroupedLoading] = useState(false);
 
   const loadOrder = useCallback(async () => {
     if (!orderId) {
@@ -101,6 +115,45 @@ export default function OrderDetailPage() {
     return () => undefined;
   }, [loadOrder]);
 
+  useEffect(() => {
+    const groupId = order?.orderGroupId;
+    if (!groupId) {
+      setGroupedOrders([]);
+      return;
+    }
+
+    let active = true;
+    setGroupedLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/orders?groupId=${encodeURIComponent(groupId)}&limit=100`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.error || "Unable to load grouped orders.");
+        }
+
+        if (active) {
+          const next = Array.isArray(data?.orders)
+            ? (data.orders as GroupedOrderSummary[])
+            : [];
+          setGroupedOrders(next);
+        }
+      } catch {
+        if (active) {
+          setGroupedOrders([]);
+        }
+      } finally {
+        if (active) {
+          setGroupedLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [order?.orderGroupId]);
+
   const handleConfirmDelivery = useCallback(async () => {
     if (!orderId) return;
     setIsMutating(true);
@@ -116,6 +169,7 @@ export default function OrderDetailPage() {
       }
 
       setActionMessage(data?.message || "Delivery confirmed successfully.");
+      emitWalletSync("order-confirm-delivery");
       await loadOrder();
     } catch (confirmError) {
       setActionMessage(
@@ -143,6 +197,7 @@ export default function OrderDetailPage() {
       }
 
       setActionMessage(data?.message || "Refund request submitted.");
+      emitWalletSync("order-refund-request");
       await loadOrder();
     } catch (refundError) {
       setActionMessage(
@@ -152,6 +207,33 @@ export default function OrderDetailPage() {
       setIsMutating(false);
     }
   }, [loadOrder, orderId]);
+
+  const handleCancelOrder = useCallback(async () => {
+    if (!orderId) return;
+    setIsMutating(true);
+    setActionMessage(null);
+
+    try {
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: cancelReason.trim() || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Unable to cancel order.");
+      }
+
+      setActionMessage("Order cancelled successfully.");
+      emitWalletSync("order-cancel");
+      setCancelReason("");
+      await loadOrder();
+    } catch (cancelError) {
+      setActionMessage(cancelError instanceof Error ? cancelError.message : "Unable to cancel order.");
+    } finally {
+      setIsMutating(false);
+    }
+  }, [cancelReason, loadOrder, orderId]);
 
   const handleAdminRefundReview = useCallback(
     async (action: "approve" | "reject") => {
@@ -177,6 +259,7 @@ export default function OrderDetailPage() {
         }
 
         setActionMessage(data?.message || `Refund ${action}d successfully.`);
+        emitWalletSync("order-refund-review");
         await loadOrder();
       } catch (reviewError) {
         setActionMessage(
@@ -189,6 +272,48 @@ export default function OrderDetailPage() {
     [loadOrder, orderId]
   );
 
+  const handleGroupedAction = useCallback(
+    async (action: "CANCEL" | "REFUND_REQUEST") => {
+      if (!order?.orderGroupId || groupedOrders.length === 0) return;
+      setIsMutating(true);
+      setActionMessage(null);
+
+      try {
+        const res = await fetch(`/api/orders/group/${order.orderGroupId}/bulk`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            reason:
+              action === "CANCEL"
+                ? "Grouped cancellation requested from order detail page."
+                : "Grouped refund request submitted from order detail page.",
+            orderIds: groupedOrders.map((entry) => entry.id),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.error || "Unable to perform grouped action.");
+        }
+
+        const appliedCount = Number(data?.summary?.applied) || 0;
+        const skippedCount = Number(data?.summary?.skipped) || 0;
+        setActionMessage(
+          `${action === "CANCEL" ? "Grouped cancel" : "Grouped refund request"} completed. Applied: ${appliedCount}, Skipped: ${skippedCount}.`
+        );
+        emitWalletSync("order-grouped-action");
+        await loadOrder();
+      } catch (groupError) {
+        setActionMessage(
+          groupError instanceof Error ? groupError.message : "Unable to perform grouped action."
+        );
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [groupedOrders, loadOrder, order?.orderGroupId]
+  );
+
   const statusHistory = useMemo(
     () => parseStatusHistory(order?.statusHistory),
     [order?.statusHistory]
@@ -199,12 +324,16 @@ export default function OrderDetailPage() {
   );
   const canBuyerConfirmDelivery =
     user?.role === "BUYER" && order?.status === "DELIVERED" && order?.paymentStatus === "PAID";
+  const canBuyerCancelOrder =
+    user?.role === "BUYER" && ["PENDING", "CONFIRMED", "PROCESSING"].includes(order?.status || "");
   const canBuyerRequestRefund =
     user?.role === "BUYER" && order?.paymentStatus === "PAID" && order?.status !== "REFUNDED";
   const hasPendingRefund = transactions.some(
     (tx) => tx.type === "REFUND" && tx.status === "PENDING"
   );
   const canAdminReviewRefund = user?.role === "ADMIN" && hasPendingRefund;
+  const canRunGroupedActions =
+    Boolean(order?.orderGroupId) && groupedOrders.length > 1 && (user?.role === "BUYER" || user?.role === "ADMIN");
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8">Loading order details...</div>;
@@ -246,9 +375,33 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {(canBuyerConfirmDelivery || canBuyerRequestRefund || canAdminReviewRefund) && (
+      {(canBuyerConfirmDelivery || canBuyerRequestRefund || canAdminReviewRefund || canBuyerCancelOrder) && (
         <Card>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="space-y-3">
+            {canBuyerCancelOrder ? (
+              <div className="space-y-2 rounded-ds-md border border-ds-border-base p-3">
+                <p className="text-sm text-ds-text-secondary">
+                  Cancel is available while your order is pending, confirmed, or processing.
+                </p>
+                <Input.TextArea
+                  rows={3}
+                  value={cancelReason}
+                  onChange={(event) => setCancelReason(event.target.value)}
+                  placeholder="Optional cancellation reason"
+                />
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-3">
+              {canBuyerCancelOrder && (
+                <Button
+                  variant="outline"
+                  onClick={() => void handleCancelOrder()}
+                  disabled={isMutating}
+                >
+                  Cancel Order
+                </Button>
+              )}
             {canBuyerConfirmDelivery && (
               <Button onClick={() => void handleConfirmDelivery()} disabled={isMutating}>
                 Confirm Delivery
@@ -280,12 +433,73 @@ export default function OrderDetailPage() {
                 </Button>
               </>
             )}
-            {actionMessage ? (
-              <p className="text-sm text-ds-text-secondary">{actionMessage}</p>
-            ) : null}
+            </div>
+            {actionMessage ? <p className="text-sm text-ds-text-secondary">{actionMessage}</p> : null}
           </div>
         </Card>
       )}
+
+      {order.orderGroupId ? (
+        <Card>
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-semibold text-ds-text-primary">Grouped Checkout</h2>
+                <p className="text-xs text-ds-text-secondary">Group ID: {order.orderGroupId}</p>
+              </div>
+              {canRunGroupedActions ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleGroupedAction("CANCEL")}
+                    disabled={isMutating}
+                  >
+                    Bulk Cancel Eligible
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleGroupedAction("REFUND_REQUEST")}
+                    disabled={isMutating}
+                  >
+                    Bulk Refund Request
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+
+            {groupedLoading ? (
+              <p className="text-sm text-ds-text-secondary">Loading grouped orders...</p>
+            ) : groupedOrders.length === 0 ? (
+              <p className="text-sm text-ds-text-secondary">No grouped orders found.</p>
+            ) : (
+              <div className="space-y-2">
+                {groupedOrders.map((groupOrder) => (
+                  <div
+                    key={groupOrder.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-ds-md border border-ds-border-base p-3"
+                  >
+                    <div>
+                      <p className="font-medium text-ds-text-primary">{groupOrder.orderNumber}</p>
+                      <p className="text-xs text-ds-text-secondary">
+                        {formatStatusLabel(groupOrder.status)} • Payment: {formatStatusLabel(groupOrder.paymentStatus)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(groupOrder.total)}</p>
+                      <Link
+                        href={`/orders/${groupOrder.id}`}
+                        className="text-xs text-ds-text-brand hover:underline"
+                      >
+                        Open
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+      ) : null}
 
       <Card>
         <h2 className="text-lg font-semibold text-ds-text-primary">Order Items</h2>

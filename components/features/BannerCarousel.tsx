@@ -241,7 +241,10 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
 
         {/* Thumbnail */}
         {banner.image && (
-          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-ds-lg">
+          <div
+            data-testid="hero-modal-image"
+            className="relative mb-4 h-56 w-full overflow-hidden rounded-ds-lg bg-black/10 sm:h-64"
+          >
             <Image
               src={banner.image}
               alt={banner.title}

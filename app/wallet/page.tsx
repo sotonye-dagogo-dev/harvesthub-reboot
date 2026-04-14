@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Button, Card, SimplePagination, EmptyState, SectionLoader } from "@/components/ui";
 import { ClientDashboardShell } from "@/components/layout";
@@ -11,6 +11,7 @@ import { PLATFORM_DEFAULTS, TransactionStatus, TransactionType } from "@/lib/con
 import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
+import { emitWalletSync, subscribeWalletSync } from "@/lib/utils/walletSync";
 import type { ReactElement } from "react";
 
 const NIGERIAN_ACCOUNT_NUMBER_LENGTH = 10;
@@ -68,6 +69,7 @@ export default function WalletPage() {
         pendingWithdrawals?: number;
       })
     | null;
+  const currentBalance = userWallet?.balance ?? 0;
   const availableBalance = walletDerived?.availableBalance ?? userWallet?.balance ?? 0;
   const pendingWithdrawals = walletDerived?.pendingWithdrawals ?? 0;
   const hasWalletPayload = typeof walletResource !== "undefined";
@@ -87,6 +89,20 @@ export default function WalletPage() {
     refreshIntervalMs: 120_000,
     staleTimeMs: 20_000,
   });
+
+  useEffect(() => {
+    // Force a fresh reconciliation on mount so navigation after an order/refund action
+    // does not depend on cache staleness windows.
+    void refresh(true);
+  }, [refresh]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeWalletSync(() => {
+      void refresh(true);
+    });
+
+    return unsubscribe;
+  }, [refresh]);
 
   const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
 
@@ -204,6 +220,8 @@ export default function WalletPage() {
       });
 
       message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
+      emitWalletSync("wallet-deposit");
+      await refresh(true);
       setShowDepositModal(false);
       setDepositAmount("");
     } catch (error) {
@@ -259,6 +277,7 @@ export default function WalletPage() {
       message.success(
         withdrawData?.message || `Withdrawal of ${formatCurrency(amount)} initiated successfully`
       );
+      emitWalletSync("wallet-withdraw");
       setShowWithdrawModal(false);
       setWithdrawAmount("");
       setWithdrawBankName("");
@@ -349,31 +368,58 @@ export default function WalletPage() {
             <div className="mb-6 text-4xl font-bold text-ds-text-brand">
               {formatCurrency(availableBalance)}
             </div>
+            <div className="mb-4 grid grid-cols-3 gap-2 rounded-ds-md border border-ds-border-base p-3 text-left">
+              <div>
+                <p className="text-[10px] uppercase text-ds-text-tertiary">Current</p>
+                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(currentBalance)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-ds-text-tertiary">Available</p>
+                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(availableBalance)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase text-ds-text-tertiary">Pending</p>
+                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(pendingWithdrawals)}</p>
+              </div>
+            </div>
             {pendingWithdrawals > 0 ? (
               <p className="mb-3 text-xs text-ds-text-secondary">
                 Pending withdrawal hold: {formatCurrency(pendingWithdrawals)}
               </p>
             ) : null}
             <div className="flex gap-3">
-              {user.role !== "ADMIN" && (
+              <Button
+                fullWidth
+                onClick={() => setShowDepositModal(true)}
+                disabled={user.role === "ADMIN"}
+              >
                 <>
-                  <Button fullWidth onClick={() => setShowDepositModal(true)}>
-                    <>
-                      <ArrowDownCircle className="mr-2 h-5 w-5" />
-                      Deposit
-                    </>
-                  </Button>
-                  {user.role === "VENDOR" && (
-                    <Button fullWidth variant="outline" onClick={() => setShowWithdrawModal(true)}>
-                      <>
-                        <ArrowUpCircle className="mr-2 h-5 w-5" />
-                        Withdraw
-                      </>
-                    </Button>
-                  )}
+                  <ArrowDownCircle className="mr-2 h-5 w-5" />
+                  Deposit
                 </>
-              )}
+              </Button>
+              <Button
+                fullWidth
+                variant="outline"
+                onClick={() => setShowWithdrawModal(true)}
+                disabled={user.role !== "VENDOR"}
+              >
+                <>
+                  <ArrowUpCircle className="mr-2 h-5 w-5" />
+                  Withdraw
+                </>
+              </Button>
             </div>
+            {user.role === "ADMIN" ? (
+              <p className="mt-3 text-xs text-ds-text-secondary">
+                Admin wallets are read-only. Deposit and withdrawal controls are disabled.
+              </p>
+            ) : null}
+            {user.role !== "ADMIN" && user.role !== "VENDOR" ? (
+              <p className="mt-3 text-xs text-ds-text-secondary">
+                Withdrawals are available for vendor wallets only.
+              </p>
+            ) : null}
           </div>
         </Card>
 

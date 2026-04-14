@@ -1,7 +1,16 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from "react";
 import type { Notification } from "@/lib/types";
+import { useToast } from "@/lib/contexts/ToastContext";
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -18,6 +27,11 @@ interface NotificationContextType {
    * Returns true when subscription sync succeeds.
    */
   enablePushNotifications: () => Promise<boolean>;
+  /**
+   * Removes backend/browser push subscription for this device.
+   * Returns true when local unsubscribe and backend cleanup both complete.
+   */
+  disablePushNotifications: () => Promise<boolean>;
   /**
    * Returns current browser Notification.permission state.
    * Returns "unsupported" when Notification APIs are unavailable in this environment.
@@ -44,11 +58,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
+  const toast = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const knownNotificationIdsRef = useRef<Set<string>>(new Set());
+  const hasHydratedNotificationFeedRef = useRef(false);
 
   const fetchNotifications = useCallback(async (silent = false) => {
     if (!silent) {
@@ -75,7 +92,31 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
 
       if (data.success) {
-        setNotifications(data.notifications || []);
+        const incomingNotifications = (data.notifications || []) as Notification[];
+
+        if (hasHydratedNotificationFeedRef.current) {
+          const freshUnreadNotifications = incomingNotifications.filter(
+            (notification) =>
+              !notification.isRead && !knownNotificationIdsRef.current.has(notification.id)
+          );
+
+          if (freshUnreadNotifications.length > 0) {
+            const newest = freshUnreadNotifications[0];
+            const countLabel =
+              freshUnreadNotifications.length === 1
+                ? "You have a new notification"
+                : `You have ${freshUnreadNotifications.length} new notifications`;
+
+            toast.info(countLabel, newest?.title ?? "Open Notifications to review updates.");
+          }
+        }
+
+        knownNotificationIdsRef.current = new Set(
+          incomingNotifications.map((notification) => notification.id)
+        );
+        hasHydratedNotificationFeedRef.current = true;
+
+        setNotifications(incomingNotifications);
         setUnreadCount(data.unreadCount || 0);
         setError(null);
         setLastSyncedAt(new Date());
@@ -89,7 +130,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [toast]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -197,6 +238,35 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return syncPushSubscription(true);
   }, [syncPushSubscription]);
 
+  const disablePushNotifications = useCallback(async (): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        return true;
+      }
+
+      const endpoint = subscription.endpoint;
+      const unsubscribeResult = await subscription.unsubscribe();
+
+      const res = await fetch("/api/push/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint }),
+      });
+
+      // Treat 404 as success to support drift-safe cleanup when backend record is already absent.
+      return unsubscribeResult && (res.ok || res.status === 404);
+    } catch (pushError) {
+      console.warn("Push unsubscribe cleanup failed:", pushError);
+      return false;
+    }
+  }, []);
+
   const getBrowserPushPermission = useCallback((): NotificationPermission | "unsupported" => {
     if (typeof window === "undefined" || typeof Notification === "undefined") {
       return "unsupported";
@@ -236,6 +306,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         markAllAsRead,
         deleteNotification,
         enablePushNotifications,
+        disablePushNotifications,
         getBrowserPushPermission,
         refreshNotifications,
         lastSyncedAt,

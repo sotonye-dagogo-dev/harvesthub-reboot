@@ -728,3 +728,83 @@
 - [x] Documentation synchronization.
   - [x] Update `.ai-system/agents/system-architecture.md` banner composition flow with new sizing contract language.
   - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md` after implementation.
+
+---
+
+## Feature Planning Queue (2026-04-14) - Commerce UX Hardening + Payment Integrity + Orders Grouping + Settings Persistence
+
+> **Section summary:** Planning block to close critical UX, payment-verification, settings-persistence, and order-lifecycle/productivity gaps reported from live admin + checkout validation.
+
+- [x] Track A - Banner and ad-management UX hardening.
+  - [x] Make homepage sidebar-ad container behavior explicit:
+    - [x] mobile: horizontal scroll rail with stable compact tile width
+    - [x] desktop: vertically scrollable bounded container with stable tile height
+    - [x] prevent single sidebar ad from stretching to full rail surface.
+  - [x] Upgrade hero-banner modal image rendering to larger responsive preview size with better aspect-fit handling and non-clipped visibility.
+  - [x] Add inline existing-image preview beside upload control in operations banner edit/create form to reduce operator confusion.
+  - [x] Extend banner preview/runtime parity tests for the new scroll container and modal image size contract.
+
+- [x] Track B - Wallet/checkout feedback + payment integrity correctness.
+  - [x] Add user-facing feedback contract for payment and form operations (toast/surface errors for insufficient wallet balance, auth errors, validation errors, and operation successes).
+  - [x] Standardize API error-code to UI-feedback mapping for checkout/auth/settings flows (for example `INSUFFICIENT_WALLET_BALANCE`, verification failures, required-field failures).
+  - [x] Harden paystack initialization/verification flow so orders cannot be finalized when payment provider verification fails or reference is missing/not found.
+  - [x] Enforce order-placement guardrails:
+    - [x] wallet: block with explicit feedback when balance is insufficient
+    - [x] card/paystack: require durable verified transaction state before order persistence.
+  - [x] Add focused regression tests for checkout failure/success feedback paths and provider-not-found reference handling.
+
+- [x] Track C - Admin settings persistence unification (commerce + commission + platform-managed configs).
+  - [x] Audit all operations settings sections and map each form control to persisted API endpoint + DB model.
+  - [x] Fix settings save orchestration so commission settings persist via dedicated commission API and do not silently no-op.
+  - [x] Introduce a unified settings save/load contract layer (or coordinated multi-endpoint save pipeline) with per-section success/error visibility.
+  - [x] Add settings persistence tests ensuring reload parity for admin, vendor, and user-manageable settings.
+  - [x] Document policy: no platform-manageable setting should remain hardcoded when a settings UI control exists.
+
+- [x] Track D - Wallet page role parity and balance correctness.
+  - [x] Verify wallet balance derivation contract (`current`, `available`, `pending`) and fix incorrect displayed totals for admin sessions.
+  - [x] Ensure deposit/withdraw actions are visible and role-appropriate where intended, with clear disabled-state explanations when restricted.
+  - [x] Add transactional UI reconciliation so wallet cards refresh deterministically after deposit/withdraw/order/refund actions.
+  - [x] Add focused tests for role-based wallet actions and displayed balance invariants.
+
+- [x] Track E - Orders operations data-table workflow + reasoned status transitions.
+  - [x] Refactor operations orders list into data-table surface with sorting/filtering, row actions, and deep-link to dedicated order detail.
+  - [x] Add status-change reason/notes capture for vendor/admin operations (cancel/reject/other state transitions) and persist in status history/audit payload.
+  - [x] Surface status notes/reasons in order detail timeline and operations review surfaces.
+  - [x] Add buyer-facing cancel/refund eligibility messaging and expose cancel action where status allows.
+  - [x] Add focused tests for:
+    - [x] status transition reason capture + persistence
+    - [x] eligibility-gated cancel/refund action visibility
+    - [x] operations table action flows.
+
+- [x] Track F - Grouped multi-vendor order lifecycle.
+  - [x] Enforce durable order-group identifier for multi-vendor checkout splits and expose grouped-summary view (overall total + per-vendor suborders).
+  - [x] Add grouped operations (bulk cancel/refund request) with mixed-status safety handling and partial-applicability reporting.
+  - [x] Ensure grouped lifecycle actions respect per-order eligibility while presenting consistent user/admin feedback.
+  - [x] Add API and UI contracts for grouped history navigation and traceability.
+  - [x] Add regression tests for grouped-order creation, retrieval, and mixed-status bulk action safety.
+
+- [x] Track G - Email and notifications experience completeness.
+  - [x] Audit order and lifecycle email dispatch paths to ensure all use styled template layout and include meaningful order metadata.
+  - [x] Upgrade order emails with structured summary tables (order id, grouped-order context where applicable, item rows, totals, vendor/buyer context, status info).
+  - [x] Add notification/inbox route discoverability in header/hamburger navigation (in addition to sidebar access).
+  - [x] Tighten in-app notification signal UX with unread count badges on nav surfaces and toast signaling for newly detected inbox events.
+  - [x] Wire push-preference persistence to browser subscribe/unsubscribe orchestration with graceful permission-denied handling.
+  - [x] Add focused tests for email payload/template completeness and header/hamburger notification link visibility.
+
+- [x] Track H - Navigation and guard-copy UX refinements.
+  - [x] Scope desktop categories bar/dropdown visibility to home and products routes only; keep current mobile behavior unchanged.
+  - [x] Update WhatsApp guard bullet guidance to explicitly remind users to complete payments inside the platform.
+  - [x] Add route-conditional header tests for category-strip visibility and guard-copy regression tests.
+
+- [x] Validation and rollout closure.
+  - [x] Run staged validation gates per track (`npm run lint`, `npx tsc --noEmit`, focused Vitest suites, route/sidebar audits).
+  - [x] Run end-to-end payment smoke tests for wallet-insufficient, paystack-not-found, and verified-payment success paths.
+  - [x] Capture evidence for admin settings persistence, grouped-order operations, and wallet balance correctness.
+
+- [x] Documentation synchronization.
+  - [x] Update `.ai-system/agents/system-architecture.md` for:
+    - [x] settings persistence orchestration
+    - [x] grouped multi-vendor order lifecycle
+    - [x] reasoned order-status transition flow
+    - [x] payment verification hard-stop contract.
+  - [x] Update `.ai-system/checkpoints/session-log.md`, `.ai-system/summaries/dev-history.md`, and `.ai-system/memory/project-decisions.md` after implementation.

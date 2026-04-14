@@ -6,12 +6,27 @@ const { useSmartResourceMock } = vi.hoisted(() => ({
   useSmartResourceMock: vi.fn(),
 }));
 
+const { enablePushNotificationsMock, disablePushNotificationsMock, getBrowserPushPermissionMock } =
+  vi.hoisted(() => ({
+    enablePushNotificationsMock: vi.fn().mockResolvedValue(true),
+    disablePushNotificationsMock: vi.fn().mockResolvedValue(true),
+    getBrowserPushPermissionMock: vi.fn().mockReturnValue("granted"),
+  }));
+
 vi.mock("@/lib/hooks/useSmartResource", () => ({
   useSmartResource: useSmartResourceMock,
 }));
 
 vi.mock("@/components/ui", () => ({
   SectionLoader: () => <div data-testid="section-loader">loading</div>,
+}));
+
+vi.mock("@/lib/contexts/NotificationContext", () => ({
+  useNotifications: () => ({
+    enablePushNotifications: enablePushNotificationsMock,
+    disablePushNotifications: disablePushNotificationsMock,
+    getBrowserPushPermission: getBrowserPushPermissionMock,
+  }),
 }));
 
 vi.mock("antd", () => ({
@@ -33,8 +48,8 @@ vi.mock("antd", () => ({
     <button
       type="button"
       data-testid={disabled ? "locked-switch" : "editable-switch"}
-      aria-pressed={Boolean(checked)}
-      aria-disabled={Boolean(disabled)}
+      aria-pressed={checked ? "true" : "false"}
+      aria-disabled={disabled ? "true" : "false"}
       onClick={() => {
         if (!disabled) onChange?.(!checked);
       }}
@@ -58,6 +73,9 @@ import { NotificationPreferences } from "@/components/features/NotificationPrefe
 
 describe("NotificationPreferences integrity semantics", () => {
   beforeEach(() => {
+    enablePushNotificationsMock.mockClear();
+    disablePushNotificationsMock.mockClear();
+    getBrowserPushPermissionMock.mockClear();
     useSmartResourceMock.mockReturnValue({
       data: {
         success: true,
@@ -119,6 +137,24 @@ describe("NotificationPreferences integrity semantics", () => {
         headers: { "Content-Type": "application/json" },
         body: expect.stringContaining('"editable"'),
       });
+    });
+
+    expect(enablePushNotificationsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs push unsubscribe flow when push toggle is disabled", async () => {
+    render(<NotificationPreferences />);
+    const switches = screen.getAllByTestId("editable-switch");
+    const pushSwitch = switches[3];
+    if (!pushSwitch) {
+      throw new Error("Expected push notification switch");
+    }
+
+    fireEvent.click(pushSwitch);
+    fireEvent.click(screen.getByText("Save Preferences"));
+
+    await waitFor(() => {
+      expect(disablePushNotificationsMock).toHaveBeenCalledTimes(1);
     });
   });
 });

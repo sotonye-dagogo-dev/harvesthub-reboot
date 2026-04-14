@@ -187,11 +187,11 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
             <ActionConfirmBridge />
             <RuntimeBootstrap />
             <RuntimeActivityNotifier />
-            <NotificationProvider>
-              <ToastProvider>
+            <ToastProvider>
+              <NotificationProvider>
                 <FormDataProvider>{children}</FormDataProvider>
-              </ToastProvider>
-            </NotificationProvider>
+              </NotificationProvider>
+            </ToastProvider>
           </AuthProvider>
         </AntdThemeProvider>
       </ThemeProvider>

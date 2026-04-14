@@ -12,6 +12,7 @@ import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
 
 export const dynamic = "force-dynamic";
 
@@ -212,7 +213,7 @@ export default function CheckoutPage() {
       });
       const orderData = await orderRes.json().catch(() => ({}));
       if (!orderRes.ok) {
-        throw new Error(orderData?.error || "Failed to place order");
+        throw new Error(mapCheckoutErrorMessage(orderData));
       }
 
       if (orderData?.split && Array.isArray(orderData?.orders)) {

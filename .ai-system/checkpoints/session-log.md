@@ -39,6 +39,260 @@
 
 ---
 
+## Session 60 — 2026-04-14
+
+**Goal:**
+Close the final open queue items (Track C audit, Track D deterministic reconciliation, and validation/evidence closure) and mark the 2026-04-14 feature queue complete.
+
+**Completed:**
+
+- Added deterministic wallet reconciliation contract:
+  - introduced wallet sync event utility (`lib/utils/walletSync.ts`),
+  - wallet page now forces `refresh(true)` on mount and on wallet sync events,
+  - order-detail lifecycle actions now emit wallet sync events after successful mutations.
+- Completed settings-control persistence audit closure:
+  - operations settings runtime-default controls (`Minimum Order Amount`, `Maximum Booking Advance`) are now explicitly read-only,
+  - editable controls remain limited to persisted API-backed domains (commission + lifecycle policy).
+- Added payment smoke regression coverage in `app/api/orders/__tests__/route.payment-smoke.test.ts` for:
+  - paystack/provider reference not found,
+  - wallet insufficient balance,
+  - verified card payment successful order creation.
+- Added wallet reconciliation regression test (`app/wallet/__tests__/page.role-parity.test.tsx`) to assert refresh on wallet sync events.
+- Captured validation evidence in `.ai-system/checkpoints/commerce-hardening-evidence-2026-04-14-pass3.md`.
+- Updated queue and architecture docs to mark remaining items complete and record persistence ownership map.
+- Validation results:
+  - focused vitest batch: 10 files / 23 tests passed,
+  - `npx tsc --noEmit`: passed,
+  - focused eslint on touched files: passed.
+
+**Files Modified:**
+
+- lib/utils/walletSync.ts
+- app/wallet/page.tsx
+- app/orders/[id]/page.tsx
+- app/(operations)/operations/settings/page.tsx
+- app/wallet/__tests__/page.role-parity.test.tsx
+- app/api/orders/__tests__/route.payment-smoke.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/checkpoints/commerce-hardening-evidence-2026-04-14-pass3.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/memory/project-decisions.md
+
+**Next Task:**
+Run broader repo-wide stabilization sweep for unrelated historical full-suite failures, now that the targeted commerce hardening queue is fully closed.
+
+**Notes / Blockers:**
+
+- Focused suites are green; repository-wide full-suite baseline still includes historical unrelated failures outside this feature queue.
+
+---
+
+## Session 59 — 2026-04-14
+
+**Goal:**
+Close remaining Tracks B/C/D/E/F/G queue gaps with a single implementation+validation pass (grouped lifecycle actions, settings reload parity tests, operations/orders flow tests, wallet role parity, and email template completeness).
+
+**Completed:**
+
+- Added grouped bulk lifecycle endpoint `POST /api/orders/group/[groupId]/bulk` supporting `CANCEL` and `REFUND_REQUEST` with per-order eligibility checks and partial-applicability reporting (`applied`/`skipped` counts + reasons).
+- Extended grouped-order traceability contracts:
+  - `GET /api/orders` now supports `groupId` filtering alongside grouped summary output.
+  - `GET /api/orders/[id]` now includes derived `orderGroupId`.
+- Updated order detail UI to surface grouped checkout context and trigger grouped bulk actions with user feedback.
+- Extracted checkout error-code mapping to shared helper (`app/checkout/error-mapping.ts`) and added focused regression test for provider-not-found + mapped failure messaging.
+- Added settings reload-parity API tests for admin commission, vendor store settings, and user notification preferences.
+- Added operations/orders focused table-flow tests and eligibility-gated order-action tests.
+- Improved wallet role parity UX (current/available/pending balance visibility, role-aware action restrictions with explicit disabled-state messaging) and added focused tests.
+- Upgraded order email templates with richer metadata rows (grouped context, buyer/vendor info, totals/payment status) and added focused completeness tests.
+- Completed focused validation gate for this pass:
+  - targeted vitest batch: 10 files / 21 tests passed.
+  - `npx tsc --noEmit`: passed.
+  - focused `npx eslint` on touched newest files: passed.
+
+**Files Modified:**
+
+- app/api/orders/group/[groupId]/bulk/route.ts
+- app/api/orders/route.ts
+- app/api/orders/[id]/route.ts
+- app/orders/[id]/page.tsx
+- app/wallet/page.tsx
+- app/checkout/page.tsx
+- app/checkout/error-mapping.ts
+- lib/services/orderLifecycle.ts
+- lib/emails/OrderConfirmation.tsx
+- lib/emails/OrderStatusUpdate.tsx
+- app/checkout/__tests__/page.error-mapping.test.ts
+- app/api/orders/__tests__/group-bulk.route.test.ts
+- app/api/orders/__tests__/route.grouping.test.ts
+- app/api/admin/commission/__tests__/route.test.ts
+- app/api/vendors/me/store-settings/__tests__/route.test.ts
+- app/api/notifications/preferences/__tests__/route.test.ts
+- app/(operations)/operations/orders/__tests__/page.table-flow.test.tsx
+- app/orders/[id]/__tests__/page.actions.test.tsx
+- app/wallet/__tests__/page.role-parity.test.tsx
+- lib/emails/__tests__/order-templates.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/summaries/dev-history.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run broader high-risk regression sweep (orders/checkout/wallet notifications matrix) and decide whether to mark Track D fully complete after optional deterministic post-action wallet refresh enhancement.
+
+**Notes / Blockers:**
+
+- Focused tests pass; repository-wide full-suite vitest baseline still contains unrelated historical failures outside touched scope.
+- Test output includes non-blocking jsdom/react warnings in email and mocked button paths; assertions still pass.
+
+---
+
+## Session 58 — 2026-04-14
+
+**Goal:**
+Execute a single efficient implementation pass across Feature queue Tracks A-H (banner/operator UX, payment-feedback hardening, settings persistence, orders operations workflow, grouped-order traceability, and navigation/guard-copy refinements).
+
+**Completed:**
+
+- Track A delivered:
+  - homepage sidebar ads now use explicit mobile horizontal rail + desktop bounded vertical-scroll container contracts.
+  - hero modal image preview increased and non-clipping contract reinforced.
+  - operations banner form now shows inline current-image preview beside upload control.
+  - banner visual-contract tests updated for rail/modal contracts.
+- Track B core hardening delivered:
+  - checkout now maps API error codes to explicit user feedback.
+  - orders API now returns stable payment/wallet error codes.
+  - payment verification stub now supports explicit `NOT_FOUND` state for provider reference handling.
+- Track C persistence delivered:
+  - operations settings now load/save category commission defaults through `/api/admin/commission`.
+  - coordinated save path now persists commission + lifecycle settings with partial-save warnings.
+- Track E major workflow delivered:
+  - `/operations/orders` refactored into sortable/filterable table with deep-link actions.
+  - status-update modal supports reason/notes capture and sends note to status API.
+  - status API persists transition notes in order status history.
+  - buyer order detail now exposes cancel eligibility messaging + cancel action with optional reason.
+  - cancel API appends cancellation reason into status history for timeline traceability.
+- Track F partial delivered:
+  - `/api/orders` GET now derives and exposes `orderGroupId` + grouped summary aggregates.
+- Track H delivered:
+  - desktop category strip now route-scoped to home/products only.
+  - WhatsApp guard copy explicitly instructs users to complete payments in-platform.
+  - route/copy regression tests added.
+- Focused validation gate completed:
+  - focused Vitest suites passed.
+  - `npx tsc --noEmit` passed.
+  - focused ESLint on touched files passed.
+
+**Files Modified:**
+
+- app/components/HomeContent.tsx
+- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- components/features/BannerCarousel.tsx
+- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- app/(operations)/operations/banners/page.tsx
+- app/(operations)/operations/settings/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- app/api/orders/[id]/status/route.ts
+- app/api/orders/[id]/cancel/route.ts
+- app/orders/[id]/page.tsx
+- app/api/orders/route.ts
+- app/api/orders/__tests__/status.route.test.ts
+- app/checkout/page.tsx
+- lib/services/payments.ts
+- components/layout/Header.tsx
+- components/__tests__/Header.category-menu.test.tsx
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Close remaining queue gaps for Tracks B/C/E/F/G/D: add focused checkout/provider-not-found regression tests, settings reload-parity tests, operations-table flow tests, grouped bulk-action APIs/UI, and email template completeness coverage.
+
+**Notes / Blockers:**
+
+- Track G email-template completeness and Track F grouped bulk operations remain partially incomplete.
+- Focused tests still emit known jsdom warnings around mocked `next/image` boolean attributes; non-blocking.
+
+---
+
+## Session 57 — 2026-04-14
+
+**Goal:**
+Implement push/in-app notification tightening in one pass: unread nav badges, proactive in-app new-notification toasts, and push preference subscribe/unsubscribe orchestration.
+
+**Completed:**
+
+- Extended notification context with fresh-unread detection and in-app toast signaling during polling refreshes.
+- Added push unsubscribe orchestration and exposed `disablePushNotifications` context method for preference-driven cleanup.
+- Reordered root providers so notification context can safely use toast context.
+- Wired notification preferences save flow to call browser push subscribe/unsubscribe orchestration with permission-denied fallback guidance.
+- Added notifications unread badges to header (desktop + mobile) and dashboard sidebar (desktop + bottom-nav mobile).
+- Added/updated focused tests for header notification badge visibility, sidebar unread badges, and push-toggle orchestration behavior.
+- Validation completed:
+  - `npx vitest run` (focused suites) passed.
+  - `npx tsc --noEmit` passed.
+  - focused `eslint` on touched files passed.
+
+**Files Modified:**
+
+- lib/contexts/NotificationContext.tsx
+- app/providers.tsx
+- components/features/NotificationPreferences.tsx
+- components/layout/Header.tsx
+- components/layout/Sidebar.tsx
+- components/__tests__/Header.category-menu.test.tsx
+- components/__tests__/Header.notifications-badge.test.tsx
+- components/__tests__/Sidebar.orders-scope.test.tsx
+- components/features/__tests__/NotificationPreferences.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Continue Track G email-template completeness audit and then Track H route-scoped header category-strip behavior and WhatsApp guard-copy update.
+
+**Notes / Blockers:**
+
+- Focused header tests continue to emit jsdom warning for mocked `next/image` boolean `fill` attribute; tests pass and warning is non-blocking.
+
+---
+
+## Session 56 — 2026-04-14
+
+**Goal:**
+Execute planning-only command for a comprehensive UX and commerce reliability directive bundle (payments, settings persistence, wallet/order lifecycle UX, navigation discoverability, banner/operator polish).
+
+**Completed:**
+
+- Loaded mandatory planning references (`.ai-context.md`, architecture/design-system docs, project plan, task queue).
+- Mapped 14 reported runtime issues to implementation modules and dependency/risk clusters.
+- Added a new implementation-ready queue section in `task-queue.md` with concrete tracks (A-H) and validation/doc closure steps.
+- Added a new feature specification block in `project-plan.md` covering objective, architecture impact, acceptance criteria, risks, and rollout order.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Start Track B + Track C implementation first (payment hard-stop + settings persistence parity), then proceed with wallet/orders UX and grouped-order lifecycle tracks.
+
+**Notes / Blockers:**
+
+- Planning-only session: no runtime code, schema, or API behavior was changed.
+
+---
+
 ## Session 55 — 2026-04-14
 
 **Goal:**

@@ -13,10 +13,17 @@ type StatusType =
 
 interface OrderStatusUpdateProps {
   firstName: string;
+  orderGroupId?: string;
   orderNumber: string;
   status: StatusType;
   vendorName: string;
+  total?: number;
+  paymentStatus?: string;
   note?: string;
+}
+
+function formatNgn(amount: number): string {
+  return `₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 0 })}`;
 }
 
 const STATUS_CONFIG: Record<
@@ -70,9 +77,12 @@ const STATUS_CONFIG: Record<
 
 export function OrderStatusUpdate({
   firstName,
+  orderGroupId,
   orderNumber,
   status,
   vendorName,
+  total,
+  paymentStatus,
   note,
 }: OrderStatusUpdateProps) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://harvesthub.ng";
@@ -94,10 +104,28 @@ export function OrderStatusUpdate({
             <td style={styles.tableCellLabel}>Order</td>
             <td style={styles.tableCellValue}>{orderNumber}</td>
           </tr>
+          {orderGroupId ? (
+            <tr style={styles.tableRow}>
+              <td style={styles.tableCellLabel}>Grouped Checkout</td>
+              <td style={styles.tableCellValue}>{orderGroupId}</td>
+            </tr>
+          ) : null}
           <tr style={styles.tableRow}>
             <td style={styles.tableCellLabel}>Vendor</td>
             <td style={styles.tableCellValue}>{vendorName}</td>
           </tr>
+          {typeof total === "number" ? (
+            <tr style={styles.tableRow}>
+              <td style={styles.tableCellLabel}>Order Total</td>
+              <td style={styles.tableCellValue}>{formatNgn(total)}</td>
+            </tr>
+          ) : null}
+          {paymentStatus ? (
+            <tr style={styles.tableRow}>
+              <td style={styles.tableCellLabel}>Payment Status</td>
+              <td style={styles.tableCellValue}>{paymentStatus}</td>
+            </tr>
+          ) : null}
         </tbody>
       </table>
 

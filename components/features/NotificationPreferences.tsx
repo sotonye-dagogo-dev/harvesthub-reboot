@@ -5,6 +5,7 @@ import { Button, Card, Switch, Tooltip, message } from "antd";
 import { Lock, Info } from "lucide-react";
 import { SectionLoader } from "@/components/ui";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { useNotifications } from "@/lib/contexts/NotificationContext";
 
 type EditablePreferences = {
   orderUpdates: boolean;
@@ -115,6 +116,8 @@ export function NotificationPreferences() {
   const [notice, setNotice] = useState(
     "Critical order/payment/delivery emails remain enforced for account safety."
   );
+  const { enablePushNotifications, disablePushNotifications, getBrowserPushPermission } =
+    useNotifications();
 
   const fetchPreferences = async (): Promise<PreferenceApiResponse> => {
     const res = await fetch("/api/notifications/preferences");
@@ -156,6 +159,7 @@ export function NotificationPreferences() {
   const savePreferences = async () => {
     setSaving(true);
     try {
+      const requestedPushState = editable.pushNotifications;
       const res = await fetch("/api/notifications/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -174,6 +178,30 @@ export function NotificationPreferences() {
       if (payload.note) {
         setNotice(payload.note);
       }
+
+      if (requestedPushState) {
+        const pushEnabled = await enablePushNotifications();
+        if (!pushEnabled) {
+          const permission = getBrowserPushPermission();
+          if (permission === "denied") {
+            message.warning(
+              "Push permission is blocked in your browser settings. In-app notifications will still appear."
+            );
+          } else {
+            message.warning(
+              "Push notifications could not be enabled on this browser. In-app notifications will still appear."
+            );
+          }
+        }
+      } else {
+        const pushDisabled = await disablePushNotifications();
+        if (!pushDisabled) {
+          message.warning(
+            "Preferences saved, but this browser subscription could not be removed completely."
+          );
+        }
+      }
+
       message.success("Notification preferences saved");
       await refresh(true);
     } catch (saveError) {

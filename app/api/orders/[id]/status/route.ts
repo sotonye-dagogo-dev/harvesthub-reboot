@@ -65,6 +65,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         const body = await req.json().catch(() => ({}));
         const requestedStatusRaw =
             typeof body?.status === 'string' ? body.status.trim().toUpperCase() : '';
+        const transitionNote =
+            typeof body?.note === 'string' && body.note.trim().length > 0
+                ? body.note.trim().slice(0, 400)
+                : null;
         if (!requestedStatusRaw || !isOrderStatus(requestedStatusRaw)) {
             return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
         }
@@ -130,7 +134,8 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 existingHistory,
                 requestedStatus,
                 user.userId,
-                `Order status updated to ${requestedStatus.toLowerCase().replace(/_/g, ' ')}.`,
+                transitionNote ||
+                    `Order status updated to ${requestedStatus.toLowerCase().replace(/_/g, ' ')}.`,
             );
             const nextHistoryWithSettlement =
                 requestedStatus === OrderStatus.DELIVERED && payoutHeld

@@ -34,7 +34,7 @@ export type VerifyPaymentInput = {
 export type VerifyPaymentResult = {
   gateway: SupportedPaymentGateway;
   reference: string;
-  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'NOT_FOUND';
   amount: number;
   currency: string;
   message: string;
@@ -131,8 +131,9 @@ export async function initializePayment(
   };
 }
 
-function inferVerificationStatus(reference: string): 'SUCCESS' | 'FAILED' | 'PENDING' {
+function inferVerificationStatus(reference: string): 'SUCCESS' | 'FAILED' | 'PENDING' | 'NOT_FOUND' {
   const normalized = reference.toLowerCase();
+  if (normalized.includes('not_found') || normalized.includes('missing')) return 'NOT_FOUND';
   if (normalized.includes('success')) return 'SUCCESS';
   if (normalized.includes('fail')) return 'FAILED';
   return 'PENDING';
@@ -150,6 +151,8 @@ export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPa
     message:
       status === 'SUCCESS'
         ? 'Stub verification marked as successful.'
+        : status === 'NOT_FOUND'
+          ? 'Stub verification did not find this provider reference.'
         : status === 'FAILED'
           ? 'Stub verification marked as failed.'
           : 'Stub verification is pending. Replace with provider API verification.',

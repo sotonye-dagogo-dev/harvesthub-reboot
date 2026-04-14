@@ -18,6 +18,100 @@
 
 ---
 
+## [Next.js page module exported helper and failed typecheck]
+
+**Symptom:**
+
+- TypeScript/Next compile failed after adding a named helper export in a `page.tsx` file under App Router.
+
+**Root Cause:**
+
+- App Router page modules have a constrained export surface; arbitrary named exports from `page.tsx` violate framework typing/build contracts.
+
+**Fix Applied:**
+
+- Moved reusable helper (`mapCheckoutErrorMessage`) into sibling utility module (`app/checkout/error-mapping.ts`).
+- Imported helper into page module and updated tests to target helper module directly.
+
+**Prevention:**
+
+- Do not export reusable utilities directly from `app/**/page.tsx` files.
+- Extract reusable/tested logic into nearby utility modules.
+
+**Files Affected:**
+
+- app/checkout/page.tsx
+- app/checkout/error-mapping.ts
+- app/checkout/__tests__/page.error-mapping.test.ts
+
+**Date:** 2026-04-14
+
+---
+
+## [Operations settings commission controls changed UI state but did not persist]
+
+**Symptom:**
+
+- Admin could edit commission values in operations settings UI, but values were not saved to backend and reverted on reload.
+
+**Root Cause:**
+
+- Settings save path only persisted commerce lifecycle config and skipped commission API writes.
+
+**Fix Applied:**
+
+- Added commission config load/save wiring through `/api/admin/commission`.
+- Coordinated settings save now persists commission and lifecycle settings and surfaces partial-save warnings when one section fails.
+
+**Prevention:**
+
+- Do not expose editable settings controls without a concrete persisted API contract.
+- Keep multi-section settings saves explicit about section-level success/failure.
+
+**Files Affected:**
+
+- app/(operations)/operations/settings/page.tsx
+- app/api/admin/commission/route.ts
+
+**Date:** 2026-04-14
+
+---
+
+## [Notification preference saved but browser push state remained stale]
+
+**Symptom:**
+
+- Users could save push preference toggles, but browser/device push subscription state did not consistently change.
+- Notifications were delivered to inbox but lacked proactive in-app signal on arrival, reducing perceived reliability.
+
+**Root Cause:**
+
+- Preference persistence (`/api/notifications/preferences`) was not tightly coupled to browser push subscribe/unsubscribe orchestration.
+- Notification polling updated state silently without differentiating newly detected unread items from existing feed baseline.
+
+**Fix Applied:**
+
+- Added explicit push orchestration methods in notification context for enable + disable flows (including backend unsubscribe cleanup).
+- Wired `NotificationPreferences` save flow to invoke subscription orchestration and surface permission/setup warnings.
+- Added fresh-unread detection in notification polling and emit in-app toast signals for newly detected events.
+- Added unread badge surfacing to primary navigation links for better discoverability.
+
+**Prevention:**
+
+- Treat channel preference toggles as orchestration contracts, not storage-only flags.
+- Keep nav badge + toast signal paths as first-class notification UX contracts with focused regression tests.
+
+**Files Affected:**
+
+- lib/contexts/NotificationContext.tsx
+- components/features/NotificationPreferences.tsx
+- components/layout/Header.tsx
+- components/layout/Sidebar.tsx
+
+**Date:** 2026-04-14
+
+---
+
 ## [New Prisma model exists in schema but TypeScript reports missing Prisma client delegate]
 
 **Symptom:**

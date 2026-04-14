@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { BannerCarousel } from "@/components/features/BannerCarousel";
 
 describe("BannerCarousel visual contract", () => {
@@ -42,5 +42,27 @@ describe("BannerCarousel visual contract", () => {
     expect(viewport.className).toContain("md:h-[268px]");
     expect(viewport.className).toContain("lg:h-[300px]");
     expect(viewport.className).toContain("xl:h-[332px]");
+  });
+
+  it("renders larger modal image preview contract for know-more details", () => {
+    render(
+      <BannerCarousel
+        autoPlay={false}
+        banners={[
+          {
+            id: "hero-modal",
+            title: "Modal Size Contract",
+            image: "/hero-banner.jpg",
+            description: "Preview details",
+          },
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /know more about modal size contract/i }));
+
+    const modalImage = screen.getByTestId("hero-modal-image");
+    expect(modalImage.className).toContain("h-56");
+    expect(modalImage.className).toContain("sm:h-64");
   });
 });

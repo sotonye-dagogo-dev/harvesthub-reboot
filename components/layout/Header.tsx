@@ -15,6 +15,7 @@ import {
   Package,
   Heart,
   Store,
+  Bell,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -24,11 +25,23 @@ import { Button, ThemeToggle } from "@/components/ui";
 import { useCart } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
 import { PRODUCT_DISCOVERY_CATEGORIES } from "@/lib/config/productDiscovery";
+import { useNotifications } from "@/lib/contexts/NotificationContext";
+
+function renderCounterBadge(count: number) {
+  if (count <= 0) return null;
+
+  return (
+    <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-ds-full bg-ds-status-error px-1 text-[10px] font-semibold leading-none text-white">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { unreadCount } = useNotifications();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileCategories, setShowMobileCategories] = useState(false);
   const [showDesktopCategories, setShowDesktopCategories] = useState(false);
@@ -43,6 +56,7 @@ export function Header() {
   const getDashboardLink = () => {
     return getDashboardRoute(user?.role);
   };
+  const showDesktopCategoryStrip = pathname === "/" || pathname.startsWith("/products");
 
   const getOrdersLink = () => resolveOrdersLink();
 
@@ -111,12 +125,23 @@ export function Header() {
                   )}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {totalItems > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-ds-full bg-ds-brand-primary text-xs font-medium text-white">
-                      {totalItems}
-                    </span>
-                  )}
+                  {renderCounterBadge(totalItems)}
                   <span className="hidden lg:block">Cart</span>
+                </Link>
+
+                {/* Notifications - All users */}
+                <Link
+                  href="/notifications"
+                  className={cn(
+                    "relative flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/notifications")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Bell className="h-4 w-4" />
+                  {renderCounterBadge(unreadCount)}
+                  <span className="hidden lg:block">Notifications</span>
                 </Link>
 
                 {/* Orders - All users */}
@@ -229,50 +254,52 @@ export function Header() {
           </button>
         </div>
 
-        <div className="hidden items-center gap-2 border-t border-ds-border-base py-2 md:flex">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowDesktopCategories((prev) => !prev)}
-              aria-expanded={showDesktopCategories}
-              aria-controls="desktop-categories-menu"
-              className="inline-flex items-center gap-2 rounded-ds-md bg-ds-brand-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-ds-brand-primary-hover"
-            >
-              All Categories
-              <ChevronDown className="h-4 w-4" />
-            </button>
-            {showDesktopCategories && (
-              <div
-                id="desktop-categories-menu"
-                className="absolute left-0 top-12 z-40 max-h-[60vh] w-80 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 shadow-ds-lg"
+        {showDesktopCategoryStrip && (
+          <div className="hidden items-center gap-2 border-t border-ds-border-base py-2 md:flex">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowDesktopCategories((prev) => !prev)}
+                aria-controls="desktop-categories-menu"
+                data-expanded={showDesktopCategories ? "true" : "false"}
+                className="inline-flex items-center gap-2 rounded-ds-md bg-ds-brand-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-ds-brand-primary-hover"
               >
-                <div className="grid grid-cols-1 gap-1">
-                  {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
-                    <Link
-                      key={category.value}
-                      href={`/products?category=${category.slug}`}
-                      className="rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
-                      onClick={() => setShowDesktopCategories(false)}
-                    >
-                      {category.label}
-                    </Link>
-                  ))}
+                All Categories
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              {showDesktopCategories && (
+                <div
+                  id="desktop-categories-menu"
+                  className="absolute left-0 top-12 z-40 max-h-[60vh] w-80 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 shadow-ds-lg"
+                >
+                  <div className="grid grid-cols-1 gap-1">
+                    {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
+                      <Link
+                        key={category.value}
+                        href={`/products?category=${category.slug}`}
+                        className="rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
+                        onClick={() => setShowDesktopCategories(false)}
+                      >
+                        {category.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+              {PRODUCT_DISCOVERY_CATEGORIES.slice(0, 8).map((category) => (
+                <Link
+                  key={category.value}
+                  href={`/products?category=${category.slug}`}
+                  className="whitespace-nowrap rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
+                >
+                  {category.label}
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
-            {PRODUCT_DISCOVERY_CATEGORIES.slice(0, 8).map((category) => (
-              <Link
-                key={category.value}
-                href={`/products?category=${category.slug}`}
-                className="whitespace-nowrap rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
-              >
-                {category.label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Mobile Menu */}
         {showMobileMenu && (
@@ -287,8 +314,8 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => setShowMobileCategories((prev) => !prev)}
-                  aria-expanded={showMobileCategories}
                   aria-controls="mobile-categories-menu"
+                  data-expanded={showMobileCategories ? "true" : "false"}
                   className="flex w-full items-center justify-between rounded-ds-md px-3 py-3 text-left text-sm font-medium text-ds-text-primary transition-colors hover:bg-ds-surface-sunken"
                 >
                   <span className="inline-flex items-center gap-2">
@@ -346,7 +373,7 @@ export function Header() {
                   <Link
                     href="/cart"
                     className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      "relative flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
                       isActive("/cart")
                         ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
                         : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
@@ -354,7 +381,24 @@ export function Header() {
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <ShoppingCart className="h-5 w-5" />
+                    {renderCounterBadge(totalItems)}
                     Cart {totalItems > 0 && `(${totalItems})`}
+                  </Link>
+
+                  {/* Notifications */}
+                  <Link
+                    href="/notifications"
+                    className={cn(
+                      "relative flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/notifications")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Bell className="h-5 w-5" />
+                    {renderCounterBadge(unreadCount)}
+                    Notifications {unreadCount > 0 && `(${unreadCount > 99 ? "99+" : unreadCount})`}
                   </Link>
 
                   {/* Orders */}

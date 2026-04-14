@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Header } from "@/components/layout/Header";
 
+const pathnameState = vi.hoisted(() => ({ value: "/" }));
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => pathnameState.value,
 }));
 
 vi.mock("@/lib/contexts/AuthContext", () => ({
@@ -19,6 +21,12 @@ vi.mock("@/lib/store/cartStore", () => ({
   }),
 }));
 
+vi.mock("@/lib/contexts/NotificationContext", () => ({
+  useNotifications: () => ({
+    unreadCount: 0,
+  }),
+}));
+
 vi.mock("@/components/ui", () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   ThemeToggle: () => <button type="button">Theme</button>,
@@ -26,6 +34,7 @@ vi.mock("@/components/ui", () => ({
 
 describe("Header category accessibility", () => {
   it("exposes categories in hamburger menu via expandable section", () => {
+    pathnameState.value = "/";
     render(<Header />);
 
     fireEvent.click(screen.getByLabelText(/toggle mobile menu/i));
@@ -34,5 +43,12 @@ describe("Header category accessibility", () => {
     const categoryLinks = screen.getAllByRole("link", { name: /electronics/i });
     expect(categoryLinks.length).toBeGreaterThan(0);
     expect(categoryLinks[0]).toHaveAttribute("href", "/products?category=electronics");
+  });
+
+  it("hides desktop category strip on non-home non-products routes", () => {
+    pathnameState.value = "/orders";
+    render(<Header />);
+
+    expect(screen.queryByRole("button", { name: /all categories/i })).not.toBeInTheDocument();
   });
 });
