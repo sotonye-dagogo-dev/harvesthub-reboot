@@ -11,6 +11,11 @@ interface RouteContext { params: Promise<{ id: string }>; }
 
 const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING'];
 
+function parseStatusHistory(input: unknown): Array<Record<string, unknown>> {
+    if (!Array.isArray(input)) return [];
+    return input.filter((entry) => entry && typeof entry === 'object') as Array<Record<string, unknown>>;
+}
+
 export async function POST(req: NextRequest, context: RouteContext) {
     try {
         const user = await getCurrentUser();
@@ -40,11 +45,23 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
         // Cancel + refund to wallet in a transaction
         const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            const existingHistory = parseStatusHistory(order.statusHistory as unknown);
+            const nextHistory = [
+                ...existingHistory,
+                {
+                    status: 'CANCELLED',
+                    timestamp: new Date().toISOString(),
+                    note: reason ? `Cancelled by buyer: ${reason}` : 'Cancelled by buyer',
+                    actorId: user.userId,
+                },
+            ];
+
             const cancelled = await tx.order.update({
                 where: { id },
                 data: {
                     status: 'CANCELLED',
                     notes: reason ? `Cancelled by buyer: ${reason}` : 'Cancelled by buyer',
+                    statusHistory: nextHistory as Prisma.InputJsonValue,
                 },
             });
 

@@ -10,6 +10,7 @@ import { UserRole } from '@/lib/constants';
 import { isPaymentProcessingEnabled } from '@/lib/config/payments';
 import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 import { dispatchNotification } from '@/lib/services/notifications';
+import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
 import {
     PaymentMethod,
     PaymentStatus,
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status');
         const paymentStatus = searchParams.get('paymentStatus');
+        const groupId = searchParams.get('groupId')?.trim() || null;
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
@@ -60,16 +62,57 @@ export async function GET(req: NextRequest) {
         }
         // ADMIN sees all
 
-        // Use Prisma for list + count
+        // Group filtering relies on status-history metadata, so fetch a bounded role-scoped set first,
+        // then apply metadata filtering and pagination in memory.
+        const allScopedOrders = await prisma.order.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            take: groupId ? 500 : undefined,
+        });
+
+        const ordersWithGroup = allScopedOrders.map((order) => {
+            const orderGroupId = parseOrderGroupIdFromHistory(order.statusHistory as Prisma.JsonValue);
+            return {
+                ...order,
+                orderGroupId,
+            };
+        });
+
+        const filteredOrders = groupId
+            ? ordersWithGroup.filter((order) => order.orderGroupId === groupId)
+            : ordersWithGroup;
+
+        const total = filteredOrders.length;
         const take = limit;
         const skip = (page - 1) * limit;
-        const orders = await prisma.order.findMany({ where, take, skip, orderBy: { createdAt: 'desc' } });
-        const total = await prisma.order.count({ where });
+        const paginatedOrders = filteredOrders.slice(skip, skip + take);
+
+        const groupedSummary = filteredOrders.reduce<Record<string, { orderCount: number; total: number }>>(
+            (acc, order) => {
+                if (!order.orderGroupId) return acc;
+                if (!acc[order.orderGroupId]) {
+                    acc[order.orderGroupId] = { orderCount: 0, total: 0 };
+                }
+                const currentGroup = acc[order.orderGroupId];
+                if (currentGroup) {
+                    currentGroup.orderCount += 1;
+                    currentGroup.total += Number(order.total || 0);
+                }
+                return acc;
+            },
+            {}
+        );
 
         return NextResponse.json({
             success: true,
-            orders,
-            pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+            orders: paginatedOrders,
+            groupedSummary,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.max(1, Math.ceil(total / limit)),
+            },
         });
     } catch (error) {
         console.error('GET /api/orders error:', error);
@@ -194,6 +237,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json(
                     {
                         error: 'Payment verification is not successful',
+                        code: 'PAYMENT_VERIFICATION_FAILED',
                         verification: gatewayVerification,
                     },
                     { status: 400 }
@@ -523,14 +567,17 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         if (error instanceof Error && error.message === 'WALLET_NOT_AVAILABLE') {
             return NextResponse.json(
-                { error: 'Buyer wallet is unavailable for wallet payment.' },
+                { error: 'Buyer wallet is unavailable for wallet payment.', code: 'WALLET_NOT_AVAILABLE' },
                 { status: 409 }
             );
         }
 
         if (error instanceof Error && error.message === 'INSUFFICIENT_WALLET_BALANCE') {
             return NextResponse.json(
-                { error: 'Insufficient wallet balance for this checkout.' },
+                {
+                    error: 'Insufficient wallet balance for this checkout.',
+                    code: 'INSUFFICIENT_WALLET_BALANCE',
+                },
                 { status: 400 }
             );
         }

@@ -22,6 +22,128 @@
 [What comes next]
 ```
 
+## 2026-04-14 — Final Queue Closeout (Settings Audit + Wallet Deterministic Reconciliation + Payment Smoke Evidence)
+
+**Summary:**
+Closed the final open items in the active commerce hardening queue by implementing deterministic wallet reconciliation events, completing the operations settings control-to-persistence audit alignment, and adding focused payment smoke tests for the required high-risk paths. This pass transitions the feature queue from partial closure to fully closed with explicit evidence artifacts.
+
+**Completed:**
+
+- Added wallet sync event contract (`lib/utils/walletSync.ts`) and wired wallet page to force reconcile on mount and event receipt.
+- Emitted wallet sync events from order detail lifecycle actions (confirm delivery, cancel, refund request/review, grouped actions).
+- Updated operations settings so runtime-default controls (`MIN_ORDER_AMOUNT`, `MAX_BOOKING_ADVANCE_DAYS`) are explicitly read-only and no longer appear editable without persistence.
+- Added payment smoke suite (`app/api/orders/__tests__/route.payment-smoke.test.ts`) covering:
+  - provider reference not found,
+  - wallet insufficient balance,
+  - verified card payment successful order creation.
+- Added wallet reconciliation regression assertion in wallet parity tests.
+- Captured closure evidence in `.ai-system/checkpoints/commerce-hardening-evidence-2026-04-14-pass3.md`.
+- Marked Track C/Track D/Validation closure queue items complete.
+- Passed validation gate: focused Vitest (10 files / 23 tests), TypeScript compile, focused ESLint.
+
+**Key Changes:**
+
+- Wallet balance cards now reconcile deterministically after local wallet mutations and order lifecycle actions.
+- Settings UI now clearly separates persisted editable controls from runtime/read-only controls, preventing false edit affordances.
+- Payment integrity closure now has explicit smoke evidence for all required error/success paths.
+
+**Next Sprint Focus:**
+Address unrelated historical full-suite test failures and continue backlog stabilization beyond the now-closed commerce hardening queue.
+
+## 2026-04-14 — Track Closure Pass 2 (Grouped Bulk Lifecycle + Settings/Wallet/Email Regression Coverage)
+
+**Summary:**
+Completed a focused second implementation pass to close the remaining queue gaps left after the initial A-H sweep. This pass delivered grouped multi-order bulk lifecycle operations with mixed-status safety reporting, expanded grouped traceability in orders APIs/UI, and added targeted regression suites for checkout error mapping, settings reload parity, operations order flows, wallet role parity, and order email metadata completeness.
+
+**Completed:**
+
+- Added grouped bulk API `POST /api/orders/group/[groupId]/bulk` for `CANCEL` and `REFUND_REQUEST` with per-order eligibility checks and partial success reporting.
+- Extended grouped retrieval contracts (`GET /api/orders?groupId=...` and order-detail `orderGroupId` derivation) and wired grouped actions into order detail UI.
+- Extracted checkout error mapping helper (`app/checkout/error-mapping.ts`) to satisfy Next page export constraints and added focused mapping tests.
+- Added settings persistence parity tests for admin commission, vendor store settings, and user notification preferences APIs.
+- Added operations/orders table-flow and eligibility-gated action visibility tests.
+- Improved wallet page parity (current/available/pending balance display + explicit role restriction messaging) with focused tests.
+- Enriched order email templates with grouped/buyer/vendor/payment metadata rows and added template completeness tests.
+- Completed focused validation gate: 10 targeted test files passed (21 tests), TypeScript pass, focused ESLint pass.
+
+**Key Changes:**
+
+- Grouped checkout lifecycle now includes actionable bulk operations with explicit mixed-status safety reporting semantics.
+- Persistence surfaces (admin/vendor/user-manageable settings) gained reload-parity regression coverage to prevent silent configuration drift.
+- Wallet and email UX contracts now provide clearer role/financial metadata while staying test-protected.
+
+**Next Sprint Focus:**
+Run broader high-risk regression matrix across checkout/orders/wallet notifications and decide whether to finalize Track D with optional deterministic post-action wallet refresh hardening.
+
+## 2026-04-14 — Tracks A-H Efficient Pass (Core UX + Persistence + Orders Workflow Hardening)
+
+**Summary:**
+Executed a broad implementation pass across the active commerce UX hardening queue, delivering all planned Track A and H work, major Track B/C/E foundations, and partial Track F grouped-order traceability. This pass tightened banner/operator UX contracts, made commission settings persistence real (instead of UI-only), introduced a data-table operations orders workflow with reasoned status transitions, and improved checkout/payment failure feedback mapping.
+
+**Completed:**
+
+- Implemented explicit sidebar banner rail behavior (mobile horizontal rail, desktop bounded vertical scroll) and larger hero-modal image preview contract.
+- Added inline existing-image preview in operations banner form.
+- Added checkout error-code mapping and expanded payment verification result contract to include reference `NOT_FOUND` handling.
+- Added orders API error-code responses and grouped summary exposure (`orderGroupId` derivation + aggregate map) on list responses.
+- Wired operations settings commission defaults to `/api/admin/commission` load/save and coordinated with lifecycle settings save.
+- Refactored `/operations/orders` into sortable/filterable table with status-update modal and reason notes.
+- Persisted status-transition notes in order history and surfaced buyer cancel eligibility/action with optional reason in order detail flow.
+- Scoped desktop header categories to home/products and strengthened WhatsApp guard payment guidance.
+- Added/updated focused tests for banner contracts, header route scoping, guard-copy regression, and status-note persistence.
+- Passed focused validation gate (Vitest touched suites, TypeScript typecheck, focused ESLint).
+
+**Key Changes:**
+
+- Admin settings controls now align with persistence reality for commission defaults.
+- Orders operations now provide structured table workflow and auditable reasoned transitions.
+- Grouped checkout traceability is now exposed in orders list payloads for downstream grouped UX workflows.
+
+**Next Sprint Focus:**
+Finish remaining queue gaps: grouped bulk operations and grouped-history UX (Track F), checkout/provider-not-found and table-flow tests (Tracks B/E), settings reload-parity tests (Track C), and email template completeness coverage (Track G).
+
+## 2026-04-14 — Notification Tightening Pass (Toast + Badge + Push Orchestration)
+
+**Summary:**
+Implemented the requested notification tightening slice to make in-app alerts feel immediate and trustworthy: unread badge visibility is now present across header/mobile/sidebar nav surfaces, and newly detected unread items now raise proactive toast signals while users are active. Push notification preference saves are now coupled to real browser subscription enable/disable orchestration instead of backend-only persistence.
+
+**Completed:**
+
+- Added fresh-unread detection and in-app toast signaling in notification polling context.
+- Added browser+backend push unsubscribe flow and exposed context-level push disable API.
+- Reordered app providers so notification context can safely consume toast context.
+- Wired notification preferences save path to push subscribe/unsubscribe orchestration with permission-denied warnings.
+- Added unread badge indicators to desktop/mobile header and vendor/admin sidebar navigation surfaces.
+- Added focused tests for header notification visibility, sidebar unread badges, and preference push-toggle orchestration.
+- Passed focused validation gates (Vitest touched suites, TypeScript typecheck, and focused ESLint).
+
+**Key Changes:**
+
+- Notification UX now combines persistence with active-session signaling (toast + badge) for better user awareness.
+- Push toggle behavior now aligns saved intent with actual device subscription state, reducing preference drift.
+
+**Next Sprint Focus:**
+Complete Track G email template completeness audit and continue Track H route-scoped header/guard-copy refinements.
+
+## 2026-04-14 — Planning Package: Commerce UX Hardening + Payment Integrity + Orders Grouping + Settings Persistence
+
+**Summary:**
+Executed a planning-only feature command to translate a broad live-validation issue list into an implementation-ready engineering queue. The plan consolidates payment integrity fixes, settings persistence parity, wallet/order lifecycle UX gaps, grouped multi-vendor order traceability, and banner/navigation/operator experience refinements.
+
+**Completed:**
+
+- Added a new feature planning queue section with concrete work tracks, dependencies, and closure gates.
+- Added a matching feature specification to project-plan with architecture impact and acceptance criteria.
+- Prioritized rollout order to start with payment verification hard-stop and settings persistence correctness.
+
+**Key Changes:**
+
+- Planning artifacts now explicitly capture all reported production-like runtime gaps in one coordinated roadmap.
+- The queue now defines staged validation/evidence requirements before closure.
+
+**Next Sprint Focus:**
+Implement Track B (payment integrity + feedback mapping) and Track C (settings persistence orchestration) first, then continue with orders/wallet/grouped-lifecycle tracks.
+
 ## 2026-04-14 — Banner Ratio Rebalance Implementation (Top/Hero/Sidebar + Preview Parity)
 
 **Summary:**

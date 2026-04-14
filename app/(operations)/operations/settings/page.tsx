@@ -86,17 +86,16 @@ const initialCategoryRates: CategoryRate[] = VENDOR_CATEGORIES.map((vc) => ({
 }));
 
 export default function OperationsSettingsPage() {
-  const [tiers, setTiers] = useState<CommissionTier[]>(initialTiers);
+  const tiers: CommissionTier[] = initialTiers;
   const [categoryRates, setCategoryRates] = useState<CategoryRate[]>(initialCategoryRates);
   const [paymentsEnabled, setPaymentsEnabled] = useState<boolean>(
     PLATFORM_DEFAULTS.PAYMENTS_ENABLED
   );
-  const [minOrderAmount, setMinOrderAmount] = useState<number>(PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT);
-  const [maxBookingDays, setMaxBookingDays] = useState<number>(
-    PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
-  );
+  const minOrderAmount = PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT;
+  const maxBookingDays = PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS;
   const [paymentConfig, setPaymentConfig] = useState<AdminPaymentConfig | null>(null);
   const [paymentConfigLoading, setPaymentConfigLoading] = useState<boolean>(true);
+  const [commissionConfigLoading, setCommissionConfigLoading] = useState<boolean>(true);
   const [commerceLifecycleConfig, setCommerceLifecycleConfig] = useState<CommerceLifecycleConfig>({
     autoConfirmEnabled: true,
     autoConfirmHours: 48,
@@ -187,12 +186,6 @@ export default function OperationsSettingsPage() {
     };
   }, []);
 
-  const handleTierRateChange = (tierId: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
-    setTiers((prev) => prev.map((t) => (t.id === tierId ? { ...t, rate: numValue } : t)));
-  };
-
   const handleCategoryRateChange = (category: string, value: string) => {
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
@@ -201,10 +194,78 @@ export default function OperationsSettingsPage() {
     );
   };
 
+  useEffect(() => {
+    let active = true;
+
+    const loadCommissionConfig = async () => {
+      setCommissionConfigLoading(true);
+      try {
+        const res = await fetch("/api/admin/commission", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success || !Array.isArray(data?.commissionConfigs)) {
+          throw new Error(data?.error || "Unable to load commission defaults");
+        }
+
+        if (active) {
+          const categoryLabelByValue = new Map<string, string>(
+            VENDOR_CATEGORIES.map((entry) => [entry.value, entry.label])
+          );
+          setCategoryRates(
+            data.commissionConfigs
+              .filter(
+                (entry: unknown): entry is { category: string; rate: number } =>
+                  Boolean(entry) &&
+                  typeof (entry as { category?: unknown }).category === "string" &&
+                  typeof (entry as { rate?: unknown }).rate === "number"
+              )
+              .map((entry: { category: string; rate: number }) => ({
+                category: entry.category,
+                label: categoryLabelByValue.get(entry.category) ?? entry.category,
+                rate: Math.round(entry.rate * 1000) / 10,
+              }))
+          );
+        }
+      } catch (error) {
+        if (active) {
+          message.error(error instanceof Error ? error.message : "Unable to load commission defaults");
+        }
+      } finally {
+        if (active) {
+          setCommissionConfigLoading(false);
+        }
+      }
+    };
+
+    void loadCommissionConfig();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
+    let commissionSaved = false;
+    let lifecycleSaved = false;
+
     try {
-      const res = await fetch("/api/admin/commerce-config", {
+      const commissionRes = await fetch("/api/admin/commission", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rates: categoryRates.map((entry) => ({
+            category: entry.category,
+            rate: entry.rate / 100,
+          })),
+        }),
+      });
+
+      const commissionData = await commissionRes.json().catch(() => ({}));
+      if (!commissionRes.ok || !commissionData?.success) {
+        throw new Error(commissionData?.error || "Unable to save commission defaults");
+      }
+      commissionSaved = true;
+
+      const commerceRes = await fetch("/api/admin/commerce-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -214,24 +275,31 @@ export default function OperationsSettingsPage() {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.success || !data?.config) {
-        throw new Error(data?.error || "Unable to save commerce lifecycle settings");
+      const commerceData = await commerceRes.json().catch(() => ({}));
+      if (!commerceRes.ok || !commerceData?.success || !commerceData?.config) {
+        throw new Error(commerceData?.error || "Unable to save commerce lifecycle settings");
       }
+      lifecycleSaved = true;
 
       setCommerceLifecycleConfig({
-        autoConfirmEnabled: Boolean(data.config.autoConfirmEnabled),
-        autoConfirmHours: Number(data.config.autoConfirmHours) || 48,
-        refundWindowHours: Number(data.config.refundWindowHours) || 72,
+        autoConfirmEnabled: Boolean(commerceData.config.autoConfirmEnabled),
+        autoConfirmHours: Number(commerceData.config.autoConfirmHours) || 48,
+        refundWindowHours: Number(commerceData.config.refundWindowHours) || 72,
       });
 
-      message.success("Platform settings saved successfully");
+      message.success("Commission and lifecycle settings saved successfully");
     } catch (error) {
-      message.error(
-        error instanceof Error
-          ? error.message
-          : "Unable to save commerce lifecycle settings"
-      );
+      if (commissionSaved || lifecycleSaved) {
+        message.warning(
+          error instanceof Error
+            ? `Partially saved settings. ${error.message}`
+            : "Partially saved settings."
+        );
+      } else {
+        message.error(
+          error instanceof Error ? error.message : "Unable to save platform settings"
+        );
+      }
     } finally {
       setIsSaving(false);
     }
@@ -286,7 +354,7 @@ export default function OperationsSettingsPage() {
                           max={100}
                           step={0.5}
                           value={tier.rate}
-                          onChange={(e) => handleTierRateChange(tier.id, e.target.value)}
+                          disabled
                           className="!w-24"
                           suffix="%"
                         />
@@ -305,6 +373,9 @@ export default function OperationsSettingsPage() {
               label: "Category Defaults",
               children: (
                 <div className="space-y-3">
+                  {commissionConfigLoading ? (
+                    <p className="text-xs text-ds-text-secondary">Loading category commission defaults...</p>
+                  ) : null}
                   <p className="text-xs text-ds-text-secondary">
                     Default commission rate applied to new vendors in each category. Individual
                     vendor rates can still be overridden.
@@ -386,7 +457,7 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Minimum Order Amount</div>
               <div className="text-xs text-ds-text-secondary">
-                Minimum cart value required to place an order
+                Minimum cart value required to place an order (runtime default, read-only)
               </div>
             </div>
             <Input
@@ -394,10 +465,7 @@ export default function OperationsSettingsPage() {
               min={0}
               step={100}
               value={minOrderAmount}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 0) setMinOrderAmount(val);
-              }}
+              disabled
               prefix="₦"
               className="!w-36"
             />
@@ -600,7 +668,7 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Maximum Booking Advance (Days)</div>
               <div className="text-xs text-ds-text-secondary">
-                How far in advance buyers can book service appointments
+                How far in advance buyers can book service appointments (runtime default, read-only)
               </div>
             </div>
             <Input
@@ -608,10 +676,7 @@ export default function OperationsSettingsPage() {
               min={7}
               max={365}
               value={maxBookingDays}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 7 && val <= 365) setMaxBookingDays(val);
-              }}
+              disabled
               suffix="days"
               className="!w-32"
             />

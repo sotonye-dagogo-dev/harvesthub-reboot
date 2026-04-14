@@ -27,6 +27,124 @@
 
 ## Decisions
 
+## Wallet Balance Reconciliation Uses Explicit Sync Events + Forced Refresh
+
+**Decision:** Use an explicit client-side wallet sync event contract (`myharvesthub:wallet-sync`) plus forced wallet refresh on mount/event receipt to keep wallet cards deterministic after deposit/withdraw and order lifecycle mutations.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Wallet state can be affected by mutations initiated in different feature surfaces (wallet page, order detail lifecycle actions). Cache-only refresh intervals can temporarily display stale balances immediately after successful mutations.
+
+**Alternatives Considered:**
+
+- Depend only on periodic polling/stale-time windows (rejected: non-deterministic post-action UX).
+- Disable caching entirely for wallet resource (rejected: unnecessary performance regression).
+
+**Implications:**
+
+- `app/wallet/page.tsx` now forces `refresh(true)` on mount and on wallet sync events.
+- Order detail and wallet mutation flows emit wallet sync events after successful mutations.
+- Regression tests now assert wallet refresh behavior on sync events.
+
+## Runtime Defaults in Operations Settings Are Read-Only Without Persistence Contracts
+
+**Decision:** Any operations settings control without a persisted API contract must be presented as read-only runtime metadata rather than editable UI (applied to minimum order amount and maximum booking advance controls).
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Editable controls that do not persist create false-success semantics and policy drift. Read-only labeling makes ownership explicit while preserving operator visibility into runtime defaults.
+
+**Alternatives Considered:**
+
+- Keep controls editable and defer persistence wiring (rejected: reintroduces UI-only no-op behavior).
+- Remove controls entirely from settings page (rejected: loses useful operational context).
+
+**Implications:**
+
+- Settings persistence audit map now separates persisted editable controls from runtime-read-only controls.
+- Future settings additions must either include persistence endpoints/models or be explicitly read-only.
+
+## Grouped Bulk Order Actions Must Return Partial-Applicability Reports
+
+**Decision:** Implement grouped lifecycle actions (`CANCEL`, `REFUND_REQUEST`) as per-order eligibility evaluation with partial-application results (`applied`, `skipped`, reasons) instead of fail-all behavior when any order in group is ineligible.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Grouped checkouts commonly contain mixed lifecycle states. Fail-all semantics would block valid actions for eligible sibling orders and create confusing UX. Partial reports keep behavior safe, auditable, and user-informative.
+
+**Alternatives Considered:**
+
+- Fail entire grouped action if any order is ineligible (rejected: creates avoidable friction and poor operator recovery flow).
+- Apply silently to eligible orders without skipped details (rejected: weak transparency and support/debuggability).
+
+**Implications:**
+
+- Grouped bulk API responses now carry explicit `applied`/`skipped` arrays and count summaries.
+- UI should always surface mixed-status outcomes instead of assuming all-or-nothing success.
+- Future grouped actions should follow the same partial-applicability contract.
+
+## App Router Page Modules Must Not Export Helper Utilities
+
+**Decision:** Keep reusable helper functions out of `app/**/page.tsx` modules and place them in sibling utility modules (for example `app/checkout/error-mapping.ts`).
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Next.js App Router page modules have strict export contracts; extra named exports can break type/build checks. Extracting helpers avoids framework contract violations while preserving testability.
+
+**Alternatives Considered:**
+
+- Continue exporting helper directly from page module (rejected: violates App Router export contract and fails typecheck).
+- Inline helper logic inside component only (rejected: harder to test and reuse).
+
+**Implications:**
+
+- Shared checkout error mapping now lives in dedicated module and is unit-tested independently.
+- Future reusable logic in route/page files should be extracted early to avoid export-surface regressions.
+
+## Operations Settings Saves Must Be Section-Coordinated and Persist-Backed
+
+**Decision:** Treat operations settings save as a coordinated multi-endpoint persistence flow (commission defaults + commerce lifecycle), with explicit partial-save visibility, rather than allowing UI controls that do not persist.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Commission controls existed in settings UX but were not persisted, creating silent no-op behavior. Coordinated save orchestration prevents false-success UX and keeps admin policy controls trustworthy.
+
+**Alternatives Considered:**
+
+- Keep current UI and persist only lifecycle settings (rejected: leaves commission section misleading).
+- Split save buttons by panel with no unified feedback (rejected: increases operator confusion and weakens overall save contract).
+
+**Implications:**
+
+- Settings page now loads/saves category commission defaults through `/api/admin/commission`.
+- Save action coordinates commission + commerce lifecycle persistence and reports partial failures clearly.
+- Future settings controls should not be rendered editable unless backed by persistence contract.
+
+## Notification Preferences Must Orchestrate Browser Push State
+
+**Decision:** Treat notification preference changes as both persistence and device orchestration events: enabling push must request/sync browser subscription, disabling push must unsubscribe locally and clean backend subscription state, and new unread inbox events must surface proactive in-app toast signals plus nav badge counts.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Preference-only saves created drift between stored settings and actual browser/device push state, and inbox-only updates reduced user-perceived notification visibility. Tight orchestration aligns persisted intent with real delivery capability and improves discoverability through immediate UX cues.
+
+**Alternatives Considered:**
+
+- Keep push toggle as backend-only preference bit and rely on background sync (rejected: drift persists and user receives misleading success state).
+- Show unread state only on inbox page/sidebar (rejected: low discoverability for active sessions).
+
+**Implications:**
+
+- `NotificationContext` now emits toast notifications for newly detected unread events after hydration.
+- Navigation surfaces (`Header`, dashboard `Sidebar`) now display unread badges for notifications.
+- `NotificationPreferences` save flow now calls push subscribe/unsubscribe orchestration and communicates permission/setup failures clearly.
+
 ## Banner Placement Ratios Are Runtime-Preview Contracts
 
 **Decision:** Lock banner placement sizing as a shared visual contract: compact `TOP` strip (about half prior height), reduced `HERO` viewport (~1/6 shorter), and dense square `SIDEBAR` tiles with preview parity across operations/advertise surfaces.

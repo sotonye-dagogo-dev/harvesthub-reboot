@@ -253,7 +253,8 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. Client submits payment metadata to downstream mutation endpoint (`/api/orders` or `/api/wallet/deposit`).
 3. Mutation endpoint verifies payment server-side via `lib/services/payments.ts` before any persistence action.
 4. On success, endpoint persists business record and verification audit metadata.
-5. On failure/unverified status, endpoint rejects mutation with a payment error response.
+5. On failure/unverified status, endpoint rejects mutation with payment-specific error codes (for example `PAYMENT_VERIFICATION_FAILED`) and verification payload context.
+6. Checkout client maps known API error codes (`INSUFFICIENT_WALLET_BALANCE`, `WALLET_NOT_AVAILABLE`, `PAYMENT_VERIFICATION_FAILED`) through shared mapper helper (`app/checkout/error-mapping.ts`) into explicit user-facing feedback.
 ```
 
 ### Order Status Lifecycle + Delivered Payout Automation Flow
@@ -262,7 +263,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 1. Vendor/admin submits status update to `PATCH /api/orders/[id]/status`.
 2. API validates requested status against canonical enum-safe lifecycle transitions.
 3. Same-status requests return idempotent success and skip side effects.
-4. Valid transitions update `order.status` + status history atomically.
+4. Valid transitions update `order.status` + status history atomically, including optional operator-provided transition notes.
 5. If transitioning to `DELIVERED` and payment is already `PAID`, API creates payout hold (`PAYOUT`, `PENDING`) with deterministic reference.
 6. Vendor wallet is not credited at delivery transition; settlement remains held until confirmation release.
 7. Replayed requests remain safe because deterministic payout reference + existing transaction check prevents duplicate holds/credits.
@@ -297,7 +298,29 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. Admin updates auto-confirm enablement + SLA hours + refund request window via `PUT /api/admin/commerce-config`.
 4. `POST /api/orders/auto-confirm` reads persisted config to determine enablement and window.
 5. `POST /api/orders/[id]/refund/request` enforces admin-configured refund window against delivered timestamp.
+
+### Admin Commission + Lifecycle Coordinated Settings Save Flow
+
 ```
+1. Operations settings page loads commission defaults from `GET /api/admin/commission` and lifecycle controls from `GET /api/admin/commerce-config`.
+2. Save action submits category commission rates to `PUT /api/admin/commission` (decimal rate contract) and lifecycle policy to `PUT /api/admin/commerce-config`.
+3. Client surfaces partial-save visibility if one section persists and another fails.
+4. Category commission defaults now persist via dedicated admin API instead of UI-only no-op behavior.
+```
+
+### Operations Settings Control Persistence Map
+
+| Settings Control | Source of Truth | Endpoint/Contract | Persistence Model |
+| --- | --- | --- | --- |
+| Category commission defaults | Admin managed | `GET/PUT /api/admin/commission` | `CommissionConfig` |
+| Auto-confirm enabled + hours | Admin managed | `GET/PUT /api/admin/commerce-config` | `CommerceLifecycleConfig` |
+| Refund request window | Admin managed | `GET/PUT /api/admin/commerce-config` | `CommerceLifecycleConfig` |
+| Payment processing enabled indicator | Runtime derived (read-only) | `GET /api/admin/payments/config` | Environment key readiness (`PAYSTACK_MODE` + key set) |
+| Minimum order amount display | Runtime default (read-only) | Client constant (`PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT`) | Build/runtime config constant |
+| Maximum booking advance display | Runtime default (read-only) | Client constant (`PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS`) | Build/runtime config constant |
+
+Notes:
+Editable controls are limited to values with persisted API contracts. Runtime-default controls remain explicitly read-only to prevent editable-no-persistence drift.
 
 ### Multi-Vendor Checkout Split Order Flow
 
@@ -307,6 +330,36 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. API creates one order per vendor within a single DB transaction and links them via checkout-group metadata.
 4. Wallet method debits buyer wallet once for the grouped checkout amount while recording per-order payment transactions with deterministic balance progression.
 5. Stock/vendor metrics update per split order, and notifications fan out to each vendor plus buyer checkout summary.
+6. `GET /api/orders` derives `orderGroupId` from order history metadata and returns grouped summary aggregates for grouped-order traceability.
+```
+
+### Grouped Order Bulk Lifecycle Flow
+
+```
+1. Buyer/admin opens an order detail page and, when grouped context exists, client fetches sibling orders by `groupId`.
+2. Client submits grouped action requests to `POST /api/orders/group/[groupId]/bulk` with action type (`CANCEL` or `REFUND_REQUEST`).
+3. API resolves all group orders visible to requester role scope and evaluates per-order eligibility.
+4. Eligible orders are mutated (cancel or refund-request transition), while ineligible items are skipped with structured reasons.
+5. API returns partial-applicability report (`applied`, `skipped`, counts) so UI can render mixed-status outcomes safely.
+6. Grouped listing endpoints (`GET /api/orders?groupId=...` and `GET /api/orders/[id]`) expose `orderGroupId`/group metadata for traceability and navigation.
+```
+
+### Wallet Role Parity + Derived Balance Presentation Flow
+
+```
+1. Wallet page requests wallet summary and renders derived balances (`current`, `available`, `pending`) from API response.
+2. Role guard logic determines action affordances for deposit/withdraw controls.
+3. Restricted roles see explicit disabled-state explanation text instead of hidden controls.
+4. Focused tests verify role parity behavior and balance invariants to prevent regressions.
+```
+
+### Wallet Deterministic Reconciliation Flow
+
+```
+1. Wallet page triggers `refresh(true)` on mount to avoid stale-cache drift after recent order/refund mutations.
+2. Wallet mutations emit wallet sync events (`wallet-deposit`, `wallet-withdraw`) after successful server commits.
+3. Order detail lifecycle mutations emit wallet sync events for potentially balance-impacting actions (cancel, refund request/review, grouped action, confirm delivery).
+4. Wallet page subscribes to sync events and forces `refresh(true)` so card balances/transactions reconcile deterministically.
 ```
 
 ### Refund Request/Review/Reconciliation Flow
@@ -357,8 +410,10 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 1. `/notifications` renders full inbox timeline (`NotificationInbox`) with shared context actions (read, read-all, delete, refresh, CTA navigation).
 2. `/notifications/settings` renders preference controls only (`NotificationPreferences`) with explicit editable vs enforced sections.
-3. Sidebar/nav include both inbox and settings links for vendor/admin discoverability; buyer flows discover settings through inbox and bell-entry links.
+3. Sidebar/nav include both inbox and settings links for vendor/admin discoverability; header and hamburger nav now include inbox discoverability with unread badge counts.
 4. Notification context is source-of-truth for bell/drawer/inbox synchronization and now refreshes on a calmer 5-minute cadence plus manual refresh.
+5. On post-hydration polling, newly detected unread notifications emit in-app toast signals for proactive awareness.
+6. Push preference saves orchestrate browser subscription enable/disable (not just API persistence), including permission-denied graceful messaging.
 
 ```
 
@@ -474,6 +529,10 @@ Migration direction:
 | 2026-04-14 | Implemented Phase B lifecycle APIs for settlement release, refund review, and withdrawal processing | Move from delivery-trigger immediate credit to confirmation-gated settlement release with explicit reconciliation paths |
 | 2026-04-14 | Added admin lifecycle config + multi-vendor split checkout safety | Make SLA/refund timing operationally configurable and ensure grouped checkout funds/order integrity across vendors |
 | 2026-04-14 | Rebalanced top/hero/sidebar banner runtime and preview ratios | Reduce banner vertical dominance, keep top-strip clipping near zero, and increase sidebar tile density with square-card parity |
+| 2026-04-14 | Tightened notification signal UX and push preference orchestration | Align saved push intent with real browser subscription state and improve in-session notification discoverability via unread badges + toasts |
+| 2026-04-14 | Implemented Tracks A-H core UX/flow hardening slice | Added sidebar-ad rail contracts, settings commission persistence, operations orders data-table with status notes, grouped summary exposure, and route-scoped navigation guard copy improvements |
+| 2026-04-14 | Added grouped bulk order actions + settings parity test contracts + wallet/email completeness pass | Completed grouped cancel/refund-request API+UI safety reporting, persistence parity regressions for settings APIs, role-aware wallet action messaging, and richer order-email metadata contracts |
+| 2026-04-14 | Closed remaining queue with wallet sync reconciliation + settings control audit map + payment smoke evidence | Ensured deterministic wallet refresh after lifecycle mutations, documented settings control persistence ownership, and validated wallet/payments grouped flows with focused smoke suites |
 
 ### Email Change + Reverification Flow
 

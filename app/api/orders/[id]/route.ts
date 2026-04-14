@@ -8,6 +8,8 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { Prisma } from '@/prisma/generated/client';
+import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
@@ -48,7 +50,15 @@ export async function GET(req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        return NextResponse.json({ success: true, order });
+        const orderGroupId = parseOrderGroupIdFromHistory(order.statusHistory as Prisma.JsonValue);
+
+        return NextResponse.json({
+            success: true,
+            order: {
+                ...order,
+                orderGroupId,
+            },
+        });
     } catch (error) {
         console.error('GET /api/orders/[id] error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

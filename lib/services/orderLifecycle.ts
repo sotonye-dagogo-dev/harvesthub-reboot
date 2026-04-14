@@ -52,6 +52,17 @@ export function parseStatusHistory(input: Prisma.JsonValue | null): StatusHistor
     return [];
 }
 
+export function parseOrderGroupIdFromHistory(input: Prisma.JsonValue | null): string | null {
+    const history = parseStatusHistory(input);
+    for (const entry of history) {
+        const value = entry.orderGroupId;
+        if (typeof value === 'string' && value.trim().length > 0) {
+            return value.trim();
+        }
+    }
+    return null;
+}
+
 export function appendStatusHistoryEntry(
     history: StatusHistoryEntry[],
     status: string,

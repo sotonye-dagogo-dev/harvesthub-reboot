@@ -99,7 +99,10 @@ export default function WhatsAppContactGuardPage() {
 
         <ul className="mb-5 list-disc space-y-2 pl-5 text-sm text-ds-text-secondary">
           <li>Never share your password, OTP, or card PIN in chat.</li>
-          <li>Confirm order details and totals inside MyHarvestHub before payment.</li>
+          <li>
+            Confirm order details and totals in MyHarvestHub, and complete payment only inside the
+            platform checkout flow.
+          </li>
           <li>Report suspicious behavior through the in-app bug/support channels.</li>
         </ul>
 

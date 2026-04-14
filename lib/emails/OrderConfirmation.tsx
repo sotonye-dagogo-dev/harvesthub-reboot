@@ -10,7 +10,9 @@ interface OrderItemData {
 
 interface OrderConfirmationProps {
   firstName: string;
+  buyerEmail?: string;
   orderNumber: string;
+  orderGroupId?: string;
   items: OrderItemData[];
   subtotal: number;
   deliveryFee: number;
@@ -27,7 +29,9 @@ function formatNgn(amount: number): string {
 
 export function OrderConfirmation({
   firstName,
+  buyerEmail,
   orderNumber,
+  orderGroupId,
   items,
   subtotal,
   deliveryFee,
@@ -56,6 +60,22 @@ export function OrderConfirmation({
           <tr style={styles.tableRow}>
             <td style={styles.tableCellLabel}>Order Number</td>
             <td style={styles.tableCellValue}>{orderNumber}</td>
+          </tr>
+          {orderGroupId ? (
+            <tr style={styles.tableRow}>
+              <td style={styles.tableCellLabel}>Grouped Checkout</td>
+              <td style={styles.tableCellValue}>{orderGroupId}</td>
+            </tr>
+          ) : null}
+          {buyerEmail ? (
+            <tr style={styles.tableRow}>
+              <td style={styles.tableCellLabel}>Buyer Email</td>
+              <td style={styles.tableCellValue}>{buyerEmail}</td>
+            </tr>
+          ) : null}
+          <tr style={styles.tableRow}>
+            <td style={styles.tableCellLabel}>Vendor</td>
+            <td style={styles.tableCellValue}>{vendorName}</td>
           </tr>
           <tr style={styles.tableRow}>
             <td style={styles.tableCellLabel}>

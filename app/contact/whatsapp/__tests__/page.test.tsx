@@ -36,6 +36,7 @@ describe("WhatsAppContactGuardPage", () => {
 
     expect(screen.getByText("Before you continue to WhatsApp")).toBeInTheDocument();
     expect(screen.getByText(/leave MyHarvestHub/i)).toBeInTheDocument();
+    expect(screen.getByText(/complete payment only inside the platform checkout flow/i)).toBeInTheDocument();
 
     const continueButton = screen.getByRole("button", { name: /continue to whatsapp/i });
     fireEvent.click(continueButton);

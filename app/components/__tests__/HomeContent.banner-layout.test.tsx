@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { HomeContent } from "@/app/components/HomeContent";
 
 vi.mock("@/components/features", () => ({
@@ -75,7 +75,7 @@ function buildBanner(id: string, position: "HERO" | "SIDEBAR") {
 }
 
 describe("HomeContent banner layout contract", () => {
-  it("uses compact square sidebar tiles and denser grid when hero banners are present", () => {
+  it("uses mobile horizontal rail and desktop bounded sidebar grid when hero banners are present", () => {
     const banners = [
       buildBanner("hero-1", "HERO"),
       buildBanner("side-1", "SIDEBAR"),
@@ -87,12 +87,24 @@ describe("HomeContent banner layout contract", () => {
 
     render(<HomeContent banners={banners} products={[]} vendors={[]} />);
 
-    const grid = screen.getByTestId("sidebar-banner-grid");
-    expect(grid.className).toContain("lg:grid-cols-2");
+    const mobileRail = screen.getByTestId("sidebar-banner-rail-mobile");
+    expect(mobileRail.className).toContain("overflow-x-auto");
 
-    const tiles = screen.getAllByTestId("sidebar-banner-tile");
-    expect(tiles.length).toBe(5);
-    tiles.forEach((tile) => {
+    const grid = screen.getByTestId("sidebar-banner-grid");
+    expect(grid.className).toContain("max-h-[26rem]");
+    expect(grid.className).toContain("overflow-y-auto");
+    expect(grid.className).toContain("grid-cols-2");
+
+    const mobileTiles = within(mobileRail).getAllByTestId("sidebar-banner-tile");
+    expect(mobileTiles.length).toBe(5);
+
+    const desktopTiles = within(grid).getAllByTestId("sidebar-banner-tile");
+    expect(desktopTiles.length).toBe(5);
+
+    mobileTiles.forEach((tile) => {
+      expect(tile.innerHTML).toContain("aspect-square");
+    });
+    desktopTiles.forEach((tile) => {
       expect(tile.innerHTML).toContain("aspect-square");
     });
   });

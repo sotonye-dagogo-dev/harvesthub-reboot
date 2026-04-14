@@ -36,10 +36,10 @@ vi.mock("@/lib/db/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-function buildRequest(status: string) {
+function buildRequest(status: string, note?: string) {
   return new NextRequest("http://localhost/api/orders/order-1/status", {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, note }),
     headers: { "Content-Type": "application/json" },
   });
 }
@@ -184,5 +184,51 @@ describe("PATCH /api/orders/[id]/status", () => {
     expect(res.status).toBe(200);
     expect(json.idempotent).toBe(true);
     expect(json.payout.created).toBe(false);
+  });
+
+  it("persists provided transition note into status history entries", async () => {
+    mockPrisma.order.findUnique.mockResolvedValueOnce({
+      id: "order-1",
+      vendorId: "vendor-1",
+      status: OrderStatus.CONFIRMED,
+    });
+    mockPrisma.vendor.findUnique.mockResolvedValueOnce({ id: "vendor-1" });
+
+    const txOrderUpdate = vi.fn().mockResolvedValue({
+      id: "order-1",
+      status: OrderStatus.PROCESSING,
+    });
+
+    mockPrisma.$transaction.mockImplementationOnce(async (callback: (tx: any) => unknown) => {
+      return callback({
+        order: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: "order-1",
+            orderNumber: "MHH-001",
+            vendorId: "vendor-1",
+            buyerId: "buyer-1",
+            status: OrderStatus.CONFIRMED,
+            statusHistory: [],
+            paymentStatus: PaymentStatus.PAID,
+            total: 15000,
+            completedAt: null,
+          }),
+          update: txOrderUpdate,
+        },
+      });
+    });
+
+    const res = await PATCH(buildRequest("PROCESSING", "Vendor started preparing this order."), {
+      params: Promise.resolve({ id: "order-1" }),
+    });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    const statusHistory = txOrderUpdate.mock.calls[0]?.[0]?.data?.statusHistory as Array<{
+      note?: string;
+    }>;
+    expect(Array.isArray(statusHistory)).toBe(true);
+    expect(statusHistory[0]?.note).toContain("Vendor started preparing this order");
   });
 });

@@ -353,6 +353,72 @@ Ensure category tags and all discovery controls (search/filter/sort) consistentl
 
 ---
 
+## Feature Spec - Commerce UX Hardening + Payment Integrity + Orders Grouping + Settings Persistence (Planned 2026-04-14)
+
+> **Section summary:** Planning package to close high-priority user-reported runtime gaps spanning checkout/payment correctness, wallet/settings reliability, order lifecycle operations, navigation discoverability, and banner/operator UX polish.
+
+**Feature Objective:**
+Stabilize end-user and operations confidence by enforcing payment-verification hard stops, complete settings persistence wiring, richer lifecycle feedback/toasts, grouped multi-vendor order traceability, and improved ad/banner/operator usability.
+
+**Why This Is Needed:**
+
+- Live validation reported critical payment integrity risk: provider reference not found while order still placed.
+- Settings UI currently exposes controls whose persistence behavior is partial or inconsistent (notably commission settings).
+- Order and wallet experiences contain visibility/actionability gaps (cancel/refund affordances, balance/action parity, grouped-order reference).
+- Notification discoverability, guard copy, and header category scope need route-aware UX tightening.
+
+**Implementation Progress (2026-04-14):**
+
+- Completed notification tightening slice: header/hamburger/dashboard nav now expose notifications with unread badges.
+- Added in-app new-notification toast signaling on fresh unread items detected during notification polling.
+- Wired notification push preference save flow to browser subscribe/unsubscribe orchestration (including graceful permission-denied messaging).
+- Completed Track A banner/operator UX slice: explicit sidebar rail behavior contracts, larger hero modal media preview, and inline existing-image preview in banner form.
+- Completed Track H navigation/guard-copy slice: desktop categories now route-scoped to home/products and WhatsApp guard copy now enforces in-platform payment guidance.
+- Delivered major Track C/E foundations: commission settings now persist via dedicated API and operations orders now use a sortable/filterable table with reasoned status updates.
+- Delivered partial Track F traceability: orders listing now returns derived `orderGroupId` and grouped summary aggregates.
+
+**Architecture Impact:**
+
+- Checkout/payment stack (`app/checkout/page.tsx`, `app/api/orders/route.ts`, `app/api/payments/*`, `lib/services/payments.ts`) for hard verification gating and error-to-feedback mapping.
+- Settings orchestration (`app/(operations)/operations/settings/page.tsx`, `app/api/admin/commission/route.ts`, `app/api/admin/commerce-config/route.ts`) for full persistence parity.
+- Orders lifecycle/operations (`app/(operations)/operations/orders/page.tsx`, `app/orders/[id]/page.tsx`, `app/api/orders/[id]/status/route.ts`, `app/api/orders/[id]/cancel/route.ts`) for reasoned status transitions and actionable buyer/admin surfaces.
+- Grouped multi-vendor lifecycle (`app/checkout/page.tsx`, `app/api/orders/route.ts`, order data model paths) for durable order-group identity and safe bulk operations.
+- Banner/nav UX (`app/components/HomeContent.tsx`, `components/features/BannerCarousel.tsx`, `app/(operations)/operations/banners/page.tsx`, `components/layout/Header.tsx`, WhatsApp guard flow) for scroll contracts, preview clarity, and route-scoped navigation.
+- Email/notification content (`lib/emails/*`, notification/nav surfaces) for styled completeness and discoverability.
+
+**Acceptance Criteria:**
+
+- Checkout cannot finalize orders when paystack verification fails or reference is not found.
+- Wallet-insufficient and other operational failures produce immediate user-facing feedback, not console-only errors.
+- Admin commission and lifecycle settings both persist and reload accurately from backend state.
+- Wallet page displays correct role-appropriate balance metrics and exposes intended deposit/withdraw actions with clear restrictions.
+- Operations orders use a data-table workflow with status-action notes/reasons and traceable audit history.
+- Buyer order detail clearly exposes cancel/refund actions only when eligible.
+- Multi-vendor checkout creates/returns durable order-group identifiers and supports grouped lifecycle operations with mixed-status safety.
+- Order/lifecycle emails use styled templates and include structured summaries and order metadata.
+- Header/hamburger exposes notifications entry and desktop categories strip appears only on home/products routes.
+- Notification push toggle changes trigger browser subscription sync (enable/disable) instead of preference-only persistence drift.
+- WhatsApp guard copy includes explicit instruction to complete payment through the platform.
+
+**Potential Risks / Edge Cases:**
+
+- Payment webhook/provider race conditions can conflict with synchronous verify calls without idempotent reference-state handling.
+- Group bulk operations require partial-success semantics when some suborders are ineligible.
+- Settings orchestration across multiple endpoints can create split-brain saves without coordinated transaction or section-level error reporting.
+- Expanded toast feedback may create noise without standardized severity/throttle policy.
+
+**Rollout Order:**
+
+1. Payment integrity hard-stop + checkout feedback correctness.
+2. Settings persistence parity and wallet balance/action correctness.
+3. Orders operations data-table + reasoned status transitions + buyer cancel/refund eligibility UX.
+4. Grouped multi-vendor lifecycle and bulk safety workflows.
+5. Banner/operator/nav/guard UX polish and notification discoverability.
+6. Email template completeness audit and lifecycle content upgrades.
+7. Validation matrix, evidence capture, and `.ai-system` synchronization.
+
+---
+
 ## Feature Spec - Unified In-Memory Data Runtime + Seamless Refresh (Planned 2026-04-08)
 
 > **Section summary:** Planning package for project-wide data loading/rendering reliability: preloaded role-accessible data, in-memory continuity, optimistic mutation sync, and low-interruption background refresh.

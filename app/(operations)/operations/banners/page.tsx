@@ -356,13 +356,33 @@ export default function OperationsBannersPage() {
             label="Image"
             rules={[{ required: true, message: "Please upload an image" }]}
           >
-            <ImageUpload
-              folderType="banner"
-              onUploaded={(res) => {
-                form.setFieldValue("imageUrl", res.url);
-                form.setFieldsValue({ imageUrl: res.url });
-              }}
-            />
+            <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+              <ImageUpload
+                folderType="banner"
+                onUploaded={(res) => {
+                  form.setFieldValue("imageUrl", res.url);
+                  form.setFieldsValue({ imageUrl: res.url });
+                }}
+              />
+              <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-2">
+                <p className="mb-2 text-xs font-medium text-ds-text-secondary">Current image preview</p>
+                {previewImageUrl ? (
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-ds-sm border border-ds-border-subtle bg-ds-surface-base">
+                    <Image
+                      src={previewImageUrl}
+                      alt="Selected banner preview"
+                      fill
+                      className="object-contain"
+                      sizes="220px"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex aspect-[4/3] items-center justify-center rounded-ds-sm border border-dashed border-ds-border-base text-xs text-ds-text-tertiary">
+                    No image selected yet
+                  </div>
+                )}
+              </div>
+            </div>
           </Form.Item>
 
           <Form.Item name="linkUrl" label="Link URL">
