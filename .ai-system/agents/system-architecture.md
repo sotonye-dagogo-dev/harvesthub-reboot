@@ -74,10 +74,12 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Home Banner Deck Composition Flow
 
 ```
-1. Home surface loads active banner payloads and separates them by placement (`HERO`, `SIDEBAR`).
-2. Hero placement renders as image-first carousel with `Know More` CTA for modal details.
-3. Sidebar placement renders as responsive ad rail cards alongside hero on desktop and adaptive grid on smaller screens.
-4. Banner links/actions remain config/data-driven with fallback to non-clickable cards when no destination is configured.
+1. Global layout renders `TOP` banners as a compact full-width strip (roughly half previous height) with `object-contain` image strategy to keep clipping near zero.
+2. Home surface loads active banner payloads and separates them by placement (`HERO`, `SIDEBAR`).
+3. Hero placement renders as image-first carousel with reduced viewport height contract (~1/6 shorter) and `Know More` CTA for modal details.
+4. Sidebar placement renders compact square banner tiles in a denser responsive grid so more ads remain visible at once.
+5. Banner links/actions remain config/data-driven with fallback to non-clickable cards when no destination is configured.
+6. Operations/advertise preview surfaces mirror runtime placement ratios to avoid preview-runtime drift.
 ```
 
 ### Header Category Accessibility Flow
@@ -471,6 +473,7 @@ Migration direction:
 | 2026-04-14 | Reconciled commerce assurance docs into Phase A delivered + Phase B continuation | Preserve merged deterministic lifecycle safeguards while restoring full original scope for settlement/refund/auto-confirm closure |
 | 2026-04-14 | Implemented Phase B lifecycle APIs for settlement release, refund review, and withdrawal processing | Move from delivery-trigger immediate credit to confirmation-gated settlement release with explicit reconciliation paths |
 | 2026-04-14 | Added admin lifecycle config + multi-vendor split checkout safety | Make SLA/refund timing operationally configurable and ensure grouped checkout funds/order integrity across vendors |
+| 2026-04-14 | Rebalanced top/hero/sidebar banner runtime and preview ratios | Reduce banner vertical dominance, keep top-strip clipping near zero, and increase sidebar tile density with square-card parity |
 
 ### Email Change + Reverification Flow
 

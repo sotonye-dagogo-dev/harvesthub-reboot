@@ -22,6 +22,28 @@
 [What comes next]
 ```
 
+## 2026-04-14 — Banner Ratio Rebalance Implementation (Top/Hero/Sidebar + Preview Parity)
+
+**Summary:**
+Implemented the planned banner ratio rebalance pass across runtime and admin/operator preview surfaces. The top strip is now significantly shorter, hero viewport heights are reduced by about one-sixth, and sidebar banners are now compact square tiles arranged in a denser responsive grid so more placements remain visible simultaneously.
+
+**Completed:**
+
+- Reduced `TopAdBanner` strip height contract to a compact profile while preserving full-width image-first rendering.
+- Reduced `BannerCarousel` viewport heights across breakpoints (`184/216/268/300/332`).
+- Updated home sidebar ad rail to compact square tiles, denser grid columns, and increased visible cards (up to 6).
+- Updated `BannerPlacementPreview` ratio contracts for `TOP`, `HERO`, and `SIDEBAR` to match runtime layout expectations.
+- Added focused contract tests for top-strip height, hero viewport class contract, sidebar compact square parity, and home sidebar density behavior.
+- Completed touched-scope validation gate (lint, typecheck, focused vitest, dead-link/sidebar audits).
+
+**Key Changes:**
+
+- Banner composition now places more emphasis on product/content below the fold by reducing vertical ad dominance.
+- Runtime and operations preview banner proportions now share the same explicit contract, reducing placement surprises.
+
+**Next Sprint Focus:**
+Capture and archive before/after visual evidence (mobile/tablet/desktop) for final design sign-off and keep monitoring sidebar density usability with live campaign data.
+
 ## 2026-04-14 — Commerce Assurance Closure Pass (Admin Config + Multi-Vendor Checkout + Migration Report)
 
 **Summary:**

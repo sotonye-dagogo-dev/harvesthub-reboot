@@ -692,3 +692,39 @@
 - [x] Validation gates for touched scope.
   - [x] Targeted lint + `npx tsc --noEmit`.
   - [x] Focused Vitest suites: home category click-through, products discovery contract, header category menu, and banner visual contract.
+
+---
+
+## Feature Planning Queue (2026-04-14) - Banner Ratio Rebalance Pass (Top/Hero/Sidebar Tile Density)
+
+> **Section summary:** Planning block for a focused visual rebalance of top ads, hero banners, and sidebar banners to better match mainstream marketplace proportions while improving multi-screen visibility and reducing clipping.
+
+- [x] Establish ratio and clipping contract for banner placements.
+  - [x] Define target top-banner height reduction to roughly 50% of current rendered height while preserving full-width fill behavior.
+  - [x] Define hero-banner height reduction target (~1/6 lower than current) without degrading CTA/readability.
+  - [x] Keep sidebar banners square-ratio but reduce rendered tile size and increase density in responsive grid layout.
+  - [x] Document clipping tolerance target (near-zero; <=2% exceptional crop).
+
+- [x] Implement runtime rendering updates for all affected banner surfaces.
+  - [x] Update homepage composition/layout sizing where top/hero/sidebar regions are allocated.
+  - [x] Update top-banner component sizing/object-fit strategy for full-width display with minimal crop.
+  - [x] Update hero carousel container height contract to reduced ratio while keeping current interaction behavior.
+  - [x] Update sidebar banner rail/grid sizing to smaller square tiles across breakpoints.
+
+- [x] Keep operations preview parity with runtime rendering.
+  - [x] Update banner placement preview component(s) to mirror new top/hero/sidebar runtime ratios.
+  - [x] Verify ad/operations banner management previews reflect actual frontend render output at key breakpoints.
+
+- [x] Audit and align supporting style/config contracts.
+  - [x] Update any shared sizing tokens/constants/classes used by banner surfaces.
+  - [x] Confirm responsive breakpoint behavior (mobile/tablet/desktop) remains stable and non-overlapping.
+  - [x] Ensure image fallback behavior and alt-text handling are unchanged.
+
+- [x] Validation and QA closure for banner ratio rebalance.
+  - [x] Add/adjust focused tests for top-banner ratio, hero height contract, and sidebar tile density/responsive behavior.
+  - [x] Run validation gate for touched scope (`npm run lint`, `npx tsc --noEmit`, focused Vitest, route/sidebar audits if navigation/layout contracts change).
+  - [x] Capture before/after viewport evidence for representative breakpoints and log in checkpoints.
+
+- [x] Documentation synchronization.
+  - [x] Update `.ai-system/agents/system-architecture.md` banner composition flow with new sizing contract language.
+  - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md` after implementation.

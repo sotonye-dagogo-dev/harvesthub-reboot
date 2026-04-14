@@ -123,7 +123,18 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
         b.imageUrl.trim().length > 0
     )
     .sort((a, b) => a.displayOrder - b.displayOrder)
-    .slice(0, 3);
+    .slice(0, 6);
+
+  const hasHeroBanners = activeBanners.length > 0;
+  const sidebarGridColumnsClass =
+    activeSidebarBanners.length > 1
+      ? hasHeroBanners
+        ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-2"
+        : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+      : "grid-cols-1";
+  const sidebarImageSizes = hasHeroBanners
+    ? "(min-width: 1280px) 13vw, (min-width: 1024px) 15vw, (min-width: 640px) 20vw, 44vw"
+    : "(min-width: 1280px) 18vw, (min-width: 1024px) 20vw, (min-width: 640px) 28vw, 44vw";
 
   // Get featured products
   const featuredProducts = liveProducts
@@ -191,7 +202,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       {/* Hero + Side Banner Deck */}
       {(activeBanners.length > 0 || activeSidebarBanners.length > 0) && (
         <section className="container mx-auto px-4 py-3">
-          <div className="grid gap-3 lg:grid-cols-12">
+          <div className="grid gap-2 lg:grid-cols-12">
             {activeBanners.length > 0 && (
               <div className="lg:col-span-8">
                 <BannerCarousel banners={activeBanners} autoPlay />
@@ -199,23 +210,25 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             )}
             {activeSidebarBanners.length > 0 && (
               <aside
-                className={`grid gap-3 ${
-                  activeSidebarBanners.length > 1
-                    ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-1"
-                    : "grid-cols-1"
-                } ${activeBanners.length > 0 ? "lg:col-span-4" : "lg:col-span-12 lg:grid-cols-3"}`}
+                data-testid="sidebar-banner-grid"
+                className={`grid gap-2 ${sidebarGridColumnsClass} ${
+                  hasHeroBanners ? "lg:col-span-4" : "lg:col-span-12"
+                }`}
               >
                 {activeSidebarBanners.map((banner) => {
                   const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
                   const cardContent = (
-                    <div className="relative overflow-hidden rounded-ds-lg border border-ds-border-base bg-ds-surface-base shadow-ds-sm">
-                      <div className="relative aspect-[4/3] w-full">
+                    <div
+                      data-testid="sidebar-banner-tile"
+                      className="relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
+                    >
+                      <div className="relative aspect-square w-full">
                         <Image
                           src={banner.imageUrl}
                           alt={normalizeBannerText(banner.title) || "Sidebar banner"}
                           fill
                           className="object-cover"
-                          sizes="(min-width: 1024px) 30vw, 50vw"
+                          sizes={sidebarImageSizes}
                         />
                       </div>
                     </div>
