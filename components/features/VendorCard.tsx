@@ -31,9 +31,9 @@ export function VendorCard({
   className,
 }: VendorCardProps) {
   return (
-    <Link href={`/vendors/${id}`}>
-      <Card className={cn("transition-all hover:shadow-ds-lg", className)} hoverable>
-        <div className="flex items-start gap-4">
+    <Link href={`/vendors/${id}`} className="block h-full">
+      <Card className={cn("h-full transition-all hover:shadow-ds-lg", className)} hoverable>
+        <div className="flex h-full items-start gap-4">
           {/* Vendor Logo */}
           <VendorAvatar
             src={logo}
@@ -44,7 +44,7 @@ export function VendorCard({
           />
 
           {/* Vendor Info */}
-          <div className="flex-1 min-w-0">
+          <div className="flex min-h-[120px] min-w-0 flex-1 flex-col">
             <div className="mb-1 flex items-center gap-2">
               <h3 className="truncate font-semibold text-ds-text-primary">{name}</h3>
               {isVerified ? (
@@ -64,7 +64,7 @@ export function VendorCard({
               <p className="mb-2 line-clamp-2 text-sm text-ds-text-secondary">{description}</p>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-ds-text-secondary">
+            <div className="mt-auto flex flex-wrap items-center gap-3 text-sm text-ds-text-secondary">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span>{campus}</span>

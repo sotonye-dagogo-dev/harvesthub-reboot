@@ -18,6 +18,34 @@
 
 ---
 
+## [New Prisma model exists in schema but TypeScript reports missing Prisma client delegate]
+
+**Symptom:**
+
+- After adding a new Prisma model and running migration, TypeScript still reports missing delegate properties on `prisma` (for example `Property 'commerceLifecycleConfig' does not exist on type PrismaClient`).
+
+**Root Cause:**
+
+- Prisma schema/migration changed, but generated client artifacts in `prisma/generated/client` were not refreshed yet.
+
+**Fix Applied:**
+
+- Regenerated Prisma client (`npx prisma generate`) after migration execution.
+
+**Prevention:**
+
+- Always regenerate Prisma client immediately after schema changes/migration execution in this repository.
+- Confirm generated client files are updated before running full typecheck.
+
+**Files Affected:**
+
+- prisma/schema.prisma
+- prisma/generated/client/*
+
+**Date:** 2026-04-14
+
+---
+
 ## [Products category tags updated URL but did not apply filter state until sidebar interaction]
 
 **Symptom:**

@@ -849,6 +849,18 @@ model CommissionConfig {
   @@map("commission_configs")
 }
 
+model CommerceLifecycleConfig {
+  id                   String   @id @default(cuid())
+  key                  String   @unique @default("default")
+  autoConfirmEnabled   Boolean  @default(true)
+  autoConfirmHours     Int      @default(48)
+  refundWindowHours    Int      @default(72)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("commerce_lifecycle_configs")
+}
+
 model Notification {
   id       String           @id @default(cuid())
   userId   String

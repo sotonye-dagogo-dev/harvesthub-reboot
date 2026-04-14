@@ -46,6 +46,37 @@ export type PaymentFallbackTelemetry = {
   usedAt: string;
 };
 
+export type InitiateTransferInput = {
+  gateway: SupportedPaymentGateway;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  reference?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type InitiateTransferResult = {
+  gateway: SupportedPaymentGateway;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  reference: string;
+  providerReference: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type VerifyTransferInput = {
+  gateway: SupportedPaymentGateway;
+  providerReference: string;
+};
+
+export type VerifyTransferResult = {
+  gateway: SupportedPaymentGateway;
+  providerReference: string;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING';
+  message: string;
+};
+
 function normalizeAmount(amount: number): number {
   if (!Number.isFinite(amount)) return 0;
   return Math.round(amount * 100) / 100;
@@ -122,6 +153,49 @@ export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPa
         : status === 'FAILED'
           ? 'Stub verification marked as failed.'
           : 'Stub verification is pending. Replace with provider API verification.',
+  };
+}
+
+function inferTransferStatus(reference: string): 'SUCCESS' | 'FAILED' | 'PENDING' {
+  const normalized = reference.toLowerCase();
+  if (normalized.includes('success')) return 'SUCCESS';
+  if (normalized.includes('fail')) return 'FAILED';
+  return 'PENDING';
+}
+
+export async function initiateTransfer(
+  input: InitiateTransferInput
+): Promise<InitiateTransferResult> {
+  const reference = input.reference || buildReference(input.gateway);
+  const providerReference = `${reference}-transfer-pending`;
+
+  return {
+    gateway: input.gateway,
+    status: inferTransferStatus(providerReference),
+    reference,
+    providerReference,
+    message:
+      input.gateway === 'PAYSTACK'
+        ? `Paystack transfer stub initiated for ${normalizeAmount(input.amount)} NGN.`
+        : `Flutterwave transfer stub initiated for ${normalizeAmount(input.amount)} NGN.`,
+    metadata: input.metadata,
+  };
+}
+
+export async function verifyTransfer(
+  input: VerifyTransferInput
+): Promise<VerifyTransferResult> {
+  const status = inferTransferStatus(input.providerReference);
+  return {
+    gateway: input.gateway,
+    providerReference: input.providerReference,
+    status,
+    message:
+      status === 'SUCCESS'
+        ? 'Transfer verification marked as successful.'
+        : status === 'FAILED'
+          ? 'Transfer verification marked as failed.'
+          : 'Transfer verification is pending. Replace with provider transfer status API.',
   };
 }
 

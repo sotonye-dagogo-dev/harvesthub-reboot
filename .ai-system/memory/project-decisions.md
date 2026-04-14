@@ -27,6 +27,86 @@
 
 ## Decisions
 
+## Commerce Lifecycle Timing Is Admin-Managed and Persisted
+
+**Decision:** Persist auto-confirm/refund timing and lifecycle enablement in a dedicated singleton model (`CommerceLifecycleConfig`) managed by admin settings APIs/UI instead of hardcoding SLA windows.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Hardcoded lifecycle windows (for example 48-hour auto-confirm) force code changes for operational policy updates and reduce incident response flexibility. Persisted bounded config allows operations to tune policy safely without redeploying.
+
+**Alternatives Considered:**
+
+- Keep hardcoded constants in route handlers (rejected: no runtime adjustability, slower ops response).
+- Store timing in environment variables only (rejected: requires deploy/restart and lacks in-app admin governance).
+
+**Implications:**
+
+- `POST /api/orders/auto-confirm` now reads `autoConfirmEnabled`/`autoConfirmHours` from persisted config.
+- `POST /api/orders/[id]/refund/request` enforces `refundWindowHours` from persisted config.
+- Prisma migration `20260414100529_add_commerce_lifecycle_config` is now part of lifecycle policy infrastructure.
+
+## Checkout Supports Multi-Vendor Split Orders with Single Payment Integrity
+
+**Decision:** Allow checkout to submit grouped `vendorOrders[]`, then split into one order per vendor inside one transaction while preserving unified payment verification and wallet debit integrity.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Blocking multi-vendor checkout created UX friction and pushed users to brittle manual sequencing. Split-order creation with atomic transaction semantics supports realistic marketplace carts while preventing payment/order mismatch.
+
+**Alternatives Considered:**
+
+- Keep single-vendor-only checkout hard block (rejected: poor marketplace UX and explicit user request conflict).
+- Create one order containing multi-vendor lines (rejected: conflicts with existing schema/vendor ownership contracts and payout/refund lifecycles).
+
+**Implications:**
+
+- Checkout now sends `vendorOrders[]`; API creates per-vendor orders linked by shared checkout group metadata.
+- Wallet payments validate balance against grouped total and debit once with per-order payment transaction audit records.
+- Notifications fan out per vendor while buyer receives grouped checkout confirmation.
+
+## Delivered Orders Now Use Settlement Hold Then Release (Confirmation-Gated)
+
+**Decision:** Change delivered-order payout behavior from immediate wallet credit to a two-step lifecycle: create a `PAYOUT` hold (`PENDING`) at `DELIVERED`, then release funds only on buyer confirmation or 48-hour auto-confirm.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Immediate credit on delivered-status change prevented true confirmation-window safeguards and made refund compensation paths harder to model cleanly. Hold-then-release supports deterministic payout control, aligns with the planned auto-confirm SLA, and improves lifecycle auditability.
+
+**Alternatives Considered:**
+
+- Keep immediate credit at `DELIVERED` and only annotate timeline events (rejected: weak control over settlement window and refund timing semantics).
+- Add full new settlement tables before behavioral change (deferred: higher migration scope; staged behavior change implemented first).
+
+**Implications:**
+
+- `PATCH /api/orders/[id]/status` now creates payout hold records rather than immediate wallet balance mutations.
+- Settlement release is executed by `POST /api/orders/[id]/confirm-delivery` or `POST /api/orders/auto-confirm`.
+- Final schema/migration closure must still evaluate whether dedicated lifecycle fields/entities are needed beyond JSON history + transaction metadata.
+
+## Commerce Assurance Is Governed As Phase A Delivered + Phase B Continuation
+
+**Decision:** Treat the merged 2026-04-13 cloud output as Phase A completion (deterministic status transitions, delivered payout idempotency, banner preview parity, WhatsApp guard) and formally re-open Phase B for the remaining original lifecycle scope (buyer confirmation/auto-confirm, settlement, payout orchestration lifecycle, refund lifecycle, and migration-backed persistence if needed).
+**Date:** 2026-04-14
+**Made by:** AI reconciliation session (GitHub Copilot)
+
+**Reason:**
+Integrity audit against stash + merged history confirmed a scope mismatch: original plan covered full commerce lifecycle orchestration, while merged implementation delivered a narrower hardening subset. Documentation must represent both truths simultaneously to avoid release/compliance ambiguity.
+
+**Alternatives Considered:**
+
+- Mark full commerce assurance wave complete based on merged subset only (rejected: scope drift, inaccurate release communication).
+- Roll back merged Phase A changes and re-run cloud session from scratch (rejected: unnecessary churn; Phase A improvements are valid and should be retained).
+
+**Implications:**
+
+- Planning/queue artifacts must retain Phase A as completed and Phase B as explicit remaining work.
+- Final closure for Phase B must include a mandatory schema/migration report even if outcome is "No migration required."
+- Client-facing communication should distinguish currently shipped cash/order behavior from pending lifecycle automation.
+
 ## Hero Banner Viewport Is Image-First; Detail Copy Lives Behind "Know More"
 
 **Decision:** Render hero carousel slides without direct title/description text overlays in the viewport and preserve copy/details access through the existing `Know More` modal flow.

@@ -6,27 +6,20 @@ import { Prisma } from '@/prisma/generated/client';
 import {
     OrderStatus,
     PaymentStatus,
-    TransactionStatus,
-    TransactionType,
 } from '@/prisma/generated/client';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import {
+    appendStatusHistoryEntry,
+    ensurePayoutHoldOnDelivery,
+    parseStatusHistory,
+} from '@/lib/services/orderLifecycle';
 
 interface RouteContext {
     params: Promise<{ id: string }>;
 }
-
-type StatusHistoryEntry = {
-    status: string;
-    timestamp: string;
-    note?: string;
-    updatedBy: string;
-    [key: string]: unknown;
-};
-
-const ORDER_PAYOUT_REFERENCE_PREFIX = 'PAYOUT-ORDER-';
 
 // PROCESSING transitions branch by fulfilment mode:
 // - DELIVERY orders should progress to OUT_FOR_DELIVERY
@@ -44,69 +37,6 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 
 function isOrderStatus(value: string): value is OrderStatus {
     return Object.values(OrderStatus).includes(value as OrderStatus);
-}
-
-function parseStatusHistory(input: Prisma.JsonValue | null): StatusHistoryEntry[] {
-    const normalize = (value: unknown): StatusHistoryEntry[] => {
-        if (!Array.isArray(value)) return [];
-        return value
-            .filter((entry) => entry && typeof entry === 'object')
-            .map((entry) => {
-                const candidate = entry as Record<string, unknown>;
-                const rawStatus =
-                    typeof candidate.status === 'string'
-                        ? candidate.status.trim().toUpperCase()
-                        : OrderStatus.PENDING;
-                return {
-                    ...candidate,
-                    status: rawStatus.length > 0 ? rawStatus : OrderStatus.PENDING,
-                    timestamp:
-                        typeof candidate.timestamp === 'string' && candidate.timestamp.trim().length > 0
-                            ? candidate.timestamp
-                            : new Date(0).toISOString(),
-                    updatedBy:
-                        typeof candidate.updatedBy === 'string' && candidate.updatedBy.trim().length > 0
-                            ? candidate.updatedBy
-                            : 'system',
-                };
-            });
-    };
-
-    if (Array.isArray(input)) {
-        return normalize(input);
-    }
-    if (typeof input === 'string') {
-        try {
-            return normalize(JSON.parse(input));
-        } catch {
-            return [];
-        }
-    }
-    return [];
-}
-
-function appendStatusHistoryEntry(
-    history: StatusHistoryEntry[],
-    status: OrderStatus,
-    updatedBy: string,
-): StatusHistoryEntry[] {
-    const lastEntry = history.at(-1);
-    if (lastEntry?.status?.trim().toUpperCase() === status) {
-        return history;
-    }
-    return [
-        ...history,
-        {
-            status,
-            timestamp: new Date().toISOString(),
-            note: `Order status updated to ${status.toLowerCase().replace(/_/g, ' ')}.`,
-            updatedBy,
-        },
-    ];
-}
-
-function getPayoutReference(orderId: string) {
-    return `${ORDER_PAYOUT_REFERENCE_PREFIX}${orderId}`;
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
@@ -176,60 +106,23 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
             let payoutCreated = false;
             let payoutReference: string | null = null;
+            let payoutHeld = false;
 
             if (
                 requestedStatus === OrderStatus.DELIVERED &&
                 currentOrder.paymentStatus === PaymentStatus.PAID
             ) {
-                const existingPayout = await tx.transaction.findFirst({
-                    where: {
-                        orderId: currentOrder.id,
-                        type: TransactionType.PAYOUT,
-                    },
-                    select: { id: true, reference: true },
+                const payoutHold = await ensurePayoutHoldOnDelivery(tx, {
+                    orderId: currentOrder.id,
+                    orderNumber: currentOrder.orderNumber,
+                    vendorId: currentOrder.vendorId,
+                    total: currentOrder.total,
+                    paymentStatus: currentOrder.paymentStatus,
                 });
 
-                if (!existingPayout) {
-                    const vendorRecord = await tx.vendor.findUnique({
-                        where: { id: currentOrder.vendorId },
-                        select: { userId: true, storeName: true },
-                    });
-
-                    if (vendorRecord) {
-                        const vendorWallet = await tx.wallet.upsert({
-                            where: { userId: vendorRecord.userId },
-                            update: {},
-                            create: { userId: vendorRecord.userId, currency: 'NGN' },
-                            select: { id: true, balance: true },
-                        });
-
-                        const balanceBefore = vendorWallet.balance;
-                        const balanceAfter = balanceBefore + currentOrder.total;
-                        payoutReference = getPayoutReference(currentOrder.id);
-
-                        await tx.wallet.update({
-                            where: { id: vendorWallet.id },
-                            data: { balance: balanceAfter },
-                        });
-
-                        await tx.transaction.create({
-                            data: {
-                                walletId: vendorWallet.id,
-                                type: TransactionType.PAYOUT,
-                                amount: currentOrder.total,
-                                balanceBefore,
-                                balanceAfter,
-                                status: TransactionStatus.COMPLETED,
-                                reference: payoutReference,
-                                description: `Automated payout for delivered order ${currentOrder.orderNumber}`,
-                                orderId: currentOrder.id,
-                            },
-                        });
-                        payoutCreated = true;
-                    }
-                } else {
-                    payoutReference = existingPayout.reference;
-                }
+                payoutCreated = payoutHold.created;
+                payoutReference = payoutHold.reference;
+                payoutHeld = !payoutHold.skipped;
             }
 
             const existingHistory = parseStatusHistory(currentOrder.statusHistory as Prisma.JsonValue);
@@ -237,7 +130,20 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 existingHistory,
                 requestedStatus,
                 user.userId,
+                `Order status updated to ${requestedStatus.toLowerCase().replace(/_/g, ' ')}.`,
             );
+            const nextHistoryWithSettlement =
+                requestedStatus === OrderStatus.DELIVERED && payoutHeld
+                    ? appendStatusHistoryEntry(
+                        nextHistory,
+                        'SETTLEMENT_HELD',
+                        user.userId,
+                        'Settlement held pending buyer/system delivery confirmation.',
+                        {
+                            payoutReference,
+                        }
+                    )
+                    : nextHistory;
             const shouldSetCompletedAt =
                 requestedStatus === OrderStatus.DELIVERED ||
                 requestedStatus === OrderStatus.CANCELLED ||
@@ -247,7 +153,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 where: { id: currentOrder.id },
                 data: {
                     status: requestedStatus,
-                    statusHistory: nextHistory as Prisma.InputJsonValue,
+                    statusHistory: nextHistoryWithSettlement as Prisma.InputJsonValue,
                     completedAt: shouldSetCompletedAt
                         ? currentOrder.completedAt ?? new Date()
                         : currentOrder.completedAt,
@@ -259,6 +165,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 order: updatedOrder,
                 payoutCreated,
                 payoutReference,
+                payoutHeld,
             };
         });
 
@@ -278,6 +185,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             payout: {
                 created: txResult.payoutCreated,
                 reference: txResult.payoutReference,
+                held: txResult.payoutHeld,
             },
         });
     } catch (error) {

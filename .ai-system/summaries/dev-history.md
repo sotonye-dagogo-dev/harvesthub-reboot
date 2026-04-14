@@ -22,6 +22,81 @@
 [What comes next]
 ```
 
+## 2026-04-14 — Commerce Assurance Closure Pass (Admin Config + Multi-Vendor Checkout + Migration Report)
+
+**Summary:**
+Closed the remaining commerce-assurance continuation items by making lifecycle timing admin-manageable, enabling safe split checkout across multiple vendors, and executing the required Prisma migration/reporting loop. This pass also added a product-detail chat-with-vendor pointer through the existing WhatsApp safety guard and finalized validation/audit checks for touched scope.
+
+**Completed:**
+
+- Added persisted `CommerceLifecycleConfig` model and migration (`20260414100529_add_commerce_lifecycle_config`).
+- Added lifecycle config service + admin API and wired `/operations/settings` to manage auto-confirm/refund windows.
+- Wired auto-confirm scheduler and refund-request API to use persisted lifecycle policy values.
+- Implemented multi-vendor split order creation in `/api/orders` and updated checkout payloads/summary behavior.
+- Added product-page vendor chat pointer routed through `/contact/whatsapp` guard with telemetry source tagging.
+- Ran validation gate: lint/typecheck/route audits pass; full-suite vitest still has pre-existing unrelated baseline failures while touched suites pass.
+
+**Key Changes:**
+
+- Lifecycle policy is now runtime configurable by admin without redeploys.
+- Multi-vendor carts now place safely as per-vendor orders with transaction-safe payment integrity.
+- Migration/report obligations for commerce-assurance Phase B are now explicitly fulfilled in planning artifacts.
+
+**Next Sprint Focus:**
+Reduce legacy unrelated full-suite vitest failures to restore all-green baseline and continue payment transfer/webhook hardening for production gateways.
+
+---
+
+## 2026-04-14 — Commerce Assurance Phase B Implementation Pass (Lifecycle + Refund + Payout Orchestration)
+
+**Summary:**
+Executed the Phase B continuation implementation for commerce assurance across order confirmation, auto-confirm fallback, settlement release, payout/withdraw processing lifecycle, refund request/review execution, and off-platform contact telemetry. This pass converts earlier delivery-trigger payout behavior into hold-then-release semantics and closes key lifecycle cash-flow gaps in both API and UI.
+
+**Completed:**
+
+- Added shared lifecycle service (`lib/services/orderLifecycle.ts`) to centralize status-history append/inspection and settlement release logic.
+- Refactored order status transition route to create `PAYOUT` hold at `DELIVERED` and defer wallet credit until confirmation/auto-confirm release.
+- Added buyer confirm-delivery API and auto-confirm scheduler API (48-hour window).
+- Added refund request + admin review/approve/reject APIs with pre/post-settlement reconciliation handling.
+- Added withdrawal processing lifecycle endpoint and transfer lifecycle stubs (`initiateTransfer`, `verifyTransfer`) in payment service.
+- Fixed wallet-funded order integrity by debiting buyer wallet + writing `PAYMENT` transaction on order creation.
+- Exposed wallet `availableBalance` + `pendingWithdrawals` and reflected these values in wallet UI.
+- Added order-detail lifecycle controls (buyer confirm/refund request, admin refund review) and WhatsApp handoff telemetry endpoint/hook.
+- Normalized vendor card equal-height behavior in homepage rail.
+- Passed focused tests for touched contracts and passed TypeScript full compile check.
+
+**Key Changes:**
+
+- Cash-flow is now confirmation-gated for delivered payouts instead of immediately crediting on delivery status change.
+- Refund lifecycle is now actionable with explicit request/review/execute states and transaction-level reconciliation.
+- Withdrawal flow now supports payout intent lifecycle before final settlement mutation.
+
+**Next Sprint Focus:**
+Run full final gate (`lint`, full focused/high-risk tests, route audits), decide whether schema migration is still required for durable lifecycle fields, and publish mandatory schema/migration report to close Phase B.
+
+---
+
+## 2026-04-14 — Commerce Assurance Integrity Reconciliation (Stash vs Merge)
+
+**Summary:**
+Completed a one-pass documentation integrity reconciliation after stash/pull/merge to align `.ai-system` with actual merged behavior and original planning scope. The result formally separates delivered work (Phase A) from remaining required lifecycle orchestration work (Phase B) so engineering and client reporting stay accurate.
+
+**Completed:**
+
+- Audited stash and merged history to confirm that merged cloud implementation delivered a narrowed subset of the original commerce assurance scope.
+- Reconciled task queue to preserve completed Phase A items and explicitly re-open Phase B continuation tasks.
+- Restored 2026-04-13 commerce assurance feature spec in project plan with Phase A/Phase B status and migration-report obligations.
+- Updated architecture flow docs with planned Phase B continuation flow.
+- Added decision entry codifying Phase A delivered + Phase B continuation governance.
+
+**Key Changes:**
+
+- Planning artifacts now accurately map implemented behavior to pending lifecycle orchestration requirements.
+- Schema/migration reporting is now explicitly required at Phase B closure, even if no migration is ultimately needed.
+
+**Next Sprint Focus:**
+Execute Phase B continuation tasks (delivery confirmation/auto-confirm, settlement/payout lifecycle, refund lifecycle, lifecycle notifications, and migration-backed persistence if required), then publish final schema/migration report.
+
 ---
 
 ## 2026-04-13 — UI Adjustment Pass: Konga-inspired Banner Deck + Menu Category Access + Query-Synced Category Tags

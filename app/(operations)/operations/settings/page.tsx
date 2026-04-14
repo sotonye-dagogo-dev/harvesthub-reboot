@@ -14,6 +14,7 @@ import {
   Percent,
   CreditCard,
   Calendar,
+  Clock3,
   Info,
   Tag,
   AlertTriangle,
@@ -57,6 +58,12 @@ interface AdminPaymentConfig {
   };
 }
 
+interface CommerceLifecycleConfig {
+  autoConfirmEnabled: boolean;
+  autoConfirmHours: number;
+  refundWindowHours: number;
+}
+
 const initialTiers: CommissionTier[] = [
   {
     id: "default",
@@ -90,6 +97,12 @@ export default function OperationsSettingsPage() {
   );
   const [paymentConfig, setPaymentConfig] = useState<AdminPaymentConfig | null>(null);
   const [paymentConfigLoading, setPaymentConfigLoading] = useState<boolean>(true);
+  const [commerceLifecycleConfig, setCommerceLifecycleConfig] = useState<CommerceLifecycleConfig>({
+    autoConfirmEnabled: true,
+    autoConfirmHours: 48,
+    refundWindowHours: 72,
+  });
+  const [commerceConfigLoading, setCommerceConfigLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -134,6 +147,46 @@ export default function OperationsSettingsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadCommerceConfig = async () => {
+      setCommerceConfigLoading(true);
+      try {
+        const res = await fetch("/api/admin/commerce-config", { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success || !data?.config) {
+          throw new Error(data?.error || "Unable to load commerce lifecycle settings");
+        }
+
+        if (active) {
+          setCommerceLifecycleConfig({
+            autoConfirmEnabled: Boolean(data.config.autoConfirmEnabled),
+            autoConfirmHours: Number(data.config.autoConfirmHours) || 48,
+            refundWindowHours: Number(data.config.refundWindowHours) || 72,
+          });
+        }
+      } catch (error) {
+        if (active) {
+          message.error(
+            error instanceof Error
+              ? error.message
+              : "Unable to load commerce lifecycle settings"
+          );
+        }
+      } finally {
+        if (active) {
+          setCommerceConfigLoading(false);
+        }
+      }
+    };
+
+    void loadCommerceConfig();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleTierRateChange = (tierId: string, value: string) => {
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
@@ -150,9 +203,38 @@ export default function OperationsSettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    message.success("Platform settings saved successfully");
-    setIsSaving(false);
+    try {
+      const res = await fetch("/api/admin/commerce-config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          autoConfirmEnabled: commerceLifecycleConfig.autoConfirmEnabled,
+          autoConfirmHours: commerceLifecycleConfig.autoConfirmHours,
+          refundWindowHours: commerceLifecycleConfig.refundWindowHours,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.success || !data?.config) {
+        throw new Error(data?.error || "Unable to save commerce lifecycle settings");
+      }
+
+      setCommerceLifecycleConfig({
+        autoConfirmEnabled: Boolean(data.config.autoConfirmEnabled),
+        autoConfirmHours: Number(data.config.autoConfirmHours) || 48,
+        refundWindowHours: Number(data.config.refundWindowHours) || 72,
+      });
+
+      message.success("Platform settings saved successfully");
+    } catch (error) {
+      message.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to save commerce lifecycle settings"
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -422,6 +504,89 @@ export default function OperationsSettingsPage() {
             )}
           </div>
         </div>
+      </Card>
+
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Clock3 className="h-5 w-5 text-ds-text-brand" />
+          <h2 className="text-lg font-semibold text-ds-text-primary">Order Lifecycle Settings</h2>
+        </div>
+
+        {commerceConfigLoading ? (
+          <p className="text-sm text-ds-text-secondary">Loading lifecycle settings...</p>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+              <div>
+                <div className="font-medium text-ds-text-primary">Enable Auto-Confirmation</div>
+                <div className="text-xs text-ds-text-secondary">
+                  Automatically release settlement after the configured delivery window.
+                </div>
+              </div>
+              <Switch
+                checked={commerceLifecycleConfig.autoConfirmEnabled}
+                onChange={(checked) =>
+                  setCommerceLifecycleConfig((prev) => ({
+                    ...prev,
+                    autoConfirmEnabled: checked,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="font-medium text-ds-text-primary">Auto-Confirm Delivery Window</div>
+                <div className="text-xs text-ds-text-secondary">
+                  Hours after DELIVERED status before automatic buyer confirmation.
+                </div>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={240}
+                value={commerceLifecycleConfig.autoConfirmHours}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 240) {
+                    setCommerceLifecycleConfig((prev) => ({
+                      ...prev,
+                      autoConfirmHours: val,
+                    }));
+                  }
+                }}
+                suffix="hours"
+                className="!w-36"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="font-medium text-ds-text-primary">Refund Request Window</div>
+                <div className="text-xs text-ds-text-secondary">
+                  Hours after delivery during which buyers can initiate refunds.
+                </div>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={720}
+                value={commerceLifecycleConfig.refundWindowHours}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 720) {
+                    setCommerceLifecycleConfig((prev) => ({
+                      ...prev,
+                      refundWindowHours: val,
+                    }));
+                  }
+                }}
+                suffix="hours"
+                className="!w-36"
+              />
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card>

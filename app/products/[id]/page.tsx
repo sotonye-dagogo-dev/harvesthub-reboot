@@ -31,6 +31,7 @@ type ProductApiResponse = {
       id: string;
       storeName?: string | null;
       status?: string | null;
+      whatsappNumber?: string | null;
     } | null;
     reviews?: Array<{ rating?: number | null }>;
   };
@@ -46,6 +47,7 @@ async function fetchProduct(id: string) {
             id: true,
             storeName: true,
             status: true,
+            whatsappNumber: true,
           },
         },
         reviews: {
@@ -134,6 +136,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       : "Vendor";
   const vendorVerified = product.vendor?.status === "APPROVED";
   const vendorHref = productVendorId ? `/vendors/${productVendorId}` : "/vendors";
+  const whatsappGuardHref = product.vendor?.whatsappNumber
+    ? `/contact/whatsapp?${new URLSearchParams({
+        vendorName,
+        phone: product.vendor.whatsappNumber,
+        returnTo: `/products/${id}`,
+        source: "product-page",
+      }).toString()}`
+    : null;
   const orderingAllowed = vendorVerified;
   const productPrice = Number.isFinite(product.price) ? product.price : 0;
   const productDiscount = Number.isFinite(product.discount ?? NaN) ? (product.discount ?? 0) : 0;
@@ -177,6 +187,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <Link href={vendorHref} className="text-ds-text-brand hover:underline">
               {vendorName}
             </Link>
+          </p>
+          <p className="mt-2 text-sm text-ds-text-secondary">
+            {whatsappGuardHref ? (
+              <Link href={whatsappGuardHref} className="text-ds-text-brand hover:underline">
+                Chat with vendor on WhatsApp
+              </Link>
+            ) : (
+              "Vendor chat is currently unavailable for this listing."
+            )}
           </p>
 
           <div className="mt-4 flex items-center gap-2">

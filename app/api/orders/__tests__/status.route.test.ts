@@ -85,7 +85,7 @@ describe("PATCH /api/orders/[id]/status", () => {
     expect(json.error).toContain("Cannot transition");
   });
 
-  it("automates payout once when transitioning paid order to DELIVERED", async () => {
+  it("creates payout hold once when transitioning paid order to DELIVERED", async () => {
     mockPrisma.order.findUnique.mockResolvedValueOnce({
       id: "order-1",
       vendorId: "vendor-1",
@@ -98,6 +98,7 @@ describe("PATCH /api/orders/[id]/status", () => {
       status: OrderStatus.DELIVERED,
     });
     const txTransactionCreate = vi.fn().mockResolvedValue({ id: "tx-1" });
+    const txWalletUpdate = vi.fn().mockResolvedValue({ id: "wallet-1", balance: 1000 });
 
     mockPrisma.$transaction.mockImplementationOnce(async (callback: (tx: any) => unknown) => {
       return callback({
@@ -130,7 +131,7 @@ describe("PATCH /api/orders/[id]/status", () => {
             id: "wallet-1",
             balance: 1000,
           }),
-          update: vi.fn().mockResolvedValue({ id: "wallet-1", balance: 16000 }),
+          update: txWalletUpdate,
         },
       });
     });
@@ -143,8 +144,11 @@ describe("PATCH /api/orders/[id]/status", () => {
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.payout.created).toBe(true);
+    expect(json.payout.held).toBe(true);
     expect(txTransactionCreate).toHaveBeenCalledTimes(1);
     expect(txTransactionCreate.mock.calls[0]?.[0]?.data?.type).toBe(TransactionType.PAYOUT);
+    expect(txTransactionCreate.mock.calls[0]?.[0]?.data?.status).toBe("PENDING");
+    expect(txWalletUpdate).not.toHaveBeenCalled();
   });
 
   it("returns idempotent response when requested status already applied", async () => {

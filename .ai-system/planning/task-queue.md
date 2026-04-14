@@ -619,11 +619,11 @@
 
 ## Feature Planning Queue (2026-04-13) - Commerce Assurance Wave: Order-to-Payout Automation + Banner Parity + Vendor Contact Safety
 
-> **Section summary:** Cloud continuation execution block for deterministic order lifecycle/payout automation, banner preview-runtime parity, and guarded vendor WhatsApp handoff safety.
+> **Section summary:** Reconciled execution block: Phase A completed in merged cloud run (deterministic status + delivered payout idempotency + banner preview parity + WhatsApp guard), while remaining lifecycle orchestration scope is tracked as explicit Phase B continuation.
 
 - [x] Blocker accounting and execution handoff alignment.
-  - [x] Noted missing source temp-plan file in this clone: `.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`.
-  - [x] Proceeded with implementation using locked scope from cloud prompt slices while preserving deterministic/idempotent behavior.
+  - [x] Temporary cloud execution plan now exists in repository: `.ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`.
+  - [x] Merged cloud implementation delivered constrained subset (Phase A) and requires continuation queue (Phase B) for full original scope closure.
 
 - [x] Slice 1 — Order-to-Payout automation with deterministic lifecycle transitions.
   - [x] Replaced invalid/non-enum order transition map with canonical `OrderStatus` transitions only.
@@ -645,6 +645,24 @@
   - [x] Targeted lint for modified route/page/component/test files.
   - [x] `npx tsc --noEmit`.
   - [x] Focused Vitest suites for order status route, contact guard page, banner preview parity, and top-banner contract.
+
+- [x] Phase B continuation — Full original lifecycle orchestration scope (re-opened after integrity reconciliation).
+  - [x] Restore canonical feature spec parity in `.ai-system/planning/project-plan.md` and keep this queue as source-of-truth for remaining scope.
+  - [x] Implement buyer delivery confirmation endpoint/UI action for delivered orders.
+  - [x] Implement 48-hour auto-confirm scheduler for delivered orders with idempotent replay safety.
+  - [x] Introduce settlement release semantics (held -> available) with durable order + wallet audit records.
+  - [x] Introduce payout orchestration lifecycle beyond immediate wallet credit (intent/request -> processing -> completed/failed) with provider reconciliation.
+  - [x] Implement refund request/review/execute lifecycle and reconciliation behavior for pre-release vs post-release states.
+  - [x] Expand lifecycle notifications matrix (delivery-confirm window, auto-confirm, settlement, payout states, refund states) with inbox traceability metadata.
+  - [x] Normalize homepage vendor-card equal-height behavior and add focused regression coverage.
+  - [x] Add telemetry/event marker for WhatsApp off-platform handoff usage.
+  - [x] Add admin-manageable commerce lifecycle config (`autoConfirmEnabled`, `autoConfirmHours`, `refundWindowHours`) and wire scheduler/refund windows to persisted config.
+  - [x] Add product-detail chat-with-vendor pointer routed through WhatsApp guard flow.
+  - [x] Implement safe multi-vendor checkout handling: split grouped vendor payload into per-vendor orders with unified payment verification and wallet-debit integrity.
+  - [x] Plan and execute Prisma schema migration for lifecycle config persistence (`CommerceLifecycleConfig`); migration: `20260414100529_add_commerce_lifecycle_config`.
+  - [x] Run full validation gate (`npm run lint`, `npx tsc --noEmit`, focused/full vitest, `npm run audit:dead-links`, `npm run audit:sidebar-routes`).
+    - [x] Gate result note: full `npx vitest run` still reports pre-existing baseline failures outside touched scope; touched-scope suites pass (`status.route`, WhatsApp guard, product fallbacks).
+  - [x] Publish mandatory schema/migration report: schema changed by adding `CommerceLifecycleConfig` model and migration `20260414100529_add_commerce_lifecycle_config`; no enum changes or backfill required because singleton config upsert defaults populate runtime-safe values; residual risk remains existing repository-wide non-touched vitest failures.
 
 ---
 

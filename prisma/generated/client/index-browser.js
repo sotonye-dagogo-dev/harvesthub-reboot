@@ -387,6 +387,16 @@ exports.Prisma.CommissionConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CommerceLifecycleConfigScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  autoConfirmEnabled: 'autoConfirmEnabled',
+  autoConfirmHours: 'autoConfirmHours',
+  refundWindowHours: 'refundWindowHours',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.NotificationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -979,6 +989,7 @@ exports.Prisma.ModelName = {
   AdApplication: 'AdApplication',
   AdRateConfig: 'AdRateConfig',
   CommissionConfig: 'CommissionConfig',
+  CommerceLifecycleConfig: 'CommerceLifecycleConfig',
   Notification: 'Notification',
   PushSubscription: 'PushSubscription',
   NotificationPreference: 'NotificationPreference',

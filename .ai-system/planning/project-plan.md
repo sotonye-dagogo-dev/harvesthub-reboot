@@ -216,6 +216,76 @@ Stabilize user-facing banner presentation and operational metrics integrity whil
 
 ---
 
+## Feature Spec - Commerce Assurance Wave: Order-to-Payout Automation + Banner Parity + Vendor Contact Safety (Planned 2026-04-13, Reconciled 2026-04-14)
+
+> **Section summary:** Reconciled implementation plan after stash/merge integrity audit. Phase A shipped in merged cloud commits, and Phase B has now been completed with admin-managed lifecycle configuration, multi-vendor split checkout safety, and migration-backed commerce config persistence.
+
+**Implementation Status:**
+
+- Phase A implemented (merged): deterministic enum-safe order status transitions, idempotent delivered payout guard, TOP banner preview/runtime parity, and guarded WhatsApp handoff route.
+- Phase B implemented: buyer confirm-delivery endpoint/UI, auto-confirm scheduler, settlement release + withdrawal/reconciliation lifecycle, refund request/review lifecycle, lifecycle telemetry/notifications, vendor-card equal-height normalization, product-detail chat-with-vendor guard pointer, and safe multi-vendor checkout order splitting.
+- Admin-manageable lifecycle config is now persisted via `CommerceLifecycleConfig` (`autoConfirmEnabled`, `autoConfirmHours`, `refundWindowHours`) and used by auto-confirm/refund routes.
+- Migration executed: `20260414100529_add_commerce_lifecycle_config`.
+- Validation status: lint + typecheck + route audits pass; full repository vitest still contains unrelated baseline failures while touched-scope suites pass.
+
+**Feature Objective:**
+Deliver a resilient commerce lifecycle that safely automates buyer confirmation fallback and downstream money movement while preserving traceability, then close frontend parity gaps for banner placement/rendering, vendor-card consistency, and vendor-contact safety.
+
+**Why This Is Needed:**
+
+- Phase A merged implementation initially secured deterministic status transitions and replay-safe delivered payout behavior, and this feature now closes the remaining confirmation/settlement/refund orchestration scope.
+- Original planning scope explicitly required migration-aware lifecycle persistence and final schema/migration reporting.
+- Client communication and release readiness require one source-of-truth documentation that distinguishes completed vs pending scope.
+
+**Architecture Impact:**
+
+- `app/api/orders/[id]/status/route.ts` and related tests for status transition guards and payout idempotency.
+- `app/api/orders/*`, `app/api/wallet/*`, and `lib/services/payments.ts` for payment/settlement/refund lifecycle expansion.
+- `components/features/BannerPlacementPreview.tsx`, `components/features/TopAdBanner.tsx`, `components/features/VendorCard.tsx`, and home composition surfaces for parity/layout contracts.
+- `app/contact/whatsapp/page.tsx` and vendor profile CTA flow for off-platform safety guard + telemetry.
+- `prisma/schema.prisma` + `prisma/migrations/*` for lifecycle persistence enhancements when Phase B model requires schema changes.
+
+**Data Flow (Target End State):**
+
+1. Buyer places order; payment verification sets canonical payment state.
+2. Vendor/admin progresses order through canonical status transitions.
+3. Buyer confirms delivery or scheduler auto-confirms after SLA window.
+4. Confirmation triggers settlement release and payout lifecycle progression.
+5. Refund requests, if any, follow controlled review/execution lifecycle with compensating ledger behavior.
+6. Notification templates emit lifecycle events across in-app/email/push with inbox traceability metadata.
+7. Banner and vendor card surfaces remain preview/runtime consistent and layout-stable across viewport sizes.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- Keep lifecycle status messaging explicit, readable, and role-aware in buyer/vendor/operations interfaces.
+- Preserve guard-first interaction before external WhatsApp handoff and avoid ambiguous off-platform risk language.
+- Maintain banner placement previews that accurately mirror runtime rendering behavior for TOP/HERO/SIDEBAR.
+- Enforce equal-height vendor rail cards with clear truncation rules to avoid clipped critical metadata.
+
+**Potential Risks or Edge Cases:**
+
+- Scheduler replay/race conditions can create duplicate confirmations or release attempts without idempotent guards.
+- Provider-stub verification semantics can mask production-only edge cases until gateway APIs are fully integrated.
+
+**Schema / Migration Implications:**
+
+- Phase A merged with no Prisma schema migration.
+- Phase B added schema migration for admin lifecycle configuration persistence:
+	- Model: `CommerceLifecycleConfig`
+	- Migration: `20260414100529_add_commerce_lifecycle_config`
+	- Enum changes: none
+	- Backfill/default strategy: runtime singleton upsert with defaults (`autoConfirmEnabled=true`, `autoConfirmHours=48`, `refundWindowHours=72`) avoids explicit one-off backfill script.
+- Residual risk statement: repository-wide full vitest still has pre-existing unrelated failures; touched commerce/whatsapp/product suites pass.
+
+**Rollout Order (Reconciled):**
+
+1. Preserve and lock delivered Phase A behavior with no regressions.
+2. Maintain admin lifecycle config integrity and enforce reasonable bounds on operational values.
+3. Continue payment-provider hardening for transfer/reconciliation webhooks.
+4. Reduce unrelated legacy full-suite test failures to restore full green baseline.
+
+---
+
 ## Feature Spec - Product Discovery Filter/Sort Contract Hardening (Planned 2026-04-08)
 
 > **Section summary:** Planning package to audit and correct category-tag filtering, products-page filter/sort behavior, and single-source-of-truth config alignment for product discovery.

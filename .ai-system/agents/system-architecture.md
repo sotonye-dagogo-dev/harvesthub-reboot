@@ -208,11 +208,12 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Vendor WhatsApp Guard-First Contact Flow
 
 ```
-1. Buyer clicks vendor WhatsApp CTA on `/vendors/[id]`.
+1. Buyer clicks vendor WhatsApp CTA on `/vendors/[id]` or product-detail chat pointer on `/products/[id]`.
 2. CTA navigates to internal guard page (`/contact/whatsapp`) with vendor context + sanitized phone params.
 3. Guard page displays safety disclaimer and off-platform warning before any external navigation.
 4. User explicitly confirms with "Continue to WhatsApp" before browser opens `wa.me`.
-5. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
+5. Guard page emits lightweight telemetry marker (`/api/telemetry/off-platform-contact`) with sanitized source context.
+6. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
 ```
 
 ### Signup Verification + Position Parity Flow
@@ -260,9 +261,72 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. API validates requested status against canonical enum-safe lifecycle transitions.
 3. Same-status requests return idempotent success and skip side effects.
 4. Valid transitions update `order.status` + status history atomically.
-5. If transitioning to `DELIVERED` and payment is already `PAID`, API checks for existing order-linked payout transaction.
-6. If no payout exists, API credits vendor wallet and records deterministic `PAYOUT-ORDER-{orderId}` transaction reference.
-7. Replayed requests remain safe because deterministic payout reference + existing transaction check prevents duplicate credits.
+5. If transitioning to `DELIVERED` and payment is already `PAID`, API creates payout hold (`PAYOUT`, `PENDING`) with deterministic reference.
+6. Vendor wallet is not credited at delivery transition; settlement remains held until confirmation release.
+7. Replayed requests remain safe because deterministic payout reference + existing transaction check prevents duplicate holds/credits.
+```
+
+### Commerce Assurance Phase B Continuation Flow (Planned)
+
+```
+1. Buyer confirms delivered order explicitly (or scheduler auto-confirms after SLA window).
+2. Confirmation event writes durable lifecycle timestamp and append-only timeline entry.
+3. Settlement release transitions held commerce value into payout-eligible state.
+4. Payout lifecycle progresses through intent/request -> processing -> completed/failed with provider reconciliation.
+5. Refund requests route through review/execution states and apply compensating ledger logic for pre/post settlement scenarios.
+6. Lifecycle notifications (in-app/email/push) are emitted with traceable metadata for inbox timeline context.
+7. Final release report includes explicit schema/migration outcome and residual risk statement.
+```
+
+### Delivery Confirmation + Auto-Confirm Settlement Release Flow
+
+```
+1. Delivered paid order creates payout hold (`TransactionType.PAYOUT`, `PENDING`) at status-transition boundary.
+2. Buyer can confirm via `POST /api/orders/[id]/confirm-delivery`, or scheduler can auto-confirm via `POST /api/orders/auto-confirm` after admin-configured SLA hours.
+3. Settlement release updates payout hold to `COMPLETED`, credits vendor wallet once, and appends lifecycle history (`BUYER_CONFIRMED`/`AUTO_CONFIRMED` + `SETTLEMENT_RELEASED`).
+4. Replay requests are idempotent and return already-released state without duplicate credits.
+```
+
+### Admin-Managed Commerce Lifecycle Config Flow
+
+```
+1. Admin opens `/operations/settings` and loads lifecycle panel state from `GET /api/admin/commerce-config`.
+2. API upserts/returns singleton config (`CommerceLifecycleConfig`) with bounded values.
+3. Admin updates auto-confirm enablement + SLA hours + refund request window via `PUT /api/admin/commerce-config`.
+4. `POST /api/orders/auto-confirm` reads persisted config to determine enablement and window.
+5. `POST /api/orders/[id]/refund/request` enforces admin-configured refund window against delivered timestamp.
+```
+
+### Multi-Vendor Checkout Split Order Flow
+
+```
+1. Checkout groups cart lines by `vendorId` and submits `vendorOrders[]` in one checkout request.
+2. `POST /api/orders` verifies payment once (gateway/wallet semantics), validates vendor ownership per line, and computes per-vendor totals.
+3. API creates one order per vendor within a single DB transaction and links them via checkout-group metadata.
+4. Wallet method debits buyer wallet once for the grouped checkout amount while recording per-order payment transactions with deterministic balance progression.
+5. Stock/vendor metrics update per split order, and notifications fan out to each vendor plus buyer checkout summary.
+```
+
+### Refund Request/Review/Reconciliation Flow
+
+```
+1. Buyer submits refund request via `POST /api/orders/[id]/refund/request`.
+2. API records pending refund transaction and appends `REFUND_REQUESTED` lifecycle event.
+3. Admin reviews via `POST /api/orders/[id]/refund/review` with approve/reject action.
+4. Approve path credits buyer wallet, marks order/payment as refunded, and reconciles payout:
+        - pre-release: reverse pending payout hold
+        - post-release: debit vendor wallet compensation and reverse payout record.
+5. Reject path marks request failed and appends `REFUND_REJECTED` lifecycle event.
+```
+
+### Withdrawal Transfer Processing Lifecycle
+
+```
+1. Vendor withdrawal request creates `WITHDRAWAL` transaction intent (`PENDING`) without immediate wallet debit.
+2. Processing endpoint `POST /api/wallet/withdraw/process` initiates provider transfer and reconciles status.
+3. On success, wallet is debited and withdrawal transaction marked `COMPLETED`.
+4. On failure, transaction is marked `FAILED` and available balance remains unaffected.
+5. Wallet API exposes derived `availableBalance` and `pendingWithdrawals` for accurate UI display.
 ```
 
 ### Operations Payment Mode Visibility Flow
@@ -404,6 +468,9 @@ Migration direction:
 | 2026-04-09 | Added notifications inbox-first route + template resolver  | Restore `/notifications` inbox discoverability, make preference UI truthful, and reduce churny runtime copy |
 | 2026-04-13 | Added idempotent order lifecycle + delivered payout automation + WhatsApp guard flow | Enforce deterministic status transitions, replay-safe payout automation, and guard-first external vendor contact |
 | 2026-04-13 | Refined banner deck and category navigation query-sync UX  | Deliver image-first hero/side ad composition and ensure category-tag filtering responds directly to URL navigation |
+| 2026-04-14 | Reconciled commerce assurance docs into Phase A delivered + Phase B continuation | Preserve merged deterministic lifecycle safeguards while restoring full original scope for settlement/refund/auto-confirm closure |
+| 2026-04-14 | Implemented Phase B lifecycle APIs for settlement release, refund review, and withdrawal processing | Move from delivery-trigger immediate credit to confirmation-gated settlement release with explicit reconciliation paths |
+| 2026-04-14 | Added admin lifecycle config + multi-vendor split checkout safety | Make SLA/refund timing operationally configurable and ensure grouped checkout funds/order integrity across vendors |
 
 ### Email Change + Reverification Flow
 

@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet } from '@/lib/cache/redis';
 import { userWalletKey } from '@/lib/cache/keys';
+import { TransactionStatus, TransactionType } from '@/prisma/generated/client';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 
 export async function GET(_req: NextRequest) {
@@ -32,7 +33,25 @@ export async function GET(_req: NextRequest) {
         });
         if (!wallet) return apiError('Wallet not found', 404);
 
-        await cacheSet(cacheKey, wallet, 120);
-        return apiSuccess({ wallet });
+        const pendingWithdrawalsAggregate = await prisma.transaction.aggregate({
+            where: {
+                walletId: wallet.id,
+                type: TransactionType.WITHDRAWAL,
+                status: TransactionStatus.PENDING,
+            },
+            _sum: { amount: true },
+        });
+
+        const pendingWithdrawals = pendingWithdrawalsAggregate._sum.amount ?? 0;
+        const availableBalance = wallet.balance - pendingWithdrawals;
+
+        const payload = {
+            ...wallet,
+            availableBalance,
+            pendingWithdrawals,
+        };
+
+        await cacheSet(cacheKey, payload, 120);
+        return apiSuccess({ wallet: payload });
     });
 }

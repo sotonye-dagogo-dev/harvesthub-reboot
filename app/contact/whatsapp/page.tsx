@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { AlertTriangle, ArrowLeft, MessageCircle } from "lucide-react";
 
 const VENDOR_NAME_MAX_LENGTH = 80;
 const MIN_WHATSAPP_DIGITS = 10;
 const MAX_WHATSAPP_DIGITS = 15;
+const TELEMETRY_SOURCES = new Set(["vendor-profile", "product-page"]);
 
 function sanitizeReturnPath(value: string | null): string {
   if (!value) {
@@ -37,15 +39,48 @@ function normalizePhone(value: string | null): string {
   return (value || "").replace(/[^0-9]/g, "");
 }
 
+function sanitizeTelemetrySource(value: string | null): string {
+  if (!value) return "vendor-profile";
+  const normalized = value.trim().toLowerCase();
+  return TELEMETRY_SOURCES.has(normalized) ? normalized : "vendor-profile";
+}
+
 export default function WhatsAppContactGuardPage() {
   const searchParams = useSearchParams();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const vendorName = sanitizeVendorName(searchParams.get("vendorName"));
   const returnTo = sanitizeReturnPath(searchParams.get("returnTo"));
   const phone = normalizePhone(searchParams.get("phone"));
-  const isValidPhone =
-    phone.length >= MIN_WHATSAPP_DIGITS && phone.length <= MAX_WHATSAPP_DIGITS;
+  const source = sanitizeTelemetrySource(searchParams.get("source"));
+  const isValidPhone = phone.length >= MIN_WHATSAPP_DIGITS && phone.length <= MAX_WHATSAPP_DIGITS;
   const externalHref = isValidPhone ? `https://wa.me/${phone}` : null;
+
+  const handleContinue = async () => {
+    if (!externalHref || isRedirecting) return;
+    setIsRedirecting(true);
+
+    const maskedPhone =
+      phone.length > 4 ? `${"*".repeat(Math.max(0, phone.length - 4))}${phone.slice(-4)}` : phone;
+
+    try {
+      await fetch("/api/telemetry/off-platform-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel: "WHATSAPP",
+          vendorName,
+          maskedPhone,
+          source,
+        }),
+      });
+    } catch {
+      // Telemetry is best-effort and should not block contact handoff.
+    }
+
+    window.open(externalHref, "_blank", "noopener,noreferrer");
+    setIsRedirecting(false);
+  };
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10">
@@ -77,15 +112,15 @@ export default function WhatsAppContactGuardPage() {
             Back
           </Link>
           {externalHref ? (
-            <a
-              href={externalHref}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
+            <button
+              type="button"
+              onClick={() => void handleContinue()}
+              disabled={isRedirecting}
               className="inline-flex items-center gap-2 rounded-ds-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
             >
               <MessageCircle className="h-4 w-4" />
-              Continue to WhatsApp
-            </a>
+              {isRedirecting ? "Redirecting..." : "Continue to WhatsApp"}
+            </button>
           ) : (
             <p className="text-sm text-ds-status-error-text">
               This vendor’s WhatsApp number is currently unavailable.
