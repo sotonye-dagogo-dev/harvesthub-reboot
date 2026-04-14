@@ -54,6 +54,16 @@ describe("TopAdBanner contract", () => {
     expect(screen.queryByText("Spring Market Deals")).not.toBeInTheDocument();
   });
 
+  it("uses compact top-strip height contract after ratio rebalance", async () => {
+    vi.mocked(getTopBannersClient).mockResolvedValue([buildBanner()]);
+
+    render(<TopAdBanner />);
+
+    const strip = await screen.findByTestId("top-ad-strip");
+    expect(strip.className).toContain("min-h-[28px]");
+    expect(strip.className).toContain("max-h-[44px]");
+  });
+
   it("renders top banner when title is empty/whitespace", async () => {
     vi.mocked(getTopBannersClient).mockResolvedValue([
       buildBanner({ title: "   " }),

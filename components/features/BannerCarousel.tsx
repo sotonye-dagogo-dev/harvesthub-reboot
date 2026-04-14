@@ -319,7 +319,6 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
         BANNER_CONFIG.TRANSITION_MS === 400 ? "duration-400" : "duration-500",
         isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
       )}
-      aria-hidden={!isActive ? "true" : "false"}
     >
       <div className="relative h-full overflow-hidden bg-ds-surface-sunken">
         <Image
@@ -416,7 +415,10 @@ export function BannerCarousel({
          *   < md  → compact hero visual
          *   md+   → wider desktop hero visual
          */}
-        <div className="relative h-[220px] sm:h-[260px] md:h-[320px] lg:h-[360px] xl:h-[400px]">
+        <div
+          data-testid="hero-banner-viewport"
+          className="relative h-[184px] sm:h-[216px] md:h-[268px] lg:h-[300px] xl:h-[332px]"
+        >
           {banners.map((banner, index) => (
             <Slide
               key={banner.id}

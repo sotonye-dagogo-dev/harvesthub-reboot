@@ -132,8 +132,9 @@ export function TopAdBanner() {
   // ── Inner strip markup ─────────────────────────────────────────
   const stripContent = (
     <div
+      data-testid="top-ad-strip"
       className={cn(
-        "relative flex aspect-[64/10] min-h-[56px] max-h-[84px] w-full items-center justify-between gap-2 overflow-hidden px-3 text-sm",
+        "relative flex aspect-[64/10] min-h-[28px] max-h-[44px] w-full items-center justify-between gap-1 overflow-hidden px-2 text-xs",
         !hasImage && themeClasses.bg,
         themeClasses.text
       )}
@@ -167,7 +168,7 @@ export function TopAdBanner() {
           className="relative z-10 flex-shrink-0 rounded-ds-xs p-0.5 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label="Previous ad"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </button>
       )}
 
@@ -187,7 +188,7 @@ export function TopAdBanner() {
             className="flex-shrink-0 rounded-ds-xs p-0.5 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Next ad"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
@@ -204,7 +205,7 @@ export function TopAdBanner() {
                 goTo(i, banners);
               }}
               className={cn(
-                "h-[2px] flex-1 rounded-ds-full transition-all duration-300",
+                "h-px flex-1 rounded-ds-full transition-all duration-300",
                 i === currentIndex
                   ? themeClasses.indicator
                   : "bg-ds-surface-base/30 hover:bg-ds-surface-base/50"

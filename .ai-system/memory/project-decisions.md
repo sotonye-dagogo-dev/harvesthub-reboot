@@ -27,6 +27,26 @@
 
 ## Decisions
 
+## Banner Placement Ratios Are Runtime-Preview Contracts
+
+**Decision:** Lock banner placement sizing as a shared visual contract: compact `TOP` strip (about half prior height), reduced `HERO` viewport (~1/6 shorter), and dense square `SIDEBAR` tiles with preview parity across operations/advertise surfaces.
+**Date:** 2026-04-14
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Banner surfaces previously occupied too much vertical space and sidebar ads were not dense enough to show multiple campaigns at once. Standardized runtime + preview ratio contracts reduce clipping risk, improve above-the-fold balance, and prevent operator preview drift.
+
+**Alternatives Considered:**
+
+- Keep prior banner dimensions and only trim spacing (rejected: insufficient visual change, sidebar still too dominant).
+- Introduce DB-configurable ratio controls immediately (rejected: unnecessary complexity for a fixed design pass and would require additional governance/UI validation scope).
+
+**Implications:**
+
+- `TopAdBanner`, `BannerCarousel`, and home sidebar rail now enforce updated ratio classes.
+- `BannerPlacementPreview` mirrors the same sizing rules for admin/operator confidence.
+- Visual contract tests now assert top strip, hero viewport, and sidebar tile ratio expectations.
+
 ## Commerce Lifecycle Timing Is Admin-Managed and Persisted
 
 **Decision:** Persist auto-confirm/refund timing and lifecycle enablement in a dedicated singleton model (`CommerceLifecycleConfig`) managed by admin settings APIs/UI instead of hardcoding SLA windows.

@@ -15,18 +15,23 @@ function PreviewFrame({
   className,
   imageUrl,
   title,
+  testId,
   showTitleOverlay = true,
 }: {
   label: string;
   className: string;
   imageUrl?: string | null;
   title: string;
+  testId?: string;
   showTitleOverlay?: boolean;
 }) {
   return (
     <div>
       <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ds-text-tertiary">{label}</p>
-      <div className={`relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-sunken ${className}`}>
+      <div
+        data-testid={testId}
+        className={`relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-sunken ${className}`}
+      >
         {imageUrl ? (
           <Image src={imageUrl} alt={`${label} banner preview`} fill className="object-contain" unoptimized />
         ) : (
@@ -67,26 +72,46 @@ export function BannerPlacementPreview({
           <div className="grid gap-3 sm:grid-cols-2">
             <PreviewFrame
               label="Desktop top strip"
-              className="aspect-[64/10] max-h-[84px]"
+              className="aspect-[64/10] max-h-[44px]"
               imageUrl={imageUrl}
               title={previewTitle}
+              testId="banner-preview-top-desktop"
               showTitleOverlay={false}
             />
             <PreviewFrame
               label="Mobile top strip"
-              className="aspect-[64/10] max-h-[64px]"
+              className="aspect-[64/10] max-h-[36px]"
               imageUrl={imageUrl}
               title={previewTitle}
+              testId="banner-preview-top-mobile"
               showTitleOverlay={false}
             />
           </div>
         </>
       ) : position === "SIDEBAR" ? (
-        <PreviewFrame label="Sidebar card" className="aspect-[3/4] max-h-[260px] w-full sm:max-w-[240px]" imageUrl={imageUrl} title={previewTitle} />
+        <PreviewFrame
+          label="Sidebar card"
+          className="aspect-square max-h-[180px] w-full sm:max-w-[180px]"
+          imageUrl={imageUrl}
+          title={previewTitle}
+          testId="banner-preview-sidebar"
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          <PreviewFrame label="Desktop hero" className="aspect-[5/2]" imageUrl={imageUrl} title={previewTitle} />
-          <PreviewFrame label="Mobile hero" className="aspect-[5/2]" imageUrl={imageUrl} title={previewTitle} />
+          <PreviewFrame
+            label="Desktop hero"
+            className="aspect-[11/4]"
+            imageUrl={imageUrl}
+            title={previewTitle}
+            testId="banner-preview-hero-desktop"
+          />
+          <PreviewFrame
+            label="Mobile hero"
+            className="aspect-[2/1]"
+            imageUrl={imageUrl}
+            title={previewTitle}
+            testId="banner-preview-hero-mobile"
+          />
         </div>
       )}
     </div>

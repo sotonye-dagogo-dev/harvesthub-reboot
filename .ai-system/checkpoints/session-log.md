@@ -39,6 +39,56 @@
 
 ---
 
+## Session 55 — 2026-04-14
+
+**Goal:**
+Implement the planned banner ratio rebalance pass (top strip height reduction, shorter hero viewport, denser square sidebar tiles), keep operations preview parity, and close validation/documentation gates.
+
+**Completed:**
+
+- Updated top banner strip runtime contract to a compact half-height profile while retaining full-width image-first behavior.
+- Reduced hero carousel viewport heights across breakpoints by approximately one-sixth.
+- Increased sidebar ad density by switching to compact square tiles and expanding visible tile count (`slice(0, 6)`) in a denser responsive grid.
+- Updated banner placement preview contracts for `TOP`, `HERO`, and `SIDEBAR` to mirror runtime proportions.
+- Added/updated focused visual-contract coverage for:
+  - compact top strip height contract
+  - reduced hero viewport breakpoint classes
+  - square compact sidebar preview/runtime contract
+  - home sidebar density behavior when hero banners are present
+- Completed touched-scope validation gate:
+  - `npm run lint` passed
+  - `npx tsc --noEmit` passed
+  - focused vitest suites passed (10 tests across 4 files)
+  - `npm run audit:dead-links` passed
+  - `npm run audit:sidebar-routes` passed
+- Synchronized `.ai-system` planning/architecture/decision/history artifacts and marked banner-ratio queue tasks complete.
+
+**Files Modified:**
+
+- components/features/TopAdBanner.tsx
+- components/features/BannerCarousel.tsx
+- app/components/HomeContent.tsx
+- components/features/BannerPlacementPreview.tsx
+- components/__tests__/TopAdBanner.contract.test.tsx
+- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- components/__tests__/BannerPlacementPreview.test.tsx
+- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/checkpoints/banner-ratio-rebalance-evidence-2026-04-14.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Capture visual before/after screenshot evidence for representative breakpoints and attach it to the checkpoint artifacts for final design sign-off.
+
+**Notes / Blockers:**
+
+- Focused vitest runs emit known jsdom warnings about mocked `next/image` boolean attributes (`fill`, `priority`, `unoptimized`); tests pass and warnings are non-blocking.
+
+---
+
 ## Session 54 — 2026-04-14
 
 **Goal:**
