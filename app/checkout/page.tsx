@@ -29,9 +29,6 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [vendorVerificationAcknowledged, setVendorVerificationAcknowledged] = useState(false);
 
-  const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 : 0;
-  const total = totalPrice + deliveryFee;
-
   const hasServiceItems = useMemo(
     () => items.some((item) => item.isService),
     [items]
@@ -44,9 +41,34 @@ export default function CheckoutPage() {
     () => Array.from(new Set(items.map((item) => item.vendorId).filter(Boolean))),
     [items]
   );
+  const vendorCount = Math.max(1, vendorIds.length);
+  const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
+  const total = totalPrice + deliveryFee;
   const vendorStatusKey = useMemo(
     () => vendorIds.slice().sort().join(","),
     [vendorIds]
+  );
+  const vendorOrderPayload = useMemo(
+    () =>
+      Array.from(
+        items.reduce((map, item) => {
+          const key = item.vendorId || "";
+          if (!key) return map;
+
+          const existing = map.get(key) || [];
+          existing.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedVariants: item.variant ? { value: item.variant } : undefined,
+          });
+          map.set(key, existing);
+          return map;
+        }, new Map<string, Array<{ productId: string; quantity: number; selectedVariants?: { value: string } }>>())
+      ).map(([groupVendorId, groupItems]) => ({
+        vendorId: groupVendorId,
+        items: groupItems,
+      })),
+    [items]
   );
 
   const fetchVendorStatuses = useMemo(
@@ -121,13 +143,8 @@ export default function CheckoutPage() {
 
     setIsPlacingOrder(true);
     try {
-      const vendorId = items[0]?.vendorId;
-      if (!vendorId) {
-        throw new Error("Unable to determine vendor for this order");
-      }
-
-      if (hasMultipleVendors) {
-        throw new Error("Please checkout one vendor at a time");
+      if (vendorOrderPayload.length === 0) {
+        throw new Error("Unable to determine vendor group(s) for this order");
       }
 
       let paymentReference: string | null = null;
@@ -143,6 +160,7 @@ export default function CheckoutPage() {
             metadata: {
               source: "checkout",
               itemCount: items.length,
+              vendorCount,
               deliveryMethod,
             },
           }),
@@ -165,12 +183,15 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          vendorId,
-          items: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            selectedVariants: item.variant ? { value: item.variant } : undefined,
-          })),
+          vendorId:
+            vendorOrderPayload.length === 1 && vendorOrderPayload[0]
+              ? vendorOrderPayload[0].vendorId
+              : undefined,
+          items:
+            vendorOrderPayload.length === 1 && vendorOrderPayload[0]
+              ? vendorOrderPayload[0].items
+              : undefined,
+          vendorOrders: vendorOrderPayload,
           paymentMethod,
           deliveryMethod,
           deliveryAddress: deliveryMethod === "DELIVERY" ? selectedAddress : null,
@@ -194,7 +215,11 @@ export default function CheckoutPage() {
         throw new Error(orderData?.error || "Failed to place order");
       }
 
-      message.success("Order placed successfully!");
+      if (orderData?.split && Array.isArray(orderData?.orders)) {
+        message.success(`Checkout complete. ${orderData.orders.length} orders placed successfully.`);
+      } else {
+        message.success("Order placed successfully!");
+      }
       clearCart();
       router.push("/orders");
     } catch (error) {
@@ -447,6 +472,11 @@ export default function CheckoutPage() {
                 <span>Delivery Fee</span>
                 <span className="font-medium">{formatCurrency(deliveryFee)}</span>
               </div>
+              {deliveryMethod === "DELIVERY" && hasMultipleVendors ? (
+                <p className="text-[11px] text-ds-text-tertiary">
+                  Delivery is applied per vendor package ({vendorCount} vendors).
+                </p>
+              ) : null}
             </div>
 
             <div className="mt-4 border-t border-ds-border-base pt-4">

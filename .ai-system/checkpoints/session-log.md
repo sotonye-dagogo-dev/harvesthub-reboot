@@ -39,6 +39,163 @@
 
 ---
 
+## Session 54 — 2026-04-14
+
+**Goal:**
+Complete remaining commerce-assurance closure requests: admin-manageable lifecycle timing, product-page vendor chat pointer, safe multi-vendor checkout/order handling, migration execution, full validation gate, and queue/report synchronization.
+
+**Completed:**
+
+- Added persisted admin lifecycle config model/service/API (`CommerceLifecycleConfig`) and wired operations settings panel to manage:
+  - auto-confirm enablement
+  - auto-confirm hours
+  - refund request window hours
+- Updated scheduler and refund request APIs to consume persisted lifecycle config instead of hardcoded timing assumptions.
+- Added product-detail "Chat with vendor" pointer routed through WhatsApp guard flow with telemetry source tagging.
+- Implemented multi-vendor-safe order creation:
+  - checkout now groups cart lines into `vendorOrders[]`
+  - `/api/orders` splits grouped checkout into per-vendor orders in one transaction
+  - card verification remains unified for checkout
+  - wallet debit validates against grouped total and applies deterministic per-order payment audit records
+- Executed Prisma migration and regenerated client:
+  - `20260414100529_add_commerce_lifecycle_config`
+- Validation gate results:
+  - `npm run lint` passed
+  - `npx tsc --noEmit` passed
+  - `npm run audit:routes` passed
+  - `npm run audit:sidebar-routes` passed
+  - full `npx vitest run` still shows pre-existing unrelated baseline failures
+  - touched-scope vitest suites passed (`status.route`, WhatsApp guard, product fallback)
+- Updated `.ai-system` queue/plan/architecture/decision/history artifacts with migration report and closure notes.
+
+**Files Modified:**
+
+- prisma/schema.prisma
+- prisma/migrations/20260414100529_add_commerce_lifecycle_config/migration.sql
+- lib/services/commerceConfig.ts
+- app/api/admin/commerce-config/route.ts
+- app/api/orders/auto-confirm/route.ts
+- app/api/orders/[id]/refund/request/route.ts
+- app/(operations)/operations/settings/page.tsx
+- app/api/orders/route.ts
+- app/checkout/page.tsx
+- app/products/[id]/page.tsx
+- app/contact/whatsapp/page.tsx
+- prisma/generated/client/*
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Address pre-existing unrelated full-suite vitest failures to restore repository-wide green baseline; maintain new lifecycle config bounds and extend payment-provider transfer/webhook hardening.
+
+**Notes / Blockers:**
+
+- Full vitest baseline remains noisy from pre-existing unrelated suites (JWT/schema/navigation contracts), not introduced by this change set.
+
+---
+
+## Session 53 — 2026-04-14
+
+**Goal:**
+Implement Phase B continuation of the commerce assurance wave end-to-end (delivery confirmation + auto-confirm + settlement release + payout/withdraw orchestration + refund lifecycle + telemetry + UI actions), then validate and sync docs.
+
+**Completed:**
+
+- Added shared lifecycle service module (`lib/services/orderLifecycle.ts`) for status-history parsing/append, payout-hold creation, and settlement release execution.
+- Refactored `PATCH /api/orders/[id]/status` to create payout hold (`PAYOUT` pending) at delivery instead of immediate wallet credit, preserving idempotent transition behavior.
+- Added buyer confirmation endpoint (`POST /api/orders/[id]/confirm-delivery`) that releases settlement and sends lifecycle notifications.
+- Added auto-confirm scheduler endpoint (`POST /api/orders/auto-confirm`) with 48-hour delivered-window eligibility and idempotent release behavior.
+- Added refund lifecycle endpoints:
+  - `POST /api/orders/[id]/refund/request`
+  - `POST /api/orders/[id]/refund/review` (admin approve/reject, including pre/post-settlement reconciliation behavior)
+- Upgraded withdrawal orchestration:
+  - `POST /api/wallet/withdraw` now creates intent (`WITHDRAWAL` pending) without immediate balance deduction.
+  - Added `POST /api/wallet/withdraw/process` for transfer initiation/verification and completion/failure updates.
+- Extended payment service stubs with transfer lifecycle functions (`initiateTransfer`, `verifyTransfer`).
+- Aligned wallet/order cash integrity:
+  - Wallet-funded order creation now debits buyer wallet and logs `PAYMENT` transaction atomically.
+  - Wallet read API now exposes `availableBalance` and `pendingWithdrawals`.
+  - Wallet page now displays derived balances and respects withdrawal hold logic.
+- Added buyer/admin UI lifecycle controls on order detail page:
+  - Buyer: confirm delivery + request refund.
+  - Admin: approve/reject pending refund.
+- Added WhatsApp off-platform telemetry endpoint (`POST /api/telemetry/off-platform-contact`) and wired guard page to emit marker before redirect.
+- Normalized homepage vendor-card equal-height behavior via card/container layout updates.
+- Updated focused tests for changed contracts (status route and WhatsApp guard).
+- Validation completed:
+  - focused Vitest suite passed (`status.route`, `whatsapp guard`, `VendorCard`)
+  - `npx tsc --noEmit` passed.
+
+**Files Modified:**
+
+- lib/services/orderLifecycle.ts
+- app/api/orders/[id]/status/route.ts
+- app/api/orders/[id]/confirm-delivery/route.ts
+- app/api/orders/auto-confirm/route.ts
+- app/api/orders/[id]/refund/request/route.ts
+- app/api/orders/[id]/refund/review/route.ts
+- app/api/orders/route.ts
+- app/api/orders/__tests__/status.route.test.ts
+- app/api/wallet/withdraw/route.ts
+- app/api/wallet/withdraw/process/route.ts
+- app/api/wallet/route.ts
+- lib/services/payments.ts
+- app/orders/[id]/page.tsx
+- app/wallet/page.tsx
+- app/api/telemetry/off-platform-contact/route.ts
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- components/features/VendorCard.tsx
+- app/components/HomeContent.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run full final gate (`npm run lint`, `npx tsc --noEmit`, focused/full vitest for touched scope, `npm run audit:dead-links`, `npm run audit:sidebar-routes`), then produce final schema/migration report and close Phase B queue items.
+
+**Notes / Blockers:**
+
+- No Prisma schema migration has been executed yet in this run; lifecycle additions currently persist via status-history + transaction metadata.
+- Full test suite still has known baseline unrelated failures; focused suites for touched domains pass.
+
+---
+
+## Session 52 — 2026-04-14
+
+**Goal:**
+Perform one-pass documentation integrity reconciliation after stash/pull/merge flow to verify commerce-assurance scope alignment, then synchronize `.ai-system` artifacts.
+
+**Completed:**
+
+- Audited git stash vs current merged HEAD for pre-handoff planning files and confirmed divergence in 2026-04-13 scope representation.
+- Verified merged cloud implementation footprint from commit history (status-route idempotency/payout guard, banner preview parity, WhatsApp guard, and separate UI adjustment pass).
+- Reconciled task queue to preserve completed Phase A work and re-open explicit Phase B continuation tasks for remaining original lifecycle scope.
+- Restored missing 2026-04-13 commerce assurance feature spec in project plan with explicit Phase A vs Phase B status and migration-report requirements.
+- Updated architecture flow docs to include Phase B continuation lifecycle and added architecture history reconciliation row.
+- Added project decision documenting governance model: Phase A delivered + Phase B continuation.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Execute Phase B continuation queue for commerce assurance and close with mandatory schema/migration outcome report.
+
+**Notes / Blockers:**
+
+- No production code edits were made in this reconciliation session.
+- Existing cloud temp plan file is present locally and now aligned with reconciled planning artifacts.
+
+---
+
 ## Session 51 — 2026-04-13
 
 **Goal:**

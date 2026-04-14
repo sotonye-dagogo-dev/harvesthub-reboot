@@ -33,40 +33,55 @@ export async function POST(req: NextRequest) {
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
         if (!wallet) return apiError('Wallet not found', 404);
         if (!wallet.isActive) return apiError('Wallet is disabled', 403);
-        if (wallet.balance < amount) {
+        const pendingWithdrawalsAggregate = await prisma.transaction.aggregate({
+            where: {
+                walletId: wallet.id,
+                type: TransactionType.WITHDRAWAL,
+                status: TransactionStatus.PENDING,
+            },
+            _sum: { amount: true },
+        });
+
+        const reservedAmount = pendingWithdrawalsAggregate._sum.amount ?? 0;
+        const availableBalance = wallet.balance - reservedAmount;
+
+        if (availableBalance < amount) {
             return apiError('Insufficient balance', 400);
         }
 
         const reference = `WDR-${Date.now()}`;
 
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-            const updated = await tx.wallet.update({
-                where: { id: wallet.id },
-                data: { balance: { decrement: amount } },
-            });
-
             const transaction = await tx.transaction.create({
                 data: {
                     walletId: wallet.id,
                     type: TransactionType.WITHDRAWAL,
                     amount,
                     balanceBefore: wallet.balance,
-                    balanceAfter: updated.balance,
+                    balanceAfter: wallet.balance,
                     status: TransactionStatus.PENDING,
                     reference,
-                    description: 'Wallet withdrawal',
-                    metadata: { bankName, accountNumber, accountName },
+                    description: 'Wallet withdrawal request pending transfer processing',
+                    metadata: {
+                        bankName,
+                        accountNumber,
+                        accountName,
+                        transferStage: 'REQUESTED',
+                        requestedAt: new Date().toISOString(),
+                    },
                 },
             });
 
-            return { wallet: updated, transaction };
+            return { wallet, transaction };
         });
 
         await cacheInvalidate(userWalletKey(user.userId));
 
         return apiSuccess({
-            message: 'Withdrawal request submitted. Funds will be transferred within 24 hours.',
+            message:
+                'Withdrawal request submitted. Transfer processing will update this transaction once provider status is confirmed.',
             ...result,
+            availableBalance,
         });
     });
 }

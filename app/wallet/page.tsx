@@ -62,6 +62,14 @@ export default function WalletPage() {
 
   const userWallet = walletResource?.wallet ?? null;
   const userTransactions = walletResource?.transactions ?? [];
+  const walletDerived = userWallet as
+    | (Wallet & {
+        availableBalance?: number;
+        pendingWithdrawals?: number;
+      })
+    | null;
+  const availableBalance = walletDerived?.availableBalance ?? userWallet?.balance ?? 0;
+  const pendingWithdrawals = walletDerived?.pendingWithdrawals ?? 0;
   const hasWalletPayload = typeof walletResource !== "undefined";
   const isWalletBootstrapLoading = Boolean(user?.id) && !hasWalletPayload && !error;
 
@@ -80,8 +88,7 @@ export default function WalletPage() {
     staleTimeMs: 20_000,
   });
 
-  const paymentsEnabled =
-    paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+  const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
 
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
   const paginatedTransactions = userTransactions.slice(
@@ -213,7 +220,7 @@ export default function WalletPage() {
       message.error("Minimum withdrawal amount is ₦1,000");
       return;
     }
-    if (!userWallet || amount > userWallet.balance) {
+    if (!userWallet || amount > availableBalance) {
       message.error("Insufficient balance");
       return;
     }
@@ -227,13 +234,8 @@ export default function WalletPage() {
     }
     const normalizedAccountNumber = withdrawAccountNumber.trim();
     const isDigitsOnly = /^\d+$/.test(normalizedAccountNumber);
-    if (
-      normalizedAccountNumber.length !== NIGERIAN_ACCOUNT_NUMBER_LENGTH ||
-      !isDigitsOnly
-    ) {
-      message.error(
-        `Account number must be ${NIGERIAN_ACCOUNT_NUMBER_LENGTH} digits`
-      );
+    if (normalizedAccountNumber.length !== NIGERIAN_ACCOUNT_NUMBER_LENGTH || !isDigitsOnly) {
+      message.error(`Account number must be ${NIGERIAN_ACCOUNT_NUMBER_LENGTH} digits`);
       return;
     }
 
@@ -345,8 +347,13 @@ export default function WalletPage() {
             </div>
             <div className="mb-2 text-sm text-ds-text-secondary">Available Balance</div>
             <div className="mb-6 text-4xl font-bold text-ds-text-brand">
-              {formatCurrency(userWallet.balance)}
+              {formatCurrency(availableBalance)}
             </div>
+            {pendingWithdrawals > 0 ? (
+              <p className="mb-3 text-xs text-ds-text-secondary">
+                Pending withdrawal hold: {formatCurrency(pendingWithdrawals)}
+              </p>
+            ) : null}
             <div className="flex gap-3">
               {user.role !== "ADMIN" && (
                 <>

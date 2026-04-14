@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import WhatsAppContactGuardPage from "@/app/contact/whatsapp/page";
 
 function normalizePhone(value: string) {
@@ -13,11 +13,17 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("WhatsAppContactGuardPage", () => {
+  const mockFetch = vi.fn();
+  const mockWindowOpen = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", mockFetch);
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
+    vi.spyOn(window, "open").mockImplementation(mockWindowOpen as unknown as typeof window.open);
   });
 
-  it("shows disclaimer and safe external handoff link", () => {
+  it("shows disclaimer and safe external handoff link", async () => {
     mockUseSearchParams.mockReturnValue(
       new URLSearchParams({
         vendorName: "Fresh Farm",
@@ -31,10 +37,19 @@ describe("WhatsAppContactGuardPage", () => {
     expect(screen.getByText("Before you continue to WhatsApp")).toBeInTheDocument();
     expect(screen.getByText(/leave MyHarvestHub/i)).toBeInTheDocument();
 
-    const continueLink = screen.getByRole("link", { name: /continue to whatsapp/i });
-    expect(continueLink).toHaveAttribute(
-      "href",
-      `https://wa.me/${normalizePhone("+234 801 234 5678")}`
+    const continueButton = screen.getByRole("button", { name: /continue to whatsapp/i });
+    fireEvent.click(continueButton);
+
+    await waitFor(() => {
+      expect(mockWindowOpen).toHaveBeenCalledWith(
+        `https://wa.me/${normalizePhone("+234 801 234 5678")}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/telemetry/off-platform-contact",
+      expect.objectContaining({ method: "POST" })
     );
   });
 
@@ -48,7 +63,7 @@ describe("WhatsAppContactGuardPage", () => {
 
     render(<WhatsAppContactGuardPage />);
 
-    expect(screen.queryByRole("link", { name: /continue to whatsapp/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /continue to whatsapp/i })).not.toBeInTheDocument();
     expect(
       screen.getByText("This vendor’s WhatsApp number is currently unavailable.")
     ).toBeInTheDocument();

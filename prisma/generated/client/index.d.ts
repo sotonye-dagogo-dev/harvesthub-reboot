@@ -94,6 +94,11 @@ export type AdRateConfig = $Result.DefaultSelection<Prisma.$AdRateConfigPayload>
  */
 export type CommissionConfig = $Result.DefaultSelection<Prisma.$CommissionConfigPayload>
 /**
+ * Model CommerceLifecycleConfig
+ * 
+ */
+export type CommerceLifecycleConfig = $Result.DefaultSelection<Prisma.$CommerceLifecycleConfigPayload>
+/**
  * Model Notification
  * 
  */
@@ -1081,6 +1086,16 @@ export class PrismaClient<
   get commissionConfig(): Prisma.CommissionConfigDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.commerceLifecycleConfig`: Exposes CRUD operations for the **CommerceLifecycleConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CommerceLifecycleConfigs
+    * const commerceLifecycleConfigs = await prisma.commerceLifecycleConfig.findMany()
+    * ```
+    */
+  get commerceLifecycleConfig(): Prisma.CommerceLifecycleConfigDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.notification`: Exposes CRUD operations for the **Notification** model.
     * Example usage:
     * ```ts
@@ -1689,6 +1704,7 @@ export namespace Prisma {
     AdApplication: 'AdApplication',
     AdRateConfig: 'AdRateConfig',
     CommissionConfig: 'CommissionConfig',
+    CommerceLifecycleConfig: 'CommerceLifecycleConfig',
     Notification: 'Notification',
     PushSubscription: 'PushSubscription',
     NotificationPreference: 'NotificationPreference',
@@ -1720,7 +1736,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
+      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "commerceLifecycleConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2905,6 +2921,80 @@ export namespace Prisma {
           count: {
             args: Prisma.CommissionConfigCountArgs<ExtArgs>
             result: $Utils.Optional<CommissionConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      CommerceLifecycleConfig: {
+        payload: Prisma.$CommerceLifecycleConfigPayload<ExtArgs>
+        fields: Prisma.CommerceLifecycleConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CommerceLifecycleConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CommerceLifecycleConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.CommerceLifecycleConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CommerceLifecycleConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          findMany: {
+            args: Prisma.CommerceLifecycleConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>[]
+          }
+          create: {
+            args: Prisma.CommerceLifecycleConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          createMany: {
+            args: Prisma.CommerceLifecycleConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CommerceLifecycleConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.CommerceLifecycleConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          update: {
+            args: Prisma.CommerceLifecycleConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.CommerceLifecycleConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CommerceLifecycleConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CommerceLifecycleConfigUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>[]
+          }
+          upsert: {
+            args: Prisma.CommerceLifecycleConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CommerceLifecycleConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.CommerceLifecycleConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCommerceLifecycleConfig>
+          }
+          groupBy: {
+            args: Prisma.CommerceLifecycleConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CommerceLifecycleConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CommerceLifecycleConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<CommerceLifecycleConfigCountAggregateOutputType> | number
           }
         }
       }
@@ -4216,6 +4306,7 @@ export namespace Prisma {
     adApplication?: AdApplicationOmit
     adRateConfig?: AdRateConfigOmit
     commissionConfig?: CommissionConfigOmit
+    commerceLifecycleConfig?: CommerceLifecycleConfigOmit
     notification?: NotificationOmit
     pushSubscription?: PushSubscriptionOmit
     notificationPreference?: NotificationPreferenceOmit
@@ -25050,6 +25141,1070 @@ export namespace Prisma {
 
 
   /**
+   * Model CommerceLifecycleConfig
+   */
+
+  export type AggregateCommerceLifecycleConfig = {
+    _count: CommerceLifecycleConfigCountAggregateOutputType | null
+    _avg: CommerceLifecycleConfigAvgAggregateOutputType | null
+    _sum: CommerceLifecycleConfigSumAggregateOutputType | null
+    _min: CommerceLifecycleConfigMinAggregateOutputType | null
+    _max: CommerceLifecycleConfigMaxAggregateOutputType | null
+  }
+
+  export type CommerceLifecycleConfigAvgAggregateOutputType = {
+    autoConfirmHours: number | null
+    refundWindowHours: number | null
+  }
+
+  export type CommerceLifecycleConfigSumAggregateOutputType = {
+    autoConfirmHours: number | null
+    refundWindowHours: number | null
+  }
+
+  export type CommerceLifecycleConfigMinAggregateOutputType = {
+    id: string | null
+    key: string | null
+    autoConfirmEnabled: boolean | null
+    autoConfirmHours: number | null
+    refundWindowHours: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CommerceLifecycleConfigMaxAggregateOutputType = {
+    id: string | null
+    key: string | null
+    autoConfirmEnabled: boolean | null
+    autoConfirmHours: number | null
+    refundWindowHours: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CommerceLifecycleConfigCountAggregateOutputType = {
+    id: number
+    key: number
+    autoConfirmEnabled: number
+    autoConfirmHours: number
+    refundWindowHours: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CommerceLifecycleConfigAvgAggregateInputType = {
+    autoConfirmHours?: true
+    refundWindowHours?: true
+  }
+
+  export type CommerceLifecycleConfigSumAggregateInputType = {
+    autoConfirmHours?: true
+    refundWindowHours?: true
+  }
+
+  export type CommerceLifecycleConfigMinAggregateInputType = {
+    id?: true
+    key?: true
+    autoConfirmEnabled?: true
+    autoConfirmHours?: true
+    refundWindowHours?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CommerceLifecycleConfigMaxAggregateInputType = {
+    id?: true
+    key?: true
+    autoConfirmEnabled?: true
+    autoConfirmHours?: true
+    refundWindowHours?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CommerceLifecycleConfigCountAggregateInputType = {
+    id?: true
+    key?: true
+    autoConfirmEnabled?: true
+    autoConfirmHours?: true
+    refundWindowHours?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CommerceLifecycleConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CommerceLifecycleConfig to aggregate.
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CommerceLifecycleConfigs to fetch.
+     */
+    orderBy?: CommerceLifecycleConfigOrderByWithRelationInput | CommerceLifecycleConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CommerceLifecycleConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CommerceLifecycleConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CommerceLifecycleConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CommerceLifecycleConfigs
+    **/
+    _count?: true | CommerceLifecycleConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CommerceLifecycleConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CommerceLifecycleConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CommerceLifecycleConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CommerceLifecycleConfigMaxAggregateInputType
+  }
+
+  export type GetCommerceLifecycleConfigAggregateType<T extends CommerceLifecycleConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateCommerceLifecycleConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCommerceLifecycleConfig[P]>
+      : GetScalarType<T[P], AggregateCommerceLifecycleConfig[P]>
+  }
+
+
+
+
+  export type CommerceLifecycleConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CommerceLifecycleConfigWhereInput
+    orderBy?: CommerceLifecycleConfigOrderByWithAggregationInput | CommerceLifecycleConfigOrderByWithAggregationInput[]
+    by: CommerceLifecycleConfigScalarFieldEnum[] | CommerceLifecycleConfigScalarFieldEnum
+    having?: CommerceLifecycleConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CommerceLifecycleConfigCountAggregateInputType | true
+    _avg?: CommerceLifecycleConfigAvgAggregateInputType
+    _sum?: CommerceLifecycleConfigSumAggregateInputType
+    _min?: CommerceLifecycleConfigMinAggregateInputType
+    _max?: CommerceLifecycleConfigMaxAggregateInputType
+  }
+
+  export type CommerceLifecycleConfigGroupByOutputType = {
+    id: string
+    key: string
+    autoConfirmEnabled: boolean
+    autoConfirmHours: number
+    refundWindowHours: number
+    createdAt: Date
+    updatedAt: Date
+    _count: CommerceLifecycleConfigCountAggregateOutputType | null
+    _avg: CommerceLifecycleConfigAvgAggregateOutputType | null
+    _sum: CommerceLifecycleConfigSumAggregateOutputType | null
+    _min: CommerceLifecycleConfigMinAggregateOutputType | null
+    _max: CommerceLifecycleConfigMaxAggregateOutputType | null
+  }
+
+  type GetCommerceLifecycleConfigGroupByPayload<T extends CommerceLifecycleConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CommerceLifecycleConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CommerceLifecycleConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CommerceLifecycleConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], CommerceLifecycleConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CommerceLifecycleConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: boolean
+    refundWindowHours?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["commerceLifecycleConfig"]>
+
+  export type CommerceLifecycleConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: boolean
+    refundWindowHours?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["commerceLifecycleConfig"]>
+
+  export type CommerceLifecycleConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    key?: boolean
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: boolean
+    refundWindowHours?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["commerceLifecycleConfig"]>
+
+  export type CommerceLifecycleConfigSelectScalar = {
+    id?: boolean
+    key?: boolean
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: boolean
+    refundWindowHours?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CommerceLifecycleConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "autoConfirmEnabled" | "autoConfirmHours" | "refundWindowHours" | "createdAt" | "updatedAt", ExtArgs["result"]["commerceLifecycleConfig"]>
+
+  export type $CommerceLifecycleConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CommerceLifecycleConfig"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      key: string
+      autoConfirmEnabled: boolean
+      autoConfirmHours: number
+      refundWindowHours: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["commerceLifecycleConfig"]>
+    composites: {}
+  }
+
+  type CommerceLifecycleConfigGetPayload<S extends boolean | null | undefined | CommerceLifecycleConfigDefaultArgs> = $Result.GetResult<Prisma.$CommerceLifecycleConfigPayload, S>
+
+  type CommerceLifecycleConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CommerceLifecycleConfigFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CommerceLifecycleConfigCountAggregateInputType | true
+    }
+
+  export interface CommerceLifecycleConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CommerceLifecycleConfig'], meta: { name: 'CommerceLifecycleConfig' } }
+    /**
+     * Find zero or one CommerceLifecycleConfig that matches the filter.
+     * @param {CommerceLifecycleConfigFindUniqueArgs} args - Arguments to find a CommerceLifecycleConfig
+     * @example
+     * // Get one CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CommerceLifecycleConfigFindUniqueArgs>(args: SelectSubset<T, CommerceLifecycleConfigFindUniqueArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CommerceLifecycleConfig that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CommerceLifecycleConfigFindUniqueOrThrowArgs} args - Arguments to find a CommerceLifecycleConfig
+     * @example
+     * // Get one CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CommerceLifecycleConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, CommerceLifecycleConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CommerceLifecycleConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigFindFirstArgs} args - Arguments to find a CommerceLifecycleConfig
+     * @example
+     * // Get one CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CommerceLifecycleConfigFindFirstArgs>(args?: SelectSubset<T, CommerceLifecycleConfigFindFirstArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CommerceLifecycleConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigFindFirstOrThrowArgs} args - Arguments to find a CommerceLifecycleConfig
+     * @example
+     * // Get one CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CommerceLifecycleConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, CommerceLifecycleConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CommerceLifecycleConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CommerceLifecycleConfigs
+     * const commerceLifecycleConfigs = await prisma.commerceLifecycleConfig.findMany()
+     * 
+     * // Get first 10 CommerceLifecycleConfigs
+     * const commerceLifecycleConfigs = await prisma.commerceLifecycleConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const commerceLifecycleConfigWithIdOnly = await prisma.commerceLifecycleConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CommerceLifecycleConfigFindManyArgs>(args?: SelectSubset<T, CommerceLifecycleConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CommerceLifecycleConfig.
+     * @param {CommerceLifecycleConfigCreateArgs} args - Arguments to create a CommerceLifecycleConfig.
+     * @example
+     * // Create one CommerceLifecycleConfig
+     * const CommerceLifecycleConfig = await prisma.commerceLifecycleConfig.create({
+     *   data: {
+     *     // ... data to create a CommerceLifecycleConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends CommerceLifecycleConfigCreateArgs>(args: SelectSubset<T, CommerceLifecycleConfigCreateArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CommerceLifecycleConfigs.
+     * @param {CommerceLifecycleConfigCreateManyArgs} args - Arguments to create many CommerceLifecycleConfigs.
+     * @example
+     * // Create many CommerceLifecycleConfigs
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CommerceLifecycleConfigCreateManyArgs>(args?: SelectSubset<T, CommerceLifecycleConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CommerceLifecycleConfigs and returns the data saved in the database.
+     * @param {CommerceLifecycleConfigCreateManyAndReturnArgs} args - Arguments to create many CommerceLifecycleConfigs.
+     * @example
+     * // Create many CommerceLifecycleConfigs
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CommerceLifecycleConfigs and only return the `id`
+     * const commerceLifecycleConfigWithIdOnly = await prisma.commerceLifecycleConfig.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CommerceLifecycleConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, CommerceLifecycleConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CommerceLifecycleConfig.
+     * @param {CommerceLifecycleConfigDeleteArgs} args - Arguments to delete one CommerceLifecycleConfig.
+     * @example
+     * // Delete one CommerceLifecycleConfig
+     * const CommerceLifecycleConfig = await prisma.commerceLifecycleConfig.delete({
+     *   where: {
+     *     // ... filter to delete one CommerceLifecycleConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CommerceLifecycleConfigDeleteArgs>(args: SelectSubset<T, CommerceLifecycleConfigDeleteArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CommerceLifecycleConfig.
+     * @param {CommerceLifecycleConfigUpdateArgs} args - Arguments to update one CommerceLifecycleConfig.
+     * @example
+     * // Update one CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CommerceLifecycleConfigUpdateArgs>(args: SelectSubset<T, CommerceLifecycleConfigUpdateArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CommerceLifecycleConfigs.
+     * @param {CommerceLifecycleConfigDeleteManyArgs} args - Arguments to filter CommerceLifecycleConfigs to delete.
+     * @example
+     * // Delete a few CommerceLifecycleConfigs
+     * const { count } = await prisma.commerceLifecycleConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CommerceLifecycleConfigDeleteManyArgs>(args?: SelectSubset<T, CommerceLifecycleConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CommerceLifecycleConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CommerceLifecycleConfigs
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CommerceLifecycleConfigUpdateManyArgs>(args: SelectSubset<T, CommerceLifecycleConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CommerceLifecycleConfigs and returns the data updated in the database.
+     * @param {CommerceLifecycleConfigUpdateManyAndReturnArgs} args - Arguments to update many CommerceLifecycleConfigs.
+     * @example
+     * // Update many CommerceLifecycleConfigs
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CommerceLifecycleConfigs and only return the `id`
+     * const commerceLifecycleConfigWithIdOnly = await prisma.commerceLifecycleConfig.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CommerceLifecycleConfigUpdateManyAndReturnArgs>(args: SelectSubset<T, CommerceLifecycleConfigUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CommerceLifecycleConfig.
+     * @param {CommerceLifecycleConfigUpsertArgs} args - Arguments to update or create a CommerceLifecycleConfig.
+     * @example
+     * // Update or create a CommerceLifecycleConfig
+     * const commerceLifecycleConfig = await prisma.commerceLifecycleConfig.upsert({
+     *   create: {
+     *     // ... data to create a CommerceLifecycleConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CommerceLifecycleConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CommerceLifecycleConfigUpsertArgs>(args: SelectSubset<T, CommerceLifecycleConfigUpsertArgs<ExtArgs>>): Prisma__CommerceLifecycleConfigClient<$Result.GetResult<Prisma.$CommerceLifecycleConfigPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CommerceLifecycleConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigCountArgs} args - Arguments to filter CommerceLifecycleConfigs to count.
+     * @example
+     * // Count the number of CommerceLifecycleConfigs
+     * const count = await prisma.commerceLifecycleConfig.count({
+     *   where: {
+     *     // ... the filter for the CommerceLifecycleConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends CommerceLifecycleConfigCountArgs>(
+      args?: Subset<T, CommerceLifecycleConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CommerceLifecycleConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CommerceLifecycleConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CommerceLifecycleConfigAggregateArgs>(args: Subset<T, CommerceLifecycleConfigAggregateArgs>): Prisma.PrismaPromise<GetCommerceLifecycleConfigAggregateType<T>>
+
+    /**
+     * Group by CommerceLifecycleConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CommerceLifecycleConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CommerceLifecycleConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CommerceLifecycleConfigGroupByArgs['orderBy'] }
+        : { orderBy?: CommerceLifecycleConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CommerceLifecycleConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCommerceLifecycleConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CommerceLifecycleConfig model
+   */
+  readonly fields: CommerceLifecycleConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CommerceLifecycleConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CommerceLifecycleConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CommerceLifecycleConfig model
+   */
+  interface CommerceLifecycleConfigFieldRefs {
+    readonly id: FieldRef<"CommerceLifecycleConfig", 'String'>
+    readonly key: FieldRef<"CommerceLifecycleConfig", 'String'>
+    readonly autoConfirmEnabled: FieldRef<"CommerceLifecycleConfig", 'Boolean'>
+    readonly autoConfirmHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
+    readonly refundWindowHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
+    readonly createdAt: FieldRef<"CommerceLifecycleConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"CommerceLifecycleConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CommerceLifecycleConfig findUnique
+   */
+  export type CommerceLifecycleConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which CommerceLifecycleConfig to fetch.
+     */
+    where: CommerceLifecycleConfigWhereUniqueInput
+  }
+
+  /**
+   * CommerceLifecycleConfig findUniqueOrThrow
+   */
+  export type CommerceLifecycleConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which CommerceLifecycleConfig to fetch.
+     */
+    where: CommerceLifecycleConfigWhereUniqueInput
+  }
+
+  /**
+   * CommerceLifecycleConfig findFirst
+   */
+  export type CommerceLifecycleConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which CommerceLifecycleConfig to fetch.
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CommerceLifecycleConfigs to fetch.
+     */
+    orderBy?: CommerceLifecycleConfigOrderByWithRelationInput | CommerceLifecycleConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CommerceLifecycleConfigs.
+     */
+    cursor?: CommerceLifecycleConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CommerceLifecycleConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CommerceLifecycleConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CommerceLifecycleConfigs.
+     */
+    distinct?: CommerceLifecycleConfigScalarFieldEnum | CommerceLifecycleConfigScalarFieldEnum[]
+  }
+
+  /**
+   * CommerceLifecycleConfig findFirstOrThrow
+   */
+  export type CommerceLifecycleConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which CommerceLifecycleConfig to fetch.
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CommerceLifecycleConfigs to fetch.
+     */
+    orderBy?: CommerceLifecycleConfigOrderByWithRelationInput | CommerceLifecycleConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CommerceLifecycleConfigs.
+     */
+    cursor?: CommerceLifecycleConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CommerceLifecycleConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CommerceLifecycleConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CommerceLifecycleConfigs.
+     */
+    distinct?: CommerceLifecycleConfigScalarFieldEnum | CommerceLifecycleConfigScalarFieldEnum[]
+  }
+
+  /**
+   * CommerceLifecycleConfig findMany
+   */
+  export type CommerceLifecycleConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which CommerceLifecycleConfigs to fetch.
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CommerceLifecycleConfigs to fetch.
+     */
+    orderBy?: CommerceLifecycleConfigOrderByWithRelationInput | CommerceLifecycleConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CommerceLifecycleConfigs.
+     */
+    cursor?: CommerceLifecycleConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CommerceLifecycleConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CommerceLifecycleConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CommerceLifecycleConfigs.
+     */
+    distinct?: CommerceLifecycleConfigScalarFieldEnum | CommerceLifecycleConfigScalarFieldEnum[]
+  }
+
+  /**
+   * CommerceLifecycleConfig create
+   */
+  export type CommerceLifecycleConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to create a CommerceLifecycleConfig.
+     */
+    data: XOR<CommerceLifecycleConfigCreateInput, CommerceLifecycleConfigUncheckedCreateInput>
+  }
+
+  /**
+   * CommerceLifecycleConfig createMany
+   */
+  export type CommerceLifecycleConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CommerceLifecycleConfigs.
+     */
+    data: CommerceLifecycleConfigCreateManyInput | CommerceLifecycleConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CommerceLifecycleConfig createManyAndReturn
+   */
+  export type CommerceLifecycleConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * The data used to create many CommerceLifecycleConfigs.
+     */
+    data: CommerceLifecycleConfigCreateManyInput | CommerceLifecycleConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CommerceLifecycleConfig update
+   */
+  export type CommerceLifecycleConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to update a CommerceLifecycleConfig.
+     */
+    data: XOR<CommerceLifecycleConfigUpdateInput, CommerceLifecycleConfigUncheckedUpdateInput>
+    /**
+     * Choose, which CommerceLifecycleConfig to update.
+     */
+    where: CommerceLifecycleConfigWhereUniqueInput
+  }
+
+  /**
+   * CommerceLifecycleConfig updateMany
+   */
+  export type CommerceLifecycleConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CommerceLifecycleConfigs.
+     */
+    data: XOR<CommerceLifecycleConfigUpdateManyMutationInput, CommerceLifecycleConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which CommerceLifecycleConfigs to update
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * Limit how many CommerceLifecycleConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CommerceLifecycleConfig updateManyAndReturn
+   */
+  export type CommerceLifecycleConfigUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * The data used to update CommerceLifecycleConfigs.
+     */
+    data: XOR<CommerceLifecycleConfigUpdateManyMutationInput, CommerceLifecycleConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which CommerceLifecycleConfigs to update
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * Limit how many CommerceLifecycleConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CommerceLifecycleConfig upsert
+   */
+  export type CommerceLifecycleConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * The filter to search for the CommerceLifecycleConfig to update in case it exists.
+     */
+    where: CommerceLifecycleConfigWhereUniqueInput
+    /**
+     * In case the CommerceLifecycleConfig found by the `where` argument doesn't exist, create a new CommerceLifecycleConfig with this data.
+     */
+    create: XOR<CommerceLifecycleConfigCreateInput, CommerceLifecycleConfigUncheckedCreateInput>
+    /**
+     * In case the CommerceLifecycleConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CommerceLifecycleConfigUpdateInput, CommerceLifecycleConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * CommerceLifecycleConfig delete
+   */
+  export type CommerceLifecycleConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+    /**
+     * Filter which CommerceLifecycleConfig to delete.
+     */
+    where: CommerceLifecycleConfigWhereUniqueInput
+  }
+
+  /**
+   * CommerceLifecycleConfig deleteMany
+   */
+  export type CommerceLifecycleConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CommerceLifecycleConfigs to delete
+     */
+    where?: CommerceLifecycleConfigWhereInput
+    /**
+     * Limit how many CommerceLifecycleConfigs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CommerceLifecycleConfig without action
+   */
+  export type CommerceLifecycleConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CommerceLifecycleConfig
+     */
+    select?: CommerceLifecycleConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CommerceLifecycleConfig
+     */
+    omit?: CommerceLifecycleConfigOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model Notification
    */
 
@@ -43671,6 +44826,19 @@ export namespace Prisma {
   export type CommissionConfigScalarFieldEnum = (typeof CommissionConfigScalarFieldEnum)[keyof typeof CommissionConfigScalarFieldEnum]
 
 
+  export const CommerceLifecycleConfigScalarFieldEnum: {
+    id: 'id',
+    key: 'key',
+    autoConfirmEnabled: 'autoConfirmEnabled',
+    autoConfirmHours: 'autoConfirmHours',
+    refundWindowHours: 'refundWindowHours',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CommerceLifecycleConfigScalarFieldEnum = (typeof CommerceLifecycleConfigScalarFieldEnum)[keyof typeof CommerceLifecycleConfigScalarFieldEnum]
+
+
   export const NotificationScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -46229,6 +47397,70 @@ export namespace Prisma {
     rate?: FloatWithAggregatesFilter<"CommissionConfig"> | number
     createdAt?: DateTimeWithAggregatesFilter<"CommissionConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"CommissionConfig"> | Date | string
+  }
+
+  export type CommerceLifecycleConfigWhereInput = {
+    AND?: CommerceLifecycleConfigWhereInput | CommerceLifecycleConfigWhereInput[]
+    OR?: CommerceLifecycleConfigWhereInput[]
+    NOT?: CommerceLifecycleConfigWhereInput | CommerceLifecycleConfigWhereInput[]
+    id?: StringFilter<"CommerceLifecycleConfig"> | string
+    key?: StringFilter<"CommerceLifecycleConfig"> | string
+    autoConfirmEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
+    autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    createdAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
+  }
+
+  export type CommerceLifecycleConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    autoConfirmEnabled?: SortOrder
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    key?: string
+    AND?: CommerceLifecycleConfigWhereInput | CommerceLifecycleConfigWhereInput[]
+    OR?: CommerceLifecycleConfigWhereInput[]
+    NOT?: CommerceLifecycleConfigWhereInput | CommerceLifecycleConfigWhereInput[]
+    autoConfirmEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
+    autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    createdAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
+  }, "id" | "key">
+
+  export type CommerceLifecycleConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    key?: SortOrder
+    autoConfirmEnabled?: SortOrder
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CommerceLifecycleConfigCountOrderByAggregateInput
+    _avg?: CommerceLifecycleConfigAvgOrderByAggregateInput
+    _max?: CommerceLifecycleConfigMaxOrderByAggregateInput
+    _min?: CommerceLifecycleConfigMinOrderByAggregateInput
+    _sum?: CommerceLifecycleConfigSumOrderByAggregateInput
+  }
+
+  export type CommerceLifecycleConfigScalarWhereWithAggregatesInput = {
+    AND?: CommerceLifecycleConfigScalarWhereWithAggregatesInput | CommerceLifecycleConfigScalarWhereWithAggregatesInput[]
+    OR?: CommerceLifecycleConfigScalarWhereWithAggregatesInput[]
+    NOT?: CommerceLifecycleConfigScalarWhereWithAggregatesInput | CommerceLifecycleConfigScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CommerceLifecycleConfig"> | string
+    key?: StringWithAggregatesFilter<"CommerceLifecycleConfig"> | string
+    autoConfirmEnabled?: BoolWithAggregatesFilter<"CommerceLifecycleConfig"> | boolean
+    autoConfirmHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
+    refundWindowHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"CommerceLifecycleConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CommerceLifecycleConfig"> | Date | string
   }
 
   export type NotificationWhereInput = {
@@ -49552,6 +50784,76 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     category?: EnumVendorCategoryFieldUpdateOperationsInput | $Enums.VendorCategory
     rate?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CommerceLifecycleConfigCreateInput = {
+    id?: string
+    key?: string
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: number
+    refundWindowHours?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CommerceLifecycleConfigUncheckedCreateInput = {
+    id?: string
+    key?: string
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: number
+    refundWindowHours?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CommerceLifecycleConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoConfirmHours?: IntFieldUpdateOperationsInput | number
+    refundWindowHours?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CommerceLifecycleConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoConfirmHours?: IntFieldUpdateOperationsInput | number
+    refundWindowHours?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CommerceLifecycleConfigCreateManyInput = {
+    id?: string
+    key?: string
+    autoConfirmEnabled?: boolean
+    autoConfirmHours?: number
+    refundWindowHours?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CommerceLifecycleConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoConfirmHours?: IntFieldUpdateOperationsInput | number
+    refundWindowHours?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CommerceLifecycleConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
+    autoConfirmHours?: IntFieldUpdateOperationsInput | number
+    refundWindowHours?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -52986,6 +54288,46 @@ export namespace Prisma {
 
   export type CommissionConfigSumOrderByAggregateInput = {
     rate?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    autoConfirmEnabled?: SortOrder
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigAvgOrderByAggregateInput = {
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    autoConfirmEnabled?: SortOrder
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    key?: SortOrder
+    autoConfirmEnabled?: SortOrder
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CommerceLifecycleConfigSumOrderByAggregateInput = {
+    autoConfirmHours?: SortOrder
+    refundWindowHours?: SortOrder
   }
 
   export type EnumNotificationTypeFilter<$PrismaModel = never> = {

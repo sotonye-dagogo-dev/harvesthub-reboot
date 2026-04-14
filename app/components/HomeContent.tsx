@@ -18,7 +18,11 @@ import {
   buildProductDiscoveryQueryString,
 } from "@/lib/config/productDiscovery";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
-import { getBannersClient, getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
+import {
+  getBannersClient,
+  getProductsClient,
+  getVendorsClient,
+} from "@/lib/data/clientDataFetchers";
 
 interface HomeContentProps {
   banners: Banner[];
@@ -421,7 +425,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
               {popularVendors.map((vendor) => (
                 <div
                   key={vendor.id}
-                  className="min-w-[220px] max-w-[220px] snap-start sm:min-w-[260px] sm:max-w-[260px]"
+                  className="h-full min-w-[220px] max-w-[220px] snap-start sm:min-w-[260px] sm:max-w-[260px]"
                 >
                   <VendorCard
                     id={vendor.id}
