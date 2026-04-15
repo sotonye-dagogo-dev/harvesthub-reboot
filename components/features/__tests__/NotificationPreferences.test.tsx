@@ -63,8 +63,8 @@ vi.mock("antd", () => ({
     <button
       type="button"
       data-testid={disabled ? "locked-switch" : "editable-switch"}
-      aria-pressed={checked ? "true" : "false"}
-      aria-disabled={disabled ? "true" : "false"}
+      data-pressed={checked ? "true" : "false"}
+      disabled={disabled}
       onClick={() => {
         if (!disabled) onChange?.(!checked);
       }}
@@ -81,6 +81,9 @@ vi.mock("antd", () => ({
   message: {
     success: vi.fn(),
     error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+    loading: vi.fn(),
   },
 }));
 
@@ -136,7 +139,7 @@ describe("NotificationPreferences integrity semantics", () => {
     const lockedSwitches = screen.getAllByTestId("locked-switch");
     expect(lockedSwitches.length).toBeGreaterThanOrEqual(1);
     lockedSwitches.forEach((control) => {
-      expect(control).toHaveAttribute("aria-disabled", "true");
+      expect(control).toBeDisabled();
     });
     expect(screen.getByText(/SMS notifications are coming soon/i)).toBeInTheDocument();
   });
@@ -177,6 +180,40 @@ describe("NotificationPreferences integrity semantics", () => {
       expect(disablePushNotificationsMock).toHaveBeenCalledTimes(1);
     });
 
+    expect(checkPushHealthMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("offers push setup repair action when health check reports default permission", async () => {
+    checkPushHealthMock
+      .mockResolvedValueOnce({
+        supported: true,
+        permission: "default",
+        serviceWorkerReady: true,
+        hasSubscription: false,
+        endpoint: null,
+        backendSynced: false,
+        backendSubscriptionCount: 0,
+        message: "Push permission has not been granted yet.",
+      })
+      .mockResolvedValue({
+        supported: true,
+        permission: "granted",
+        serviceWorkerReady: true,
+        hasSubscription: true,
+        endpoint: "https://push.example.com/endpoint",
+        backendSynced: true,
+        backendSubscriptionCount: 1,
+        message: "Push subscription is healthy and synchronized with backend records.",
+      });
+
+    render(<NotificationPreferences />);
+
+    const repairButton = await screen.findByText("Fix Push Setup");
+    fireEvent.click(repairButton);
+
+    await waitFor(() => {
+      expect(enablePushNotificationsMock).toHaveBeenCalledTimes(1);
+    });
     expect(checkPushHealthMock.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 });

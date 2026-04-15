@@ -21,6 +21,9 @@ type DeliveryMethod = "PICKUP" | "DELIVERY";
 type PaymentMethod = "WALLET" | "CARD";
 type PickupService = "SUNDAY_FIRST" | "SUNDAY_SECOND" | "MIDWEEK" | "SPECIAL_EVENT";
 type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED";
+type CheckoutWalletSummary = {
+  availableBalance: number | null;
+};
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -132,9 +135,46 @@ export default function CheckoutPage() {
     staleTimeMs: 20_000,
   });
 
+  const loadWalletSummary = useCallback(async (): Promise<CheckoutWalletSummary> => {
+    const res = await fetch("/api/wallet", { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return { availableBalance: null };
+    }
+
+    const wallet = data?.wallet;
+    if (!wallet || typeof wallet !== "object") {
+      return { availableBalance: null };
+    }
+
+    const availableBalance =
+      typeof wallet.availableBalance === "number"
+        ? wallet.availableBalance
+        : typeof wallet.balance === "number"
+          ? wallet.balance
+          : null;
+
+    return { availableBalance };
+  }, []);
+
+  const { data: walletSummary } = useSmartResource(loadWalletSummary, {
+    key: `checkout-wallet-summary:${user?.id ?? "guest"}`,
+    enabled: Boolean(user?.id),
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
+
   const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
   const gatewayReady = paymentConfig?.gatewayReady ?? false;
   const cardPaymentsAvailable = paymentsEnabled && gatewayReady;
+  const availableWalletBalance = walletSummary?.availableBalance ?? null;
+  const hasSufficientWalletBalance =
+    typeof availableWalletBalance === "number" ? availableWalletBalance >= total : true;
+  const walletBalanceLabel =
+    typeof availableWalletBalance === "number"
+      ? `Balance: ${formatCurrency(availableWalletBalance)}`
+      : "Balance unavailable";
 
   useEffect(() => {
     if (paymentMethod !== "CARD") {
@@ -157,13 +197,13 @@ export default function CheckoutPage() {
   ];
 
   const handlePlaceOrder = async () => {
-    if (user?.role === "ADMIN") {
-      message.error("Admin accounts cannot complete checkout from this page.");
+    if (deliveryMethod === "DELIVERY" && !selectedAddress) {
+      message.error("Please select or add a delivery address");
       return;
     }
 
-    if (deliveryMethod === "DELIVERY" && !selectedAddress) {
-      message.error("Please select or add a delivery address");
+    if (paymentMethod === "WALLET" && !hasSufficientWalletBalance) {
+      message.error("Insufficient wallet balance for this order total.");
       return;
     }
 
@@ -346,21 +386,6 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {user?.role === "ADMIN" ? (
-        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg p-4">
-          <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-warning" />
-          <div>
-            <p className="text-sm font-medium text-ds-status-warning-text">
-              Admin checkout is disabled
-            </p>
-            <p className="mt-1 text-xs text-ds-text-secondary">
-              Use a buyer account to validate checkout flow. Admin wallets remain read-only in this
-              environment.
-            </p>
-          </div>
-        </div>
-      ) : null}
-
       {/* Service Booking Notice */}
       {hasServiceItems && (
         <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-border-brand bg-ds-brand-surface p-4">
@@ -533,9 +558,17 @@ export default function CheckoutPage() {
                     <Wallet className="h-5 w-5" />
                     Pay with Wallet
                   </div>
-                  <div className="mt-1 text-sm text-ds-text-secondary">
-                    Balance: {formatCurrency(50000)}
-                  </div>
+                  <div className="mt-1 text-sm text-ds-text-secondary">{walletBalanceLabel}</div>
+                  {!hasSufficientWalletBalance ? (
+                    <div className="mt-1 text-xs text-ds-status-warning-text">
+                      Wallet balance is below your current order total.
+                    </div>
+                  ) : null}
+                  {typeof availableWalletBalance !== "number" ? (
+                    <div className="mt-1 text-xs text-ds-text-tertiary">
+                      Wallet summary is still loading or unavailable right now.
+                    </div>
+                  ) : null}
                 </div>
               </Radio>
               <Radio
@@ -611,10 +644,7 @@ export default function CheckoutPage() {
               className="mt-6"
               onClick={handlePlaceOrder}
               loading={isPlacingOrder}
-              disabled={
-                (hasUnverifiedVendorItems && !vendorVerificationAcknowledged) ||
-                user?.role === "ADMIN"
-              }
+              disabled={hasUnverifiedVendorItems && !vendorVerificationAcknowledged}
             >
               <CheckCircle className="mr-2 h-5 w-5" />
               {paymentMethod === "CARD" && cardPaymentState !== "VERIFIED"

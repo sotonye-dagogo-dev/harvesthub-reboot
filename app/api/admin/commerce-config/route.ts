@@ -41,6 +41,10 @@ export async function PUT(req: NextRequest) {
             body.autoConfirmHours === undefined ? undefined : Number(body.autoConfirmHours);
         const refundWindowHours =
             body.refundWindowHours === undefined ? undefined : Number(body.refundWindowHours);
+        const withdrawalSettlementHoldHours =
+            body.withdrawalSettlementHoldHours === undefined
+                ? undefined
+                : Number(body.withdrawalSettlementHoldHours);
         const minOrderAmount =
             body.minOrderAmount === undefined ? undefined : Number(body.minOrderAmount);
         const maxBookingAdvanceDays =
@@ -57,6 +61,15 @@ export async function PUT(req: NextRequest) {
             (!Number.isFinite(refundWindowHours) || refundWindowHours < 1 || refundWindowHours > 720)
         ) {
             return apiError('refundWindowHours must be between 1 and 720', 400);
+        }
+
+        if (
+            withdrawalSettlementHoldHours !== undefined &&
+            (!Number.isFinite(withdrawalSettlementHoldHours) ||
+                withdrawalSettlementHoldHours < 1 ||
+                withdrawalSettlementHoldHours > 720)
+        ) {
+            return apiError('withdrawalSettlementHoldHours must be between 1 and 720', 400);
         }
 
         if (
@@ -79,6 +92,7 @@ export async function PUT(req: NextRequest) {
             autoConfirmEnabled,
             autoConfirmHours,
             refundWindowHours,
+            withdrawalSettlementHoldHours,
             minOrderAmount,
             maxBookingAdvanceDays,
         });

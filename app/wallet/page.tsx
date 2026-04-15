@@ -133,11 +133,6 @@ export default function WalletPage() {
   };
 
   const handleDeposit = async () => {
-    if (user?.role === "ADMIN") {
-      message.error("Admin wallets are read-only. Deposit is disabled.");
-      return;
-    }
-
     if (!cardDepositAvailable) {
       message.error(
         "Card deposit is temporarily unavailable. Please retry when gateway is active."
@@ -230,10 +225,6 @@ export default function WalletPage() {
       message.error("Insufficient balance");
       return;
     }
-    if (user?.role !== "VENDOR") {
-      message.error("Withdrawals are currently available for vendor wallets only");
-      return;
-    }
     if (!withdrawBankName.trim() || !withdrawAccountName.trim()) {
       message.error("Bank name and account name are required");
       return;
@@ -320,9 +311,7 @@ export default function WalletPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-ds-text-primary">My Wallet</h1>
         <p className="mt-2 text-ds-text-secondary">
-          {user.role === "VENDOR"
-            ? "Manage your earnings and withdrawals"
-            : "Add funds and track your transactions"}
+          Manage your wallet balance, deposits, and withdrawals
         </p>
         {isLoading ? <p className="mt-1 text-xs text-ds-text-tertiary">Loading wallet...</p> : null}
         {isRefreshing ? (
@@ -385,41 +374,30 @@ export default function WalletPage() {
               <Button
                 fullWidth
                 onClick={() => setShowDepositModal(true)}
-                disabled={user.role === "ADMIN" || !cardDepositAvailable}
+                disabled={!cardDepositAvailable}
               >
                 <>
                   <ArrowDownCircle className="mr-2 h-5 w-5" />
                   Deposit
                 </>
               </Button>
-              <Button
-                fullWidth
-                variant="outline"
-                onClick={() => setShowWithdrawModal(true)}
-                disabled={user.role !== "VENDOR"}
-              >
+              <Button fullWidth variant="outline" onClick={() => setShowWithdrawModal(true)}>
                 <>
                   <ArrowUpCircle className="mr-2 h-5 w-5" />
                   Withdraw
                 </>
               </Button>
             </div>
-            {user.role === "ADMIN" ? (
-              <p className="mt-3 text-xs text-ds-text-secondary">
-                Admin wallets are read-only. Deposit and withdrawal controls are disabled.
-              </p>
-            ) : null}
-            {!cardDepositAvailable && user.role !== "ADMIN" ? (
+            {!cardDepositAvailable ? (
               <p className="mt-3 text-xs text-ds-text-secondary">
                 Card deposit is temporarily unavailable while payment gateway readiness is being
                 finalized.
               </p>
             ) : null}
-            {user.role !== "ADMIN" && user.role !== "VENDOR" ? (
-              <p className="mt-3 text-xs text-ds-text-secondary">
-                Withdrawals are available for vendor wallets only.
-              </p>
-            ) : null}
+            <p className="mt-3 text-xs text-ds-text-secondary">
+              Withdrawals may be temporarily paused while recent settlement checks are still in
+              progress.
+            </p>
           </div>
         </Card>
 

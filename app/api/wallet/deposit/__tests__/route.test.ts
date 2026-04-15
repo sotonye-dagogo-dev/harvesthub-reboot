@@ -72,15 +72,23 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         mockCacheInvalidate.mockResolvedValue(undefined);
     });
 
-    it('blocks admin wallet deposits', async () => {
+    it('does not hard-block admin wallet deposits before verification', async () => {
         mockGetCurrentUser.mockResolvedValue({ userId: 'admin-1', role: 'ADMIN' });
+        mockVerifyPayment.mockResolvedValue({
+            gateway: 'PAYSTACK',
+            reference: 'PAY-123',
+            status: 'GATEWAY_UNAVAILABLE',
+            amount: 0,
+            currency: 'NGN',
+            message: 'Paystack secret key is not configured.',
+        });
 
         const res = await POST(buildRequest({}));
         const json = await res.json();
 
-        expect(res.status).toBe(403);
-        expect(json.code).toBe('WALLET_ROLE_BLOCKED');
-        expect(mockVerifyPayment).not.toHaveBeenCalled();
+        expect(res.status).toBe(503);
+        expect(json.verification?.status).toBe('GATEWAY_UNAVAILABLE');
+        expect(mockVerifyPayment).toHaveBeenCalledTimes(1);
     });
 
     it('returns 503 when gateway verification is unavailable', async () => {

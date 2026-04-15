@@ -11,6 +11,7 @@ const DEFAULT_CONFIG = {
     autoConfirmEnabled: true,
     autoConfirmHours: 48,
     refundWindowHours: 72,
+    withdrawalSettlementHoldHours: PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS,
     paymentsEnabled: PLATFORM_DEFAULTS.PAYMENTS_ENABLED,
     minOrderAmount: PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT,
     maxBookingAdvanceDays: PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS,
@@ -33,6 +34,7 @@ export type CommerceLifecycleConfigSnapshot = {
     autoConfirmEnabled: boolean;
     autoConfirmHours: number;
     refundWindowHours: number;
+    withdrawalSettlementHoldHours: number;
     paymentsEnabled: boolean;
     minOrderAmount: number;
     maxBookingAdvanceDays: number;
@@ -52,6 +54,7 @@ export async function getCommerceLifecycleConfig(
             autoConfirmEnabled: true,
             autoConfirmHours: true,
             refundWindowHours: true,
+            withdrawalSettlementHoldHours: true,
             paymentsEnabled: true,
             minOrderAmount: true,
             maxBookingAdvanceDays: true,
@@ -62,6 +65,12 @@ export async function getCommerceLifecycleConfig(
         autoConfirmEnabled: Boolean(record.autoConfirmEnabled),
         autoConfirmHours: clampInt(record.autoConfirmHours, DEFAULT_CONFIG.autoConfirmHours, 1, 240),
         refundWindowHours: clampInt(record.refundWindowHours, DEFAULT_CONFIG.refundWindowHours, 1, 720),
+        withdrawalSettlementHoldHours: clampInt(
+            record.withdrawalSettlementHoldHours,
+            DEFAULT_CONFIG.withdrawalSettlementHoldHours,
+            1,
+            720
+        ),
         paymentsEnabled: Boolean(record.paymentsEnabled),
         minOrderAmount: clampFloat(record.minOrderAmount, DEFAULT_CONFIG.minOrderAmount, 0, 10000000),
         maxBookingAdvanceDays: clampInt(
@@ -98,6 +107,12 @@ export async function upsertCommerceLifecycleConfig(
                 1,
                 720
             ),
+            withdrawalSettlementHoldHours: clampInt(
+                payload.withdrawalSettlementHoldHours,
+                existing.withdrawalSettlementHoldHours,
+                1,
+                720
+            ),
             paymentsEnabled:
                 typeof payload.paymentsEnabled === 'boolean'
                     ? payload.paymentsEnabled
@@ -133,6 +148,12 @@ export async function upsertCommerceLifecycleConfig(
                 1,
                 720
             ),
+            withdrawalSettlementHoldHours: clampInt(
+                payload.withdrawalSettlementHoldHours,
+                existing.withdrawalSettlementHoldHours,
+                1,
+                720
+            ),
             paymentsEnabled:
                 typeof payload.paymentsEnabled === 'boolean'
                     ? payload.paymentsEnabled
@@ -154,6 +175,7 @@ export async function upsertCommerceLifecycleConfig(
             autoConfirmEnabled: true,
             autoConfirmHours: true,
             refundWindowHours: true,
+            withdrawalSettlementHoldHours: true,
             paymentsEnabled: true,
             minOrderAmount: true,
             maxBookingAdvanceDays: true,
@@ -164,6 +186,12 @@ export async function upsertCommerceLifecycleConfig(
         autoConfirmEnabled: Boolean(updated.autoConfirmEnabled),
         autoConfirmHours: clampInt(updated.autoConfirmHours, existing.autoConfirmHours, 1, 240),
         refundWindowHours: clampInt(updated.refundWindowHours, existing.refundWindowHours, 1, 720),
+        withdrawalSettlementHoldHours: clampInt(
+            updated.withdrawalSettlementHoldHours,
+            existing.withdrawalSettlementHoldHours,
+            1,
+            720
+        ),
         paymentsEnabled: Boolean(updated.paymentsEnabled),
         minOrderAmount: clampFloat(updated.minOrderAmount, existing.minOrderAmount, 0, 10000000),
         maxBookingAdvanceDays: clampInt(

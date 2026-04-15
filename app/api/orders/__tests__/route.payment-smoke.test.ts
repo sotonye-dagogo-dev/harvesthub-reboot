@@ -88,21 +88,30 @@ describe("POST /api/orders payment smoke paths", () => {
       autoConfirmEnabled: true,
       autoConfirmHours: 48,
       refundWindowHours: 72,
+      withdrawalSettlementHoldHours: 72,
       paymentsEnabled: true,
       minOrderAmount: 500,
       maxBookingAdvanceDays: 60,
     });
   });
 
-  it("blocks admin checkout attempts with explicit role-policy code", async () => {
+  it("allows admin checkout to reach payment verification path", async () => {
     mockGetCurrentUser.mockResolvedValue({ userId: "admin-user-1", role: "ADMIN" });
+    mockVerifyPayment.mockResolvedValue({
+      gateway: "PAYSTACK",
+      reference: "missing-reference",
+      status: "NOT_FOUND",
+      amount: 6500,
+      currency: "NGN",
+      message: "Stub verification did not find this provider reference.",
+    });
 
-    const res = await POST(buildRequest());
+    const res = await POST(buildRequest({ paymentVerificationReference: "missing-reference" }));
     const json = await res.json();
 
-    expect(res.status).toBe(403);
-    expect(json.code).toBe("CHECKOUT_ROLE_BLOCKED");
-    expect(mockVerifyPayment).not.toHaveBeenCalled();
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("PAYMENT_VERIFICATION_FAILED");
+    expect(mockVerifyPayment).toHaveBeenCalledTimes(1);
   });
 
   it("returns payment verification failure when provider reference is not found", async () => {

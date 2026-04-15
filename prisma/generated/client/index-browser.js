@@ -393,6 +393,7 @@ exports.Prisma.CommerceLifecycleConfigScalarFieldEnum = {
   autoConfirmEnabled: 'autoConfirmEnabled',
   autoConfirmHours: 'autoConfirmHours',
   refundWindowHours: 'refundWindowHours',
+  withdrawalSettlementHoldHours: 'withdrawalSettlementHoldHours',
   paymentsEnabled: 'paymentsEnabled',
   commissionDefaultRate: 'commissionDefaultRate',
   commissionPremiumRate: 'commissionPremiumRate',
