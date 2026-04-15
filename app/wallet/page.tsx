@@ -7,10 +7,9 @@ import { ClientDashboardShell } from "@/components/layout";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet as WalletIcon, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { Input, Modal, message } from "antd";
-import { PLATFORM_DEFAULTS, TransactionStatus, TransactionType } from "@/lib/constants";
+import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
-import { runOptimisticMutation } from "@/lib/data-runtime/mutationCoordinator";
 import { emitWalletSync, subscribeWalletSync } from "@/lib/utils/walletSync";
 import type { ReactElement } from "react";
 
@@ -21,6 +20,7 @@ export default function WalletPage() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
+  const [pendingDepositReference, setPendingDepositReference] = useState<string | null>(null);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isProcessingDeposit, setIsProcessingDeposit] = useState(false);
   const [isProcessingWithdraw, setIsProcessingWithdraw] = useState(false);
@@ -75,13 +75,19 @@ export default function WalletPage() {
   const hasWalletPayload = typeof walletResource !== "undefined";
   const isWalletBootstrapLoading = Boolean(user?.id) && !hasWalletPayload && !error;
 
-  const loadPaymentConfig = useCallback(async (): Promise<{ paymentsEnabled: boolean }> => {
+  const loadPaymentConfig = useCallback(async (): Promise<{
+    paymentsEnabled: boolean;
+    gatewayReady: boolean;
+  }> => {
     const res = await fetch("/api/payments/config", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.success) {
       throw new Error(data?.error || "Unable to load payment processing status");
     }
-    return { paymentsEnabled: Boolean(data?.paymentsEnabled) };
+    return {
+      paymentsEnabled: Boolean(data?.paymentsEnabled),
+      gatewayReady: Boolean(data?.gatewayReady),
+    };
   }, []);
 
   const { data: paymentConfig } = useSmartResource(loadPaymentConfig, {
@@ -105,6 +111,8 @@ export default function WalletPage() {
   }, [refresh]);
 
   const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+  const gatewayReady = paymentConfig?.gatewayReady ?? false;
+  const cardDepositAvailable = paymentsEnabled && gatewayReady;
 
   const totalPages = Math.ceil(userTransactions.length / itemsPerPage);
   const paginatedTransactions = userTransactions.slice(
@@ -125,6 +133,18 @@ export default function WalletPage() {
   };
 
   const handleDeposit = async () => {
+    if (user?.role === "ADMIN") {
+      message.error("Admin wallets are read-only. Deposit is disabled.");
+      return;
+    }
+
+    if (!cardDepositAvailable) {
+      message.error(
+        "Card deposit is temporarily unavailable. Please retry when gateway is active."
+      );
+      return;
+    }
+
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount < 100) {
       message.error("Minimum deposit amount is ₦100");
@@ -137,91 +157,59 @@ export default function WalletPage() {
 
     setIsProcessingDeposit(true);
     try {
-      const initializeRes = await fetch("/api/payments/initialize", {
+      if (!pendingDepositReference) {
+        const initializeRes = await fetch("/api/payments/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gateway: "PAYSTACK",
+            amount,
+            currency: "NGN",
+            metadata: { source: "wallet-deposit" },
+          }),
+        });
+        const initializeData = await initializeRes.json().catch(() => ({}));
+        if (
+          !initializeRes.ok ||
+          !initializeData?.payment?.reference ||
+          !initializeData?.payment?.authorizationUrl
+        ) {
+          throw new Error(initializeData?.error || "Unable to initialize payment");
+        }
+
+        const reference = initializeData.payment.reference as string;
+        setPendingDepositReference(reference);
+        window.open(
+          initializeData.payment.authorizationUrl as string,
+          "_blank",
+          "noopener,noreferrer"
+        );
+        message.info(
+          `Deposit initialized (ref: ${reference}). Complete payment in the opened tab, then click Deposit Funds again to verify.`
+        );
+        return;
+      }
+
+      const depositRes = await fetch("/api/wallet/deposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          gateway: "PAYSTACK",
           amount,
-          currency: "NGN",
-          metadata: { source: "wallet-deposit" },
+          description: "Wallet deposit via verified card transaction",
+          paymentReference: pendingDepositReference,
+          paymentGateway: "PAYSTACK",
+          paymentVerificationReference: pendingDepositReference,
         }),
       });
-      const initializeData = await initializeRes.json().catch(() => ({}));
-      if (!initializeRes.ok || !initializeData?.payment?.reference) {
-        throw new Error(initializeData?.error || "Unable to initialize payment");
+      const depositData = await depositRes.json().catch(() => ({}));
+      if (!depositRes.ok || !depositData?.wallet || !depositData?.transaction) {
+        throw new Error(depositData?.error || "Failed to complete wallet deposit");
       }
-
-      const paymentReference = initializeData.payment.reference as string;
-      const optimisticTransactionId = `optimistic-deposit-${Date.now()}-${Math.round(Math.random() * 1000)}`;
-
-      await runOptimisticMutation<
-        { wallet: Wallet | null; transactions: Transaction[] },
-        { wallet: Wallet; transaction: Transaction; optimisticTransactionId: string }
-      >({
-        key: `wallet-resource:${user?.id ?? "guest"}`,
-        applyOptimistic: (previous) => {
-          if (!previous?.wallet) return previous ?? { wallet: null, transactions: [] };
-          return {
-            wallet: {
-              ...previous.wallet,
-              balance: previous.wallet.balance + amount,
-            },
-            transactions: [
-              {
-                id: optimisticTransactionId,
-                walletId: previous.wallet.id,
-                type: TransactionType.DEPOSIT,
-                amount,
-                balanceBefore: previous.wallet.balance,
-                balanceAfter: previous.wallet.balance + amount,
-                status: TransactionStatus.PENDING,
-                reference: paymentReference,
-                description: "Wallet deposit pending confirmation",
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-              ...previous.transactions,
-            ],
-          };
-        },
-        commit: async () => {
-          const depositRes = await fetch("/api/wallet/deposit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              amount,
-              description: "Wallet deposit via gateway stub",
-              paymentReference,
-              paymentGateway: "PAYSTACK",
-              paymentVerificationReference: `${paymentReference}-success`,
-            }),
-          });
-          const depositData = await depositRes.json().catch(() => ({}));
-          if (!depositRes.ok || !depositData?.wallet || !depositData?.transaction) {
-            throw new Error(depositData?.error || "Failed to complete wallet deposit");
-          }
-
-          return {
-            wallet: depositData.wallet as Wallet,
-            transaction: depositData.transaction as Transaction,
-            optimisticTransactionId,
-          };
-        },
-        reconcile: (current, serverResult) => ({
-          wallet: serverResult.wallet,
-          transactions: [
-            serverResult.transaction,
-            ...((current?.transactions ?? []).filter(
-              (transaction) => transaction.id !== serverResult.optimisticTransactionId
-            ) as Transaction[]),
-          ],
-        }),
-      });
 
       message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
       emitWalletSync("wallet-deposit");
       await refresh(true);
+      setPendingDepositReference(null);
       setShowDepositModal(false);
       setDepositAmount("");
     } catch (error) {
@@ -371,15 +359,21 @@ export default function WalletPage() {
             <div className="mb-4 grid grid-cols-3 gap-2 rounded-ds-md border border-ds-border-base p-3 text-left">
               <div>
                 <p className="text-[10px] uppercase text-ds-text-tertiary">Current</p>
-                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(currentBalance)}</p>
+                <p className="text-sm font-semibold text-ds-text-primary">
+                  {formatCurrency(currentBalance)}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase text-ds-text-tertiary">Available</p>
-                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(availableBalance)}</p>
+                <p className="text-sm font-semibold text-ds-text-primary">
+                  {formatCurrency(availableBalance)}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase text-ds-text-tertiary">Pending</p>
-                <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(pendingWithdrawals)}</p>
+                <p className="text-sm font-semibold text-ds-text-primary">
+                  {formatCurrency(pendingWithdrawals)}
+                </p>
               </div>
             </div>
             {pendingWithdrawals > 0 ? (
@@ -391,7 +385,7 @@ export default function WalletPage() {
               <Button
                 fullWidth
                 onClick={() => setShowDepositModal(true)}
-                disabled={user.role === "ADMIN"}
+                disabled={user.role === "ADMIN" || !cardDepositAvailable}
               >
                 <>
                   <ArrowDownCircle className="mr-2 h-5 w-5" />
@@ -413,6 +407,12 @@ export default function WalletPage() {
             {user.role === "ADMIN" ? (
               <p className="mt-3 text-xs text-ds-text-secondary">
                 Admin wallets are read-only. Deposit and withdrawal controls are disabled.
+              </p>
+            ) : null}
+            {!cardDepositAvailable && user.role !== "ADMIN" ? (
+              <p className="mt-3 text-xs text-ds-text-secondary">
+                Card deposit is temporarily unavailable while payment gateway readiness is being
+                finalized.
               </p>
             ) : null}
             {user.role !== "ADMIN" && user.role !== "VENDOR" ? (
@@ -511,8 +511,22 @@ export default function WalletPage() {
       >
         <div className="space-y-3">
           <p className="text-xs text-ds-text-secondary">
-            Enter an amount between ₦100 and ₦1,000,000.
+            {pendingDepositReference
+              ? "Payment initialized. Complete payment in the opened tab, then confirm deposit."
+              : "Enter an amount between ₦100 and ₦1,000,000."}
           </p>
+          {pendingDepositReference ? (
+            <div className="rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-3 text-xs text-ds-status-info-text">
+              <p className="font-semibold">Pending reference: {pendingDepositReference}</p>
+              <button
+                type="button"
+                className="mt-2 text-ds-text-brand underline"
+                onClick={() => setPendingDepositReference(null)}
+              >
+                Reinitialize payment
+              </button>
+            </div>
+          ) : null}
           <Input
             value={depositAmount}
             onChange={(e) => setDepositAmount(e.target.value)}

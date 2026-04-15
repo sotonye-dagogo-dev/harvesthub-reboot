@@ -45,7 +45,6 @@ export function Header() {
   const { unreadCount } = useNotifications();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileCategories, setShowMobileCategories] = useState(false);
-  const [showDesktopCategories, setShowDesktopCategories] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -57,7 +56,6 @@ export function Header() {
   const getDashboardLink = () => {
     return getDashboardRoute(user?.role);
   };
-  const showDesktopCategoryStrip = pathname === "/" || pathname.startsWith("/products");
 
   const getOrdersLink = () => resolveOrdersLink();
   const handleHeaderSearch = (value: string) => {
@@ -256,53 +254,6 @@ export function Header() {
             <Menu className="h-6 w-6" />
           </button>
         </div>
-
-        {showDesktopCategoryStrip && (
-          <div className="hidden items-center gap-2 border-t border-ds-border-base py-2 md:flex">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowDesktopCategories((prev) => !prev)}
-                aria-controls="desktop-categories-menu"
-                data-expanded={showDesktopCategories ? "true" : "false"}
-                className="inline-flex items-center gap-2 rounded-ds-md bg-ds-brand-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-ds-brand-primary-hover"
-              >
-                All Categories
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              {showDesktopCategories && (
-                <div
-                  id="desktop-categories-menu"
-                  className="absolute left-0 top-12 z-40 max-h-[60vh] w-80 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 shadow-ds-lg"
-                >
-                  <div className="grid grid-cols-1 gap-1">
-                    {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
-                      <Link
-                        key={category.value}
-                        href={`/products?category=${category.slug}`}
-                        className="rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
-                        onClick={() => setShowDesktopCategories(false)}
-                      >
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
-              {PRODUCT_DISCOVERY_CATEGORIES.slice(0, 8).map((category) => (
-                <Link
-                  key={category.value}
-                  href={`/products?category=${category.slug}`}
-                  className="whitespace-nowrap rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken hover:text-ds-text-primary"
-                >
-                  {category.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Mobile Menu */}
         {showMobileMenu && (

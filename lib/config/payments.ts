@@ -1,5 +1,6 @@
 import { env } from "@/lib/config/env";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
+import { isGatewayReady } from "@/lib/services/payments";
 
 type PaymentProcessingConfigInput = {
   paystackPublicKey?: string | null;
@@ -43,6 +44,7 @@ export async function getPaymentProcessingRuntimeConfig() {
     gateway: "PAYSTACK" as const,
     mode: env.paystackMode,
     paymentsEnabled,
+    gatewayReady: isGatewayReady("PAYSTACK"),
     minOrderAmount,
     maxBookingAdvanceDays,
   };

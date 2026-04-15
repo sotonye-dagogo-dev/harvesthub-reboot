@@ -18,6 +18,35 @@
 
 ---
 
+## [Notification context tests hit maximum update depth with unstable mocked context object]
+
+**Symptom:**
+
+- Notification context timing tests emit repeated `Maximum update depth exceeded` errors and can hang/time out.
+
+**Root Cause:**
+
+- `useToast` test mock returned a new object on every render.
+- `fetchNotifications` depended on the toast object identity; identity churn retriggered mount effects and created a render/fetch loop.
+
+**Fix Applied:**
+
+- Replaced dynamic toast mock object creation with a single stable mock object reference shared across renders.
+- Refactored throttle timing test to mock `Date.now` instead of mixing fake timers with `waitFor`.
+
+**Prevention:**
+
+- For hooks that memoize callbacks on object dependencies, always return stable mock object identities in tests.
+- Prefer deterministic clock stubbing (`Date.now`) over full fake-timer virtualization when only timestamp comparisons are under test.
+
+**Files Affected:**
+
+- lib/**tests**/notification-context.sync.test.tsx
+
+**Date:** 2026-04-15
+
+---
+
 ## [Search UI crashes in tests/runtimes where localStorage is non-standard]
 
 **Symptom:**
@@ -41,7 +70,7 @@
 **Files Affected:**
 
 - components/features/SearchBar.tsx
-- components/__tests__/SearchBar.test.tsx
+- components/**tests**/SearchBar.test.tsx
 
 **Date:** 2026-04-15
 
@@ -74,7 +103,7 @@
 - app/api/orders/route.ts
 - app/orders/page.tsx
 - app/(operations)/operations/orders/page.tsx
-- app/api/orders/__tests__/route.grouping.test.ts
+- app/api/orders/**tests**/route.grouping.test.ts
 
 **Date:** 2026-04-15
 
@@ -104,7 +133,7 @@
 
 - app/checkout/page.tsx
 - app/checkout/error-mapping.ts
-- app/checkout/__tests__/page.error-mapping.test.ts
+- app/checkout/**tests**/page.error-mapping.test.ts
 
 **Date:** 2026-04-14
 
@@ -196,7 +225,7 @@
 **Files Affected:**
 
 - prisma/schema.prisma
-- prisma/generated/client/*
+- prisma/generated/client/\*
 
 **Date:** 2026-04-14
 
@@ -226,7 +255,7 @@
 **Files Affected:**
 
 - components/features/ProductsContent.tsx
-- components/__tests__/ProductsContent.discovery-contract.test.tsx
+- components/**tests**/ProductsContent.discovery-contract.test.tsx
 
 **Date:** 2026-04-13
 
@@ -258,7 +287,7 @@
 **Files Affected:**
 
 - app/api/orders/[id]/status/route.ts
-- app/api/orders/__tests__/status.route.test.ts
+- app/api/orders/**tests**/status.route.test.ts
 
 **Date:** 2026-04-13
 
@@ -287,7 +316,7 @@
 **Files Affected:**
 
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - app/vendors/[id]/page.tsx
 
 **Date:** 2026-04-13

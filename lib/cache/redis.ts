@@ -18,7 +18,7 @@ function createRedisClient(): Redis | null {
   if (!url || !token) {
     console.warn(
       '[MyHarvestHub] Redis env vars (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) are missing. ' +
-        'Caching and rate limiting will be disabled.'
+      'Caching and rate limiting will be disabled.'
     );
     return null;
   }
@@ -27,6 +27,8 @@ function createRedisClient(): Redis | null {
 }
 
 export const redis: Redis | null = createRedisClient();
+
+export type CacheIdempotencyAcquireResult = 'acquired' | 'exists' | 'unavailable';
 
 /**
  * Get a cached value by key (auto-prefixed).
@@ -62,6 +64,35 @@ export async function cacheSet(
     }
   } catch (error) {
     console.error(`[MyHarvestHub] Redis cacheSet error for key "${key}":`, error);
+  }
+}
+
+/**
+ * Attempt to reserve an idempotency key exactly once (NX) with optional TTL.
+ * Returns:
+ * - 'acquired' when this caller stored the key,
+ * - 'exists' when the key already exists,
+ * - 'unavailable' when Redis is disabled/unreachable.
+ */
+export async function cacheAcquireIdempotencyKey(
+  key: string,
+  ttlSeconds = 60
+): Promise<CacheIdempotencyAcquireResult> {
+  if (!redis) return 'unavailable';
+
+  try {
+    const prefixed = prefixKey(key);
+    const ttl = ttlSeconds > 0 ? ttlSeconds : 60;
+    const result = await redis.set(prefixed, '1', { nx: true, ex: ttl });
+
+    if (result === 'OK') {
+      return 'acquired';
+    }
+
+    return 'exists';
+  } catch (error) {
+    console.error(`[MyHarvestHub] Redis cacheAcquireIdempotencyKey error for key "${key}":`, error);
+    return 'unavailable';
   }
 }
 

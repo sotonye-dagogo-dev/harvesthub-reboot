@@ -6,12 +6,26 @@ const { useSmartResourceMock } = vi.hoisted(() => ({
   useSmartResourceMock: vi.fn(),
 }));
 
-const { enablePushNotificationsMock, disablePushNotificationsMock, getBrowserPushPermissionMock } =
-  vi.hoisted(() => ({
-    enablePushNotificationsMock: vi.fn().mockResolvedValue(true),
-    disablePushNotificationsMock: vi.fn().mockResolvedValue(true),
-    getBrowserPushPermissionMock: vi.fn().mockReturnValue("granted"),
-  }));
+const {
+  enablePushNotificationsMock,
+  disablePushNotificationsMock,
+  getBrowserPushPermissionMock,
+  checkPushHealthMock,
+} = vi.hoisted(() => ({
+  enablePushNotificationsMock: vi.fn().mockResolvedValue(true),
+  disablePushNotificationsMock: vi.fn().mockResolvedValue(true),
+  getBrowserPushPermissionMock: vi.fn().mockReturnValue("granted"),
+  checkPushHealthMock: vi.fn().mockResolvedValue({
+    supported: true,
+    permission: "granted",
+    serviceWorkerReady: true,
+    hasSubscription: true,
+    endpoint: "https://push.example.com/endpoint",
+    backendSynced: true,
+    backendSubscriptionCount: 1,
+    message: "Push subscription is healthy and synchronized with backend records.",
+  }),
+}));
 
 vi.mock("@/lib/hooks/useSmartResource", () => ({
   useSmartResource: useSmartResourceMock,
@@ -26,6 +40,7 @@ vi.mock("@/lib/contexts/NotificationContext", () => ({
     enablePushNotifications: enablePushNotificationsMock,
     disablePushNotifications: disablePushNotificationsMock,
     getBrowserPushPermission: getBrowserPushPermissionMock,
+    checkPushHealth: checkPushHealthMock,
   }),
 }));
 
@@ -76,6 +91,7 @@ describe("NotificationPreferences integrity semantics", () => {
     enablePushNotificationsMock.mockClear();
     disablePushNotificationsMock.mockClear();
     getBrowserPushPermissionMock.mockClear();
+    checkPushHealthMock.mockClear();
     useSmartResourceMock.mockReturnValue({
       data: {
         success: true,
@@ -111,8 +127,11 @@ describe("NotificationPreferences integrity semantics", () => {
     );
   });
 
-  it("renders enforced lock row and keeps locked switch disabled", () => {
+  it("renders enforced lock row and keeps locked switch disabled", async () => {
     render(<NotificationPreferences />);
+    await waitFor(() => {
+      expect(checkPushHealthMock).toHaveBeenCalled();
+    });
     expect(screen.getByText("Enforced Safety Rules")).toBeInTheDocument();
     const lockedSwitches = screen.getAllByTestId("locked-switch");
     expect(lockedSwitches.length).toBeGreaterThanOrEqual(1);
@@ -140,6 +159,7 @@ describe("NotificationPreferences integrity semantics", () => {
     });
 
     expect(enablePushNotificationsMock).toHaveBeenCalledTimes(1);
+    expect(checkPushHealthMock.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 
   it("runs push unsubscribe flow when push toggle is disabled", async () => {
@@ -156,5 +176,7 @@ describe("NotificationPreferences integrity semantics", () => {
     await waitFor(() => {
       expect(disablePushNotificationsMock).toHaveBeenCalledTimes(1);
     });
+
+    expect(checkPushHealthMock.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 });

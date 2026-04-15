@@ -28,6 +28,17 @@ type PreferenceApiResponse = {
   };
 };
 
+type PushHealthStatus = {
+  supported: boolean;
+  permission: NotificationPermission | "unsupported";
+  serviceWorkerReady: boolean;
+  hasSubscription: boolean;
+  endpoint: string | null;
+  backendSynced: boolean;
+  backendSubscriptionCount: number;
+  message: string;
+};
+
 const SMS_NOTIFICATIONS_AVAILABLE = false;
 
 type EditableControl = {
@@ -113,11 +124,17 @@ function normalizeEditable(payload?: PreferenceApiResponse): EditablePreferences
 export function NotificationPreferences() {
   const [editable, setEditable] = useState<EditablePreferences>(DEFAULT_EDITABLE);
   const [saving, setSaving] = useState(false);
+  const [checkingPushHealth, setCheckingPushHealth] = useState(false);
+  const [pushHealth, setPushHealth] = useState<PushHealthStatus | null>(null);
   const [notice, setNotice] = useState(
     "Critical order/payment/delivery emails remain enforced for account safety."
   );
-  const { enablePushNotifications, disablePushNotifications, getBrowserPushPermission } =
-    useNotifications();
+  const {
+    enablePushNotifications,
+    disablePushNotifications,
+    getBrowserPushPermission,
+    checkPushHealth,
+  } = useNotifications();
 
   const fetchPreferences = async (): Promise<PreferenceApiResponse> => {
     const res = await fetch("/api/notifications/preferences");
@@ -148,6 +165,22 @@ export function NotificationPreferences() {
       setNotice(data.note);
     }
   }, [data]);
+
+  const refreshPushHealth = async () => {
+    setCheckingPushHealth(true);
+    try {
+      const result = await checkPushHealth();
+      setPushHealth(result);
+    } finally {
+      setCheckingPushHealth(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshPushHealth();
+    // checkPushHealth is stable from context callback; run once for diagnostics bootstrap
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateEditable = (key: keyof EditablePreferences, value: boolean) => {
     if (key === "smsNotifications" && !SMS_NOTIFICATIONS_AVAILABLE) {
@@ -201,6 +234,8 @@ export function NotificationPreferences() {
           );
         }
       }
+
+      await refreshPushHealth();
 
       message.success("Notification preferences saved");
       await refresh(true);
@@ -272,6 +307,35 @@ export function NotificationPreferences() {
               <Lock className="h-4 w-4" />
               <Switch checked disabled />
             </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card title="Push Delivery Health" className="shadow-ds-sm">
+        <div className="space-y-3 text-sm">
+          <p className="text-ds-text-secondary">
+            Verify browser permission, service worker readiness, and backend subscription sync.
+          </p>
+          {pushHealth ? (
+            <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-3">
+              <p className="font-medium text-ds-text-primary">{pushHealth.message}</p>
+              <p className="mt-1 text-xs text-ds-text-secondary">
+                Permission: {pushHealth.permission} | Service worker ready:{" "}
+                {pushHealth.serviceWorkerReady ? "yes" : "no"}
+              </p>
+              <p className="mt-1 text-xs text-ds-text-secondary">
+                Browser subscription: {pushHealth.hasSubscription ? "yes" : "no"} | Backend sync:{" "}
+                {pushHealth.backendSynced ? "yes" : "no"}
+              </p>
+              <p className="mt-1 text-xs text-ds-text-secondary">
+                Stored subscriptions for this account: {pushHealth.backendSubscriptionCount}
+              </p>
+            </div>
+          ) : null}
+          <div>
+            <Button onClick={refreshPushHealth} loading={checkingPushHealth}>
+              Run Push Health Check
+            </Button>
           </div>
         </div>
       </Card>

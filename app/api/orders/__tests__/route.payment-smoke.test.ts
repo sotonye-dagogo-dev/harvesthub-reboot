@@ -94,6 +94,17 @@ describe("POST /api/orders payment smoke paths", () => {
     });
   });
 
+  it("blocks admin checkout attempts with explicit role-policy code", async () => {
+    mockGetCurrentUser.mockResolvedValue({ userId: "admin-user-1", role: "ADMIN" });
+
+    const res = await POST(buildRequest());
+    const json = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(json.code).toBe("CHECKOUT_ROLE_BLOCKED");
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+  });
+
   it("returns payment verification failure when provider reference is not found", async () => {
     mockVerifyPayment.mockResolvedValue({
       gateway: "PAYSTACK",
@@ -145,6 +156,38 @@ describe("POST /api/orders payment smoke paths", () => {
 
     expect(res.status).toBe(400);
     expect(json.code).toBe("INSUFFICIENT_WALLET_BALANCE");
+  });
+
+  it("rejects card checkout when verified amount does not match order total", async () => {
+    mockVerifyPayment.mockResolvedValue({
+      gateway: "PAYSTACK",
+      reference: "success-reference",
+      status: "SUCCESS",
+      amount: 5000,
+      currency: "NGN",
+      message: "Stub verification marked as successful.",
+    });
+
+    mockPrisma.buyer.upsert.mockResolvedValue({ id: "buyer-1" });
+    mockPrisma.vendor.findMany.mockResolvedValue([
+      { id: "vendor-1", userId: "vendor-user-1", status: "APPROVED" },
+    ]);
+    mockPrisma.product.findUnique.mockResolvedValue({
+      id: "product-1",
+      name: "Fresh Tomato",
+      isActive: true,
+      vendorId: "vendor-1",
+      stock: 20,
+      listingType: "PRODUCT",
+      price: 5000,
+      mainImage: "https://cdn.example.com/product-1.jpg",
+    });
+
+    const res = await POST(buildRequest({ paymentVerificationReference: "success-reference" }));
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("PAYMENT_AMOUNT_MISMATCH");
   });
 
   it("creates order when card verification succeeds", async () => {

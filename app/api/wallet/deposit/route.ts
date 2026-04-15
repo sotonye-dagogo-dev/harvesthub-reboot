@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/wallet/deposit', async () => {
         const user = await getCurrentUser();
         if (!user) return apiError('Unauthorized', 401);
+        if (user.role === 'ADMIN') {
+            return apiError('Admin wallets are read-only in this environment.', 403, {
+                code: 'WALLET_ROLE_BLOCKED',
+            });
+        }
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -47,8 +52,33 @@ export async function POST(req: NextRequest) {
             reference: paymentVerificationReference || paymentReference,
         });
 
+        if (verification.status === 'GATEWAY_UNAVAILABLE') {
+            return apiError('Payment gateway is unavailable for verification', 503, {
+                verification,
+            });
+        }
+
         if (verification.status !== 'SUCCESS') {
             return apiError('Payment verification is not successful', 400, {
+                verification,
+            });
+        }
+
+        const verifiedCurrency = verification.currency.trim().toUpperCase();
+        if (verifiedCurrency !== 'NGN') {
+            return apiError(`Payment currency mismatch. Expected NGN but received ${verifiedCurrency}.`, 400, {
+                code: 'PAYMENT_CURRENCY_MISMATCH',
+                verification,
+            });
+        }
+
+        const expectedAmountSubunit = Math.round(amount * 100);
+        const verifiedAmountSubunit = Math.round(verification.amount * 100);
+        if (verifiedAmountSubunit !== expectedAmountSubunit) {
+            return apiError('Payment amount does not match deposit request.', 400, {
+                code: 'PAYMENT_AMOUNT_MISMATCH',
+                expectedAmount: amount,
+                verifiedAmount: verification.amount,
                 verification,
             });
         }

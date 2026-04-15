@@ -14,7 +14,7 @@ export type InitializePaymentInput = {
 
 export type InitializePaymentResult = {
   gateway: SupportedPaymentGateway;
-  status: 'STUBBED';
+  status: 'INITIALIZED' | 'STUBBED';
   reference: string;
   verificationReference: string;
   authorizationUrl: string;
@@ -34,10 +34,11 @@ export type VerifyPaymentInput = {
 export type VerifyPaymentResult = {
   gateway: SupportedPaymentGateway;
   reference: string;
-  status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'NOT_FOUND';
+  status: 'SUCCESS' | 'FAILED' | 'PENDING' | 'NOT_FOUND' | 'GATEWAY_UNAVAILABLE';
   amount: number;
   currency: string;
   message: string;
+  providerStatus?: string;
 };
 
 export type PaymentFallbackTelemetry = {
@@ -82,8 +83,24 @@ function normalizeAmount(amount: number): number {
   return Math.round(amount * 100) / 100;
 }
 
+function toSubunit(amount: number): number {
+  return Math.round(normalizeAmount(amount) * 100);
+}
+
 function buildReference(gateway: SupportedPaymentGateway): string {
   return `${gateway.slice(0, 3)}-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+function hasConfiguredSecret(secret: string | undefined): boolean {
+  return typeof secret === 'string' && secret.trim().length > 0;
+}
+
+export function isGatewayReady(gateway: SupportedPaymentGateway): boolean {
+  if (gateway === 'PAYSTACK') {
+    return hasConfiguredSecret(env.paystackSecretKey);
+  }
+
+  return hasConfiguredSecret(env.flutterwaveSecretKey);
 }
 
 function getGatewayMessage(gateway: SupportedPaymentGateway): string {
@@ -106,13 +123,199 @@ function buildAuthorizationUrl(gateway: SupportedPaymentGateway, reference: stri
   return `https://checkout.flutterwave.com/v3/hosted/pay/${reference}`;
 }
 
+function mapPaystackVerificationStatus(status: string | null | undefined): VerifyPaymentResult['status'] {
+  if (!status) return 'PENDING';
+  const normalized = status.trim().toLowerCase();
+
+  if (normalized === 'success') return 'SUCCESS';
+  if (['failed', 'reversed'].includes(normalized)) return 'FAILED';
+  if (['abandoned', 'ongoing', 'processing', 'queued', 'pending'].includes(normalized)) {
+    return 'PENDING';
+  }
+
+  return 'PENDING';
+}
+
+async function initializePaystackPayment(input: InitializePaymentInput): Promise<InitializePaymentResult> {
+  const paystackSecretKey = env.paystackSecretKey?.trim();
+  if (!paystackSecretKey) {
+    throw new Error('Paystack secret key is not configured.');
+  }
+
+  const reference = input.reference || buildReference('PAYSTACK');
+  const amount = normalizeAmount(input.amount);
+  if (amount <= 0) {
+    throw new Error('Amount must be greater than zero.');
+  }
+  const currency = (input.currency || 'NGN').trim().toUpperCase();
+  const callbackUrl = env.paystackCallbackUrl || input.callbackUrl;
+
+  const response = await fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: input.email,
+      amount: toSubunit(amount),
+      currency,
+      reference,
+      callback_url: callbackUrl,
+      metadata: input.metadata,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  const providerData =
+    payload && typeof payload === 'object' && 'data' in payload
+      ? (payload.data as Record<string, unknown>)
+      : {};
+  const providerCallStatus =
+    payload && typeof payload === 'object' && typeof payload.status === 'boolean'
+      ? payload.status
+      : null;
+  const authorizationUrl =
+    typeof providerData.authorization_url === 'string' ? providerData.authorization_url : '';
+  const accessCode = typeof providerData.access_code === 'string' ? providerData.access_code : '';
+  const providerReference =
+    typeof providerData.reference === 'string' ? providerData.reference : reference;
+
+  if (!response.ok || providerCallStatus === false || !authorizationUrl || !accessCode || !providerReference) {
+    const providerMessage =
+      payload && typeof payload === 'object' && typeof payload.message === 'string'
+        ? payload.message
+        : 'Unable to initialize Paystack payment.';
+    throw new Error(providerMessage);
+  }
+
+  return {
+    gateway: 'PAYSTACK',
+    status: 'INITIALIZED',
+    reference: providerReference,
+    verificationReference: providerReference,
+    authorizationUrl,
+    accessCode,
+    message: 'Paystack payment initialized successfully.',
+    amount,
+    currency,
+    callbackUrl,
+    metadata: input.metadata,
+  };
+}
+
+async function verifyPaystackPayment(reference: string): Promise<VerifyPaymentResult> {
+  const paystackSecretKey = env.paystackSecretKey?.trim();
+  if (!paystackSecretKey) {
+    return {
+      gateway: 'PAYSTACK',
+      reference,
+      status: 'GATEWAY_UNAVAILABLE',
+      amount: 0,
+      currency: 'NGN',
+      message: 'Paystack secret key is not configured.',
+    };
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${paystackSecretKey}`,
+        },
+      }
+    );
+  } catch {
+    return {
+      gateway: 'PAYSTACK',
+      reference,
+      status: 'GATEWAY_UNAVAILABLE',
+      amount: 0,
+      currency: 'NGN',
+      message: 'Unable to reach Paystack verification endpoint.',
+    };
+  }
+
+  const payload = await response.json().catch(() => ({}));
+  const providerData =
+    payload && typeof payload === 'object' && 'data' in payload
+      ? (payload.data as Record<string, unknown>)
+      : {};
+  const providerCallStatus =
+    payload && typeof payload === 'object' && typeof payload.status === 'boolean'
+      ? payload.status
+      : null;
+
+  if (response.status === 404) {
+    return {
+      gateway: 'PAYSTACK',
+      reference,
+      status: 'NOT_FOUND',
+      amount: 0,
+      currency: 'NGN',
+      message: 'Payment reference was not found by Paystack.',
+    };
+  }
+
+  if (!response.ok || providerCallStatus === false) {
+    const providerMessage =
+      payload && typeof payload === 'object' && typeof payload.message === 'string'
+        ? payload.message
+        : 'Unable to verify payment with Paystack.';
+    return {
+      gateway: 'PAYSTACK',
+      reference,
+      status: 'FAILED',
+      amount: 0,
+      currency: 'NGN',
+      message: providerMessage,
+    };
+  }
+
+  const providerStatus =
+    typeof providerData.status === 'string' ? providerData.status.trim().toLowerCase() : null;
+  const providerReference =
+    typeof providerData.reference === 'string' && providerData.reference.trim().length > 0
+      ? providerData.reference
+      : reference;
+  const amount =
+    typeof providerData.amount === 'number' && Number.isFinite(providerData.amount)
+      ? providerData.amount / 100
+      : 0;
+  const currency =
+    typeof providerData.currency === 'string' && providerData.currency.trim().length > 0
+      ? providerData.currency.trim().toUpperCase()
+      : 'NGN';
+
+  return {
+    gateway: 'PAYSTACK',
+    reference: providerReference,
+    status: mapPaystackVerificationStatus(providerStatus),
+    amount,
+    currency,
+    message:
+      typeof payload === 'object' && payload && typeof payload.message === 'string'
+        ? payload.message
+        : providerStatus
+          ? `Paystack transaction status: ${providerStatus}.`
+          : 'Payment verification response received from Paystack.',
+    providerStatus: providerStatus || undefined,
+  };
+}
+
 export async function initializePayment(
   input: InitializePaymentInput
 ): Promise<InitializePaymentResult> {
+  if (input.gateway === 'PAYSTACK' && isGatewayReady('PAYSTACK')) {
+    return initializePaystackPayment(input);
+  }
+
   const reference = input.reference || buildReference(input.gateway);
   const amount = normalizeAmount(input.amount);
   const currency = input.currency || 'NGN';
-
   const callbackUrl =
     (input.gateway === 'PAYSTACK' ? env.paystackCallbackUrl : undefined) || input.callbackUrl;
 
@@ -120,7 +323,7 @@ export async function initializePayment(
     gateway: input.gateway,
     status: 'STUBBED',
     reference,
-    verificationReference: `${reference}-success`,
+    verificationReference: reference,
     authorizationUrl: buildAuthorizationUrl(input.gateway, reference),
     accessCode: `stub-${reference}`,
     message: getGatewayMessage(input.gateway),
@@ -140,6 +343,10 @@ function inferVerificationStatus(reference: string): 'SUCCESS' | 'FAILED' | 'PEN
 }
 
 export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPaymentResult> {
+  if (input.gateway === 'PAYSTACK') {
+    return verifyPaystackPayment(input.reference);
+  }
+
   const status = inferVerificationStatus(input.reference);
 
   return {
@@ -153,9 +360,9 @@ export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPa
         ? 'Stub verification marked as successful.'
         : status === 'NOT_FOUND'
           ? 'Stub verification did not find this provider reference.'
-        : status === 'FAILED'
-          ? 'Stub verification marked as failed.'
-          : 'Stub verification is pending. Replace with provider API verification.',
+          : status === 'FAILED'
+            ? 'Stub verification marked as failed.'
+            : 'Stub verification is pending. Replace with provider API verification.',
   };
 }
 

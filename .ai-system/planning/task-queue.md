@@ -43,6 +43,49 @@
 
 ---
 
+## Feature Planning Queue (2026-04-15) — Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
+
+> **Section summary:** Reliability closure queue for contradictory admin wallet/checkout behavior, Paystack transaction-verification correctness, delayed in-app/push notification visibility, and plain order-notification email rendering.
+
+- [x] Define and enforce wallet/checkout role policy contract.
+  - [x] Finalize expected behavior for admin accounts across wallet operations and checkout (allow with explicit QA mode vs hard-block with clear UX).
+  - [x] Align role policy in UI (`/wallet`, `/checkout`) and API boundaries (`/api/orders`, wallet mutation routes) to avoid contradictory states.
+  - [x] Add regression tests for role-policy parity (admin/vendor/buyer wallet + checkout outcomes).
+
+- [x] Replace stubbed card-payment flow with verifiable gateway lifecycle.
+  - [x] Remove synthetic verification shortcut paths (for example reference suffix forcing `SUCCESS`) from checkout/order creation.
+  - [x] Implement provider-backed verification contract in `lib/services/payments.ts` and ensure `NOT_FOUND`/`FAILED` cannot persist paid orders.
+  - [x] Enforce verify-response amount/currency parity (`NGN` + exact subunit match) before order placement and wallet crediting.
+  - [x] Add callback/webhook-safe reconciliation path for Paystack references and idempotent replay handling.
+  - [x] Add contract tests for initialize -> verify -> order-create sequencing, including negative provider states.
+
+- [x] Harden checkout failure UX and audit traceability.
+  - [x] Expand checkout error mapping for provider-specific validation states with explicit user-safe guidance.
+  - [x] Ensure all failed payment paths surface toast feedback and structured diagnostic logs without requiring devtools inspection.
+  - [x] Record payment-attempt timeline metadata on orders/transactions only after verified state transitions.
+
+- [x] Make in-app notification visibility near-real-time without manual refresh.
+  - [x] Add route-focus/visibility-triggered inbox refresh and tighten polling fallback behavior for active sessions.
+  - [x] Verify order-related notifications are written and reflected in notification context immediately post-mutation.
+  - [x] Add focused tests for unread-count updates and inbox sync timing after order events.
+
+- [x] Restore push notification delivery reliability and operator diagnostics.
+  - [x] Add explicit push subscription health checks (permission, service worker readiness, subscription persistence) in notifications UX.
+  - [x] Instrument push send failures with actionable server logs and non-blocking user feedback.
+  - [x] Add end-to-end smoke checklist for push delivery on order lifecycle events.
+
+- [x] Enforce order-email template parity and rich-content rendering.
+  - [x] Route order lifecycle email sends through dedicated order template helpers instead of generic plain notification fallback blocks.
+  - [x] Ensure order confirmation/status emails include full summary tables (items, totals, delivery/pickup context, grouped-checkout metadata).
+  - [x] Add regression tests for order-email HTML structure parity with shared `EmailLayout` (header/footer/CTA/table blocks).
+
+- [x] Finalize validation and documentation closure for this reliability slice.
+  - [x] Run focused matrix (`vitest` for payments/orders/notifications/emails, `eslint`, `tsc --noEmit`) after implementation.
+  - [x] Update `.ai-system/agents/system-architecture.md` with corrected payment verification flow and notification/email delivery contracts.
+  - [x] Log outcomes, residual risks, and rollout notes in checkpoints/history artifacts.
+
+---
+
 ## Up Next
 
 > **Section summary:** Tasks planned for the next sprint. Not yet started.

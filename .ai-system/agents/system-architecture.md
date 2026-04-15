@@ -30,21 +30,21 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 > **Section summary:** Each module listed here has a single defined responsibility. Agents should not modify a module's scope without updating this document.
 
-| Module                       | Responsibility                                                    | Key Files                                                | Dependencies                                            |
-| ---------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| `app/`                       | UI routing and server/client components                           | `app/layout.tsx`, `app/(auth)/*`, `app/(operations)/*`   | `components/`, `lib/`                                   |
-| `app/api/`                   | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
-| `app/become-vendor`          | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`                   |
-| `lib/api/`                   | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                                           |
-| `lib/config/`                | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
-| `lib/data/`                  | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
-| `lib/services/notifications` | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
-| `lib/utils/offlineQueue`     | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
-| `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                    | `lib/utils/bannerPlacementValidation.ts`                 | `lib/constants/index.ts`, upload consumers              |
-| `lib/schemas/`               | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
-| `lib/store/`                 | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
-| `components/`                | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                            | `lib/utils/`, `lib/constants/`                          |
-| `prisma/`                    | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                               | Prisma client                                           |
+| Module                                | Responsibility                                                    | Key Files                                                | Dependencies                                            |
+| ------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| `app/`                                | UI routing and server/client components                           | `app/layout.tsx`, `app/(auth)/*`, `app/(operations)/*`   | `components/`, `lib/`                                   |
+| `app/api/`                            | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
+| `app/become-vendor`                   | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`                   |
+| `lib/api/`                            | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                                           |
+| `lib/config/`                         | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
+| `lib/data/`                           | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
+| `lib/services/notifications`          | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
+| `lib/utils/offlineQueue`              | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
+| `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                   | `lib/utils/bannerPlacementValidation.ts`                 | `lib/constants/index.ts`, upload consumers              |
+| `lib/schemas/`                        | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
+| `lib/store/`                          | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
+| `components/`                         | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                            | `lib/utils/`, `lib/constants/`                          |
+| `prisma/`                             | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                               | Prisma client                                           |
 
 ---
 
@@ -86,7 +86,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Header Category Accessibility Flow
 
 ```
-1. Header exposes desktop category quick links and an `All Categories` dropdown from canonical product-discovery config.
+1. Header keeps category navigation out of desktop chrome to reduce top-nav clutter on web view.
 2. Hamburger menu exposes `Browse Categories` expandable section for mobile users.
 3. Category entries route to canonical `/products?category=<slug>` query contract.
 4. Products page query rehydration applies category filter state immediately on navigation.
@@ -325,10 +325,12 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Admin Commission + Lifecycle Coordinated Settings Save Flow
 
 ```
+
 1. Operations settings page loads commission defaults from `GET /api/admin/commission` and lifecycle controls from `GET /api/admin/commerce-config`.
 2. Save action submits category commission rates to `PUT /api/admin/commission` (decimal rate contract) and lifecycle policy to `PUT /api/admin/commerce-config`.
 3. Client surfaces partial-save visibility if one section persists and another fails.
 4. Category commission defaults now persist via dedicated admin API instead of UI-only no-op behavior.
+
 ```
 
 ### Operations Settings Control Persistence Map
@@ -348,78 +350,91 @@ Editable controls are limited to values with persisted API contracts. Runtime-de
 ### Multi-Vendor Checkout Split Order Flow
 
 ```
+
 1. Checkout groups cart lines by `vendorId` and submits `vendorOrders[]` in one checkout request.
 2. `POST /api/orders` verifies payment once (gateway/wallet semantics), validates vendor ownership per line, and computes per-vendor totals.
 3. API creates one order per vendor within a single DB transaction and links them via checkout-group metadata.
 4. Wallet method debits buyer wallet once for the grouped checkout amount while recording per-order payment transactions with deterministic balance progression.
 5. Stock/vendor metrics update per split order, and notifications fan out to each vendor plus buyer checkout summary.
 6. `GET /api/orders` derives `orderGroupId` from order history metadata and returns grouped summary aggregates for grouped-order traceability.
+
 ```
 
 ### Grouped Order Bulk Lifecycle Flow
 
 ```
+
 1. Buyer/admin opens an order detail page and, when grouped context exists, client fetches sibling orders by `groupId`.
 2. Client submits grouped action requests to `POST /api/orders/group/[groupId]/bulk` with action type (`CANCEL` or `REFUND_REQUEST`).
 3. API resolves all group orders visible to requester role scope and evaluates per-order eligibility.
 4. Eligible orders are mutated (cancel or refund-request transition), while ineligible items are skipped with structured reasons.
 5. API returns partial-applicability report (`applied`, `skipped`, counts) so UI can render mixed-status outcomes safely.
 6. Grouped listing endpoints (`GET /api/orders?groupId=...` and `GET /api/orders/[id]`) expose `orderGroupId`/group metadata for traceability and navigation.
+
 ```
 
 ### Wallet Role Parity + Derived Balance Presentation Flow
 
 ```
+
 1. Wallet page requests wallet summary and renders derived balances (`current`, `available`, `pending`) from API response.
 2. Role guard logic determines action affordances for deposit/withdraw controls.
 3. Restricted roles see explicit disabled-state explanation text instead of hidden controls.
 4. Focused tests verify role parity behavior and balance invariants to prevent regressions.
+
 ```
 
 ### Wallet Deterministic Reconciliation Flow
 
 ```
+
 1. Wallet page triggers `refresh(true)` on mount to avoid stale-cache drift after recent order/refund mutations.
 2. Wallet mutations emit wallet sync events (`wallet-deposit`, `wallet-withdraw`) after successful server commits.
 3. Order detail lifecycle mutations emit wallet sync events for potentially balance-impacting actions (cancel, refund request/review, grouped action, confirm delivery).
 4. Wallet page subscribes to sync events and forces `refresh(true)` so card balances/transactions reconcile deterministically.
+
 ```
 
 ### Refund Request/Review/Reconciliation Flow
 
 ```
+
 1. Buyer submits refund request via `POST /api/orders/[id]/refund/request`.
 2. API records pending refund transaction and appends `REFUND_REQUESTED` lifecycle event.
 3. Admin reviews via `POST /api/orders/[id]/refund/review` with approve/reject action.
-4. Approve path credits buyer wallet, marks order/payment as refunded, and reconciles payout:
-        - pre-release: reverse pending payout hold
-        - post-release: debit vendor wallet compensation and reverse payout record.
+4. Approve path credits buyer wallet, marks order/payment as refunded, and reconciles payout: - pre-release: reverse pending payout hold - post-release: debit vendor wallet compensation and reverse payout record.
 5. Reject path marks request failed and appends `REFUND_REJECTED` lifecycle event.
+
 ```
 
 ### Withdrawal Transfer Processing Lifecycle
 
 ```
+
 1. Vendor withdrawal request creates `WITHDRAWAL` transaction intent (`PENDING`) without immediate wallet debit.
 2. Processing endpoint `POST /api/wallet/withdraw/process` initiates provider transfer and reconciles status.
 3. On success, wallet is debited and withdrawal transaction marked `COMPLETED`.
 4. On failure, transaction is marked `FAILED` and available balance remains unaffected.
 5. Wallet API exposes derived `availableBalance` and `pendingWithdrawals` for accurate UI display.
+
 ```
 
 ### Operations Payment Mode Visibility Flow
 
 ```
+
 1. Admin opens `/operations/settings` and loads payment processing section.
 2. Client requests `/api/admin/payments/config` to retrieve sanitized gateway config status.
 3. API resolves active Paystack mode from env (`PAYSTACK_MODE`) and selected key set (test/live) without exposing secrets.
 4. Response includes mode-aware callback URL, expected dashboard webhook URL, key/webhook readiness booleans, and Paystack webhook whitelist IPs.
 5. UI surfaces explicit test-vs-live behavior guidance so admins understand whether transactions are simulated or real-money.
+
 ```
 
 ### Notification Delivery Flow
 
 ```
+
 1. Domain mutation (for example order creation or wallet deposit) calls `dispatchNotification`.
 2. Notification template resolver (`lib/services/notificationTemplateResolver.ts`) merges config-driven templates with event metadata + user context.
 3. Service checks user-level notification preferences and preserves mandatory critical-email delivery for order/payment/delivery events.
@@ -445,9 +460,11 @@ Editable controls are limited to values with persisted API contracts. Runtime-de
 ### Data Persistence Flow
 
 ```
+
 1. API route calls a higher-level service in `lib/data/database.ts`.
 2. Database facade delegates to Prisma-backed adapters in `lib/data/prismaAdapter.ts`.
 3. Adapters execute Prisma client operations against configured Postgres datasource.
+
 ```
 
 ---
@@ -473,13 +490,15 @@ Editable controls are limited to values with persisted API contracts. Runtime-de
 > **Section summary:** Desired structural end state for page consolidation and role-aware rendering.
 
 ```
+
 app/
-        (public)/           -> marketing + catalogue + public content pages
-        (auth)/             -> login/reset/verify/signup flows
-        (dashboard)/        -> shared authenticated feature routes (orders, wallet, profile, analytics)
-        (operations)/       -> operational consoles (admin/vendor tools) with capability-aware layouts
-        api/
-                _shared/          -> shared API middleware/wrappers/validators
+(public)/ -> marketing + catalogue + public content pages
+(auth)/ -> login/reset/verify/signup flows
+(dashboard)/ -> shared authenticated feature routes (orders, wallet, profile, analytics)
+(operations)/ -> operational consoles (admin/vendor tools) with capability-aware layouts
+api/
+\_shared/ -> shared API middleware/wrappers/validators
+
 ```
 
 Migration direction:
@@ -524,7 +543,7 @@ Migration direction:
 - Runtime data access is Prisma-first and requires a reachable configured database.
 - Some routes and features are scaffolds only and may return placeholder data.
 - UI still contains references from the original Martgram codebase (naming/branding) that may need full refactor.
-- Payment provider integration remains stubbed internally, but order and wallet mutation paths now enforce server-side verification checks.
+- Payment provider integration now supports real Paystack initialize/verify contracts when credentials exist, with controlled stub fallback in non-configured environments.
 - Web-push delivery requires browser permission grant plus configured VAPID keys in environment.
 
 ---
@@ -556,55 +575,129 @@ Migration direction:
 | 2026-04-14 | Implemented Tracks A-H core UX/flow hardening slice | Added sidebar-ad rail contracts, settings commission persistence, operations orders data-table with status notes, grouped summary exposure, and route-scoped navigation guard copy improvements |
 | 2026-04-14 | Added grouped bulk order actions + settings parity test contracts + wallet/email completeness pass | Completed grouped cancel/refund-request API+UI safety reporting, persistence parity regressions for settings APIs, role-aware wallet action messaging, and richer order-email metadata contracts |
 | 2026-04-14 | Closed remaining queue with wallet sync reconciliation + settings control audit map + payment smoke evidence | Ensured deterministic wallet refresh after lifecycle mutations, documented settings control persistence ownership, and validated wallet/payments grouped flows with focused smoke suites |
+| 2026-04-15 | Hardened wallet/checkout payment reliability + notification/email delivery parity | Enforced buyer-only checkout + admin wallet read-only contract, removed synthetic payment verification shortcuts, added gateway-aware initialize/verify behavior, improved notification recency/push diagnostics, and routed order lifecycle emails through shared templates |
+| 2026-04-15 | Closed payment/notification reliability follow-ups | Added Paystack webhook replay-safe reconciliation (signature + idempotency + provider re-verification), completed unread-sync timing regression tests, and captured push delivery smoke checklist guidance |
 
 ### Email Change + Reverification Flow
 
 ```
+
 1. Authenticated user submits a new email from profile security settings.
 2. API (`POST /api/users/me/change-email`) validates identity, uniqueness, and rate-limit constraints.
 3. API stores a prefixed verification token carrying pending-email context and marks account unverified.
 4. Verification email is delivered to the new address and user follows `/verify-email?token=...`.
 5. `/api/auth/verify-email` detects email-change token, updates canonical email, clears token fields, clears auth cookies, and returns a login redirect instruction.
+
 ```
 
 ### Help Content Route-Safe Flow
 
 ```
+
 1. Help index page renders topics/quick links from `lib/config/siteContent.ts`.
 2. Topic routes resolve via `/help/[slug]` against the same config to avoid orphan slugs.
 3. Topic page attempts to hydrate detail body from public-content (`help-{slug}`) for admin-editable rich text.
 4. If no content is published, page falls back to a safe support/contact guidance state.
+
 ```
 
 ### Vendor Verification Order-Gating Flow
 
 ```
+
 1. Checkout loads vendor status and displays a warning for unverified vendors.
 2. Buyer must explicitly acknowledge warning before order submission.
 3. Orders API enforces server-side acknowledgement requirement for unverified vendors.
 4. Order status-history captures verification/acknowledgement context for audit visibility.
+
 ```
 
 ### Orders Domain Scope-Split Flow
 
 ```
+
 1. Buyer history route remains canonical at `/orders` and is buyer-only in route policy.
 2. Vendor/admin operational order management uses `/operations/orders`.
 3. Non-buyer access to `/orders` is redirected to `/operations/orders`.
 4. Middleware keeps legacy compatibility by redirecting `/admin/orders` and `/vendor/orders` to `/operations/orders`.
 5. Navigation/sidebar and RBAC route registry are aligned with the same scope split to avoid discoverability drift.
+
+```
+
+### Checkout Payment Verification Lifecycle Flow
+
+```
+
+1. Buyer starts checkout and initializes card payment through `/api/payments/initialize`.
+2. API initializes provider payment (Paystack when configured) and returns provider reference + authorization URL.
+3. Buyer completes payment in provider-hosted page, then checkout verifies reference via `/api/payments/verify`.
+4. Orders API (`POST /api/orders`) re-verifies provider reference server-side before creating paid orders.
+5. On successful verification, order status-history stores payment verification timeline metadata (`verificationStatus`, `verificationProviderStatus`, `paymentVerifiedAt`).
+6. On failed/pending/not-found/unavailable states, order creation is rejected with typed error codes for explicit checkout UX mapping.
+
+```
+
+### Paystack Webhook Reconciliation Flow
+
+```
+
+1. Paystack posts callback events to `/api/payments/webhook` with `x-paystack-signature`.
+2. Route validates signature before any persistence side effects.
+3. Route acquires replay guard key (`paystack:webhook:<event|reference>`) via Redis with local-memory fallback when Redis is unavailable.
+4. Supported payment events are re-verified against provider status through `verifyPayment` before reconciliation writes.
+5. Verified matches update transaction/order state and append webhook reconciliation audit metadata to order status history.
+6. Replayed events are acknowledged idempotently without duplicating side effects.
+
+```
+
+### Wallet Deposit Verification Lifecycle Flow
+
+```
+
+1. User initializes deposit payment from wallet UI.
+2. Wallet UI stores pending provider reference and waits for user confirmation after provider checkout completion.
+3. `/api/wallet/deposit` verifies the provider reference before crediting wallet balance.
+4. Admin wallet mutations are blocked at API/UI layer to keep admin wallets read-only by policy.
+5. Successful verification writes completed transaction metadata with gateway and verification context.
+
+```
+
+### Notification Freshness + Push Health Flow
+
+```
+
+1. Notification context performs periodic sync plus passive sync triggers on window focus, tab visibility regain, and reconnect (`online`).
+2. Passive refresh calls are throttle-guarded to avoid request storms.
+3. Notifications preferences surface push health diagnostics (permission, service worker readiness, browser subscription, backend sync status).
+4. Push health endpoint (`POST /api/push/health`) validates subscription endpoint persistence for current user.
+
+```
+
+### Order Lifecycle Email Template Routing Flow
+
+```
+
+1. Notification dispatcher resolves notification template metadata and delivery channels.
+2. For order lifecycle notification types, dispatcher fetches associated order context when available.
+3. Buyer order-confirmed notifications use `sendOrderConfirmationEmail`.
+4. Vendor/non-buyer lifecycle updates use `sendOrderStatusUpdateEmail`.
+5. Generic inline notification email is used only as fallback when template routing cannot complete.
+
 ```
 
 ### Role/Domain Parity Matrix Enforcement Flow
 
 ```
+
 1. Route policy registry (`lib/rbac/routeConfig.ts`) defines role/public scope for core domains:
    products, orders, vendors, wallet, notifications, ads, bug reports, profile/store.
 2. Navigation builder + operations sidebar expose discoverable entry points only for allowed role scopes.
 3. Domain parity regression tests assert route policy, navigation visibility, and legacy redirect behavior.
 4. Dead-link audits validate route discoverability consistency after navigation/policy changes.
+
 ```
 
 | 2026-04-04 | Added email-change reverification + bug-report/settings/help-flow hardening | Close cloud continuation queue for account security, config-driven UX surfaces, and operations reliability |
 | 2026-04-04 | Enforced signup role/position parity + Cloudinary-first governed uploads | Remove Worker signup role drift, require vendor verification contract, and harden image evidence ingestion |
 | 2026-04-05 | Enforced explicit orders scope split + role/domain parity matrix | Separate buyer history from operations order management and harden route discoverability/scope boundaries |
+```

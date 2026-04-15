@@ -141,6 +141,16 @@ export async function POST(req: NextRequest) {
         const user = await getCurrentUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        if (user.role !== UserRole.BUYER) {
+            return NextResponse.json(
+                {
+                    error: 'Checkout is available for buyer accounts only.',
+                    code: 'CHECKOUT_ROLE_BLOCKED',
+                },
+                { status: 403 }
+            );
+        }
+
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
@@ -230,6 +240,7 @@ export async function POST(req: NextRequest) {
 
         let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
         let paymentAuditNote = 'Payment pending confirmation.';
+        let paymentVerifiedAt: string | null = null;
 
         if (requiresGatewayVerification) {
             if (!paymentGateway || !paymentReference) {
@@ -251,16 +262,20 @@ export async function POST(req: NextRequest) {
             });
 
             if (gatewayVerification.status !== 'SUCCESS') {
+                const unavailable = gatewayVerification.status === 'GATEWAY_UNAVAILABLE';
                 return NextResponse.json(
                     {
-                        error: 'Payment verification is not successful',
-                        code: 'PAYMENT_VERIFICATION_FAILED',
+                        error: unavailable
+                            ? 'Payment gateway is unavailable for verification'
+                            : 'Payment verification is not successful',
+                        code: unavailable ? 'PAYMENT_GATEWAY_UNAVAILABLE' : 'PAYMENT_VERIFICATION_FAILED',
                         verification: gatewayVerification,
                     },
-                    { status: 400 }
+                    { status: unavailable ? 503 : 400 }
                 );
             }
 
+            paymentVerifiedAt = new Date().toISOString();
             paymentAuditNote = `Payment verified via ${gateway} (ref: ${paymentReference}).`;
         } else if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
             paymentAuditNote = 'Wallet payment selected.';
@@ -281,7 +296,7 @@ export async function POST(req: NextRequest) {
         );
         const vendors = await prisma.vendor.findMany({
             where: { id: { in: requestedVendorIds } },
-            select: { id: true, userId: true, status: true },
+            select: { id: true, userId: true, status: true, storeName: true },
         });
         const vendorById = new Map(vendors.map((entry) => [entry.id, entry]));
 
@@ -309,6 +324,7 @@ export async function POST(req: NextRequest) {
             vendorId: string;
             vendorUserId: string;
             vendorStatus: string;
+            vendorStoreName: string | null;
             subtotal: number;
             deliveryFee: number;
             total: number;
@@ -379,6 +395,7 @@ export async function POST(req: NextRequest) {
                 vendorId: vendor.id,
                 vendorUserId: vendor.userId,
                 vendorStatus: vendor.status,
+                vendorStoreName: vendor.storeName,
                 subtotal,
                 deliveryFee: deliveryFeePerOrder,
                 total: subtotal + deliveryFeePerOrder,
@@ -396,6 +413,35 @@ export async function POST(req: NextRequest) {
                 },
                 { status: 400 }
             );
+        }
+
+        if (gatewayVerification) {
+            const verifiedCurrency = gatewayVerification.currency.trim().toUpperCase();
+            if (verifiedCurrency !== 'NGN') {
+                return NextResponse.json(
+                    {
+                        error: `Payment currency mismatch. Expected NGN but received ${verifiedCurrency}.`,
+                        code: 'PAYMENT_CURRENCY_MISMATCH',
+                        verification: gatewayVerification,
+                    },
+                    { status: 400 }
+                );
+            }
+
+            const expectedAmountSubunit = Math.round(grandTotal * 100);
+            const verifiedAmountSubunit = Math.round(gatewayVerification.amount * 100);
+            if (verifiedAmountSubunit !== expectedAmountSubunit) {
+                return NextResponse.json(
+                    {
+                        error: 'Payment amount does not match order total. Your order was not placed.',
+                        code: 'PAYMENT_AMOUNT_MISMATCH',
+                        expectedAmount: grandTotal,
+                        verifiedAmount: gatewayVerification.amount,
+                        verification: gatewayVerification,
+                    },
+                    { status: 400 }
+                );
+            }
         }
 
         const paymentStatus =
@@ -445,6 +491,8 @@ export async function POST(req: NextRequest) {
                         paymentReference: paymentReference || null,
                         paymentGateway: paymentGateway || null,
                         verificationStatus: gatewayVerification?.status || null,
+                        verificationProviderStatus: gatewayVerification?.providerStatus || null,
+                        paymentVerifiedAt,
                         vendorVerification: prepared.vendorStatus,
                         vendorVerificationAcknowledged: body.vendorVerificationAcknowledged === true,
                         orderGroupId,
@@ -551,7 +599,8 @@ export async function POST(req: NextRequest) {
         );
 
         const vendorNotifications = orders.map((order) => {
-            const vendorUserId = preparedOrders.find((entry) => entry.vendorId === order.vendorId)?.vendorUserId;
+            const preparedForVendor = preparedOrders.find((entry) => entry.vendorId === order.vendorId);
+            const vendorUserId = preparedForVendor?.vendorUserId;
             if (!vendorUserId) return Promise.resolve();
             const metrics = orderMetricsById.get(order.id) ?? { itemCount: 0, totalQuantity: 0 };
 
@@ -565,9 +614,18 @@ export async function POST(req: NextRequest) {
                 metadata: {
                     orderId: order.id,
                     orderNumber: order.orderNumber,
+                    vendorName: preparedForVendor?.vendorStoreName || null,
                     paymentMethod,
                     paymentStatus,
+                    subtotal: order.subtotal,
+                    deliveryFee: order.deliveryFee,
                     total: order.total,
+                    deliveryMethod: order.deliveryMethod,
+                    pickupService:
+                        order.pickupDetails && typeof order.pickupDetails === 'object' && !Array.isArray(order.pickupDetails)
+                            ? (order.pickupDetails as Record<string, unknown>).pickupService || null
+                            : null,
+                    deliveryAddress: order.deliveryAddress || null,
                     itemCount: metrics.itemCount,
                     totalQuantity: metrics.totalQuantity,
                     orderGroupId,
@@ -597,11 +655,22 @@ export async function POST(req: NextRequest) {
                         ? `Order ${firstOrder.orderNumber} confirmed`
                         : `${orders.length} orders confirmed`,
                 metadata: {
+                    orderId: firstOrder?.id || null,
+                    orderNumber: firstOrder?.orderNumber || null,
+                    vendorName: preparedOrders[0]?.vendorStoreName || null,
                     orderGroupId,
                     orderCount: orders.length,
                     paymentMethod,
                     paymentStatus,
+                    subtotal: orders.reduce((sum, order) => sum + Number(order.subtotal || 0), 0),
+                    deliveryFee: orders.reduce((sum, order) => sum + Number(order.deliveryFee || 0), 0),
                     total: grandTotal,
+                    deliveryMethod: firstOrder?.deliveryMethod || null,
+                    pickupService:
+                        firstOrder?.pickupDetails && typeof firstOrder.pickupDetails === 'object' && !Array.isArray(firstOrder.pickupDetails)
+                            ? (firstOrder.pickupDetails as Record<string, unknown>).pickupService || null
+                            : null,
+                    deliveryAddress: firstOrder?.deliveryAddress || null,
                     itemCount: aggregateItemCount,
                     totalQuantity: aggregateQuantity,
                     orderIds: orders.map((order) => order.id),
