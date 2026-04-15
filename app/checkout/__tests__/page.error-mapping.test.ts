@@ -29,7 +29,34 @@ describe("checkout error mapping contract", () => {
         code: "PAYMENT_VERIFICATION_FAILED",
         verification: { status: "FAILED" },
       })
-    ).toBe("Payment verification failed. Your order was not placed.");
+    ).toBe("Payment was declined by the provider. Your order was not placed.");
+  });
+
+  it("maps pending verification contract", () => {
+    expect(
+      mapCheckoutErrorMessage({
+        code: "PAYMENT_VERIFICATION_FAILED",
+        verification: { status: "PENDING" },
+      })
+    ).toBe("Payment is still pending with the provider. Complete payment and retry verification.");
+  });
+
+  it("maps gateway unavailable code", () => {
+    expect(mapCheckoutErrorMessage({ code: "PAYMENT_GATEWAY_UNAVAILABLE" })).toBe(
+      "Card payment is temporarily unavailable. Please use wallet checkout or retry later."
+    );
+  });
+
+  it("maps payment amount mismatch code", () => {
+    expect(mapCheckoutErrorMessage({ code: "PAYMENT_AMOUNT_MISMATCH" })).toBe(
+      "Payment amount could not be verified for this checkout. Please start payment again."
+    );
+  });
+
+  it("maps payment currency mismatch code", () => {
+    expect(mapCheckoutErrorMessage({ code: "PAYMENT_CURRENCY_MISMATCH" })).toBe(
+      "Payment currency could not be verified for this checkout. Please start payment again."
+    );
   });
 
   it("falls back to payload error when no known code exists", () => {

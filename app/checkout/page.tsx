@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
@@ -13,14 +13,17 @@ import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export const dynamic = "force-dynamic";
 
 type DeliveryMethod = "PICKUP" | "DELIVERY";
 type PaymentMethod = "WALLET" | "CARD";
 type PickupService = "SUNDAY_FIRST" | "SUNDAY_SECOND" | "MIDWEEK" | "SPECIAL_EVENT";
+type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED";
 
 export default function CheckoutPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const { items, totalPrice, clearCart } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("PICKUP");
@@ -29,11 +32,10 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("WALLET");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [vendorVerificationAcknowledged, setVendorVerificationAcknowledged] = useState(false);
+  const [cardPaymentReference, setCardPaymentReference] = useState<string | null>(null);
+  const [cardPaymentState, setCardPaymentState] = useState<CardPaymentState>("IDLE");
 
-  const hasServiceItems = useMemo(
-    () => items.some((item) => item.isService),
-    [items]
-  );
+  const hasServiceItems = useMemo(() => items.some((item) => item.isService), [items]);
   const hasMultipleVendors = useMemo(() => {
     const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
     return vendorIds.size > 1;
@@ -45,10 +47,7 @@ export default function CheckoutPage() {
   const vendorCount = Math.max(1, vendorIds.length);
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
   const total = totalPrice + deliveryFee;
-  const vendorStatusKey = useMemo(
-    () => vendorIds.slice().sort().join(","),
-    [vendorIds]
-  );
+  const vendorStatusKey = useMemo(() => vendorIds.slice().sort().join(","), [vendorIds]);
   const vendorOrderPayload = useMemo(
     () =>
       Array.from(
@@ -108,16 +107,23 @@ export default function CheckoutPage() {
     const status = vendorStatuses?.[vendorId];
     return Boolean(status && status !== "APPROVED");
   });
-  const hasUnverifiedVendorItems =
-    hasMultipleVendors ? hasAnyUnverifiedVendor : !!primaryVendorStatus && primaryVendorStatus !== "APPROVED";
+  const hasUnverifiedVendorItems = hasMultipleVendors
+    ? hasAnyUnverifiedVendor
+    : !!primaryVendorStatus && primaryVendorStatus !== "APPROVED";
 
-  const loadPaymentConfig = useCallback(async (): Promise<{ paymentsEnabled: boolean }> => {
+  const loadPaymentConfig = useCallback(async (): Promise<{
+    paymentsEnabled: boolean;
+    gatewayReady: boolean;
+  }> => {
     const res = await fetch("/api/payments/config", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.success) {
       throw new Error(data?.error || "Unable to load payment processing status");
     }
-    return { paymentsEnabled: Boolean(data?.paymentsEnabled) };
+    return {
+      paymentsEnabled: Boolean(data?.paymentsEnabled),
+      gatewayReady: Boolean(data?.gatewayReady),
+    };
   }, []);
 
   const { data: paymentConfig } = useSmartResource(loadPaymentConfig, {
@@ -126,8 +132,22 @@ export default function CheckoutPage() {
     staleTimeMs: 20_000,
   });
 
-  const paymentsEnabled =
-    paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+  const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+  const gatewayReady = paymentConfig?.gatewayReady ?? false;
+  const cardPaymentsAvailable = paymentsEnabled && gatewayReady;
+
+  useEffect(() => {
+    if (paymentMethod !== "CARD") {
+      setCardPaymentReference(null);
+      setCardPaymentState("IDLE");
+    }
+  }, [paymentMethod]);
+
+  useEffect(() => {
+    if (!cardPaymentsAvailable && paymentMethod === "CARD") {
+      setPaymentMethod("WALLET");
+    }
+  }, [cardPaymentsAvailable, paymentMethod]);
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
@@ -137,6 +157,11 @@ export default function CheckoutPage() {
   ];
 
   const handlePlaceOrder = async () => {
+    if (user?.role === "ADMIN") {
+      message.error("Admin accounts cannot complete checkout from this page.");
+      return;
+    }
+
     if (deliveryMethod === "DELIVERY" && !selectedAddress) {
       message.error("Please select or add a delivery address");
       return;
@@ -149,35 +174,82 @@ export default function CheckoutPage() {
       }
 
       let paymentReference: string | null = null;
-      if (paymentsEnabled && paymentMethod === "CARD") {
-        const paymentRes = await fetch("/api/payments/initialize", {
+      if (paymentMethod === "CARD") {
+        if (!cardPaymentsAvailable) {
+          throw new Error(
+            mapCheckoutErrorMessage({
+              code: "PAYMENT_GATEWAY_UNAVAILABLE",
+              error: "Card payment gateway is unavailable.",
+            })
+          );
+        }
+
+        if (!cardPaymentReference) {
+          const paymentRes = await fetch("/api/payments/initialize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              gateway: "PAYSTACK",
+              amount: total,
+              currency: "NGN",
+              callbackUrl:
+                typeof window !== "undefined" ? `${window.location.origin}/checkout` : undefined,
+              metadata: {
+                source: "checkout",
+                itemCount: items.length,
+                vendorCount,
+                deliveryMethod,
+              },
+            }),
+          });
+
+          const paymentData = await paymentRes.json().catch(() => ({}));
+          if (!paymentRes.ok || !paymentData?.payment?.authorizationUrl) {
+            throw new Error(paymentData?.error || "Unable to initialize card payment");
+          }
+
+          const initializedReference = String(paymentData.payment.reference);
+          setCardPaymentReference(initializedReference);
+          setCardPaymentState("INITIALIZED");
+
+          window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
+          message.info(
+            `Payment initialized (ref: ${initializedReference}). Complete payment in the opened tab, then click again to verify and place the order.`
+          );
+
+          return;
+        }
+
+        setCardPaymentState("VERIFYING");
+        const verifyRes = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             gateway: "PAYSTACK",
-            amount: total,
-            currency: "NGN",
-            callbackUrl: typeof window !== "undefined" ? `${window.location.origin}/checkout` : undefined,
-            metadata: {
-              source: "checkout",
-              itemCount: items.length,
-              vendorCount,
-              deliveryMethod,
-            },
+            reference: cardPaymentReference,
           }),
         });
+        const verifyData = await verifyRes.json().catch(() => ({}));
+        const verification = verifyData?.verification;
 
-        const paymentData = await paymentRes.json().catch(() => ({}));
-        if (!paymentRes.ok || !paymentData?.payment?.authorizationUrl) {
-          throw new Error(paymentData?.error || "Unable to initialize card payment");
+        if (!verifyRes.ok || verification?.status !== "SUCCESS") {
+          const verificationStatus =
+            typeof verification?.status === "string" ? verification.status : undefined;
+          setCardPaymentState("INITIALIZED");
+          throw new Error(
+            mapCheckoutErrorMessage({
+              code:
+                verificationStatus === "GATEWAY_UNAVAILABLE"
+                  ? "PAYMENT_GATEWAY_UNAVAILABLE"
+                  : "PAYMENT_VERIFICATION_FAILED",
+              error: verifyData?.error,
+              verification,
+            })
+          );
         }
 
-        paymentReference = String(paymentData.payment.reference);
-
-        window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
-        message.info(
-          `Payment initialized (ref: ${paymentData.payment.reference}). Complete payment in the opened tab.`
-        );
+        setCardPaymentState("VERIFIED");
+        paymentReference = cardPaymentReference;
       }
 
       const orderRes = await fetch("/api/orders", {
@@ -205,9 +277,7 @@ export default function CheckoutPage() {
           paymentGateway: paymentMethod === "CARD" ? "PAYSTACK" : undefined,
           paymentReference,
           paymentVerificationReference:
-            paymentMethod === "CARD" && paymentReference
-              ? `${paymentReference}-success`
-              : undefined,
+            paymentMethod === "CARD" && paymentReference ? paymentReference : undefined,
           vendorVerificationAcknowledged,
         }),
       });
@@ -217,15 +287,22 @@ export default function CheckoutPage() {
       }
 
       if (orderData?.split && Array.isArray(orderData?.orders)) {
-        message.success(`Checkout complete. ${orderData.orders.length} orders placed successfully.`);
+        message.success(
+          `Checkout complete. ${orderData.orders.length} orders placed successfully.`
+        );
       } else {
         message.success("Order placed successfully!");
       }
+      setCardPaymentReference(null);
+      setCardPaymentState("IDLE");
       clearCart();
       router.push("/orders");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to place order";
       message.error(errorMessage);
+      if (paymentMethod === "CARD" && cardPaymentState === "VERIFYING") {
+        setCardPaymentState("INITIALIZED");
+      }
     } finally {
       setIsPlacingOrder(false);
     }
@@ -255,16 +332,44 @@ export default function CheckoutPage() {
         </div>
       )}
 
+      {paymentsEnabled && !gatewayReady && (
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg p-4">
+          <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-warning" />
+          <div>
+            <p className="text-sm font-medium text-ds-status-warning-text">
+              Card payment is temporarily unavailable
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              Wallet checkout is still available while gateway credentials are being finalized.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {user?.role === "ADMIN" ? (
+        <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg p-4">
+          <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-warning" />
+          <div>
+            <p className="text-sm font-medium text-ds-status-warning-text">
+              Admin checkout is disabled
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              Use a buyer account to validate checkout flow. Admin wallets remain read-only in this
+              environment.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Service Booking Notice */}
       {hasServiceItems && (
         <div className="mb-6 flex items-start gap-3 rounded-ds-md border border-ds-border-brand bg-ds-brand-surface p-4">
           <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-text-brand" />
           <div>
-            <p className="text-sm font-medium text-ds-text-brand">
-              Service Bookings Included
-            </p>
+            <p className="text-sm font-medium text-ds-text-brand">Service Bookings Included</p>
             <p className="mt-1 text-xs text-ds-text-secondary">
-              Your order includes service bookings. The vendor will confirm your booking and reach out to coordinate scheduling.
+              Your order includes service bookings. The vendor will confirm your booking and reach
+              out to coordinate scheduling.
             </p>
           </div>
         </div>
@@ -334,9 +439,7 @@ export default function CheckoutPage() {
 
           {/* Delivery Method */}
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-              Delivery Method
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Delivery Method</h2>
             <Radio.Group
               value={deliveryMethod}
               onChange={(e) => setDeliveryMethod(e.target.value)}
@@ -369,7 +472,9 @@ export default function CheckoutPage() {
                     Get your order delivered to your address
                   </div>
                 </div>
-                <div className="font-semibold text-ds-text-brand">+{formatCurrency(deliveryFee)}</div>
+                <div className="font-semibold text-ds-text-brand">
+                  +{formatCurrency(deliveryFee)}
+                </div>
               </Radio>
             </Radio.Group>
 
@@ -390,12 +495,8 @@ export default function CheckoutPage() {
                       className="flex w-full items-center justify-between rounded-ds-md border border-ds-border-base p-3"
                     >
                       <div>
-                        <div className="font-medium text-ds-text-primary">
-                          {option.label}
-                        </div>
-                        <div className="text-sm text-ds-text-secondary">
-                          {option.time}
-                        </div>
+                        <div className="font-medium text-ds-text-primary">{option.label}</div>
+                        <div className="text-sm text-ds-text-secondary">{option.time}</div>
                       </div>
                     </Radio>
                   ))}
@@ -417,9 +518,7 @@ export default function CheckoutPage() {
 
           {/* Payment Method */}
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-              Payment Method
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Payment Method</h2>
             <Radio.Group
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
@@ -441,6 +540,7 @@ export default function CheckoutPage() {
               </Radio>
               <Radio
                 value="CARD"
+                disabled={!cardPaymentsAvailable}
                 className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
@@ -449,20 +549,38 @@ export default function CheckoutPage() {
                     Pay with Card
                   </div>
                   <div className="mt-1 text-sm text-ds-text-secondary">
-                    Paystack secure payment
+                    {cardPaymentsAvailable ? "Paystack secure payment" : "Temporarily unavailable"}
                   </div>
                 </div>
               </Radio>
             </Radio.Group>
+
+            {paymentMethod === "CARD" && cardPaymentReference ? (
+              <div className="mt-4 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-3 text-xs text-ds-status-info-text">
+                <p className="font-semibold">Card payment reference: {cardPaymentReference}</p>
+                <p className="mt-1">
+                  Complete payment in the opened Paystack tab, then click the checkout button again
+                  to verify and finalize.
+                </p>
+                <button
+                  type="button"
+                  className="mt-2 text-ds-text-brand underline"
+                  onClick={() => {
+                    setCardPaymentReference(null);
+                    setCardPaymentState("IDLE");
+                  }}
+                >
+                  Reinitialize card payment
+                </button>
+              </div>
+            ) : null}
           </Card>
         </div>
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-20 lg:top-24">
-            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
-              Order Summary
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Order Summary</h2>
 
             <div className="space-y-3 border-t border-ds-border-base pt-4">
               <div className="flex items-center justify-between text-ds-text-secondary">
@@ -483,9 +601,7 @@ export default function CheckoutPage() {
             <div className="mt-4 border-t border-ds-border-base pt-4">
               <div className="flex items-center justify-between text-lg font-bold text-ds-text-primary">
                 <span>Total</span>
-                <span className="text-ds-text-brand">
-                  {formatCurrency(total)}
-                </span>
+                <span className="text-ds-text-brand">{formatCurrency(total)}</span>
               </div>
             </div>
 
@@ -495,15 +611,25 @@ export default function CheckoutPage() {
               className="mt-6"
               onClick={handlePlaceOrder}
               loading={isPlacingOrder}
-              disabled={hasUnverifiedVendorItems && !vendorVerificationAcknowledged}
+              disabled={
+                (hasUnverifiedVendorItems && !vendorVerificationAcknowledged) ||
+                user?.role === "ADMIN"
+              }
             >
               <CheckCircle className="mr-2 h-5 w-5" />
-              {paymentsEnabled ? "Place Order" : "Place Order (Pay Later)"}
+              {paymentMethod === "CARD" && cardPaymentState !== "VERIFIED"
+                ? cardPaymentReference
+                  ? "Verify Card Payment & Place Order"
+                  : "Initialize Card Payment"
+                : paymentsEnabled
+                  ? "Place Order"
+                  : "Place Order (Pay Later)"}
             </Button>
 
             {!paymentsEnabled && (
               <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
-                Your order will be placed with payment pending. You&apos;ll be notified when payment processing is available.
+                Your order will be placed with payment pending. You&apos;ll be notified when payment
+                processing is available.
               </p>
             )}
           </Card>

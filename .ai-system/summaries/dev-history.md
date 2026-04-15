@@ -22,6 +22,75 @@
 [What comes next]
 ```
 
+## 2026-04-15 — Reliability Queue Closeout: Webhook Reconciliation + Notification Sync Timing
+
+**Summary:**
+Completed the remaining reliability follow-ups from the 2026-04-15 payment/notification queue. This pass delivered replay-safe Paystack webhook reconciliation, finalized unread-sync timing coverage in notification context, and published an operational push-delivery smoke checklist for manual browser verification.
+
+**Completed:**
+
+- Added Redis-backed idempotency acquisition helper and integrated it into webhook replay guard handling.
+- Upgraded `/api/payments/webhook` to enforce signature validation, provider re-verification, and idempotent callback reconciliation with audit metadata.
+- Added webhook contract tests for missing signature, replay dedupe acknowledgement, and successful reconciliation.
+- Added/fixed notification context sync timing tests (new-unread signal + passive refresh throttling/reconnect force refresh).
+- Published `.ai-system/checkpoints/push-delivery-smoke-checklist-2026-04-15.md`.
+- Passed focused validation gate (`vitest` touched suites, `eslint` touched files, `tsc --noEmit`).
+
+**Key Changes:**
+
+- Callback/webhook path now converges with verify-on-demand payment truth using replay-safe reconciliation controls.
+- Notification unread synchronization timing behavior is now covered by deterministic regression tests.
+
+**Next Sprint Focus:**
+Execute the manual two-session push-delivery smoke checklist and capture evidence artifacts for release readiness.
+
+## 2026-04-15 — Paystack Contract Hardening + Desktop Header Category Simplification
+
+**Summary:**
+Applied a focused hardening pass to align Paystack behavior with official verification guidance and remove desktop header category clutter on web view. The backend now validates provider call status more strictly and blocks fulfillment when verified amount/currency do not match expected checkout/deposit values.
+
+**Completed:**
+
+- Hardened `lib/services/payments.ts` for Paystack initialize/verify response handling (including API-call `status=false` and verify network-unavailable fallback behavior).
+- Enforced amount/currency parity (`NGN` + subunit-equivalent amount) before order creation and wallet crediting.
+- Extended checkout error mapping for payment amount/currency mismatch outcomes.
+- Removed desktop/web header category strip while preserving mobile hamburger `Browse Categories` access.
+- Added focused regression coverage across payment service, orders, wallet deposit, checkout mapping, and header category behavior.
+- Passed focused validation gate (`vitest`, `eslint`, `tsc --noEmit`).
+
+**Key Changes:**
+
+- Payment fulfillment now follows status-plus-amount verification contract instead of status-only assumptions.
+- Header category navigation is now mobile-menu-first and no longer attached to desktop top navigation.
+
+**Next Sprint Focus:**
+Complete webhook idempotent reconciliation so Paystack callback events and verify-on-demand flows converge on one replay-safe fulfillment path.
+
+## 2026-04-15 — Reliability Pass: Wallet/Checkout Payment Integrity + Notification/Email Delivery Hardening
+
+**Summary:**
+Implemented the approved reliability feature queue in one execution pass across checkout, wallet, payment APIs/services, notifications, and email delivery contracts. The flow now enforces role-policy parity (buyer checkout only, admin wallet read-only), uses explicit initialize-and-verify payment lifecycle semantics, improves user-facing checkout failure mapping, and upgrades notification freshness/push diagnostics. Order lifecycle notification emails now route through shared template helpers instead of plain fallback content whenever context is available.
+
+**Completed:**
+
+- Removed synthetic payment verification shortcuts from checkout and wallet deposit flows.
+- Added gateway-aware payment service behavior with real Paystack initialize/verify contracts when configured and explicit gateway-unavailable handling.
+- Enforced checkout/wallet role policy in both UI and API boundaries.
+- Added typed checkout error mapping coverage for provider pending/failed/not-found/unavailable states.
+- Added payment verification timeline metadata to order status-history records.
+- Added notification context focus/visibility/online refresh triggers with throttled passive sync.
+- Added push health diagnostics endpoint + preferences UI health checks.
+- Routed order lifecycle email delivery through template helpers (`OrderConfirmation`, `OrderStatusUpdate`) with tested fallback behavior.
+- Passed focused validation matrix (Vitest touched suites, ESLint touched files, full TypeScript noEmit).
+
+**Key Changes:**
+
+- Payment correctness is now verification-driven instead of client-side success inference.
+- Notification/email delivery paths now expose better operational transparency (push health + order-template routing).
+
+**Next Sprint Focus:**
+Implement webhook-driven idempotent provider reconciliation and finish remaining notification timing/push observability follow-ups still open in the 2026-04-15 reliability queue.
+
 ## 2026-04-15 — Implementation Pass: Placement Validation + Functional Header Search
 
 **Summary:**
@@ -340,6 +409,7 @@ Execute Phase B continuation tasks (delivery confirmation/auto-confirm, settleme
 Implemented a UI refinement pass to improve ad-banner composition, category discoverability in header/hamburger navigation, and products filtering reliability from category-tag interactions. The change keeps existing config-driven/banner-position contracts while improving visual hierarchy and responsive behavior.
 
 **Completed:**
+
 - Updated home banner area to a Konga-inspired split layout with hero carousel and sidebar ad cards.
 - Simplified hero slide viewport to image-first rendering and kept `Know More` modal interaction for detailed copy.
 - Added desktop header category strip (`All Categories` dropdown + quick category links).
@@ -348,6 +418,7 @@ Implemented a UI refinement pass to improve ad-banner composition, category disc
 - Added focused regression tests for hero visual contract, header category accessibility, and updated products discovery sync behavior.
 
 **Key Changes:**
+
 - Banner rendering now emphasizes media-first promo surfaces with better desktop/mobile compositional parity.
 - Category navigation now has stronger discoverability and accessibility from both desktop and mobile menu entry points.
 - Query state is now source-of-truth synchronized for products category filtering behavior.
@@ -363,6 +434,7 @@ Capture UX sign-off screenshots for header/banner behavior and continue incremen
 Completed a reliability-focused commerce assurance pass covering three locked slices: deterministic order lifecycle/payout automation, preview-runtime parity for banner placements, and guarded vendor WhatsApp handoff safety. The implementation prioritized idempotent transitions and external-contact risk reduction without requiring schema changes.
 
 **Completed:**
+
 - Hardened order status mutation lifecycle with strict enum-safe transitions and idempotent no-op replay handling.
 - Added automatic vendor wallet payout creation on paid-order delivery, with deterministic duplicate-prevention guard.
 - Added focused route tests for transition validation, payout creation path, and idempotent replay behavior.
@@ -372,6 +444,7 @@ Completed a reliability-focused commerce assurance pass covering three locked sl
 - Rewired vendor detail WhatsApp CTA through guard-first path and added focused guard-page tests.
 
 **Key Changes:**
+
 - Delivered-order payout processing is now deterministic and idempotent at the order status API boundary.
 - Banner operator previews now align more closely with production TOP-banner runtime behavior.
 - Vendor WhatsApp contact now uses an internal safety checkpoint before leaving MyHarvestHub.

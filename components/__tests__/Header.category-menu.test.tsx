@@ -46,8 +46,8 @@ describe("Header category accessibility", () => {
     expect(categoryLinks[0]).toHaveAttribute("href", "/products?category=electronics");
   });
 
-  it("hides desktop category strip on non-home non-products routes", () => {
-    pathnameState.value = "/orders";
+  it("keeps desktop category strip hidden on web view routes", () => {
+    pathnameState.value = "/";
     render(<Header />);
 
     expect(screen.queryByRole("button", { name: /all categories/i })).not.toBeInTheDocument();

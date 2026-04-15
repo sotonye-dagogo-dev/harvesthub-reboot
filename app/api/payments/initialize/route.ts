@@ -36,19 +36,28 @@ export async function POST(req: NextRequest) {
         if (!payerEmail) {
             return apiError('Unable to resolve payer email', 400);
         }
-        const initialized = await initializePayment({
-            gateway: payload.gateway,
-            amount: payload.amount,
-            email: payerEmail,
-            currency: payload.currency,
-            reference: payload.reference,
-            callbackUrl: payload.callbackUrl,
-            metadata: payload.metadata,
-        });
+        let initialized: Awaited<ReturnType<typeof initializePayment>>;
+        try {
+            initialized = await initializePayment({
+                gateway: payload.gateway,
+                amount: payload.amount,
+                email: payerEmail,
+                currency: payload.currency,
+                reference: payload.reference,
+                callbackUrl: payload.callbackUrl,
+                metadata: payload.metadata,
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to initialize payment';
+            return apiError(message, 502);
+        }
 
         return apiSuccess({
             payment: initialized,
-            note: 'Gateway initialization is currently a stub. Replace with provider SDK/API calls.',
+            note:
+                initialized.status === 'STUBBED'
+                    ? 'Gateway credentials are not configured. Verification will remain pending until provider integration is active.'
+                    : 'Payment initialized with provider gateway.',
         });
     });
 }

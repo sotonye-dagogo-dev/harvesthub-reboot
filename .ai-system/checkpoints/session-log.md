@@ -39,6 +39,166 @@
 
 ---
 
+## Session 67 — 2026-04-15
+
+**Goal:**
+Close the remaining reliability queue in one pass by landing Paystack webhook replay-safe reconciliation, stabilizing unread-sync timing regressions, and finalizing validation/docs artifacts.
+
+**Completed:**
+
+- Added Redis-backed idempotency acquisition helper with explicit acquired/exists/unavailable outcomes.
+- Upgraded `/api/payments/webhook` to signature-validated, replay-safe reconciliation flow with provider re-verification and audit metadata append.
+- Added webhook regression tests for signature guard, replay dedupe, and successful reconciliation path.
+- Added notification unread-sync timing tests and fixed deterministic timing behavior by stabilizing toast mocks and using `Date.now` clock control for throttle assertions.
+- Published push-delivery smoke checklist artifact for manual browser verification.
+- Marked remaining reliability queue items complete and logged architecture/decision/repair updates.
+- Validation results: focused webhook + notification sync Vitest suites passed, `npx tsc --noEmit` passed, focused ESLint on touched files passed.
+
+**Files Modified:**
+
+- lib/cache/redis.ts
+- app/api/payments/webhook/route.ts
+- app/api/payments/webhook/**tests**/route.test.ts
+- lib/**tests**/notification-context.sync.test.tsx
+- .ai-system/checkpoints/push-delivery-smoke-checklist-2026-04-15.md
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run the manual browser push smoke checklist across two sessions/devices and capture evidence for deployment sign-off.
+
+**Notes / Blockers:**
+
+- `pnpm` is not available in this environment; validation commands were executed via `npx`.
+- Automated baseline for push reliability is green; manual multi-device delivery confirmation remains an operational step.
+
+---
+
+## Session 66 — 2026-04-15
+
+**Goal:**
+Validate Paystack integration against official docs and tighten fulfillment safety checks, while hiding header-attached categories on desktop/web view.
+
+**Completed:**
+
+- Hardened Paystack service handling in `lib/services/payments.ts`:
+  - strict handling for provider API-call `status=false` responses,
+  - normalized currency casing,
+  - required access-code presence on initialize,
+  - graceful `GATEWAY_UNAVAILABLE` fallback when verify endpoint is unreachable.
+- Added amount/currency fulfillment guards:
+  - `POST /api/orders` now enforces exact verified amount parity and `NGN` currency before order creation.
+  - `POST /api/wallet/deposit` now enforces the same parity checks before wallet crediting.
+- Expanded checkout error mapping for payment amount/currency mismatch codes.
+- Removed desktop/web header category strip while preserving mobile `Browse Categories` menu access.
+- Added/updated focused regression tests for:
+  - payment service response/network edge cases,
+  - orders amount mismatch rejection,
+  - wallet deposit amount/currency mismatch rejection,
+  - desktop category strip absence in header,
+  - checkout mismatch error-message mapping.
+- Validation results:
+  - focused Vitest suites: pass,
+  - focused ESLint on touched files: pass,
+  - `npx tsc --noEmit`: pass.
+
+**Files Modified:**
+
+- lib/services/payments.ts
+- app/api/orders/route.ts
+- app/api/wallet/deposit/route.ts
+- app/checkout/error-mapping.ts
+- components/layout/Header.tsx
+- lib/services/**tests**/payments.test.ts
+- app/api/orders/**tests**/route.payment-smoke.test.ts
+- app/api/wallet/deposit/**tests**/route.test.ts
+- components/**tests**/Header.category-menu.test.tsx
+- app/checkout/**tests**/page.error-mapping.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Implement webhook-driven idempotent reconciliation for Paystack callback events so verification and webhook paths converge on a single replay-safe fulfillment contract.
+
+**Notes / Blockers:**
+
+- Desktop header category strip is intentionally removed; mobile category access remains available through hamburger expansion.
+- Paystack webhook reconciliation remains open and should be completed before full production cutover.
+
+---
+
+## Session 65 — 2026-04-15
+
+**Goal:**
+Implement the planned reliability closure slice end-to-end in one pass: wallet/checkout role-policy parity, real payment verification lifecycle, improved checkout failure feedback, near-real-time notification refresh behavior, push subscription diagnostics, and order-email template parity.
+
+**Completed:**
+
+- Enforced buyer-only checkout contract in `POST /api/orders` and blocked admin wallet deposits in `POST /api/wallet/deposit`.
+- Replaced synthetic payment verification shortcuts with explicit initialize -> verify lifecycle in `/checkout` and `/wallet`.
+- Upgraded payment service to gateway-aware behavior:
+  - real Paystack initialize/verify calls when credentials are configured,
+  - controlled fallback behavior and explicit `GATEWAY_UNAVAILABLE` status handling.
+- Expanded checkout error mapping for pending/failed/not-found/unavailable provider states.
+- Added payment verification timeline metadata to order status-history entries.
+- Added notification freshness improvements in notification context:
+  - shorter polling interval,
+  - focus/visibility/online passive refresh triggers with throttling.
+- Added push health diagnostics:
+  - new `POST /api/push/health` endpoint,
+  - preference UI health panel for permission/service worker/subscription/backend-sync checks.
+- Routed order lifecycle notification emails through template helpers (`OrderConfirmation`, `OrderStatusUpdate`) with generic fallback only when needed.
+- Added/updated focused tests for:
+  - checkout role-policy and payment smoke paths,
+  - wallet deposit role/gateway guard paths,
+  - payment service gateway-unavailable behavior,
+  - notification order-email routing,
+  - notification preferences push-health flow.
+- Validation results:
+  - focused Vitest suites: pass,
+  - focused ESLint on touched files: pass,
+  - `npx tsc --noEmit`: pass.
+
+**Files Modified:**
+
+- app/checkout/page.tsx
+- app/checkout/error-mapping.ts
+- app/checkout/**tests**/page.error-mapping.test.ts
+- app/wallet/page.tsx
+- app/api/orders/route.ts
+- app/api/orders/**tests**/route.payment-smoke.test.ts
+- app/api/payments/initialize/route.ts
+- app/api/payments/verify/route.ts
+- app/api/wallet/deposit/route.ts
+- app/api/wallet/deposit/**tests**/route.test.ts
+- app/api/push/health/route.ts
+- lib/services/payments.ts
+- lib/services/**tests**/payments.test.ts
+- lib/services/notifications.ts
+- lib/services/**tests**/notifications.order-email-routing.test.ts
+- lib/config/payments.ts
+- lib/contexts/NotificationContext.tsx
+- components/features/NotificationPreferences.tsx
+- components/features/**tests**/NotificationPreferences.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Complete the remaining open items in the same reliability queue: webhook-driven idempotent reconciliation for provider callbacks, unread-sync timing regression tests, push failure instrumentation/smoke checklist.
+
+**Notes / Blockers:**
+
+- Provider verification now depends on configured Paystack credentials for live mode behavior.
+- Remaining queue items are follow-up hardening/documentation tasks; core end-to-end reliability flow is now implemented.
+
+---
+
 ## Session 64 — 2026-04-15
 
 **Goal:**
@@ -80,12 +240,12 @@ Execute the planned feature end-to-end in a single pass: placement-aware upload 
 - components/features/SearchBar.tsx
 - components/features/AdvancedSearchBar.tsx
 - components/layout/Header.tsx
-- components/__tests__/ImageUpload.test.tsx
-- components/__tests__/SearchBar.test.tsx
-- components/__tests__/Header.search.test.tsx
-- components/__tests__/Header.category-menu.test.tsx
-- components/__tests__/Header.notifications-badge.test.tsx
-- lib/__tests__/bannerPlacementValidation.test.ts
+- components/**tests**/ImageUpload.test.tsx
+- components/**tests**/SearchBar.test.tsx
+- components/**tests**/Header.search.test.tsx
+- components/**tests**/Header.category-menu.test.tsx
+- components/**tests**/Header.notifications-badge.test.tsx
+- lib/**tests**/bannerPlacementValidation.test.ts
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/agents/repair-system.md
@@ -156,7 +316,7 @@ Fix incorrect order item counts showing as zero on list pages, propagate canonic
 - app/api/orders/route.ts
 - app/orders/page.tsx
 - app/(operations)/operations/orders/page.tsx
-- app/api/orders/__tests__/route.grouping.test.ts
+- app/api/orders/**tests**/route.grouping.test.ts
 - .ai-system/planning/task-queue.md
 - .ai-system/checkpoints/session-log.md
 
@@ -203,14 +363,14 @@ Restore admin control operability after the prior read-only settings pass: re-en
 
 - prisma/schema.prisma
 - prisma/migrations/20260415073427_admin_operational_payment_booking_settings/migration.sql
-- prisma/generated/client/*
+- prisma/generated/client/\*
 - lib/services/commerceConfig.ts
 - lib/config/payments.ts
 - app/api/admin/commerce-config/route.ts
 - app/api/admin/payments/config/route.ts
 - app/api/payments/config/route.ts
 - app/api/orders/route.ts
-- app/api/orders/__tests__/route.payment-smoke.test.ts
+- app/api/orders/**tests**/route.payment-smoke.test.ts
 - app/(operations)/operations/settings/page.tsx
 - app/wallet/page.tsx
 - app/components/HomeContent.tsx
@@ -259,8 +419,8 @@ Close the final open queue items (Track C audit, Track D deterministic reconcili
 - app/wallet/page.tsx
 - app/orders/[id]/page.tsx
 - app/(operations)/operations/settings/page.tsx
-- app/wallet/__tests__/page.role-parity.test.tsx
-- app/api/orders/__tests__/route.payment-smoke.test.ts
+- app/wallet/**tests**/page.role-parity.test.tsx
+- app/api/orders/**tests**/route.payment-smoke.test.ts
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/checkpoints/commerce-hardening-evidence-2026-04-14-pass3.md
@@ -311,16 +471,16 @@ Close remaining Tracks B/C/D/E/F/G queue gaps with a single implementation+valid
 - lib/services/orderLifecycle.ts
 - lib/emails/OrderConfirmation.tsx
 - lib/emails/OrderStatusUpdate.tsx
-- app/checkout/__tests__/page.error-mapping.test.ts
-- app/api/orders/__tests__/group-bulk.route.test.ts
-- app/api/orders/__tests__/route.grouping.test.ts
-- app/api/admin/commission/__tests__/route.test.ts
-- app/api/vendors/me/store-settings/__tests__/route.test.ts
-- app/api/notifications/preferences/__tests__/route.test.ts
-- app/(operations)/operations/orders/__tests__/page.table-flow.test.tsx
-- app/orders/[id]/__tests__/page.actions.test.tsx
-- app/wallet/__tests__/page.role-parity.test.tsx
-- lib/emails/__tests__/order-templates.test.tsx
+- app/checkout/**tests**/page.error-mapping.test.ts
+- app/api/orders/**tests**/group-bulk.route.test.ts
+- app/api/orders/**tests**/route.grouping.test.ts
+- app/api/admin/commission/**tests**/route.test.ts
+- app/api/vendors/me/store-settings/**tests**/route.test.ts
+- app/api/notifications/preferences/**tests**/route.test.ts
+- app/(operations)/operations/orders/**tests**/page.table-flow.test.tsx
+- app/orders/[id]/**tests**/page.actions.test.tsx
+- app/wallet/**tests**/page.role-parity.test.tsx
+- lib/emails/**tests**/order-templates.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/memory/project-decisions.md
@@ -376,9 +536,9 @@ Execute a single efficient implementation pass across Feature queue Tracks A-H (
 **Files Modified:**
 
 - app/components/HomeContent.tsx
-- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- app/components/**tests**/HomeContent.banner-layout.test.tsx
 - components/features/BannerCarousel.tsx
-- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- components/**tests**/BannerCarousel.visual-contract.test.tsx
 - app/(operations)/operations/banners/page.tsx
 - app/(operations)/operations/settings/page.tsx
 - app/(operations)/operations/orders/page.tsx
@@ -386,13 +546,13 @@ Execute a single efficient implementation pass across Feature queue Tracks A-H (
 - app/api/orders/[id]/cancel/route.ts
 - app/orders/[id]/page.tsx
 - app/api/orders/route.ts
-- app/api/orders/__tests__/status.route.test.ts
+- app/api/orders/**tests**/status.route.test.ts
 - app/checkout/page.tsx
 - lib/services/payments.ts
 - components/layout/Header.tsx
-- components/__tests__/Header.category-menu.test.tsx
+- components/**tests**/Header.category-menu.test.tsx
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/agents/repair-system.md
@@ -434,10 +594,10 @@ Implement push/in-app notification tightening in one pass: unread nav badges, pr
 - components/features/NotificationPreferences.tsx
 - components/layout/Header.tsx
 - components/layout/Sidebar.tsx
-- components/__tests__/Header.category-menu.test.tsx
-- components/__tests__/Header.notifications-badge.test.tsx
-- components/__tests__/Sidebar.orders-scope.test.tsx
-- components/features/__tests__/NotificationPreferences.test.tsx
+- components/**tests**/Header.category-menu.test.tsx
+- components/**tests**/Header.notifications-badge.test.tsx
+- components/**tests**/Sidebar.orders-scope.test.tsx
+- components/features/**tests**/NotificationPreferences.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/planning/project-plan.md
 - .ai-system/agents/system-architecture.md
@@ -511,10 +671,10 @@ Implement the planned banner ratio rebalance pass (top strip height reduction, s
 - components/features/BannerCarousel.tsx
 - app/components/HomeContent.tsx
 - components/features/BannerPlacementPreview.tsx
-- components/__tests__/TopAdBanner.contract.test.tsx
-- components/__tests__/BannerCarousel.visual-contract.test.tsx
-- components/__tests__/BannerPlacementPreview.test.tsx
-- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- components/**tests**/TopAdBanner.contract.test.tsx
+- components/**tests**/BannerCarousel.visual-contract.test.tsx
+- components/**tests**/BannerPlacementPreview.test.tsx
+- app/components/**tests**/HomeContent.banner-layout.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/agents/system-architecture.md
 - .ai-system/memory/project-decisions.md
@@ -573,7 +733,7 @@ Complete remaining commerce-assurance closure requests: admin-manageable lifecyc
 - app/checkout/page.tsx
 - app/products/[id]/page.tsx
 - app/contact/whatsapp/page.tsx
-- prisma/generated/client/*
+- prisma/generated/client/\*
 - .ai-system/planning/task-queue.md
 - .ai-system/planning/project-plan.md
 - .ai-system/agents/system-architecture.md
@@ -631,7 +791,7 @@ Implement Phase B continuation of the commerce assurance wave end-to-end (delive
 - app/api/orders/[id]/refund/request/route.ts
 - app/api/orders/[id]/refund/review/route.ts
 - app/api/orders/route.ts
-- app/api/orders/__tests__/status.route.test.ts
+- app/api/orders/**tests**/status.route.test.ts
 - app/api/wallet/withdraw/route.ts
 - app/api/wallet/withdraw/process/route.ts
 - app/api/wallet/route.ts
@@ -640,7 +800,7 @@ Implement Phase B continuation of the commerce assurance wave end-to-end (delive
 - app/wallet/page.tsx
 - app/api/telemetry/off-platform-contact/route.ts
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - components/features/VendorCard.tsx
 - app/components/HomeContent.tsx
 - .ai-system/planning/task-queue.md
@@ -713,9 +873,9 @@ Apply requested UI adjustments: Konga-inspired top/hero/side banner presentation
 - components/features/BannerCarousel.tsx
 - components/layout/Header.tsx
 - components/features/ProductsContent.tsx
-- components/__tests__/BannerCarousel.visual-contract.test.tsx
-- components/__tests__/Header.category-menu.test.tsx
-- components/__tests__/ProductsContent.discovery-contract.test.tsx
+- components/**tests**/BannerCarousel.visual-contract.test.tsx
+- components/**tests**/Header.category-menu.test.tsx
+- components/**tests**/ProductsContent.discovery-contract.test.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/checkpoints/session-log.md
 - .ai-system/summaries/dev-history.md
@@ -757,11 +917,11 @@ Implement the commerce assurance wave in one pass: deterministic order-to-payout
 **Files Modified:**
 
 - app/api/orders/[id]/status/route.ts
-- app/api/orders/__tests__/status.route.test.ts
+- app/api/orders/**tests**/status.route.test.ts
 - components/features/BannerPlacementPreview.tsx
-- components/__tests__/BannerPlacementPreview.test.tsx
+- components/**tests**/BannerPlacementPreview.test.tsx
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - app/vendors/[id]/page.tsx
 - .ai-system/planning/task-queue.md
 - .ai-system/checkpoints/session-log.md
@@ -815,7 +975,7 @@ Resolve payment gating drift and complete homepage/banner UX fixes (cart feedbac
 - app/(operations)/operations/banners/page.tsx
 - app/advertise/page.tsx
 - app/ad-application/page.tsx
-- lib/config/__tests__/payments.test.ts
+- lib/config/**tests**/payments.test.ts
 - .ai-system/memory/project-decisions.md
 - .ai-system/checkpoints/session-log.md
 

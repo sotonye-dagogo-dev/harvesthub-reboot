@@ -23,6 +23,86 @@
 [What this decision affects going forward]
 ```
 
+## Paystack Webhook Reconciliation Must Be Replay-Safe and Verify-Backed
+
+**Decision:** Treat `/api/payments/webhook` as an idempotent reconciliation endpoint that only mutates transaction/order state after signature validation, replay-key acquisition, and provider-side reference re-verification.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Webhook delivery can be retried or replayed. Relying on webhook payload-only updates risks duplicate side effects and state drift versus provider truth.
+
+**Alternatives Considered:**
+
+- Trust webhook payload and always update records without provider re-verify (rejected: replay and stale-state risk).
+- Use only in-memory replay guard (rejected: process-local and less resilient across restarts/scale-out nodes).
+
+**Implications:**
+
+- Webhook route now uses Redis-backed idempotency acquisition with local fallback safety.
+- Replayed callback events return acknowledgement without reapplying mutations.
+- Order status history includes webhook reconciliation audit metadata for traceability.
+
+## Paystack Verification Must Match Expected Amount and Currency Before Fulfillment
+
+**Decision:** For Paystack-backed card payments, the backend must only deliver value (order creation or wallet credit) after verify returns `SUCCESS` and the verified amount/currency exactly match expected values (`NGN` and subunit-equivalent amount).
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Paystack recommends verifying both transaction status and amount before fulfillment. Status-only verification can still permit underpayment or currency mismatch fulfillment paths.
+
+**Alternatives Considered:**
+
+- Verify status only and trust client-entered amount (rejected: underpayment/mismatch risk).
+- Perform loose float comparison without subunit normalization (rejected: decimal precision drift risk).
+
+**Implications:**
+
+- `POST /api/orders` now enforces `PAYMENT_AMOUNT_MISMATCH` and `PAYMENT_CURRENCY_MISMATCH` guards before persisting paid orders.
+- `POST /api/wallet/deposit` now enforces the same parity guards before wallet credits.
+- Checkout error mapping includes explicit user-safe guidance for mismatch outcomes.
+
+## Checkout and Wallet Role Policy Uses Hard-Block Contract for Admin Accounts
+
+**Decision:** Enforce a hard-block policy where checkout order creation is buyer-only and admin wallet mutations remain read-only, with explicit user-facing UX guidance and API error codes.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Admin-facing operational surfaces and buyer commerce flows should not overlap in production behavior; mixed semantics caused contradictory wallet/checkout outcomes and support confusion.
+
+**Alternatives Considered:**
+
+- Allow admin checkout/wallet mutation under implicit QA assumptions (rejected: high risk of role-policy drift and accidental production misuse).
+- Keep UI-only block without API enforcement (rejected: security/contract bypass risk).
+
+**Implications:**
+
+- `POST /api/orders` now returns `CHECKOUT_ROLE_BLOCKED` for non-buyer roles.
+- `POST /api/wallet/deposit` now returns `WALLET_ROLE_BLOCKED` for admin role.
+- `/checkout` and `/wallet` show explicit role-policy guidance and disable conflicting actions.
+
+## Payment Verification Must Be Reference-Driven, Not Suffix-Inferred
+
+**Decision:** Remove synthetic success-reference shortcuts and require explicit provider reference verification in checkout/wallet payment completion flows.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Synthetic verification references could mark payments as successful without authoritative provider confirmation, creating truthfulness and reconciliation risks.
+
+**Alternatives Considered:**
+
+- Keep synthetic fallback for convenience in all environments (rejected: undermines payment integrity contract).
+- Rely only on client-side verification pre-check without server re-verification (rejected: tamper/prior-state risk).
+
+**Implications:**
+
+- Checkout/wallet now follow initialize -> user completes provider step -> verify -> mutation.
+- Server-side routes re-verify references before writing paid states.
+- Order status history now records verification timeline metadata (`paymentVerifiedAt`, provider status fields).
+
 ## Banner Placement Validation Is Upload-Time Warn-Only
 
 **Decision:** Validate uploaded ad/banner image dimensions against selected placement ratio (`TOP`, `HERO`, `SIDEBAR`) at upload-time and present non-blocking warnings instead of hard-rejecting uploads.

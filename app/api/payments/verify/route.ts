@@ -27,9 +27,13 @@ export async function POST(req: NextRequest) {
 
         const verification = await verifyPayment(parsed.data);
 
+        if (verification.status === 'GATEWAY_UNAVAILABLE') {
+            return apiError(verification.message, 503, { verification });
+        }
+
         return apiSuccess({
             verification,
-            note: 'Gateway verification is currently a stub. Replace with provider transaction lookup.',
+            note: 'Verification response received from payment gateway.',
         });
     });
 }
