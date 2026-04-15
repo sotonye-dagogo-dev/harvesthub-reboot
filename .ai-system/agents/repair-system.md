@@ -18,6 +18,35 @@
 
 ---
 
+## [Search UI crashes in tests/runtimes where localStorage is non-standard]
+
+**Symptom:**
+
+- Header/Search components crash with errors like `window.localStorage.getItem is not a function`.
+
+**Root Cause:**
+
+- Environment provided a non-standard/localstorage shim where expected methods (`getItem`, `setItem`, `removeItem`) were absent or not callable.
+
+**Fix Applied:**
+
+- Added storage capability guard in search component (`getSafeStorage`) before any localStorage access.
+- Updated SearchBar tests to install deterministic localStorage mock instead of relying on environment default.
+
+**Prevention:**
+
+- Never call browser storage APIs directly without capability checks in shared UI components.
+- In tests, explicitly mock localStorage when persistence behavior is asserted.
+
+**Files Affected:**
+
+- components/features/SearchBar.tsx
+- components/__tests__/SearchBar.test.tsx
+
+**Date:** 2026-04-15
+
+---
+
 ## [Order list item count rendered as 0 on buyer/operations pages]
 
 **Symptom:**

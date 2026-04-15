@@ -110,4 +110,38 @@ describe("ImageUpload", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(warningSpy).toHaveBeenCalledWith("Only 2 images can be uploaded at once.");
   });
+
+  it("emits non-blocking placement warning for ratio mismatch while upload succeeds", async () => {
+    const onUploaded = vi.fn();
+    const onWarning = vi.fn();
+    vi.spyOn(global, "fetch").mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        url: "https://cdn.example.com/top-banner.png",
+        publicId: "banner-public-id",
+        width: 1000,
+        height: 1000,
+      }),
+    } as Response);
+
+    render(
+      <ImageUpload
+        folderType="banner"
+        placementValidation={{ placement: "TOP", onWarning }}
+        onUploaded={onUploaded}
+      />
+    );
+
+    const fileInput = screen.getByLabelText("Choose image") as HTMLInputElement;
+    const file = new File(["image-bytes"], "banner.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
+    expect(onWarning).toHaveBeenCalledWith(
+      expect.objectContaining({
+        placement: "TOP",
+      })
+    );
+    expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining("TOP placement works best"));
+  });
 });

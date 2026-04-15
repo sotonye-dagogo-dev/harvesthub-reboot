@@ -1,31 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Header } from "@/components/layout/Header";
+
+const pushSpy = vi.fn();
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: pushSpy }),
 }));
 
 vi.mock("@/lib/contexts/AuthContext", () => ({
   useAuth: () => ({
-    user: {
-      role: "BUYER",
-      firstName: "Ada",
-    },
+    user: null,
     logout: vi.fn(),
   }),
 }));
 
 vi.mock("@/lib/store/cartStore", () => ({
   useCart: () => ({
-    totalItems: 2,
+    totalItems: 0,
   }),
 }));
 
 vi.mock("@/lib/contexts/NotificationContext", () => ({
   useNotifications: () => ({
-    unreadCount: 6,
+    unreadCount: 0,
   }),
 }));
 
@@ -34,11 +33,16 @@ vi.mock("@/components/ui", () => ({
   ThemeToggle: () => <button type="button">Theme</button>,
 }));
 
-describe("Header notification badges", () => {
-  it("shows notifications link with unread count for authenticated users", () => {
+describe("Header search integration", () => {
+  it("navigates to products search route when form is submitted", () => {
     render(<Header />);
 
-    expect(screen.getByRole("link", { name: /notifications/i })).toBeInTheDocument();
-    expect(screen.getAllByText("6").length).toBeGreaterThan(0);
+    const input = screen.getByPlaceholderText("Search products and vendors") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "rice" } });
+    const form = input.closest("form");
+    expect(form).toBeTruthy();
+    fireEvent.submit(form!);
+
+    expect(pushSpy).toHaveBeenCalledWith("/products?search=rice");
   });
 });

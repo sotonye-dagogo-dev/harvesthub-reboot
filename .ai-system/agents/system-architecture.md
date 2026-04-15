@@ -40,6 +40,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 | `lib/data/`                  | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
 | `lib/services/notifications` | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
 | `lib/utils/offlineQueue`     | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
+| `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                    | `lib/utils/bannerPlacementValidation.ts`                 | `lib/constants/index.ts`, upload consumers              |
 | `lib/schemas/`               | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
 | `lib/store/`                 | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
 | `components/`                | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                            | `lib/utils/`, `lib/constants/`                          |
@@ -195,6 +196,28 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 4. On reconnect, queued payloads replay to `/api/ad-applications`.
 5. API validates payload with Zod and persists via data adapter.
 6. Upload-managed ad fields are expected to be Cloudinary-managed URLs produced by `/api/upload`.
+```
+
+### Banner Upload Placement Validation Flow
+
+```
+1. User selects ad/banner placement (`TOP`, `HERO`, `SIDEBAR`) and uploads an image through `ImageUpload`.
+2. `/api/upload` returns upload metadata including `width` and `height`.
+3. Client runs `validateBannerPlacementRatio` against `AD_BANNER_DIMENSIONS` recommendations.
+4. If deviation is within tolerance, flow proceeds silently.
+5. If deviation exceeds tolerance, UI emits non-blocking warning payload (`expectedRatio`, `actualRatio`, `deviationPercent`, human guidance).
+6. Upload remains successful; user can keep asset or re-upload better-fitting creative.
+```
+
+### Header Search Suggestion + Recent History Flow
+
+```
+1. Header composes shared `SearchBar` component instead of static input.
+2. Typing 2+ characters triggers debounced product suggestion fetches via client fetcher/API.
+3. Dropdown renders suggestion cards (image/title/price) with loading/empty/error states.
+4. Recent searches are loaded from browser storage and shown when query is short/empty.
+5. Keyboard and pointer controls support highlight navigation (`ArrowUp/ArrowDown`), enter-select, escape-close, and click-outside close.
+6. Selection navigates to product detail (suggestion) or canonical discovery search route (`/products?search=...`) and recent history is persisted.
 ```
 
 ### Public Ad Application Flow

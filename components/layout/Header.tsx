@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ShoppingCart,
   User,
-  Search,
   Menu,
   ChevronDown,
   ChevronRight,
@@ -22,6 +21,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { Button, ThemeToggle } from "@/components/ui";
+import { SearchBar } from "@/components/features";
 import { useCart } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
 import { PRODUCT_DISCOVERY_CATEGORIES } from "@/lib/config/productDiscovery";
@@ -39,6 +39,7 @@ function renderCounterBadge(count: number) {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
   const { unreadCount } = useNotifications();
@@ -59,6 +60,11 @@ export function Header() {
   const showDesktopCategoryStrip = pathname === "/" || pathname.startsWith("/products");
 
   const getOrdersLink = () => resolveOrdersLink();
+  const handleHeaderSearch = (value: string) => {
+    const query = value.trim();
+    if (!query) return;
+    router.push(`/products?search=${encodeURIComponent(query)}`);
+  };
 
   return (
     <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
@@ -81,15 +87,11 @@ export function Header() {
 
           {/* Search Bar - Always visible */}
           <div className="flex-1 min-w-0 max-w-xl">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ds-text-placeholder sm:left-3 sm:h-5 sm:w-5" />
-              <input
-                type="text"
-                aria-label="Search products and vendors"
-                placeholder="Search..."
-                className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-sunken py-2 pl-8 pr-3 text-sm placeholder:text-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 sm:pl-10 sm:pr-4 dark:text-ds-text-primary"
-              />
-            </div>
+            <SearchBar
+              onSearch={handleHeaderSearch}
+              placeholder="Search products and vendors"
+              showRecentSearches
+            />
           </div>
 
           {/* Desktop Navigation */}

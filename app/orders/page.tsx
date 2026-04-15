@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DeliveryMethod, OrderStatus } from "@/lib/constants";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
@@ -142,14 +142,6 @@ export default function OrdersPage() {
     staleTimeMs: 20_000,
   });
 
-  if (authLoading || (isLoading && !ordersResource)) {
-    return <SectionLoader />;
-  }
-
-  if (!user?.id) {
-    return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
-  }
-
   const orderList = ordersResource?.orders ?? [];
   const pagination =
     ordersResource?.pagination ??
@@ -161,7 +153,7 @@ export default function OrdersPage() {
     } satisfies OrdersPagination);
   const canGoPrevious = pagination.page > 1;
   const canGoNext = pagination.page < pagination.totalPages;
-  const resultsSummary = useMemo(() => {
+  const resultsSummary = (() => {
     if (pagination.total === 0) {
       return "Showing 0 orders";
     }
@@ -173,13 +165,21 @@ export default function OrdersPage() {
     const start = (pagination.page - 1) * pagination.limit + 1;
     const end = Math.min(pagination.total, pagination.page * pagination.limit);
     return `Showing ${start}-${end} of ${pagination.total} orders`;
-  }, [orderList.length, pagination.limit, pagination.page, pagination.total]);
+  })();
 
   useEffect(() => {
     if (page > pagination.totalPages) {
       setPage(pagination.totalPages);
     }
   }, [page, pagination.totalPages]);
+
+  if (authLoading || (isLoading && !ordersResource)) {
+    return <SectionLoader />;
+  }
+
+  if (!user?.id) {
+    return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
+  }
 
   const ordersContent = (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>

@@ -403,6 +403,16 @@ export const AD_BANNER_DIMENSIONS = {
         min: { width: 1200, height: 480 },
         max: { width: 2100, height: 840 },
     },
+    sidebarBanner: {
+        recommended: {
+            width: 1080,
+            height: 1080,
+            ratio: '1:1',
+            note: 'Use a square image so sidebar cards render cleanly on desktop and mobile.',
+        },
+        min: { width: 800, height: 800 },
+        max: { width: 1600, height: 1600 },
+    },
 } as const;
 
 // ============================================================================

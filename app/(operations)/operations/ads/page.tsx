@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Table, Button, Modal, message, Tag, Tooltip, Image } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { AdApplication } from "@/lib/types";
-import { AD_BANNER_DIMENSIONS } from "@/lib/constants";
+import { BannerImageGuidelines } from "@/components/features";
 import { Eye, Check, X } from "lucide-react";
 import { openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
 
@@ -309,20 +309,11 @@ export default function OperationsAdsPage() {
 
       <div className="mb-8 rounded-ds-lg border border-ds-border-base p-5">
         <h2 className="text-xl font-semibold mb-3">Ad Rate Configuration</h2>
-        <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3">
-          <p className="text-sm text-ds-text-secondary font-medium">Banner image recommendations</p>
-          <p className="text-xs text-ds-text-secondary">
-            Top banner: {AD_BANNER_DIMENSIONS.topBanner.recommended.width}x
-            {AD_BANNER_DIMENSIONS.topBanner.recommended.height} (ratio{" "}
-            {AD_BANNER_DIMENSIONS.topBanner.recommended.ratio})
-          </p>
-          <p className="text-xs text-ds-text-secondary">
-            Hero banner: {AD_BANNER_DIMENSIONS.heroBanner.recommended.width}x
-            {AD_BANNER_DIMENSIONS.heroBanner.recommended.height} (ratio{" "}
-            {AD_BANNER_DIMENSIONS.heroBanner.recommended.ratio})
-          </p>
-          <p className="text-xs text-ds-text-secondary">Max file size 1MB, prefer WebP/AVIF.</p>
-        </div>
+        <BannerImageGuidelines
+          className="mb-4"
+          title="Banner Image Recommendations"
+          subtitle="Use these dimensions while reviewing sponsored creatives for hero, top, and sidebar slots."
+        />
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-ds-text-secondary mb-1">

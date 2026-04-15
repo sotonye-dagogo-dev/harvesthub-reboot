@@ -819,3 +819,44 @@
     - [x] reasoned order-status transition flow
     - [x] payment verification hard-stop contract.
   - [x] Update `.ai-system/checkpoints/session-log.md`, `.ai-system/summaries/dev-history.md`, and `.ai-system/memory/project-decisions.md` after implementation.
+
+---
+
+## Feature Planning Queue (2026-04-15) - Placement-Aware Upload Validation + Header Search UX
+
+> **Section summary:** Planning block to add upload-time image-ratio warnings for banner/ad placements and deliver a fully functional responsive navbar search with live suggestions and recent searches.
+
+- [x] Track A - Placement validation contract (warn-only, no upload hard block).
+  - [x] Add shared placement-ratio validator utility (`lib/utils/bannerPlacementValidation.ts`) to compare uploaded image ratio against placement recommendations (`TOP`, `HERO`, `SIDEBAR`) from `AD_BANNER_DIMENSIONS`.
+  - [x] Define a single warning payload contract (`placement`, `expectedRatio`, `actualRatio`, `deviationPercent`, `message`) reusable across banner/ad forms.
+  - [x] Use a bounded tolerance band so near-match creatives do not produce noisy warnings.
+
+- [x] Track B - Upload component integration.
+  - [x] Extend `ImageUpload` response typing/callback metadata to include upload-detected dimensions (`width`, `height`, `format`) already returned by `/api/upload`.
+  - [x] Add optional `placementValidation` props to `ImageUpload` (selected placement + warn callback) while keeping existing consumers backward-compatible.
+  - [x] Surface mismatch warnings inline and via non-blocking toast/alert copy; keep upload successful and continue flow.
+
+- [x] Track C - Apply validation to required banner/sponsored surfaces.
+  - [x] Wire placement-aware validation in operations add/edit banner form (`app/(operations)/operations/banners/page.tsx`) using selected `position`.
+  - [x] Wire placement-aware validation in sponsored application form (`app/advertise/page.tsx`) using selected preferred position.
+  - [x] Wire placement-aware validation in public sponsored application form (`app/ad-application/page.tsx`) for its ad creative upload flow.
+  - [x] Ensure warning copy references the same hero/top/sidebar dimensions shown in the shared guideline component.
+
+- [x] Track D - Header/navbar search enablement.
+  - [x] Replace static header input with a functional search component in `components/layout/Header.tsx`.
+  - [x] Support debounced live suggestions from existing product search APIs with loading/empty/error states.
+  - [x] Add recent-search history (localStorage) with dedupe, recency ordering, and clear/remove actions.
+  - [x] Implement robust dropdown behavior: click-outside close, escape close, keyboard navigation (`ArrowUp`/`ArrowDown`/`Enter`), and route navigation on selection.
+  - [x] Deliver responsive dropdown rendering contracts for mobile/tablet/desktop so suggestions/history remain readable and non-overlapping with nav controls.
+
+- [x] Track E - Search data and UX consistency.
+  - [x] Consolidate duplicate search implementations (`SearchBar` / `AdvancedSearchBar`) into one shared contract to avoid future behavior drift.
+  - [x] Align suggestion item rendering with design-system tokens (thumbnail, title, price/vendor context where available).
+  - [x] Ensure header search submits to canonical products discovery query contract (`/products?search=...`).
+
+- [x] Track F - Validation, regression tests, and docs sync.
+  - [x] Add focused tests for placement validator edge cases (exact match, near match within tolerance, mismatch warning).
+  - [x] Extend `ImageUpload` tests to assert warning behavior is emitted but upload remains successful.
+  - [x] Add header search tests for live suggestions, recent history interactions, keyboard controls, and responsive dropdown states.
+  - [x] Run touched-scope validation (`eslint`, `npx tsc --noEmit`, focused Vitest).
+  - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/checkpoints/session-log.md`, `.ai-system/summaries/dev-history.md`, and `.ai-system/memory/project-decisions.md` after implementation.

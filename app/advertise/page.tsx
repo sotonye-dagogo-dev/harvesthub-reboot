@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
-import { BannerTheme, BannerPosition, AD_BANNER_DIMENSIONS } from "@/lib/constants";
-import { BannerPlacementPreview } from "@/components/features";
+import { BannerTheme, BannerPosition } from "@/lib/constants";
+import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/features";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
 import { enqueueOfflineItem, replayOfflineQueue } from "@/lib/utils/offlineQueue";
+import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 
 const { RangePicker } = DatePicker;
 const AD_APPLICATION_DRAFT_KEY = "myharvesthub.ad-application.draft.v1";
@@ -68,6 +69,7 @@ export default function AdvertisePage() {
   const [imageUpload, setImageUpload] = useState<UploadMeta | null>(null);
   const [proofUpload, setProofUpload] = useState<UploadMeta | null>(null);
   const [guestUploadId, setGuestUploadId] = useState("");
+  const [placementWarning, setPlacementWarning] = useState<BannerPlacementWarning | null>(null);
   const [rateConfig, setRateConfig] = useState<{ hourlyRate: number; dailyRate: number } | null>(
     null
   );
@@ -291,23 +293,11 @@ export default function AdvertisePage() {
           Share your brand, offer or event in the top banner slot on HarvestHub.
         </p>
 
-        <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4">
-          <h2 className="text-lg font-semibold">Image Guidelines</h2>
-          <p className="text-sm text-ds-text-secondary mt-1">
-            Top banner: {AD_BANNER_DIMENSIONS.topBanner.recommended.width}x
-            {AD_BANNER_DIMENSIONS.topBanner.recommended.height} (ratio{" "}
-            {AD_BANNER_DIMENSIONS.topBanner.recommended.ratio}). Minimum{" "}
-            {AD_BANNER_DIMENSIONS.topBanner.min.width}x{AD_BANNER_DIMENSIONS.topBanner.min.height}.
-          </p>
-          <p className="text-sm text-ds-text-secondary">
-            Hero banner: {AD_BANNER_DIMENSIONS.heroBanner.recommended.width}x
-            {AD_BANNER_DIMENSIONS.heroBanner.recommended.height} (ratio{" "}
-            {AD_BANNER_DIMENSIONS.heroBanner.recommended.ratio}). Minimum{" "}
-            {AD_BANNER_DIMENSIONS.heroBanner.min.width}x{AD_BANNER_DIMENSIONS.heroBanner.min.height}
-            .
-          </p>
-          <p className="text-sm text-ds-text-secondary">File size: max 1MB, prefer WebP/AVIF.</p>
-        </div>
+        <BannerImageGuidelines
+          className="mt-4"
+          title="Image Guidelines"
+          subtitle="Prepare your creative for hero, top, and sidebar placements before upload."
+        />
 
         <Alert
           className="mt-4"
@@ -374,6 +364,10 @@ export default function AdvertisePage() {
               guestUploadId={guestUploadId}
               skipPersistence
               helpText="Upload the banner image to use in your advert application."
+              placementValidation={{
+                getPlacement: () => previewPosition,
+                onWarning: setPlacementWarning,
+              }}
               onUploaded={(result) => {
                 setImageUpload({ url: result.url, publicId: result.publicId });
                 form.setFieldsValue({ imageUrl: result.url });
@@ -388,6 +382,11 @@ export default function AdvertisePage() {
               <Input type="hidden" />
             </Form.Item>
           </Form.Item>
+          {placementWarning ? (
+            <div className="mb-4 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg px-3 py-2 text-xs text-ds-status-warning-text">
+              {placementWarning.message}
+            </div>
+          ) : null}
           <Form.Item name="linkUrl" label="Call-to-Action Link">
             <Input placeholder="https://example.com" />
           </Form.Item>

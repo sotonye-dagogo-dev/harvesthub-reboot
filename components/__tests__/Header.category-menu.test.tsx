@@ -6,6 +6,7 @@ const pathnameState = vi.hoisted(() => ({ value: "/" }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => pathnameState.value,
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock("@/lib/contexts/AuthContext", () => ({
