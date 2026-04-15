@@ -7,7 +7,7 @@ const {
   mockRateLimitByUser,
   mockGetRateLimitResponse,
   mockVerifyPayment,
-  mockIsPaymentProcessingEnabled,
+  mockGetCommerceLifecycleConfig,
   mockDispatchNotification,
   mockPrisma,
 } = vi.hoisted(() => ({
@@ -15,7 +15,7 @@ const {
   mockRateLimitByUser: vi.fn(),
   mockGetRateLimitResponse: vi.fn(),
   mockVerifyPayment: vi.fn(),
-  mockIsPaymentProcessingEnabled: vi.fn(),
+  mockGetCommerceLifecycleConfig: vi.fn(),
   mockDispatchNotification: vi.fn(),
   mockPrisma: {
     buyer: {
@@ -45,8 +45,8 @@ vi.mock("@/lib/services/payments", () => ({
   getPaymentFallbackTelemetry: () => ({ deprecationDays: 30 }),
 }));
 
-vi.mock("@/lib/config/payments", () => ({
-  isPaymentProcessingEnabled: () => mockIsPaymentProcessingEnabled(),
+vi.mock("@/lib/services/commerceConfig", () => ({
+  getCommerceLifecycleConfig: (...args: unknown[]) => mockGetCommerceLifecycleConfig(...args),
 }));
 
 vi.mock("@/lib/services/notifications", () => ({
@@ -84,7 +84,14 @@ describe("POST /api/orders payment smoke paths", () => {
     mockGetCurrentUser.mockResolvedValue({ userId: "buyer-user-1", role: "BUYER" });
     mockRateLimitByUser.mockResolvedValue({ success: true });
     mockDispatchNotification.mockResolvedValue(undefined);
-    mockIsPaymentProcessingEnabled.mockReturnValue(true);
+    mockGetCommerceLifecycleConfig.mockResolvedValue({
+      autoConfirmEnabled: true,
+      autoConfirmHours: 48,
+      refundWindowHours: 72,
+      paymentsEnabled: true,
+      minOrderAmount: 500,
+      maxBookingAdvanceDays: 60,
+    });
   });
 
   it("returns payment verification failure when provider reference is not found", async () => {

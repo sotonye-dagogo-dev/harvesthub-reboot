@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DeliveryMethod, OrderStatus } from "@/lib/constants";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
@@ -15,12 +15,28 @@ type OrderLike = {
   orderNumber: string;
   status: unknown;
   total: number;
+  itemCount?: unknown;
+  totalQuantity?: unknown;
   deliveryMethod: unknown;
   deliveryAddress?: unknown;
   pickupDetails?: unknown;
   createdAt: string | Date;
   items?: unknown[];
 };
+
+type OrdersPagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+type OrdersResource = {
+  orders: OrderLike[];
+  pagination: OrdersPagination;
+};
+
+const DEFAULT_PAGE_SIZE = 12;
 
 function resolveDeliveryInfo(order: Pick<OrderLike, "deliveryAddress" | "pickupDetails">) {
   const deliveryAddress =
@@ -54,13 +70,28 @@ function toDeliveryMethod(value: unknown): DeliveryMethod {
     : DeliveryMethod.PICKUP;
 }
 
+function resolveItemCount(order: OrderLike): number {
+  const apiItemCount =
+    typeof order.itemCount === "number" && Number.isFinite(order.itemCount)
+      ? order.itemCount
+      : null;
+
+  if (apiItemCount !== null) {
+    return Math.max(0, Math.trunc(apiItemCount));
+  }
+
+  return Array.isArray(order.items) ? order.items.length : 0;
+}
+
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const [page, setPage] = useState(1);
 
-  const loadOrders = useCallback(async (): Promise<OrderLike[]> => {
-    const response = await fetch("/api/orders?limit=100");
+  const loadOrders = useCallback(async (): Promise<OrdersResource> => {
+    const response = await fetch(`/api/orders?page=${page}&limit=${DEFAULT_PAGE_SIZE}`);
     const data = (await response.json().catch(() => ({}))) as {
       orders?: OrderLike[];
+      pagination?: Partial<OrdersPagination>;
       error?: string;
     };
 
@@ -68,23 +99,50 @@ export default function OrdersPage() {
       throw new Error(data.error || "Unable to load orders");
     }
 
-    return Array.isArray(data.orders) ? data.orders : [];
-  }, []);
+    const orders = Array.isArray(data.orders) ? data.orders : [];
+    const total =
+      typeof data.pagination?.total === "number" && Number.isFinite(data.pagination.total)
+        ? Math.max(0, Math.trunc(data.pagination.total))
+        : orders.length;
+    const limit =
+      typeof data.pagination?.limit === "number" && Number.isFinite(data.pagination.limit)
+        ? Math.max(1, Math.trunc(data.pagination.limit))
+        : DEFAULT_PAGE_SIZE;
+    const totalPagesRaw =
+      typeof data.pagination?.totalPages === "number" && Number.isFinite(data.pagination.totalPages)
+        ? Math.trunc(data.pagination.totalPages)
+        : Math.ceil(total / limit);
+    const totalPages = Math.max(1, totalPagesRaw);
+    const currentPage =
+      typeof data.pagination?.page === "number" && Number.isFinite(data.pagination.page)
+        ? Math.max(1, Math.trunc(data.pagination.page))
+        : page;
+
+    return {
+      orders,
+      pagination: {
+        total,
+        page: currentPage,
+        limit,
+        totalPages,
+      },
+    };
+  }, [page]);
 
   const {
-    data: orders,
+    data: ordersResource,
     isLoading,
     isRefreshing,
     error,
     refresh,
   } = useSmartResource(loadOrders, {
-    key: `orders:${user?.id ?? "guest"}`,
+    key: `orders:${user?.id ?? "guest"}:page:${page}`,
     enabled: Boolean(user?.id),
     refreshIntervalMs: 60_000,
     staleTimeMs: 20_000,
   });
 
-  if (authLoading || (isLoading && !orders)) {
+  if (authLoading || (isLoading && !ordersResource)) {
     return <SectionLoader />;
   }
 
@@ -92,7 +150,36 @@ export default function OrdersPage() {
     return <div className="container mx-auto px-4 py-8">Please log in to view orders</div>;
   }
 
-  const orderList = orders ?? [];
+  const orderList = ordersResource?.orders ?? [];
+  const pagination =
+    ordersResource?.pagination ??
+    ({
+      total: orderList.length,
+      page,
+      limit: DEFAULT_PAGE_SIZE,
+      totalPages: Math.max(1, Math.ceil((orderList.length || 1) / DEFAULT_PAGE_SIZE)),
+    } satisfies OrdersPagination);
+  const canGoPrevious = pagination.page > 1;
+  const canGoNext = pagination.page < pagination.totalPages;
+  const resultsSummary = useMemo(() => {
+    if (pagination.total === 0) {
+      return "Showing 0 orders";
+    }
+
+    if (orderList.length === 0) {
+      return `Showing 0 of ${pagination.total} orders`;
+    }
+
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(pagination.total, pagination.page * pagination.limit);
+    return `Showing ${start}-${end} of ${pagination.total} orders`;
+  }, [orderList.length, pagination.limit, pagination.page, pagination.total]);
+
+  useEffect(() => {
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
+    }
+  }, [page, pagination.totalPages]);
 
   const ordersContent = (
     <RoleAwareFeatureRenderer requiredCapability={orderModule.capability}>
@@ -120,13 +207,42 @@ export default function OrdersPage() {
               orderNumber={order.orderNumber}
               status={toOrderStatus(order.status)}
               total={order.total}
-              itemCount={order.items?.length ?? 0}
+              itemCount={resolveItemCount(order)}
               deliveryMethod={toDeliveryMethod(order.deliveryMethod)}
               deliveryInfo={resolveDeliveryInfo(order)}
               createdAt={order.createdAt}
             />
           ))
         )}
+
+        {pagination.total > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-ds-md border border-ds-border-subtle bg-ds-surface-secondary/50 px-3 py-2 text-sm text-ds-text-secondary">
+            <p>{resultsSummary}</p>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canGoPrevious}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-ds-text-tertiary">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canGoNext}
+                onClick={() => setPage((current) => Math.min(pagination.totalPages, current + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </RoleAwareFeatureRenderer>
   );

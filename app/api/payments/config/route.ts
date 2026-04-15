@@ -4,6 +4,7 @@ import { getPaymentProcessingRuntimeConfig } from "@/lib/config/payments";
 
 export async function GET(_req: NextRequest) {
   return withApiHandler("GET /api/payments/config", async () => {
-    return apiSuccess(getPaymentProcessingRuntimeConfig());
+    const config = await getPaymentProcessingRuntimeConfig();
+    return apiSuccess(config);
   });
 }

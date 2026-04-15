@@ -219,7 +219,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                     const cardContent = (
                       <div
                         data-testid="sidebar-banner-tile"
-                        className="relative w-40 flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm sm:w-44"
+                        className="relative w-28 flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm sm:w-32"
                       >
                         <div className="relative aspect-square w-full">
                           <Image
@@ -262,7 +262,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                     const cardContent = (
                       <div
                         data-testid="sidebar-banner-tile"
-                        className="relative w-full max-w-[15rem] overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
+                        className="relative w-full max-w-[10rem] overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
                       >
                         <div className="relative aspect-square w-full">
                           <Image

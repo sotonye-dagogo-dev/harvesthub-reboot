@@ -63,6 +63,8 @@ describe("GET /api/orders grouped retrieval contract", () => {
         paymentStatus: "PAID",
         total: 5000,
         statusHistory,
+        _count: { items: 2 },
+        items: [{ quantity: 1 }, { quantity: 4 }],
       },
       {
         id: "order-2",
@@ -71,6 +73,8 @@ describe("GET /api/orders grouped retrieval contract", () => {
         paymentStatus: "PAID",
         total: 3000,
         statusHistory,
+        _count: { items: 1 },
+        items: [{ quantity: 2 }],
       },
     ]);
 
@@ -84,6 +88,8 @@ describe("GET /api/orders grouped retrieval contract", () => {
     expect(Array.isArray(json.orders)).toBe(true);
     expect(json.orders.length).toBe(2);
     expect(json.orders[0]?.orderGroupId).toBe("GRP-2001");
+    expect(json.orders[0]?.itemCount).toBe(2);
+    expect(json.orders[0]?.totalQuantity).toBe(5);
     expect(json.groupedSummary["GRP-2001"].orderCount).toBe(2);
     expect(json.groupedSummary["GRP-2001"].total).toBe(8000);
   });

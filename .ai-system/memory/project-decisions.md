@@ -27,6 +27,66 @@
 
 ## Decisions
 
+## Order List Item Metrics Must Be API-Derived Canonical Fields
+
+**Decision:** Expose `itemCount` and `totalQuantity` directly from `GET /api/orders` and require list consumers (`/orders`, `/operations/orders`, notifications metadata) to consume these canonical fields instead of deriving counts from optional `order.items` relation payloads.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Order list consumers were computing item counts from `order.items?.length`, but list responses did not include `items` by default, producing false `0` counts in production surfaces.
+
+**Alternatives Considered:**
+
+- Include full order items relation in all list responses and keep client-side counting (rejected: larger payloads and repeated derivation logic across consumers).
+- Patch only one UI surface with ad hoc fallback logic (rejected: does not fix cross-surface contract drift and is regression-prone).
+
+**Implications:**
+
+- Order list payload now carries explicit count metrics suitable for UI and message metadata reuse.
+- Consumer pages should treat `order.items` as optional detail-only data, not list-contract required data.
+- Regression tests should assert count-field presence in orders list routes.
+
+## Operations Payment/Threshold Controls Are Persisted and Admin-Editable
+
+**Decision:** Promote payment enablement, minimum order amount, and maximum booking advance days from read-only runtime defaults to persisted, admin-editable configuration fields in `CommerceLifecycleConfig`.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Admin users require live operational control over payment handling and order policy thresholds. Read-only controls created a governance mismatch and blocked expected operations behavior.
+
+**Alternatives Considered:**
+
+- Keep controls read-only and document env ownership (rejected: failed operator expectations and blocked runtime operations).
+- Add a separate standalone settings model (deferred: unnecessary indirection while `CommerceLifecycleConfig` already provides singleton policy storage).
+
+**Implications:**
+
+- `/api/admin/payments/config` now supports persistence via `PUT`.
+- `/api/admin/commerce-config` now includes validation/persistence for `minOrderAmount` and `maxBookingAdvanceDays`.
+- `/api/orders` enforces DB-backed minimum order amount and DB-backed payment enablement policy.
+- Supersedes the prior decision that these controls must remain read-only due missing persistence contracts.
+
+## Remember Me Must Survive Access-Token Refresh
+
+**Decision:** Persist remember-me preference in cookie state and apply that preference when re-issuing access cookies during both implicit auth refresh (`lib/utils/auth.ts`) and explicit `/api/auth/refresh` flows.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Remember Me should govern session durability across token refresh boundaries, not only at initial login. Without preference propagation, refresh paths can degrade expected persistence behavior.
+
+**Alternatives Considered:**
+
+- Keep remember state only in client localStorage (rejected: server refresh routes cannot reliably honor it).
+- Always issue fixed-duration access cookies on refresh (rejected: breaks session-vs-remembered semantics).
+
+**Implications:**
+
+- Added remember-me cookie marker and refresh-aware access-cookie issuance.
+- Logout/clear-auth flows now clear remember preference cookie as part of auth teardown.
+
 ## Wallet Balance Reconciliation Uses Explicit Sync Events + Forced Refresh
 
 **Decision:** Use an explicit client-side wallet sync event contract (`myharvesthub:wallet-sync`) plus forced wallet refresh on mount/event receipt to keep wallet cards deterministic after deposit/withdraw and order lifecycle mutations.

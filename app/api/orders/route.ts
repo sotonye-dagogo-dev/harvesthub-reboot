@@ -7,10 +7,10 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
-import { isPaymentProcessingEnabled } from '@/lib/config/payments';
 import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 import { dispatchNotification } from '@/lib/services/notifications';
 import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
+import { getCommerceLifecycleConfig } from '@/lib/services/commerceConfig';
 import {
     PaymentMethod,
     PaymentStatus,
@@ -67,14 +67,30 @@ export async function GET(req: NextRequest) {
         const allScopedOrders = await prisma.order.findMany({
             where,
             orderBy: { createdAt: 'desc' },
+            include: {
+                _count: {
+                    select: { items: true },
+                },
+                items: {
+                    select: { quantity: true },
+                },
+            },
             take: groupId ? 500 : undefined,
         });
 
         const ordersWithGroup = allScopedOrders.map((order) => {
             const orderGroupId = parseOrderGroupIdFromHistory(order.statusHistory as Prisma.JsonValue);
+            const itemCount = order._count?.items ?? (Array.isArray(order.items) ? order.items.length : 0);
+            const totalQuantity = Array.isArray(order.items)
+                ? order.items.reduce((sum, item) => sum + (Number.isFinite(item.quantity) ? item.quantity : 0), 0)
+                : 0;
+            const { items, _count, ...orderData } = order;
+
             return {
-                ...order,
+                ...orderData,
                 orderGroupId,
+                itemCount,
+                totalQuantity,
             };
         });
 
@@ -208,7 +224,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
         }
 
-        const paymentsEnabled = isPaymentProcessingEnabled();
+        const commerceConfig = await getCommerceLifecycleConfig(prisma);
+        const paymentsEnabled = commerceConfig.paymentsEnabled;
         const requiresGatewayVerification = paymentsEnabled && paymentMethod === PaymentMethod.CARD;
 
         let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
@@ -370,6 +387,17 @@ export async function POST(req: NextRequest) {
         }
 
         const grandTotal = preparedOrders.reduce((sum, entry) => sum + entry.total, 0);
+        if (grandTotal < commerceConfig.minOrderAmount) {
+            return NextResponse.json(
+                {
+                    error: `Minimum order amount is NGN ${commerceConfig.minOrderAmount.toLocaleString('en-NG')}`,
+                    code: 'MIN_ORDER_AMOUNT_NOT_MET',
+                    minOrderAmount: commerceConfig.minOrderAmount,
+                },
+                { status: 400 }
+            );
+        }
+
         const paymentStatus =
             requiresGatewayVerification ||
                 (paymentMethod === PaymentMethod.WALLET && paymentsEnabled)
@@ -500,15 +528,34 @@ export async function POST(req: NextRequest) {
             return createdOrders;
         });
 
+        const orderMetricsById = new Map(
+            orders.map((order) => {
+                const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+                const totalQuantity = Array.isArray(order.items)
+                    ? order.items.reduce((sum, item) => sum + (Number.isFinite(item.quantity) ? item.quantity : 0), 0)
+                    : 0;
+                return [order.id, { itemCount, totalQuantity }];
+            })
+        );
+        const aggregateItemCount = Array.from(orderMetricsById.values()).reduce(
+            (sum, metrics) => sum + metrics.itemCount,
+            0
+        );
+        const aggregateQuantity = Array.from(orderMetricsById.values()).reduce(
+            (sum, metrics) => sum + metrics.totalQuantity,
+            0
+        );
+
         const vendorNotifications = orders.map((order) => {
             const vendorUserId = preparedOrders.find((entry) => entry.vendorId === order.vendorId)?.vendorUserId;
             if (!vendorUserId) return Promise.resolve();
+            const metrics = orderMetricsById.get(order.id) ?? { itemCount: 0, totalQuantity: 0 };
 
             return dispatchNotification({
                 userId: vendorUserId,
                 type: 'ORDER_CONFIRMED',
                 title: 'New Order Received',
-                message: `Order ${order.orderNumber} has been placed.`,
+                message: `Order ${order.orderNumber} (${metrics.itemCount} item${metrics.itemCount === 1 ? '' : 's'}) has been placed.`,
                 link: '/orders',
                 emailSubject: `New order received: ${order.orderNumber}`,
                 metadata: {
@@ -517,16 +564,21 @@ export async function POST(req: NextRequest) {
                     paymentMethod,
                     paymentStatus,
                     total: order.total,
+                    itemCount: metrics.itemCount,
+                    totalQuantity: metrics.totalQuantity,
                     orderGroupId,
                 } as Prisma.InputJsonValue,
             });
         });
 
         const firstOrder = orders[0];
+        const firstOrderMetrics = firstOrder
+            ? orderMetricsById.get(firstOrder.id) ?? { itemCount: 0, totalQuantity: 0 }
+            : { itemCount: 0, totalQuantity: 0 };
         const buyerMessage =
             firstOrder && orders.length === 1
-                ? `Your order ${firstOrder.orderNumber} has been placed successfully.`
-                : `Your checkout has been split into ${orders.length} vendor orders.`;
+                ? `Your order ${firstOrder.orderNumber} (${firstOrderMetrics.itemCount} item${firstOrderMetrics.itemCount === 1 ? '' : 's'}) has been placed successfully.`
+                : `Your checkout has been split into ${orders.length} vendor orders (${aggregateItemCount} item${aggregateItemCount === 1 ? '' : 's'}).`;
 
         await Promise.allSettled([
             ...vendorNotifications,
@@ -546,6 +598,8 @@ export async function POST(req: NextRequest) {
                     paymentMethod,
                     paymentStatus,
                     total: grandTotal,
+                    itemCount: aggregateItemCount,
+                    totalQuantity: aggregateQuantity,
                     orderIds: orders.map((order) => order.id),
                 } as Prisma.InputJsonValue,
             }),

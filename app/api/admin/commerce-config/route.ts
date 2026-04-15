@@ -41,6 +41,12 @@ export async function PUT(req: NextRequest) {
             body.autoConfirmHours === undefined ? undefined : Number(body.autoConfirmHours);
         const refundWindowHours =
             body.refundWindowHours === undefined ? undefined : Number(body.refundWindowHours);
+        const minOrderAmount =
+            body.minOrderAmount === undefined ? undefined : Number(body.minOrderAmount);
+        const maxBookingAdvanceDays =
+            body.maxBookingAdvanceDays === undefined
+                ? undefined
+                : Number(body.maxBookingAdvanceDays);
 
         if (autoConfirmHours !== undefined && (!Number.isFinite(autoConfirmHours) || autoConfirmHours < 1 || autoConfirmHours > 240)) {
             return apiError('autoConfirmHours must be between 1 and 240', 400);
@@ -53,10 +59,28 @@ export async function PUT(req: NextRequest) {
             return apiError('refundWindowHours must be between 1 and 720', 400);
         }
 
+        if (
+            minOrderAmount !== undefined &&
+            (!Number.isFinite(minOrderAmount) || minOrderAmount < 0 || minOrderAmount > 10000000)
+        ) {
+            return apiError('minOrderAmount must be between 0 and 10,000,000', 400);
+        }
+
+        if (
+            maxBookingAdvanceDays !== undefined &&
+            (!Number.isFinite(maxBookingAdvanceDays) ||
+                maxBookingAdvanceDays < 1 ||
+                maxBookingAdvanceDays > 365)
+        ) {
+            return apiError('maxBookingAdvanceDays must be between 1 and 365', 400);
+        }
+
         const config = await upsertCommerceLifecycleConfig(prisma, {
             autoConfirmEnabled,
             autoConfirmHours,
             refundWindowHours,
+            minOrderAmount,
+            maxBookingAdvanceDays,
         });
 
         return apiSuccess({ config });

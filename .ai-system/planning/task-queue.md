@@ -32,6 +32,17 @@
 
 ---
 
+## Session 62 Corrective Slice (2026-04-15) — Orders Item Count + User Orders Pagination
+
+> **Section summary:** Corrective patch to eliminate list-view order item count drift and add explicit pagination controls to the general `/orders` experience.
+
+- [x] Expose canonical per-order `itemCount` and `totalQuantity` in `GET /api/orders` list payload.
+- [x] Migrate buyer and operations orders pages to consume canonical item metrics (safe fallback retained).
+- [x] Add API-backed pagination controls to general `/orders` page.
+- [x] Add/refresh focused regression coverage for orders list grouping contract with canonical item metrics.
+
+---
+
 ## Up Next
 
 > **Section summary:** Tasks planned for the next sprint. Not yet started.

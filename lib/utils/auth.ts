@@ -9,7 +9,8 @@ import { prisma } from '@/lib/db/prisma';
 import {
     getAccessToken,
     getRefreshToken,
-    setAccessTokenCookie,
+    getRememberMePreference,
+    setAccessTokenCookieWithPreference,
     clearAuthCookies,
 } from './cookies';
 import {
@@ -45,7 +46,8 @@ async function refreshSession(): Promise<JWTPayload | null> {
     }
 
     const newAccessToken = await generateAccessToken(user.id, user.email, user.role as UserRole);
-    await setAccessTokenCookie(newAccessToken);
+    const rememberMe = await getRememberMePreference();
+    await setAccessTokenCookieWithPreference(newAccessToken, rememberMe);
 
     return {
         userId: user.id,

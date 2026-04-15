@@ -18,6 +18,39 @@
 
 ---
 
+## [Order list item count rendered as 0 on buyer/operations pages]
+
+**Symptom:**
+
+- Order cards/table rows display `0 items` even when orders contain order items.
+
+**Root Cause:**
+
+- List consumers derived count from `order.items?.length`.
+- `GET /api/orders` list response did not include `items` relation payload by default, so UI fallback evaluated to zero.
+
+**Fix Applied:**
+
+- Added canonical `itemCount` and `totalQuantity` fields in `GET /api/orders` response.
+- Updated buyer `/orders` and operations `/operations/orders` consumers to read canonical count fields with fallback safety.
+- Added grouped-orders API test assertions for canonical count fields.
+
+**Prevention:**
+
+- Do not rely on optional relation arrays for list metrics.
+- Expose required display aggregates (counts/totals) directly in list API contracts.
+
+**Files Affected:**
+
+- app/api/orders/route.ts
+- app/orders/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- app/api/orders/__tests__/route.grouping.test.ts
+
+**Date:** 2026-04-15
+
+---
+
 ## [Next.js page module exported helper and failed typecheck]
 
 **Symptom:**

@@ -3,7 +3,11 @@
  * Refresh access token using refresh token
  */
 import { NextResponse } from 'next/server';
-import { getRefreshToken, setAccessTokenCookie } from '@/lib/utils/cookies';
+import {
+    getRefreshToken,
+    getRememberMePreference,
+    setAccessTokenCookieWithPreference,
+} from '@/lib/utils/cookies';
 import { verifyRefreshToken, generateAccessToken } from '@/lib/utils/jwt';
 import { prisma } from '@/lib/db/prisma';
 import { UserRole } from '@/lib/constants';
@@ -40,7 +44,8 @@ export async function POST() {
         }
 
         const newAccessToken = await generateAccessToken(user.id, user.email, user.role as UserRole);
-        await setAccessTokenCookie(newAccessToken);
+        const rememberMe = await getRememberMePreference();
+        await setAccessTokenCookieWithPreference(newAccessToken, rememberMe);
 
         return NextResponse.json(
             { message: 'Token refreshed successfully' },
