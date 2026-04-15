@@ -133,9 +133,7 @@ export default function OrderDetailPage() {
         }
 
         if (active) {
-          const next = Array.isArray(data?.orders)
-            ? (data.orders as GroupedOrderSummary[])
-            : [];
+          const next = Array.isArray(data?.orders) ? (data.orders as GroupedOrderSummary[]) : [];
           setGroupedOrders(next);
         }
       } catch {
@@ -229,7 +227,9 @@ export default function OrderDetailPage() {
       setCancelReason("");
       await loadOrder();
     } catch (cancelError) {
-      setActionMessage(cancelError instanceof Error ? cancelError.message : "Unable to cancel order.");
+      setActionMessage(
+        cancelError instanceof Error ? cancelError.message : "Unable to cancel order."
+      );
     } finally {
       setIsMutating(false);
     }
@@ -333,7 +333,9 @@ export default function OrderDetailPage() {
   );
   const canAdminReviewRefund = user?.role === "ADMIN" && hasPendingRefund;
   const canRunGroupedActions =
-    Boolean(order?.orderGroupId) && groupedOrders.length > 1 && (user?.role === "BUYER" || user?.role === "ADMIN");
+    Boolean(order?.orderGroupId) &&
+    groupedOrders.length > 1 &&
+    (user?.role === "BUYER" || user?.role === "ADMIN");
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8">Loading order details...</div>;
@@ -375,7 +377,10 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {(canBuyerConfirmDelivery || canBuyerRequestRefund || canAdminReviewRefund || canBuyerCancelOrder) && (
+      {(canBuyerConfirmDelivery ||
+        canBuyerRequestRefund ||
+        canAdminReviewRefund ||
+        canBuyerCancelOrder) && (
         <Card>
           <div className="space-y-3">
             {canBuyerCancelOrder ? (
@@ -402,39 +407,41 @@ export default function OrderDetailPage() {
                   Cancel Order
                 </Button>
               )}
-            {canBuyerConfirmDelivery && (
-              <Button onClick={() => void handleConfirmDelivery()} disabled={isMutating}>
-                Confirm Delivery
-              </Button>
-            )}
-            {canBuyerRequestRefund && (
-              <Button
-                variant="outline"
-                onClick={() => void handleRefundRequest()}
-                disabled={isMutating}
-              >
-                Request Refund
-              </Button>
-            )}
-            {canAdminReviewRefund && (
-              <>
-                <Button
-                  onClick={() => void handleAdminRefundReview("approve")}
-                  disabled={isMutating}
-                >
-                  Approve Refund
+              {canBuyerConfirmDelivery && (
+                <Button onClick={() => void handleConfirmDelivery()} disabled={isMutating}>
+                  Confirm Delivery
                 </Button>
+              )}
+              {canBuyerRequestRefund && (
                 <Button
                   variant="outline"
-                  onClick={() => void handleAdminRefundReview("reject")}
+                  onClick={() => void handleRefundRequest()}
                   disabled={isMutating}
                 >
-                  Reject Refund
+                  Request Refund
                 </Button>
-              </>
-            )}
+              )}
+              {canAdminReviewRefund && (
+                <>
+                  <Button
+                    onClick={() => void handleAdminRefundReview("approve")}
+                    disabled={isMutating}
+                  >
+                    Approve Refund
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleAdminRefundReview("reject")}
+                    disabled={isMutating}
+                  >
+                    Reject Refund
+                  </Button>
+                </>
+              )}
             </div>
-            {actionMessage ? <p className="text-sm text-ds-text-secondary">{actionMessage}</p> : null}
+            {actionMessage ? (
+              <p className="text-sm text-ds-text-secondary">{actionMessage}</p>
+            ) : null}
           </div>
         </Card>
       )}
@@ -481,17 +488,22 @@ export default function OrderDetailPage() {
                     <div>
                       <p className="font-medium text-ds-text-primary">{groupOrder.orderNumber}</p>
                       <p className="text-xs text-ds-text-secondary">
-                        {formatStatusLabel(groupOrder.status)} • Payment: {formatStatusLabel(groupOrder.paymentStatus)}
+                        {formatStatusLabel(groupOrder.status)} • Payment:{" "}
+                        {formatStatusLabel(groupOrder.paymentStatus)}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className="text-sm font-semibold text-ds-text-primary">{formatCurrency(groupOrder.total)}</p>
-                      <Link
-                        href={`/orders/${groupOrder.id}`}
-                        className="text-xs text-ds-text-brand hover:underline"
-                      >
-                        Open
-                      </Link>
+                      <p className="text-sm font-semibold text-ds-text-primary">
+                        {formatCurrency(groupOrder.total)}
+                      </p>
+                      {groupOrder.id !== order.id ? (
+                        <Link
+                          href={`/orders/${groupOrder.id}`}
+                          className="text-xs text-ds-text-brand hover:underline"
+                        >
+                          Open
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
                 ))}

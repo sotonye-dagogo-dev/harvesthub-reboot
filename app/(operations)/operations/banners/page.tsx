@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Card, Button, EmptyState } from "@/components/ui";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
-import { BannerPlacementPreview } from "@/components/features";
+import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/features";
 import { Image as ImageIcon, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "@/components/ui/ImageUpload";
 import type { Banner } from "@/lib/types";
@@ -14,6 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { isAntdFormValidationError } from "@/lib/utils/formErrors";
+import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -24,6 +25,7 @@ export default function OperationsBannersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [placementWarning, setPlacementWarning] = useState<BannerPlacementWarning | null>(null);
 
   const [form] = Form.useForm();
   const previewPosition = (Form.useWatch("position", form) ?? "HERO") as
@@ -67,6 +69,7 @@ export default function OperationsBannersPage() {
 
   const handleCreate = () => {
     setEditingBanner(null);
+    setPlacementWarning(null);
     form.resetFields();
     form.setFieldsValue({
       position: "HERO",
@@ -78,6 +81,7 @@ export default function OperationsBannersPage() {
 
   const handleEdit = (banner: Banner) => {
     setEditingBanner(banner);
+    setPlacementWarning(null);
     form.setFieldsValue({
       title: banner.title,
       description: banner.description,
@@ -130,6 +134,7 @@ export default function OperationsBannersPage() {
       await reloadBanners();
 
       setShowModal(false);
+      setPlacementWarning(null);
       form.resetFields();
     } catch (error) {
       if (isAntdFormValidationError(error)) {
@@ -313,12 +318,21 @@ export default function OperationsBannersPage() {
       <Modal
         title={editingBanner ? "Edit Banner" : "Create Banner"}
         open={showModal}
-        onCancel={() => setShowModal(false)}
+        onCancel={() => {
+          setShowModal(false);
+          setPlacementWarning(null);
+        }}
         onOk={handleSubmit}
         width={700}
         okText={editingBanner ? "Update" : "Create"}
       >
         <Form form={form} layout="vertical" className="mt-4">
+          <BannerImageGuidelines
+            className="mb-4"
+            title="Placement Size Guide"
+            subtitle="Use the right ratio for hero, top, and sidebar to prevent letterboxing in production slots."
+          />
+
           <Form.Item
             shouldUpdate={(prevValues, nextValues) => prevValues.position !== nextValues.position}
             noStyle
@@ -359,6 +373,10 @@ export default function OperationsBannersPage() {
             <div className="grid gap-3 md:grid-cols-[1fr_220px]">
               <ImageUpload
                 folderType="banner"
+                placementValidation={{
+                  getPlacement: () => previewPosition,
+                  onWarning: setPlacementWarning,
+                }}
                 onUploaded={(res) => {
                   form.setFieldValue("imageUrl", res.url);
                   form.setFieldsValue({ imageUrl: res.url });
@@ -384,6 +402,12 @@ export default function OperationsBannersPage() {
               </div>
             </div>
           </Form.Item>
+
+          {placementWarning ? (
+            <div className="mb-4 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg px-3 py-2 text-xs text-ds-status-warning-text">
+              {placementWarning.message}
+            </div>
+          ) : null}
 
           <Form.Item name="linkUrl" label="Link URL">
             <Input placeholder="https://example.com/page" />

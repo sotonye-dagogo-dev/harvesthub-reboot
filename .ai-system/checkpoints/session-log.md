@@ -39,6 +39,101 @@
 
 ---
 
+## Session 64 — 2026-04-15
+
+**Goal:**
+Execute the planned feature end-to-end in a single pass: placement-aware upload validation warnings plus fully functional responsive header search with live suggestions and recent searches.
+
+**Completed:**
+
+- Implemented upload-time placement-ratio validation utility and warning contract (`TOP`/`HERO`/`SIDEBAR`).
+- Extended `ImageUpload` with placement validation options and upload metadata propagation (`width`/`height`/`format`) while preserving backward compatibility.
+- Wired placement validation warnings into:
+  - operations banner add/edit form,
+  - sponsored advertise form,
+  - public sponsored application form.
+- Replaced static header input with shared functional `SearchBar` integration and canonical route navigation.
+- Upgraded `SearchBar` UX contract:
+  - debounced live suggestions,
+  - recent searches with clear/remove actions,
+  - keyboard navigation + enter-select + escape/click-outside close,
+  - responsive dropdown states (loading/empty/error).
+- Consolidated duplicate advanced search behavior by making `AdvancedSearchBar` a thin wrapper over `SearchBar`.
+- Added/updated focused regression coverage:
+  - `lib/__tests__/bannerPlacementValidation.test.ts`,
+  - `components/__tests__/SearchBar.test.tsx`,
+  - `components/__tests__/Header.search.test.tsx`,
+  - `components/__tests__/ImageUpload.test.tsx` (placement warning case),
+  - updated header tests for router mock compatibility.
+- Validation results:
+  - focused vitest set: pass (14/14 tests),
+  - focused eslint on touched files: pass,
+  - `npx tsc --noEmit`: pass.
+
+**Files Modified:**
+
+- lib/utils/bannerPlacementValidation.ts
+- components/ui/ImageUpload.tsx
+- app/(operations)/operations/banners/page.tsx
+- app/advertise/page.tsx
+- app/ad-application/page.tsx
+- components/features/SearchBar.tsx
+- components/features/AdvancedSearchBar.tsx
+- components/layout/Header.tsx
+- components/__tests__/ImageUpload.test.tsx
+- components/__tests__/SearchBar.test.tsx
+- components/__tests__/Header.search.test.tsx
+- components/__tests__/Header.category-menu.test.tsx
+- components/__tests__/Header.notifications-badge.test.tsx
+- lib/__tests__/bannerPlacementValidation.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Optional in-browser UX smoke pass on header search and banner/ad upload forms across mobile + desktop to visually confirm dropdown and warning-copy ergonomics.
+
+**Notes / Blockers:**
+
+- Focused tests and type/lint validation pass.
+- Known non-blocking test warnings around mocked `next/image` boolean attributes remain baseline behavior.
+
+---
+
+## Session 63 — 2026-04-15
+
+**Goal:**
+Execute `plan-feature.md` for two directives: (1) upload-time banner/ad placement-ratio validation warnings, and (2) fully functional responsive header search with live suggestions and recent-search dropdown behavior.
+
+**Completed:**
+
+- Read mandatory planning/system references (`.ai-context.md`, architecture/design-system docs, project plan, task queue, repair log, project decisions).
+- Audited current implementation state:
+  - header search currently uses static non-functional input,
+  - existing search implementations are split (`SearchBar` vs `AdvancedSearchBar`),
+  - upload API returns dimensions but upload component/forms do not run placement-fit warnings.
+- Added new feature-spec planning block in project plan for both directives.
+- Appended concrete implementation tasks into task queue with Tracks A-F.
+- Recorded planning decisions for warn-only placement validation and unified header search contract.
+
+**Files Modified:**
+
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/project-plan.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Implement Track A/B first: shared placement validator + `ImageUpload` metadata/warning contract, then wire into operations banners and sponsored application forms before starting header-search consolidation.
+
+**Notes / Blockers:**
+
+- Planning-only session; no runtime feature code changed.
+
+---
+
 ## Session 62 — 2026-04-15
 
 **Goal:**

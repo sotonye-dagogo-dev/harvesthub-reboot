@@ -2,8 +2,9 @@
 
 import { FormEvent, useState } from "react";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { BannerPlacementPreview } from "@/components/features";
+import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/features";
 import { message } from "antd";
+import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 
 type ApplyFormState = {
   name: string;
@@ -50,6 +51,7 @@ export default function AdApplicationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [placementWarning, setPlacementWarning] = useState<BannerPlacementWarning | null>(null);
 
   const updateField = (key: keyof ApplyFormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -145,6 +147,12 @@ export default function AdApplicationPage() {
         Applications are reviewed in the order they are received.
       </div>
 
+      <BannerImageGuidelines
+        className="mt-4"
+        title="Sponsored Image Guidelines"
+        subtitle="Review hero, top, and sidebar sizes so your design can be approved for available sponsored slots."
+      />
+
       {error ? (
         <div
           role="alert"
@@ -222,12 +230,18 @@ export default function AdApplicationPage() {
           <ImageUpload
             folderType="ad"
             skipPersistence
+            placementValidation={{ placement: "TOP", onWarning: setPlacementWarning }}
             onUploaded={(result) => {
               updateField("imageUrl", result.url);
               updateField("imagePublicId", result.publicId);
             }}
           />
         </div>
+        {placementWarning ? (
+          <div className="rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg px-3 py-2 text-xs text-ds-status-warning-text">
+            {placementWarning.message}
+          </div>
+        ) : null}
         <BannerPlacementPreview position="TOP" imageUrl={form.imageUrl} title={form.title} />
         <input
           aria-label="Destination Link URL"

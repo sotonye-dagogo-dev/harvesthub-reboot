@@ -22,6 +22,51 @@
 [What comes next]
 ```
 
+## 2026-04-15 — Implementation Pass: Placement Validation + Functional Header Search
+
+**Summary:**
+Completed the full planned feature in one pass: upload-time placement-ratio warning guidance for banner/sponsored creatives and a production-ready responsive header search experience with live suggestions and recent-search history. The rollout included utility/component/form wiring, search behavior consolidation, focused regression coverage, and full touched-scope validation.
+
+**Completed:**
+
+- Added shared placement validator utility (`bannerPlacementValidation`) with warning payload contract and tolerance behavior.
+- Extended `ImageUpload` with placement validation options and upload metadata propagation.
+- Wired placement mismatch warnings into operations banner form, advertise form, and public ad application form.
+- Replaced static navbar input with functional `SearchBar` integration and canonical products-search navigation.
+- Upgraded search dropdown behavior (debounce/live suggestions/recent history/keyboard/click-outside/escape/loading-empty-error states).
+- Consolidated duplicate search logic by making `AdvancedSearchBar` a wrapper over shared `SearchBar`.
+- Added focused tests for validator utility, SearchBar behavior, Header search integration, and ImageUpload warning path.
+- Passed focused Vitest (`14/14`), focused ESLint, and full TypeScript compile.
+
+**Key Changes:**
+
+- Creative upload flow now warns users early when image ratios do not fit selected slots while preserving non-blocking upload behavior.
+- Header search is now fully interactive and responsive, with shared behavior contracts and reduced implementation drift.
+
+**Next Sprint Focus:**
+Perform browser-based visual QA across mobile and desktop for upload warnings and header dropdown ergonomics, then capture screenshots for sign-off evidence.
+
+## 2026-04-15 — Plan Package: Placement-Aware Upload Validation + Responsive Header Search
+
+**Summary:**
+Executed `plan-feature.md` for two directives: upload-time placement-ratio warnings for banner/sponsored creatives, and a fully functional header search with live suggestions plus recent history dropdown behavior across breakpoints. This was a planning-only pass that mapped current implementation gaps, defined architecture impact, and generated an implementation-ready queue.
+
+**Completed:**
+
+- Added feature specification to `.ai-system/planning/project-plan.md` with summary, module impact, data flow, UX constraints, risks, and rollout order.
+- Appended concrete Track A-F implementation tasks to `.ai-system/planning/task-queue.md`.
+- Recorded architectural decisions in `.ai-system/memory/project-decisions.md` for:
+  - warn-only placement-ratio validation at upload time,
+  - unified shared header-search contract (live suggestions + recent history).
+
+**Key Changes:**
+
+- Planning artifacts now explicitly cover hero/top/sidebar ratio warning flow and responsive navbar dropdown-search behavior.
+- Queue is now implementation-ready without requiring re-discovery of current search/upload architecture.
+
+**Next Sprint Focus:**
+Implement placement validator + upload warning wiring first, then replace header static search input with a consolidated responsive suggestion/history search component.
+
 ## 2026-04-15 — Orders List Item-Count Contract + General Orders Pagination
 
 **Summary:**

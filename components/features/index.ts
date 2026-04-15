@@ -33,6 +33,7 @@ export { CartItemComponent } from "./CartItemComponent";
 
 export { TopAdBanner } from "./TopAdBanner";
 export { BannerPlacementPreview } from "./BannerPlacementPreview";
+export { BannerImageGuidelines } from "./BannerImageGuidelines";
 
 export { ReviewForm } from "./ReviewForm";
 

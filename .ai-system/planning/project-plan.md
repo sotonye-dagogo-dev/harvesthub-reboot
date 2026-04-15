@@ -574,6 +574,87 @@ Create a clear, user-facing notification inbox experience that matches email/pus
 
 ---
 
+## Feature Spec - Placement-Aware Upload Validation + Responsive Header Search (Planned 2026-04-15)
+
+> **Section summary:** Planning package for two user-facing upgrades: non-blocking upload-time placement-ratio warnings for banner/sponsored creatives, and a fully functional navbar search experience with live suggestions + recent searches across screen sizes.
+
+**Feature Summary:**
+Add hard validation logic at upload time that checks image dimensions against selected placement contracts (`TOP`, `HERO`, `SIDEBAR`) and warns users when ratios do not match expected guidance. In parallel, replace the current static header search input with a production-ready interactive search dropdown that shows live suggestions and recent searches in a responsive, accessible layout.
+
+**Why This Is Needed:**
+
+- Banner/ad uploads currently accept images without placement-fit feedback, increasing the chance of letterboxing/cropping in runtime slots.
+- Header search is currently a non-functional static input, while users expect immediate suggestions and recent-search shortcuts.
+- Existing search behavior is split between multiple components, creating drift and inconsistent UX.
+
+**Architecture Impact:**
+
+- `components/ui/ImageUpload.tsx` upload callback contract and UI warning rendering.
+- `lib/constants/index.ts` (`AD_BANNER_DIMENSIONS`) and new placement-validation utility contracts.
+- Banner/sponsored forms:
+	- `app/(operations)/operations/banners/page.tsx`
+	- `app/advertise/page.tsx`
+	- `app/ad-application/page.tsx`
+- Navbar/search surfaces:
+	- `components/layout/Header.tsx`
+	- `components/features/SearchBar.tsx`
+	- `components/features/AdvancedSearchBar.tsx` (merge/deprecate path)
+- Suggestion data source contract:
+	- `app/api/products/search/route.ts`
+	- `lib/data/clientDataFetchers.ts`
+
+**New Modules or Services Required:**
+
+- `lib/utils/bannerPlacementValidation.ts`: reusable ratio validation helpers and warning message builders.
+- Optional `lib/config/search.ts`: shared constants for debounce delay, max suggestions, and recent-history limit.
+- Optional `components/features/HeaderSearch.tsx`: dedicated responsive search composition used by header.
+
+**Data Flow:**
+
+1. User selects placement and uploads ad/banner image.
+2. `/api/upload` returns image metadata (`width`, `height`, `format`) with URL/publicId.
+3. Client compares uploaded ratio to selected placement ratio from `AD_BANNER_DIMENSIONS` via shared validator.
+4. If out-of-tolerance, UI shows a non-blocking warning (upload remains successful).
+5. User can keep image or re-upload for a closer ratio fit.
+
+6. User types in header search.
+7. Debounced query requests live suggestions from product search API.
+8. Dropdown renders suggestion list + recent searches from localStorage.
+9. User selects suggestion/recent item or submits query.
+10. Navigation goes to canonical discovery route (`/products?search=...`) and query is saved to recent history.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- Warning UX for ratio mismatch must be explicit but non-blocking, with clear expected-vs-actual ratio copy.
+- Reuse shared dimensions guidance text so warning language matches guidance cards exactly.
+- Search dropdown should include loading/empty/error states, hover/focus states, and keyboard accessibility.
+- Responsive behavior must preserve readability at mobile widths (320px+) and avoid overlap with nav controls.
+- Maintain consistent token usage for borders, surfaces, shadow, spacing, and text hierarchy.
+
+**Potential Risks or Edge Cases:**
+
+- Upload metadata may be missing for unsupported files; validator must fail gracefully without crashing form flow.
+- Overly strict ratio tolerance can produce noisy warnings for acceptable creatives.
+- Multiple search implementations can diverge if not consolidated into one shared contract.
+- Rapid typing can cause stale suggestion responses; requests must be debounced and response-race safe.
+- localStorage access must be guarded for SSR and malformed history payloads.
+
+**Architecture Doc Updates Needed:**
+
+- Add a `Banner Upload Placement Validation Flow` to `.ai-system/agents/system-architecture.md`.
+- Add a `Header Search Suggestion + Recent History Flow` to `.ai-system/agents/system-architecture.md`.
+- Update module breakdown for `bannerPlacementValidation` utility and whichever shared header-search component is adopted.
+
+**Rollout Order:**
+
+1. Define placement validator utility + upload metadata contract updates.
+2. Integrate warn-only validation into operations banners + sponsored forms.
+3. Consolidate search components and wire functional header search in desktop/mobile layouts.
+4. Add focused tests for validator, upload warnings, and header search interactions.
+5. Run touched-scope validation and sync architecture/checkpoint/history artifacts.
+
+---
+
 ## Completed
 
 > **Section summary:** Tasks that have already shipped in the current repository state.

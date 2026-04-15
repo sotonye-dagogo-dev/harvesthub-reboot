@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
             const totalQuantity = Array.isArray(order.items)
                 ? order.items.reduce((sum, item) => sum + (Number.isFinite(item.quantity) ? item.quantity : 0), 0)
                 : 0;
-            const { items, _count, ...orderData } = order;
+            const { items: _items, _count: _count, ...orderData } = order;
 
             return {
                 ...orderData,
@@ -320,9 +320,9 @@ export async function POST(req: NextRequest) {
                 price: number;
                 subtotal: number;
                 selectedVariants:
-                    | Prisma.NullableJsonNullValueInput
-                    | Prisma.InputJsonValue
-                    | undefined;
+                | Prisma.NullableJsonNullValueInput
+                | Prisma.InputJsonValue
+                | undefined;
             }[];
         };
 
@@ -529,12 +529,16 @@ export async function POST(req: NextRequest) {
         });
 
         const orderMetricsById = new Map(
-            orders.map((order) => {
-                const itemCount = Array.isArray(order.items) ? order.items.length : 0;
-                const totalQuantity = Array.isArray(order.items)
-                    ? order.items.reduce((sum, item) => sum + (Number.isFinite(item.quantity) ? item.quantity : 0), 0)
+            orders.map((order, index) => {
+                const prepared = preparedOrders[index];
+                const itemCount = prepared ? prepared.orderItems.length : 0;
+                const totalQuantity = prepared
+                    ? prepared.orderItems.reduce((sum: number, item) => {
+                        const quantity = Number(item.quantity);
+                        return sum + (Number.isFinite(quantity) ? quantity : 0);
+                    }, 0)
                     : 0;
-                return [order.id, { itemCount, totalQuantity }];
+                return [order.id, { itemCount, totalQuantity }] as const;
             })
         );
         const aggregateItemCount = Array.from(orderMetricsById.values()).reduce(

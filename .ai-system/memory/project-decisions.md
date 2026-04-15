@@ -23,6 +23,65 @@
 [What this decision affects going forward]
 ```
 
+## Banner Placement Validation Is Upload-Time Warn-Only
+
+**Decision:** Validate uploaded ad/banner image dimensions against selected placement ratio (`TOP`, `HERO`, `SIDEBAR`) at upload-time and present non-blocking warnings instead of hard-rejecting uploads.
+**Date:** 2026-04-15
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Users need immediate fit guidance to avoid runtime clipping/letterboxing, but creative approval and operational flexibility require allowing uploads that are close enough or intentionally off-ratio.
+
+**Alternatives Considered:**
+
+- Hard-block mismatched ratio uploads (rejected: too rigid for campaign realities and would increase operator friction).
+- Keep guidance as static text only (rejected: insufficient real-time feedback, easy to ignore).
+
+**Implications:**
+
+- `ImageUpload` and sponsor/banner forms must consume upload metadata (`width`/`height`) and run shared ratio checks.
+- Warning copy should align with `AD_BANNER_DIMENSIONS` guidance to avoid conflicting instructions.
+- Approval/moderation workflows remain the final enforcement gate.
+
+## Header Search Must Use One Shared Suggestion/History Contract
+
+**Decision:** Replace the static navbar search input with one shared responsive search experience that supports debounced live suggestions and local recent-search history, and avoid maintaining separate divergent search implementations.
+**Date:** 2026-04-15
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Current header search is non-functional and existing search UX is split across `SearchBar` and `AdvancedSearchBar`, increasing drift risk and inconsistent behavior across routes/devices.
+
+**Alternatives Considered:**
+
+- Keep static header input and rely on products-page-only search (rejected: fails user navigation expectations).
+- Build a third independent header-only search implementation (rejected: duplicates logic and increases maintenance risk).
+
+**Implications:**
+
+- Header should compose a shared search module with keyboard + accessibility behavior and responsive dropdown rules.
+- Search suggestions should come from existing product search APIs and route to canonical product discovery query contracts.
+- Recent history persistence should use a versioned localStorage key with safe parse fallback.
+
+## Recent Search Persistence Requires Storage Capability Guards
+
+**Decision:** Keep recent-search persistence in browser storage, but gate every storage read/write behind runtime capability checks (`getItem`, `setItem`, `removeItem`) to avoid crashes in non-standard browser/test environments.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+SearchBar is shared across header and other surfaces; direct storage calls caused runtime test failures where localStorage shim behavior was incomplete.
+
+**Alternatives Considered:**
+
+- Remove recent-search persistence entirely (rejected: degrades UX requirement).
+- Keep direct localStorage access and patch only tests (rejected: fragile in constrained runtimes and non-browser contexts).
+
+**Implications:**
+
+- Shared UI components using browser storage must use capability-checked wrappers.
+- Tests that assert persistence should install explicit localStorage mocks.
+
 ---
 
 ## Decisions
