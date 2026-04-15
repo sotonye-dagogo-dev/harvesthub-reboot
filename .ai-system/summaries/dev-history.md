@@ -22,6 +22,52 @@
 [What comes next]
 ```
 
+## 2026-04-15 — Orders List Item-Count Contract + General Orders Pagination
+
+**Summary:**
+Delivered a targeted corrective pass to resolve the order item-count regression where list pages rendered `0` for orders that had items. The fix moved item-count responsibility into the orders list API contract, updated buyer and operations order surfaces to consume the canonical metrics, and added explicit API-backed pagination controls to the general orders page.
+
+**Completed:**
+
+- Added canonical `itemCount` and `totalQuantity` to `GET /api/orders` list responses.
+- Updated buyer `/orders` and operations `/operations/orders` consumers to use canonical item metrics with safe fallback behavior.
+- Implemented previous/next pagination controls and range summary on `/orders` tied to API pagination metadata.
+- Enriched order-confirmed notification metadata/messages with item-count context for downstream notification/email fan-out.
+- Extended grouped orders API test to assert canonical item metric fields.
+
+**Key Changes:**
+
+- Order list consumers no longer depend on optional `order.items` relation arrays to derive counts.
+- General orders view now has explicit page navigation rather than unbounded list rendering.
+
+**Next Sprint Focus:**
+Perform browser-role smoke validation for buyer/vendor/admin order list experiences and run a broader high-risk regression batch when convenient.
+
+## 2026-04-15 — Admin Controls Reactivation + Payment Runtime Governance + Remember Me Hardening
+
+**Summary:**
+Reversed the operational regression where key admin panel controls were visually present but effectively disabled by implementing full persistence contracts for payment enablement and operational thresholds. This pass also applied the restored settings to runtime order/payment behavior, improved wallet modal responsiveness for smaller screens, reduced sidebar ad square footprint further, and hardened Remember Me behavior across token refresh paths.
+
+**Completed:**
+
+- Added persisted operational settings fields (`paymentsEnabled`, `minOrderAmount`, `maxBookingAdvanceDays`) to `CommerceLifecycleConfig` with migration.
+- Extended admin commerce and payment config APIs for validated save/load behavior.
+- Re-enabled operations settings controls and wired save orchestration for payment + lifecycle + booking constraints.
+- Updated `/api/payments/config` and `/api/orders` to consume DB-backed runtime settings; added configurable minimum-order enforcement.
+- Improved wallet deposit/withdraw modal responsiveness and input ergonomics for mobile.
+- Reduced homepage sidebar ad square dimensions to approximately two-thirds of previous size.
+- Strengthened Remember Me by persisting preference cookie and honoring it in refresh-token access-cookie re-issue flows.
+- Passed focused lint, focused vitest suites, and full TypeScript compile.
+
+**Key Changes:**
+
+- Admin controls now represent real, persisted system policy rather than read-only runtime metadata.
+- Payment availability and order minimum thresholds are now runtime-governed from persisted settings.
+- Session durability now better matches Remember Me expectations after access-token refresh.
+
+**Next Sprint Focus:**
+Run UI smoke verification for admin settings + checkout + wallet in-browser and capture screenshots/evidence for this corrective pass.
+
 ## 2026-04-14 — Final Queue Closeout (Settings Audit + Wallet Deterministic Reconciliation + Payment Smoke Evidence)
 
 **Summary:**

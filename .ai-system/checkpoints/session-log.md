@@ -39,6 +39,99 @@
 
 ---
 
+## Session 62 — 2026-04-15
+
+**Goal:**
+Fix incorrect order item counts showing as zero on list pages, propagate canonical item metrics for downstream notification/email payload consumers, and add explicit pagination controls to the general `/orders` page.
+
+**Completed:**
+
+- Updated `GET /api/orders` to include canonical `itemCount` and `totalQuantity` per order using relation count + quantity aggregation.
+- Kept grouped-order summary behavior intact while stripping relation arrays from list payloads.
+- Updated `/orders` page to consume canonical item metrics with safe fallback and added API-backed previous/next pagination controls with range summary.
+- Updated `/operations/orders` table mapping to consume canonical item metrics with safe fallback.
+- Enriched order-confirmed notification metadata/messages with item-count context for downstream notification/email fan-out.
+- Added focused regression assertion coverage in grouped orders API test for `itemCount` and `totalQuantity` fields.
+- Validation results:
+  - focused diagnostics on touched files: pass,
+  - focused vitest: `app/api/orders/__tests__/route.grouping.test.ts` pass.
+
+**Files Modified:**
+
+- app/api/orders/route.ts
+- app/orders/page.tsx
+- app/(operations)/operations/orders/page.tsx
+- app/api/orders/__tests__/route.grouping.test.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run an in-browser smoke check on `/orders` and `/operations/orders` with multi-item orders to confirm item-count rendering and pagination behavior across role contexts.
+
+**Notes / Blockers:**
+
+- Focused tests and diagnostics pass; full repository-wide test matrix was not run in this slice.
+
+---
+
+## Session 61 — 2026-04-15
+
+**Goal:**
+Restore admin control operability after the prior read-only settings pass: re-enable persisted platform controls, unblock payment handling paths, improve wallet modal responsiveness, shrink sidebar ad squares further, and harden Remember Me semantics.
+
+**Completed:**
+
+- Added persisted operational settings fields to `CommerceLifecycleConfig` and applied migration:
+  - `paymentsEnabled`
+  - `minOrderAmount`
+  - `maxBookingAdvanceDays`
+- Extended commerce-config service/API so admin can save/load the above settings with bounded validation.
+- Added `PUT /api/admin/payments/config` and wired admin payment toggle persistence.
+- Re-enabled controls in operations settings UI:
+  - payment processing switch is editable and persisted,
+  - minimum order amount is editable and persisted,
+  - maximum booking advance days is editable and persisted.
+- Updated runtime behavior:
+  - `/api/payments/config` now returns DB-backed payment status,
+  - `/api/orders` now uses DB-backed payment enablement and enforces configurable minimum order amount.
+- Improved wallet UI responsiveness:
+  - action buttons stack on small screens,
+  - deposit/withdraw modals now use tighter mobile-friendly widths and clearer input affordances.
+- Reduced homepage sidebar ad square size to about two-thirds of prior dimensions (mobile rail + desktop tile max width).
+- Hardened Remember Me behavior by persisting remember preference in cookie and applying it when refreshing access tokens in both shared auth refresh path and `/api/auth/refresh` route.
+- Validation results:
+  - focused eslint on touched files: pass,
+  - focused vitest (orders payment smoke + wallet parity + banner layout + payment config): pass,
+  - `npx tsc --noEmit`: pass.
+
+**Files Modified:**
+
+- prisma/schema.prisma
+- prisma/migrations/20260415073427_admin_operational_payment_booking_settings/migration.sql
+- prisma/generated/client/*
+- lib/services/commerceConfig.ts
+- lib/config/payments.ts
+- app/api/admin/commerce-config/route.ts
+- app/api/admin/payments/config/route.ts
+- app/api/payments/config/route.ts
+- app/api/orders/route.ts
+- app/api/orders/__tests__/route.payment-smoke.test.ts
+- app/(operations)/operations/settings/page.tsx
+- app/wallet/page.tsx
+- app/components/HomeContent.tsx
+- lib/utils/cookies.ts
+- lib/utils/auth.ts
+- app/api/auth/refresh/route.ts
+
+**Next Task:**
+Run an interactive verification pass in the browser on operations settings, checkout, and wallet flows to confirm UX and policy behavior with real session data.
+
+**Notes / Blockers:**
+
+- Previous decision that marked some settings controls as read-only is now superseded because persistence contracts were implemented in this session.
+
+---
+
 ## Session 60 — 2026-04-14
 
 **Goal:**

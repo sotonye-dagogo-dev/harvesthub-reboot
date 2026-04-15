@@ -9,6 +9,7 @@ import { cookies } from 'next/headers';
 // Cookie names
 export const ACCESS_TOKEN_COOKIE = 'accessToken';
 export const REFRESH_TOKEN_COOKIE = 'refreshToken';
+export const REMEMBER_ME_COOKIE = 'rememberMe';
 
 // Cookie options
 const COOKIE_OPTIONS = {
@@ -27,6 +28,20 @@ export async function setAccessTokenCookie(token: string): Promise<void> {
         ...COOKIE_OPTIONS,
         maxAge: 15 * 60, // 15 minutes
     });
+}
+
+/**
+ * Set access token cookie with session/remember semantics.
+ */
+export async function setAccessTokenCookieWithPreference(
+    token: string,
+    rememberMe = false
+): Promise<void> {
+    const cookieStore = await cookies();
+    const accessCookieOptions = rememberMe
+        ? { ...COOKIE_OPTIONS, maxAge: 8 * 60 * 60 } // 8h when remembered
+        : { ...COOKIE_OPTIONS }; // session cookie when not remembered
+    cookieStore.set(ACCESS_TOKEN_COOKIE, token, accessCookieOptions);
 }
 
 /**
@@ -56,6 +71,16 @@ export async function setAuthCookies(accessToken: string, refreshToken: string, 
     cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, accessCookieOptions);
 
     cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, refreshCookieOptions);
+
+    if (rememberMe) {
+        cookieStore.set(REMEMBER_ME_COOKIE, '1', {
+            ...COOKIE_OPTIONS,
+            httpOnly: false,
+            maxAge: 30 * 24 * 60 * 60,
+        });
+    } else {
+        cookieStore.delete(REMEMBER_ME_COOKIE);
+    }
 }
 
 /**
@@ -72,6 +97,14 @@ export async function getAccessToken(): Promise<string | undefined> {
 export async function getRefreshToken(): Promise<string | undefined> {
     const cookieStore = await cookies();
     return cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
+}
+
+/**
+ * Get remember-me preference from cookie.
+ */
+export async function getRememberMePreference(): Promise<boolean> {
+    const cookieStore = await cookies();
+    return cookieStore.get(REMEMBER_ME_COOKIE)?.value === '1';
 }
 
 /**
@@ -96,4 +129,6 @@ export async function clearRefreshTokenCookie(): Promise<void> {
 export async function clearAuthCookies(): Promise<void> {
     await clearAccessTokenCookie();
     await clearRefreshTokenCookie();
+    const cookieStore = await cookies();
+    cookieStore.delete(REMEMBER_ME_COOKIE);
 }

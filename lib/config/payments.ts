@@ -1,4 +1,5 @@
 import { env } from "@/lib/config/env";
+import { PLATFORM_DEFAULTS } from "@/lib/constants";
 
 type PaymentProcessingConfigInput = {
   paystackPublicKey?: string | null;
@@ -20,10 +21,29 @@ export function isPaymentProcessingEnabled(): boolean {
   });
 }
 
-export function getPaymentProcessingRuntimeConfig() {
+export async function getPaymentProcessingRuntimeConfig() {
+  let paymentsEnabled: boolean = PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
+  let minOrderAmount: number = PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT;
+  let maxBookingAdvanceDays: number = PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS;
+
+  try {
+    const [{ prisma }, { getCommerceLifecycleConfig }] = await Promise.all([
+      import("@/lib/db/prisma"),
+      import("@/lib/services/commerceConfig"),
+    ]);
+    const commerceConfig = await getCommerceLifecycleConfig(prisma);
+    paymentsEnabled = commerceConfig.paymentsEnabled;
+    minOrderAmount = commerceConfig.minOrderAmount;
+    maxBookingAdvanceDays = commerceConfig.maxBookingAdvanceDays;
+  } catch {
+    // Keep static defaults when DB-backed config cannot be read.
+  }
+
   return {
     gateway: "PAYSTACK" as const,
     mode: env.paystackMode,
-    paymentsEnabled: isPaymentProcessingEnabled(),
+    paymentsEnabled,
+    minOrderAmount,
+    maxBookingAdvanceDays,
   };
 }

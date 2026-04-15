@@ -62,6 +62,8 @@ interface CommerceLifecycleConfig {
   autoConfirmEnabled: boolean;
   autoConfirmHours: number;
   refundWindowHours: number;
+  minOrderAmount: number;
+  maxBookingAdvanceDays: number;
 }
 
 const initialTiers: CommissionTier[] = [
@@ -86,13 +88,16 @@ const initialCategoryRates: CategoryRate[] = VENDOR_CATEGORIES.map((vc) => ({
 }));
 
 export default function OperationsSettingsPage() {
+  const toFiniteNumber = (value: unknown, fallback: number) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
   const tiers: CommissionTier[] = initialTiers;
   const [categoryRates, setCategoryRates] = useState<CategoryRate[]>(initialCategoryRates);
   const [paymentsEnabled, setPaymentsEnabled] = useState<boolean>(
     PLATFORM_DEFAULTS.PAYMENTS_ENABLED
   );
-  const minOrderAmount = PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT;
-  const maxBookingDays = PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS;
   const [paymentConfig, setPaymentConfig] = useState<AdminPaymentConfig | null>(null);
   const [paymentConfigLoading, setPaymentConfigLoading] = useState<boolean>(true);
   const [commissionConfigLoading, setCommissionConfigLoading] = useState<boolean>(true);
@@ -100,6 +105,8 @@ export default function OperationsSettingsPage() {
     autoConfirmEnabled: true,
     autoConfirmHours: 48,
     refundWindowHours: 72,
+    minOrderAmount: PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT,
+    maxBookingAdvanceDays: PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS,
   });
   const [commerceConfigLoading, setCommerceConfigLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -161,8 +168,16 @@ export default function OperationsSettingsPage() {
         if (active) {
           setCommerceLifecycleConfig({
             autoConfirmEnabled: Boolean(data.config.autoConfirmEnabled),
-            autoConfirmHours: Number(data.config.autoConfirmHours) || 48,
-            refundWindowHours: Number(data.config.refundWindowHours) || 72,
+            autoConfirmHours: toFiniteNumber(data.config.autoConfirmHours, 48),
+            refundWindowHours: toFiniteNumber(data.config.refundWindowHours, 72),
+            minOrderAmount: toFiniteNumber(
+              data.config.minOrderAmount,
+              PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT
+            ),
+            maxBookingAdvanceDays: toFiniteNumber(
+              data.config.maxBookingAdvanceDays,
+              PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
+            ),
           });
         }
       } catch (error) {
@@ -244,8 +259,7 @@ export default function OperationsSettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    let commissionSaved = false;
-    let lifecycleSaved = false;
+    const savedSections: string[] = [];
 
     try {
       const commissionRes = await fetch("/api/admin/commission", {
@@ -263,7 +277,31 @@ export default function OperationsSettingsPage() {
       if (!commissionRes.ok || !commissionData?.success) {
         throw new Error(commissionData?.error || "Unable to save commission defaults");
       }
-      commissionSaved = true;
+      savedSections.push("commission defaults");
+
+      const paymentRes = await fetch("/api/admin/payments/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentsEnabled,
+        }),
+      });
+
+      const paymentData = await paymentRes.json().catch(() => ({}));
+      if (!paymentRes.ok || !paymentData?.success) {
+        throw new Error(paymentData?.error || "Unable to save payment processing settings");
+      }
+      savedSections.push("payment processing");
+
+      setPaymentConfig((prev) =>
+        prev
+          ? {
+              ...prev,
+              paymentsEnabled: Boolean(paymentData.paymentsEnabled),
+            }
+          : prev
+      );
+      setPaymentsEnabled(Boolean(paymentData.paymentsEnabled));
 
       const commerceRes = await fetch("/api/admin/commerce-config", {
         method: "PUT",
@@ -272,6 +310,8 @@ export default function OperationsSettingsPage() {
           autoConfirmEnabled: commerceLifecycleConfig.autoConfirmEnabled,
           autoConfirmHours: commerceLifecycleConfig.autoConfirmHours,
           refundWindowHours: commerceLifecycleConfig.refundWindowHours,
+          minOrderAmount: commerceLifecycleConfig.minOrderAmount,
+          maxBookingAdvanceDays: commerceLifecycleConfig.maxBookingAdvanceDays,
         }),
       });
 
@@ -279,20 +319,28 @@ export default function OperationsSettingsPage() {
       if (!commerceRes.ok || !commerceData?.success || !commerceData?.config) {
         throw new Error(commerceData?.error || "Unable to save commerce lifecycle settings");
       }
-      lifecycleSaved = true;
+      savedSections.push("lifecycle + booking settings");
 
       setCommerceLifecycleConfig({
         autoConfirmEnabled: Boolean(commerceData.config.autoConfirmEnabled),
-        autoConfirmHours: Number(commerceData.config.autoConfirmHours) || 48,
-        refundWindowHours: Number(commerceData.config.refundWindowHours) || 72,
+        autoConfirmHours: toFiniteNumber(commerceData.config.autoConfirmHours, 48),
+        refundWindowHours: toFiniteNumber(commerceData.config.refundWindowHours, 72),
+        minOrderAmount: toFiniteNumber(
+          commerceData.config.minOrderAmount,
+          PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT
+        ),
+        maxBookingAdvanceDays: toFiniteNumber(
+          commerceData.config.maxBookingAdvanceDays,
+          PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
+        ),
       });
 
-      message.success("Commission and lifecycle settings saved successfully");
+      message.success("Platform settings saved successfully");
     } catch (error) {
-      if (commissionSaved || lifecycleSaved) {
+      if (savedSections.length > 0) {
         message.warning(
           error instanceof Error
-            ? `Partially saved settings. ${error.message}`
+            ? `Partially saved (${savedSections.join(", ")}). ${error.message}`
             : "Partially saved settings."
         );
       } else {
@@ -432,10 +480,14 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Enable Payment Processing</div>
               <div className="text-xs text-ds-text-secondary">
-                Payments are enabled automatically when active-mode Paystack keys are configured.
+                Toggle payment availability across wallet deposits, withdrawals, and checkout flows.
               </div>
             </div>
-            <Switch checked={paymentsEnabled} disabled />
+            <Switch
+              checked={paymentsEnabled}
+              disabled={paymentConfigLoading || isSaving}
+              onChange={(checked) => setPaymentsEnabled(checked)}
+            />
           </div>
 
           {!paymentsEnabled && (
@@ -457,15 +509,25 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Minimum Order Amount</div>
               <div className="text-xs text-ds-text-secondary">
-                Minimum cart value required to place an order (runtime default, read-only)
+                Minimum cart value required to place an order.
               </div>
             </div>
             <Input
               type="number"
               min={0}
               step={100}
-              value={minOrderAmount}
-              disabled
+              value={commerceLifecycleConfig.minOrderAmount}
+              onChange={(e) => {
+                const nextValue = Number(e.target.value);
+                if (!Number.isFinite(nextValue) || nextValue < 0 || nextValue > 10000000) {
+                  return;
+                }
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  minOrderAmount: nextValue,
+                }));
+              }}
+              disabled={commerceConfigLoading || isSaving}
               prefix="₦"
               className="!w-36"
             />
@@ -668,15 +730,24 @@ export default function OperationsSettingsPage() {
             <div>
               <div className="font-medium text-ds-text-primary">Maximum Booking Advance (Days)</div>
               <div className="text-xs text-ds-text-secondary">
-                How far in advance buyers can book service appointments (runtime default, read-only)
+                How far in advance buyers can book service appointments.
               </div>
             </div>
             <Input
               type="number"
-              min={7}
+              min={1}
               max={365}
-              value={maxBookingDays}
-              disabled
+              value={commerceLifecycleConfig.maxBookingAdvanceDays}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val <= 365) {
+                  setCommerceLifecycleConfig((prev) => ({
+                    ...prev,
+                    maxBookingAdvanceDays: val,
+                  }));
+                }
+              }}
+              disabled={commerceConfigLoading || isSaving}
               suffix="days"
               className="!w-32"
             />

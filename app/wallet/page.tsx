@@ -387,7 +387,7 @@ export default function WalletPage() {
                 Pending withdrawal hold: {formatCurrency(pendingWithdrawals)}
               </p>
             ) : null}
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Button
                 fullWidth
                 onClick={() => setShowDepositModal(true)}
@@ -505,12 +505,22 @@ export default function WalletPage() {
         onOk={handleDeposit}
         onCancel={() => setShowDepositModal(false)}
         confirmLoading={isProcessingDeposit}
+        okText="Deposit Funds"
+        destroyOnHidden
+        width="min(92vw, 460px)"
       >
-        <Input
-          value={depositAmount}
-          onChange={(e) => setDepositAmount(e.target.value)}
-          placeholder="Enter amount"
-        />
+        <div className="space-y-3">
+          <p className="text-xs text-ds-text-secondary">
+            Enter an amount between ₦100 and ₦1,000,000.
+          </p>
+          <Input
+            value={depositAmount}
+            onChange={(e) => setDepositAmount(e.target.value)}
+            placeholder="Enter amount"
+            inputMode="decimal"
+            prefix="₦"
+          />
+        </div>
       </Modal>
 
       <Modal
@@ -519,12 +529,20 @@ export default function WalletPage() {
         onOk={handleWithdraw}
         onCancel={() => setShowWithdrawModal(false)}
         confirmLoading={isProcessingWithdraw}
+        okText="Submit Withdrawal"
+        destroyOnHidden
+        width="min(92vw, 520px)"
       >
         <div className="space-y-3">
+          <p className="text-xs text-ds-text-secondary">
+            Withdrawals are available to vendor wallets with verified account details.
+          </p>
           <Input
             value={withdrawAmount}
             onChange={(e) => setWithdrawAmount(e.target.value)}
             placeholder="Enter amount"
+            inputMode="decimal"
+            prefix="₦"
           />
           <Input
             value={withdrawBankName}
@@ -536,6 +554,7 @@ export default function WalletPage() {
             onChange={(e) => setWithdrawAccountNumber(e.target.value)}
             placeholder="Account number"
             maxLength={NIGERIAN_ACCOUNT_NUMBER_LENGTH}
+            inputMode="numeric"
           />
           <Input
             value={withdrawAccountName}

@@ -393,6 +393,9 @@ exports.Prisma.CommerceLifecycleConfigScalarFieldEnum = {
   autoConfirmEnabled: 'autoConfirmEnabled',
   autoConfirmHours: 'autoConfirmHours',
   refundWindowHours: 'refundWindowHours',
+  paymentsEnabled: 'paymentsEnabled',
+  minOrderAmount: 'minOrderAmount',
+  maxBookingAdvanceDays: 'maxBookingAdvanceDays',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

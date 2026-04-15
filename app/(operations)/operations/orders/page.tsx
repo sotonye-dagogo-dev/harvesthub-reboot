@@ -19,6 +19,8 @@ type OrderLike = {
   status: unknown;
   paymentStatus?: unknown;
   total: number;
+  itemCount?: unknown;
+  totalQuantity?: unknown;
   deliveryMethod: unknown;
   deliveryAddress?: unknown;
   pickupDetails?: unknown;
@@ -82,6 +84,19 @@ function toDeliveryMethod(value: unknown): DeliveryMethod {
   return Object.values(DeliveryMethod).includes(value as DeliveryMethod)
     ? (value as DeliveryMethod)
     : DeliveryMethod.PICKUP;
+}
+
+function resolveItemCount(order: OrderLike): number {
+  const apiItemCount =
+    typeof order.itemCount === "number" && Number.isFinite(order.itemCount)
+      ? order.itemCount
+      : null;
+
+  if (apiItemCount !== null) {
+    return Math.max(0, Math.trunc(apiItemCount));
+  }
+
+  return Array.isArray(order.items) ? order.items.length : 0;
 }
 
 function formatStatusLabel(value: string): string {
@@ -226,7 +241,7 @@ export default function OperationsOrdersPage() {
       deliveryMethod: toDeliveryMethod(order.deliveryMethod),
       deliveryInfo: resolveDeliveryInfo(order) || "-",
       createdAt: new Date(order.createdAt),
-      itemCount: order.items?.length ?? 0,
+      itemCount: resolveItemCount(order),
       sourceOrder: order,
     };
   });
