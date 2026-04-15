@@ -108,9 +108,12 @@ export const productDb = {
         if (filters?.isActive !== undefined) where.isActive = filters.isActive;
         if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
         if (filters?.search) {
+            const normalizedSearch = String(filters.search).trim();
             where.OR = [
-                { name: { contains: filters.search, mode: 'insensitive' } },
-                { description: { contains: filters.search, mode: 'insensitive' } },
+                { name: { contains: normalizedSearch, mode: 'insensitive' } },
+                { description: { contains: normalizedSearch, mode: 'insensitive' } },
+                { tags: { has: normalizedSearch.toLowerCase() } },
+                { vendor: { storeName: { contains: normalizedSearch, mode: 'insensitive' } } },
             ];
         }
 
@@ -129,9 +132,12 @@ export const productDb = {
         if (filters?.isActive !== undefined) where.isActive = filters.isActive;
         if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
         if (filters?.search) {
+            const normalizedSearch = String(filters.search).trim();
             where.OR = [
-                { name: { contains: filters.search, mode: 'insensitive' } },
-                { description: { contains: filters.search, mode: 'insensitive' } },
+                { name: { contains: normalizedSearch, mode: 'insensitive' } },
+                { description: { contains: normalizedSearch, mode: 'insensitive' } },
+                { tags: { has: normalizedSearch.toLowerCase() } },
+                { vendor: { storeName: { contains: normalizedSearch, mode: 'insensitive' } } },
             ];
         }
         return withPrismaReconnect(() => prisma.product.count({ where }));

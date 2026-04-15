@@ -14,6 +14,7 @@ export interface SearchBarProps {
   placeholder?: string;
   defaultValue?: string;
   className?: string;
+  expandDropdownOnDesktop?: boolean;
   showSuggestions?: boolean;
   showRecentSearches?: boolean;
   recentSearchKey?: string;
@@ -59,6 +60,7 @@ export function SearchBar({
   placeholder = "Search products...",
   defaultValue = "",
   className,
+  expandDropdownOnDesktop = false,
   showSuggestions = true,
   showRecentSearches = false,
   recentSearchKey = DEFAULT_RECENT_SEARCH_KEY,
@@ -323,7 +325,11 @@ export function SearchBar({
       {/* Suggestions Dropdown */}
       {shouldRenderDropdown ? (
         <div
-          className="absolute z-ds-overlay mt-2 w-full overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-lg"
+          className={cn(
+            "absolute z-ds-overlay mt-2 w-full overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-lg",
+            expandDropdownOnDesktop &&
+              "md:left-1/2 md:w-[min(44rem,calc(100vw-2rem))] md:-translate-x-1/2"
+          )}
         >
           {showRecentState ? (
             <div className="max-h-[60vh] overflow-y-auto">

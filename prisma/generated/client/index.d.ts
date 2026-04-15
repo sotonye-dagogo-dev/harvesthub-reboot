@@ -25155,6 +25155,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgAggregateOutputType = {
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    commissionDefaultRate: number | null
+    commissionPremiumRate: number | null
     minOrderAmount: number | null
     maxBookingAdvanceDays: number | null
   }
@@ -25162,6 +25164,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumAggregateOutputType = {
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    commissionDefaultRate: number | null
+    commissionPremiumRate: number | null
     minOrderAmount: number | null
     maxBookingAdvanceDays: number | null
   }
@@ -25173,6 +25177,8 @@ export namespace Prisma {
     autoConfirmHours: number | null
     refundWindowHours: number | null
     paymentsEnabled: boolean | null
+    commissionDefaultRate: number | null
+    commissionPremiumRate: number | null
     minOrderAmount: number | null
     maxBookingAdvanceDays: number | null
     createdAt: Date | null
@@ -25186,6 +25192,8 @@ export namespace Prisma {
     autoConfirmHours: number | null
     refundWindowHours: number | null
     paymentsEnabled: boolean | null
+    commissionDefaultRate: number | null
+    commissionPremiumRate: number | null
     minOrderAmount: number | null
     maxBookingAdvanceDays: number | null
     createdAt: Date | null
@@ -25199,6 +25207,8 @@ export namespace Prisma {
     autoConfirmHours: number
     refundWindowHours: number
     paymentsEnabled: number
+    commissionDefaultRate: number
+    commissionPremiumRate: number
     minOrderAmount: number
     maxBookingAdvanceDays: number
     createdAt: number
@@ -25210,6 +25220,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgAggregateInputType = {
     autoConfirmHours?: true
     refundWindowHours?: true
+    commissionDefaultRate?: true
+    commissionPremiumRate?: true
     minOrderAmount?: true
     maxBookingAdvanceDays?: true
   }
@@ -25217,6 +25229,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumAggregateInputType = {
     autoConfirmHours?: true
     refundWindowHours?: true
+    commissionDefaultRate?: true
+    commissionPremiumRate?: true
     minOrderAmount?: true
     maxBookingAdvanceDays?: true
   }
@@ -25228,6 +25242,8 @@ export namespace Prisma {
     autoConfirmHours?: true
     refundWindowHours?: true
     paymentsEnabled?: true
+    commissionDefaultRate?: true
+    commissionPremiumRate?: true
     minOrderAmount?: true
     maxBookingAdvanceDays?: true
     createdAt?: true
@@ -25241,6 +25257,8 @@ export namespace Prisma {
     autoConfirmHours?: true
     refundWindowHours?: true
     paymentsEnabled?: true
+    commissionDefaultRate?: true
+    commissionPremiumRate?: true
     minOrderAmount?: true
     maxBookingAdvanceDays?: true
     createdAt?: true
@@ -25254,6 +25272,8 @@ export namespace Prisma {
     autoConfirmHours?: true
     refundWindowHours?: true
     paymentsEnabled?: true
+    commissionDefaultRate?: true
+    commissionPremiumRate?: true
     minOrderAmount?: true
     maxBookingAdvanceDays?: true
     createdAt?: true
@@ -25354,6 +25374,8 @@ export namespace Prisma {
     autoConfirmHours: number
     refundWindowHours: number
     paymentsEnabled: boolean
+    commissionDefaultRate: number
+    commissionPremiumRate: number
     minOrderAmount: number
     maxBookingAdvanceDays: number
     createdAt: Date
@@ -25386,6 +25408,8 @@ export namespace Prisma {
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
     paymentsEnabled?: boolean
+    commissionDefaultRate?: boolean
+    commissionPremiumRate?: boolean
     minOrderAmount?: boolean
     maxBookingAdvanceDays?: boolean
     createdAt?: boolean
@@ -25399,6 +25423,8 @@ export namespace Prisma {
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
     paymentsEnabled?: boolean
+    commissionDefaultRate?: boolean
+    commissionPremiumRate?: boolean
     minOrderAmount?: boolean
     maxBookingAdvanceDays?: boolean
     createdAt?: boolean
@@ -25412,6 +25438,8 @@ export namespace Prisma {
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
     paymentsEnabled?: boolean
+    commissionDefaultRate?: boolean
+    commissionPremiumRate?: boolean
     minOrderAmount?: boolean
     maxBookingAdvanceDays?: boolean
     createdAt?: boolean
@@ -25425,13 +25453,15 @@ export namespace Prisma {
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
     paymentsEnabled?: boolean
+    commissionDefaultRate?: boolean
+    commissionPremiumRate?: boolean
     minOrderAmount?: boolean
     maxBookingAdvanceDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CommerceLifecycleConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "autoConfirmEnabled" | "autoConfirmHours" | "refundWindowHours" | "paymentsEnabled" | "minOrderAmount" | "maxBookingAdvanceDays" | "createdAt" | "updatedAt", ExtArgs["result"]["commerceLifecycleConfig"]>
+  export type CommerceLifecycleConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "autoConfirmEnabled" | "autoConfirmHours" | "refundWindowHours" | "paymentsEnabled" | "commissionDefaultRate" | "commissionPremiumRate" | "minOrderAmount" | "maxBookingAdvanceDays" | "createdAt" | "updatedAt", ExtArgs["result"]["commerceLifecycleConfig"]>
 
   export type $CommerceLifecycleConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "CommerceLifecycleConfig"
@@ -25443,6 +25473,8 @@ export namespace Prisma {
       autoConfirmHours: number
       refundWindowHours: number
       paymentsEnabled: boolean
+      commissionDefaultRate: number
+      commissionPremiumRate: number
       minOrderAmount: number
       maxBookingAdvanceDays: number
       createdAt: Date
@@ -25876,6 +25908,8 @@ export namespace Prisma {
     readonly autoConfirmHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
     readonly refundWindowHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
     readonly paymentsEnabled: FieldRef<"CommerceLifecycleConfig", 'Boolean'>
+    readonly commissionDefaultRate: FieldRef<"CommerceLifecycleConfig", 'Float'>
+    readonly commissionPremiumRate: FieldRef<"CommerceLifecycleConfig", 'Float'>
     readonly minOrderAmount: FieldRef<"CommerceLifecycleConfig", 'Float'>
     readonly maxBookingAdvanceDays: FieldRef<"CommerceLifecycleConfig", 'Int'>
     readonly createdAt: FieldRef<"CommerceLifecycleConfig", 'DateTime'>
@@ -44880,6 +44914,8 @@ export namespace Prisma {
     autoConfirmHours: 'autoConfirmHours',
     refundWindowHours: 'refundWindowHours',
     paymentsEnabled: 'paymentsEnabled',
+    commissionDefaultRate: 'commissionDefaultRate',
+    commissionPremiumRate: 'commissionPremiumRate',
     minOrderAmount: 'minOrderAmount',
     maxBookingAdvanceDays: 'maxBookingAdvanceDays',
     createdAt: 'createdAt',
@@ -47459,6 +47495,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
+    commissionDefaultRate?: FloatFilter<"CommerceLifecycleConfig"> | number
+    commissionPremiumRate?: FloatFilter<"CommerceLifecycleConfig"> | number
     minOrderAmount?: FloatFilter<"CommerceLifecycleConfig"> | number
     maxBookingAdvanceDays?: IntFilter<"CommerceLifecycleConfig"> | number
     createdAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
@@ -47472,6 +47510,8 @@ export namespace Prisma {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
     paymentsEnabled?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
     createdAt?: SortOrder
@@ -47488,6 +47528,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
+    commissionDefaultRate?: FloatFilter<"CommerceLifecycleConfig"> | number
+    commissionPremiumRate?: FloatFilter<"CommerceLifecycleConfig"> | number
     minOrderAmount?: FloatFilter<"CommerceLifecycleConfig"> | number
     maxBookingAdvanceDays?: IntFilter<"CommerceLifecycleConfig"> | number
     createdAt?: DateTimeFilter<"CommerceLifecycleConfig"> | Date | string
@@ -47501,6 +47543,8 @@ export namespace Prisma {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
     paymentsEnabled?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
     createdAt?: SortOrder
@@ -47522,6 +47566,8 @@ export namespace Prisma {
     autoConfirmHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolWithAggregatesFilter<"CommerceLifecycleConfig"> | boolean
+    commissionDefaultRate?: FloatWithAggregatesFilter<"CommerceLifecycleConfig"> | number
+    commissionPremiumRate?: FloatWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     minOrderAmount?: FloatWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     maxBookingAdvanceDays?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     createdAt?: DateTimeWithAggregatesFilter<"CommerceLifecycleConfig"> | Date | string
@@ -50860,6 +50906,8 @@ export namespace Prisma {
     autoConfirmHours?: number
     refundWindowHours?: number
     paymentsEnabled?: boolean
+    commissionDefaultRate?: number
+    commissionPremiumRate?: number
     minOrderAmount?: number
     maxBookingAdvanceDays?: number
     createdAt?: Date | string
@@ -50873,6 +50921,8 @@ export namespace Prisma {
     autoConfirmHours?: number
     refundWindowHours?: number
     paymentsEnabled?: boolean
+    commissionDefaultRate?: number
+    commissionPremiumRate?: number
     minOrderAmount?: number
     maxBookingAdvanceDays?: number
     createdAt?: Date | string
@@ -50886,6 +50936,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
+    commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
     minOrderAmount?: FloatFieldUpdateOperationsInput | number
     maxBookingAdvanceDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50899,6 +50951,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
+    commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
     minOrderAmount?: FloatFieldUpdateOperationsInput | number
     maxBookingAdvanceDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50912,6 +50966,8 @@ export namespace Prisma {
     autoConfirmHours?: number
     refundWindowHours?: number
     paymentsEnabled?: boolean
+    commissionDefaultRate?: number
+    commissionPremiumRate?: number
     minOrderAmount?: number
     maxBookingAdvanceDays?: number
     createdAt?: Date | string
@@ -50925,6 +50981,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
+    commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
     minOrderAmount?: FloatFieldUpdateOperationsInput | number
     maxBookingAdvanceDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -50938,6 +50996,8 @@ export namespace Prisma {
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
+    commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
     minOrderAmount?: FloatFieldUpdateOperationsInput | number
     maxBookingAdvanceDays?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54383,6 +54443,8 @@ export namespace Prisma {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
     paymentsEnabled?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
     createdAt?: SortOrder
@@ -54392,6 +54454,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgOrderByAggregateInput = {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
   }
@@ -54403,6 +54467,8 @@ export namespace Prisma {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
     paymentsEnabled?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
     createdAt?: SortOrder
@@ -54416,6 +54482,8 @@ export namespace Prisma {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
     paymentsEnabled?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
     createdAt?: SortOrder
@@ -54425,6 +54493,8 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumOrderByAggregateInput = {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    commissionDefaultRate?: SortOrder
+    commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
     maxBookingAdvanceDays?: SortOrder
   }
