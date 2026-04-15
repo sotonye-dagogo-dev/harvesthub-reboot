@@ -116,6 +116,19 @@ export async function POST(req: NextRequest) {
                 },
             });
 
+            const categoryCommissionOverride = await tx.commissionConfig.findUnique({
+                where: { category: parsedCategory },
+                select: { rate: true },
+            });
+            const defaultTierConfig = await tx.commerceLifecycleConfig.findUnique({
+                where: { key: 'default' },
+                select: { commissionDefaultRate: true },
+            });
+            const resolvedCommissionRate =
+                categoryCommissionOverride?.rate ??
+                defaultTierConfig?.commissionDefaultRate ??
+                COMMISSION_RATES.DEFAULT;
+
             const vendor = await tx.vendor.upsert({
                 where: { userId: user.id },
                 update: {
@@ -126,7 +139,7 @@ export async function POST(req: NextRequest) {
                     whatsappNumber,
                     isChurchAffiliated,
                     status: VendorStatus.PENDING,
-                    commissionRate: COMMISSION_RATES.DEFAULT,
+                    commissionRate: resolvedCommissionRate,
                 },
                 create: {
                     userId: user.id,
@@ -137,7 +150,7 @@ export async function POST(req: NextRequest) {
                     whatsappNumber,
                     isChurchAffiliated,
                     status: VendorStatus.PENDING,
-                    commissionRate: COMMISSION_RATES.DEFAULT,
+                    commissionRate: resolvedCommissionRate,
                     storeSettings: {
                         allowsPickup: true,
                         allowsDelivery: false,

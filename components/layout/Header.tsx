@@ -90,6 +90,7 @@ export function Header() {
             <SearchBar
               onSearch={handleHeaderSearch}
               placeholder="Search products and vendors"
+              expandDropdownOnDesktop
               showRecentSearches
             />
           </div>

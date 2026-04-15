@@ -21,6 +21,9 @@ const {
             findMany: vi.fn(),
             upsert: vi.fn(),
         },
+        commerceLifecycleConfig: {
+            upsert: vi.fn(),
+        },
         $transaction: vi.fn(),
     },
 }));
@@ -49,6 +52,10 @@ describe("admin commission settings persistence contract", () => {
         mockPrisma.commissionConfig.findMany.mockResolvedValue([
             { category: VendorCategory.ELECTRONICS, rate: 0.12 },
         ]);
+        mockPrisma.commerceLifecycleConfig.upsert.mockResolvedValue({
+            commissionDefaultRate: 0.06,
+            commissionPremiumRate: 0.025,
+        });
 
         const res = await GET(new NextRequest("http://localhost/api/admin/commission"));
         const json = await res.json();
@@ -63,12 +70,20 @@ describe("admin commission settings persistence contract", () => {
         );
         expect(electronics?.rate).toBe(0.12);
         expect(groceries?.rate).toBe(CATEGORY_COMMISSION_DEFAULTS[fallbackCategory]);
+        expect(json.tierRates).toEqual([
+            { tier: "DEFAULT", rate: 0.06 },
+            { tier: "PREMIUM_VENDOR", rate: 0.025 },
+        ]);
     });
 
     it("persists only valid category rates and reports updated count", async () => {
         mockPrisma.commissionConfig.upsert.mockImplementation(async ({ create }: any) => create);
-        mockPrisma.$transaction.mockImplementation(async (ops: Array<Promise<unknown>>) =>
-            Promise.all(ops)
+        mockPrisma.commerceLifecycleConfig.upsert.mockResolvedValue({
+            commissionDefaultRate: 0.08,
+            commissionPremiumRate: 0.03,
+        });
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: typeof mockPrisma) => Promise<unknown>) =>
+            callback(mockPrisma)
         );
 
         const res = await PUT(
@@ -81,6 +96,10 @@ describe("admin commission settings persistence contract", () => {
                         { category: "INVALID_CATEGORY", rate: 0.22 },
                         { category: fallbackCategory, rate: 1.2 },
                     ],
+                    tierRates: [
+                        { tier: "DEFAULT", rate: 0.08 },
+                        { tier: "PREMIUM_VENDOR", rate: 0.03 },
+                    ],
                 }),
             })
         );
@@ -89,5 +108,27 @@ describe("admin commission settings persistence contract", () => {
         expect(res.status).toBe(200);
         expect(json.success).toBe(true);
         expect(json.updated).toBe(1);
+        expect(json.tierRates).toEqual([
+            { tier: "DEFAULT", rate: 0.08 },
+            { tier: "PREMIUM_VENDOR", rate: 0.03 },
+        ]);
+    });
+
+    it("rejects invalid tier rates payload", async () => {
+        const res = await PUT(
+            new NextRequest("http://localhost/api/admin/commission", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    rates: [{ category: VendorCategory.ELECTRONICS, rate: 0.15 }],
+                    tierRates: [{ tier: "DEFAULT", rate: 1.2 }],
+                }),
+            })
+        );
+
+        expect(res.status).toBe(400);
+        await expect(res.json()).resolves.toMatchObject({
+            error: "One or more vendor tier rates are invalid",
+        });
     });
 });

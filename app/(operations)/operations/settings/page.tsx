@@ -25,7 +25,7 @@ import { Input, Switch, message, Tabs } from "antd";
 export const dynamic = "force-dynamic";
 
 interface CommissionTier {
-  id: string;
+  id: "DEFAULT" | "PREMIUM_VENDOR";
   label: string;
   rate: number;
   description: string;
@@ -68,13 +68,13 @@ interface CommerceLifecycleConfig {
 
 const initialTiers: CommissionTier[] = [
   {
-    id: "default",
+    id: "DEFAULT",
     label: "Default",
     rate: COMMISSION_RATES.DEFAULT * 100,
     description: "Standard commission rate for all vendors",
   },
   {
-    id: "premium",
+    id: "PREMIUM_VENDOR",
     label: "Premium Vendor",
     rate: COMMISSION_RATES.PREMIUM_VENDOR * 100,
     description: "Reduced rate for verified premium vendors",
@@ -93,7 +93,7 @@ export default function OperationsSettingsPage() {
     return Number.isFinite(parsed) ? parsed : fallback;
   };
 
-  const tiers: CommissionTier[] = initialTiers;
+  const [tiers, setTiers] = useState<CommissionTier[]>(initialTiers);
   const [categoryRates, setCategoryRates] = useState<CategoryRate[]>(initialCategoryRates);
   const [paymentsEnabled, setPaymentsEnabled] = useState<boolean>(
     PLATFORM_DEFAULTS.PAYMENTS_ENABLED
@@ -209,6 +209,12 @@ export default function OperationsSettingsPage() {
     );
   };
 
+  const handleTierRateChange = (tierId: CommissionTier["id"], value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
+    setTiers((prev) => prev.map((tier) => (tier.id === tierId ? { ...tier, rate: numValue } : tier)));
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -225,6 +231,29 @@ export default function OperationsSettingsPage() {
           const categoryLabelByValue = new Map<string, string>(
             VENDOR_CATEGORIES.map((entry) => [entry.value, entry.label])
           );
+          const tierRateById = new Map<string, number>(
+            Array.isArray(data.tierRates)
+              ? data.tierRates
+                  .filter(
+                    (entry: unknown): entry is { tier: string; rate: number } =>
+                      Boolean(entry) &&
+                      typeof (entry as { tier?: unknown }).tier === "string" &&
+                      typeof (entry as { rate?: unknown }).rate === "number"
+                  )
+                  .map((entry: { tier: string; rate: number }) => [
+                    entry.tier,
+                    Math.round(entry.rate * 1000) / 10,
+                  ])
+              : []
+          );
+
+          setTiers((prev) =>
+            prev.map((tier) => ({
+              ...tier,
+              rate: tierRateById.get(tier.id) ?? tier.rate,
+            }))
+          );
+
           setCategoryRates(
             data.commissionConfigs
               .filter(
@@ -268,6 +297,10 @@ export default function OperationsSettingsPage() {
         body: JSON.stringify({
           rates: categoryRates.map((entry) => ({
             category: entry.category,
+            rate: entry.rate / 100,
+          })),
+          tierRates: tiers.map((entry) => ({
+            tier: entry.id,
             rate: entry.rate / 100,
           })),
         }),
@@ -402,7 +435,8 @@ export default function OperationsSettingsPage() {
                           max={100}
                           step={0.5}
                           value={tier.rate}
-                          disabled
+                          onChange={(e) => handleTierRateChange(tier.id, e.target.value)}
+                          disabled={commissionConfigLoading || isSaving}
                           className="!w-24"
                           suffix="%"
                         />
@@ -445,6 +479,7 @@ export default function OperationsSettingsPage() {
                           step={0.5}
                           value={cr.rate}
                           onChange={(e) => handleCategoryRateChange(cr.category, e.target.value)}
+                          disabled={commissionConfigLoading || isSaving}
                           className="!w-24"
                           suffix="%"
                         />

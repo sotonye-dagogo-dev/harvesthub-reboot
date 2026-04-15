@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
                 { name: { contains: q, mode: 'insensitive' } },
                 { description: { contains: q, mode: 'insensitive' } },
                 { tags: { has: q.toLowerCase() } },
+                { vendor: { storeName: { contains: q, mode: 'insensitive' } } },
             ];
         }
         if (category) where.category = category as Prisma.ProductWhereInput['category'];

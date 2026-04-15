@@ -256,7 +256,19 @@ export async function POST(request: NextRequest) {
                     });
                 }
             } else if (role === UserRole.VENDOR) {
-                const commissionRate = CATEGORY_COMMISSION_DEFAULTS[companyCategory] ?? COMMISSION_RATES.DEFAULT;
+                const categoryCommissionOverride = await tx.commissionConfig.findUnique({
+                    where: { category: companyCategory },
+                    select: { rate: true },
+                });
+                const defaultTierConfig = await tx.commerceLifecycleConfig.findUnique({
+                    where: { key: 'default' },
+                    select: { commissionDefaultRate: true },
+                });
+                const commissionRate =
+                    categoryCommissionOverride?.rate ??
+                    defaultTierConfig?.commissionDefaultRate ??
+                    CATEGORY_COMMISSION_DEFAULTS[companyCategory] ??
+                    COMMISSION_RATES.DEFAULT;
                 const businessVerificationData: Prisma.InputJsonValue = {
                     verificationDocuments: verificationDocuments?.length
                         ? verificationDocuments
