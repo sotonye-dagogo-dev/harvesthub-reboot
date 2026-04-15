@@ -62,6 +62,7 @@ interface CommerceLifecycleConfig {
   autoConfirmEnabled: boolean;
   autoConfirmHours: number;
   refundWindowHours: number;
+  withdrawalSettlementHoldHours: number;
   minOrderAmount: number;
   maxBookingAdvanceDays: number;
 }
@@ -105,6 +106,7 @@ export default function OperationsSettingsPage() {
     autoConfirmEnabled: true,
     autoConfirmHours: 48,
     refundWindowHours: 72,
+    withdrawalSettlementHoldHours: PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS,
     minOrderAmount: PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT,
     maxBookingAdvanceDays: PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS,
   });
@@ -170,6 +172,10 @@ export default function OperationsSettingsPage() {
             autoConfirmEnabled: Boolean(data.config.autoConfirmEnabled),
             autoConfirmHours: toFiniteNumber(data.config.autoConfirmHours, 48),
             refundWindowHours: toFiniteNumber(data.config.refundWindowHours, 72),
+            withdrawalSettlementHoldHours: toFiniteNumber(
+              data.config.withdrawalSettlementHoldHours,
+              PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS
+            ),
             minOrderAmount: toFiniteNumber(
               data.config.minOrderAmount,
               PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT
@@ -183,9 +189,7 @@ export default function OperationsSettingsPage() {
       } catch (error) {
         if (active) {
           message.error(
-            error instanceof Error
-              ? error.message
-              : "Unable to load commerce lifecycle settings"
+            error instanceof Error ? error.message : "Unable to load commerce lifecycle settings"
           );
         }
       } finally {
@@ -212,7 +216,9 @@ export default function OperationsSettingsPage() {
   const handleTierRateChange = (tierId: CommissionTier["id"], value: string) => {
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < 0 || numValue > 100) return;
-    setTiers((prev) => prev.map((tier) => (tier.id === tierId ? { ...tier, rate: numValue } : tier)));
+    setTiers((prev) =>
+      prev.map((tier) => (tier.id === tierId ? { ...tier, rate: numValue } : tier))
+    );
   };
 
   useEffect(() => {
@@ -271,7 +277,9 @@ export default function OperationsSettingsPage() {
         }
       } catch (error) {
         if (active) {
-          message.error(error instanceof Error ? error.message : "Unable to load commission defaults");
+          message.error(
+            error instanceof Error ? error.message : "Unable to load commission defaults"
+          );
         }
       } finally {
         if (active) {
@@ -343,6 +351,7 @@ export default function OperationsSettingsPage() {
           autoConfirmEnabled: commerceLifecycleConfig.autoConfirmEnabled,
           autoConfirmHours: commerceLifecycleConfig.autoConfirmHours,
           refundWindowHours: commerceLifecycleConfig.refundWindowHours,
+          withdrawalSettlementHoldHours: commerceLifecycleConfig.withdrawalSettlementHoldHours,
           minOrderAmount: commerceLifecycleConfig.minOrderAmount,
           maxBookingAdvanceDays: commerceLifecycleConfig.maxBookingAdvanceDays,
         }),
@@ -358,6 +367,10 @@ export default function OperationsSettingsPage() {
         autoConfirmEnabled: Boolean(commerceData.config.autoConfirmEnabled),
         autoConfirmHours: toFiniteNumber(commerceData.config.autoConfirmHours, 48),
         refundWindowHours: toFiniteNumber(commerceData.config.refundWindowHours, 72),
+        withdrawalSettlementHoldHours: toFiniteNumber(
+          commerceData.config.withdrawalSettlementHoldHours,
+          PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS
+        ),
         minOrderAmount: toFiniteNumber(
           commerceData.config.minOrderAmount,
           PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT
@@ -377,9 +390,7 @@ export default function OperationsSettingsPage() {
             : "Partially saved settings."
         );
       } else {
-        message.error(
-          error instanceof Error ? error.message : "Unable to save platform settings"
-        );
+        message.error(error instanceof Error ? error.message : "Unable to save platform settings");
       }
     } finally {
       setIsSaving(false);
@@ -456,7 +467,9 @@ export default function OperationsSettingsPage() {
               children: (
                 <div className="space-y-3">
                   {commissionConfigLoading ? (
-                    <p className="text-xs text-ds-text-secondary">Loading category commission defaults...</p>
+                    <p className="text-xs text-ds-text-secondary">
+                      Loading category commission defaults...
+                    </p>
                   ) : null}
                   <p className="text-xs text-ds-text-secondary">
                     Default commission rate applied to new vendors in each category. Individual
@@ -743,6 +756,34 @@ export default function OperationsSettingsPage() {
                     setCommerceLifecycleConfig((prev) => ({
                       ...prev,
                       refundWindowHours: val,
+                    }));
+                  }
+                }}
+                suffix="hours"
+                className="!w-36"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="font-medium text-ds-text-primary">
+                  Withdrawal Settlement Hold Window
+                </div>
+                <div className="text-xs text-ds-text-secondary">
+                  Hours to pause withdrawals while recent payout settlements are still pending.
+                </div>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={720}
+                value={commerceLifecycleConfig.withdrawalSettlementHoldHours}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 720) {
+                    setCommerceLifecycleConfig((prev) => ({
+                      ...prev,
+                      withdrawalSettlementHoldHours: val,
                     }));
                   }
                 }}

@@ -43,6 +43,34 @@
 
 ---
 
+## Session 69 Corrective Slice (2026-04-15) — Authenticated Wallet/Checkout Policy + Push Health UX
+
+> **Section summary:** Align wallet and checkout access with authenticated-user policy, replace blanket withdrawal role gates with payout-context safeguards, and make push health diagnostics visibly actionable.
+
+- [x] Remove checkout role hard-blocks in UI and API to allow authenticated order placement.
+- [x] Remove wallet withdrawal vendor-only hard-blocks in UI and API.
+- [x] Add contextual withdrawal restriction when recent pending settlement payout holds exist.
+- [x] Improve push health UX feedback loop (active check feedback, result toast guidance, one-click repair action).
+- [x] Add/refresh focused tests for orders role policy, wallet role parity, withdrawal API policy, and notification push-health repair flow.
+- [x] Run focused validation (`vitest` touched suites, `next lint` touched files, `tsc --noEmit`).
+
+---
+
+## Session 70 Corrective Slice (2026-04-15) — Configurable Withdrawal Settlement Hold Window
+
+> **Section summary:** Convert withdrawal pending-settlement hold timing from hardcoded logic to an admin-managed commerce lifecycle policy.
+
+- [x] Add persisted `withdrawalSettlementHoldHours` field to `CommerceLifecycleConfig` schema + migration.
+- [x] Regenerate Prisma client artifacts after schema update.
+- [x] Extend commerce config service snapshot/upsert/get flow with bounded hold-window handling.
+- [x] Extend `PUT /api/admin/commerce-config` validation/persistence contract for hold-window hours (`1..720`).
+- [x] Add operations settings lifecycle control for withdrawal hold-window hours and wire load/save flow.
+- [x] Update `POST /api/wallet/withdraw` to consume configured hold-window policy.
+- [x] Refresh focused tests/mocks for new commerce config field shape.
+- [x] Run focused validation (`prisma generate`, touched `vitest`, touched `next lint`, `tsc --noEmit`).
+
+---
+
 ## Feature Planning Queue (2026-04-15) — Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
 
 > **Section summary:** Reliability closure queue for contradictory admin wallet/checkout behavior, Paystack transaction-verification correctness, delayed in-app/push notification visibility, and plain order-notification email rendering.

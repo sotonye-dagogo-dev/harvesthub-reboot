@@ -22,6 +22,50 @@
 [What comes next]
 ```
 
+## 2026-04-15 — Configurable Withdrawal Settlement Hold Policy
+
+**Summary:**
+Completed the follow-up request to make withdrawal settlement hold behavior configurable. The previous hardcoded pending-settlement hold window is now persisted in commerce lifecycle settings, editable from operations settings, and consumed directly by withdrawal policy checks.
+
+**Completed:**
+
+- Added `withdrawalSettlementHoldHours` to `CommerceLifecycleConfig` with migration + regenerated Prisma client artifacts.
+- Extended commerce config service and admin commerce-config API validation/persistence contract to include hold-window hours (`1..720`).
+- Added operations settings UI control for withdrawal settlement hold window and wired lifecycle config load/save mapping.
+- Refactored withdrawal request route to consume persisted hold-window policy when evaluating `WITHDRAWAL_PENDING_SETTLEMENT` restrictions.
+- Updated focused mocks/tests for new lifecycle config snapshot shape.
+- Passed focused validation (`prisma generate`, touched `vitest`, touched `next lint`, `tsc --noEmit`).
+
+**Key Changes:**
+
+- Withdrawal hold policy no longer requires code edits/redeploy for hour-window changes.
+- Operations team can tune settlement hold timing directly through existing commerce lifecycle settings.
+
+**Next Sprint Focus:**
+Run browser-level validation for lifecycle settings persistence and verify withdrawal guard behavior/messages across at least two hold-window configurations.
+
+## 2026-04-15 — Authenticated Wallet/Checkout Policy Alignment + Push Health Actionability
+
+**Summary:**
+Delivered the requested policy realignment so checkout placement and wallet withdrawals are no longer blocked by static role gates for authenticated users. Withdrawal safety now uses a contextual settlement-hold guard instead of blanket role lockouts, and the push health panel now provides explicit run feedback plus a direct repair action.
+
+**Completed:**
+
+- Removed checkout admin role blocks from UI (`/checkout`) and API (`POST /api/orders`).
+- Removed vendor-only withdrawal role blocks from wallet UI and withdrawal API request path.
+- Added contextual withdrawal guard (`WITHDRAWAL_PENDING_SETTLEMENT`) when recent pending payout settlement records exist.
+- Enhanced push health UX with run-status toasts, last-checked timestamp, and one-click repair flow (`Fix Push Setup`).
+- Added/updated focused tests across orders role policy, wallet role parity, withdrawal policy, and notification push-health repair path.
+- Passed focused validation gate (`vitest` touched suites, file-scoped `next lint`, `tsc --noEmit`).
+
+**Key Changes:**
+
+- Access control moved from role-only restrictions to authenticated access with domain-context guardrails for withdrawal safety.
+- Push diagnostics now include visible user feedback and remediation affordance rather than passive status-only rendering.
+
+**Next Sprint Focus:**
+Validate the revised withdrawal hold and push setup repair behavior in-browser across buyer/vendor/admin sessions and consider moving settlement-hold window to admin-configurable policy.
+
 ## 2026-04-15 — Reliability Queue Closeout: Webhook Reconciliation + Notification Sync Timing
 
 **Summary:**

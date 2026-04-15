@@ -25155,6 +25155,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgAggregateOutputType = {
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    withdrawalSettlementHoldHours: number | null
     commissionDefaultRate: number | null
     commissionPremiumRate: number | null
     minOrderAmount: number | null
@@ -25164,6 +25165,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumAggregateOutputType = {
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    withdrawalSettlementHoldHours: number | null
     commissionDefaultRate: number | null
     commissionPremiumRate: number | null
     minOrderAmount: number | null
@@ -25176,6 +25178,7 @@ export namespace Prisma {
     autoConfirmEnabled: boolean | null
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    withdrawalSettlementHoldHours: number | null
     paymentsEnabled: boolean | null
     commissionDefaultRate: number | null
     commissionPremiumRate: number | null
@@ -25191,6 +25194,7 @@ export namespace Prisma {
     autoConfirmEnabled: boolean | null
     autoConfirmHours: number | null
     refundWindowHours: number | null
+    withdrawalSettlementHoldHours: number | null
     paymentsEnabled: boolean | null
     commissionDefaultRate: number | null
     commissionPremiumRate: number | null
@@ -25206,6 +25210,7 @@ export namespace Prisma {
     autoConfirmEnabled: number
     autoConfirmHours: number
     refundWindowHours: number
+    withdrawalSettlementHoldHours: number
     paymentsEnabled: number
     commissionDefaultRate: number
     commissionPremiumRate: number
@@ -25220,6 +25225,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgAggregateInputType = {
     autoConfirmHours?: true
     refundWindowHours?: true
+    withdrawalSettlementHoldHours?: true
     commissionDefaultRate?: true
     commissionPremiumRate?: true
     minOrderAmount?: true
@@ -25229,6 +25235,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumAggregateInputType = {
     autoConfirmHours?: true
     refundWindowHours?: true
+    withdrawalSettlementHoldHours?: true
     commissionDefaultRate?: true
     commissionPremiumRate?: true
     minOrderAmount?: true
@@ -25241,6 +25248,7 @@ export namespace Prisma {
     autoConfirmEnabled?: true
     autoConfirmHours?: true
     refundWindowHours?: true
+    withdrawalSettlementHoldHours?: true
     paymentsEnabled?: true
     commissionDefaultRate?: true
     commissionPremiumRate?: true
@@ -25256,6 +25264,7 @@ export namespace Prisma {
     autoConfirmEnabled?: true
     autoConfirmHours?: true
     refundWindowHours?: true
+    withdrawalSettlementHoldHours?: true
     paymentsEnabled?: true
     commissionDefaultRate?: true
     commissionPremiumRate?: true
@@ -25271,6 +25280,7 @@ export namespace Prisma {
     autoConfirmEnabled?: true
     autoConfirmHours?: true
     refundWindowHours?: true
+    withdrawalSettlementHoldHours?: true
     paymentsEnabled?: true
     commissionDefaultRate?: true
     commissionPremiumRate?: true
@@ -25373,6 +25383,7 @@ export namespace Prisma {
     autoConfirmEnabled: boolean
     autoConfirmHours: number
     refundWindowHours: number
+    withdrawalSettlementHoldHours: number
     paymentsEnabled: boolean
     commissionDefaultRate: number
     commissionPremiumRate: number
@@ -25407,6 +25418,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
+    withdrawalSettlementHoldHours?: boolean
     paymentsEnabled?: boolean
     commissionDefaultRate?: boolean
     commissionPremiumRate?: boolean
@@ -25422,6 +25434,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
+    withdrawalSettlementHoldHours?: boolean
     paymentsEnabled?: boolean
     commissionDefaultRate?: boolean
     commissionPremiumRate?: boolean
@@ -25437,6 +25450,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
+    withdrawalSettlementHoldHours?: boolean
     paymentsEnabled?: boolean
     commissionDefaultRate?: boolean
     commissionPremiumRate?: boolean
@@ -25452,6 +25466,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: boolean
     refundWindowHours?: boolean
+    withdrawalSettlementHoldHours?: boolean
     paymentsEnabled?: boolean
     commissionDefaultRate?: boolean
     commissionPremiumRate?: boolean
@@ -25461,7 +25476,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type CommerceLifecycleConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "autoConfirmEnabled" | "autoConfirmHours" | "refundWindowHours" | "paymentsEnabled" | "commissionDefaultRate" | "commissionPremiumRate" | "minOrderAmount" | "maxBookingAdvanceDays" | "createdAt" | "updatedAt", ExtArgs["result"]["commerceLifecycleConfig"]>
+  export type CommerceLifecycleConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "key" | "autoConfirmEnabled" | "autoConfirmHours" | "refundWindowHours" | "withdrawalSettlementHoldHours" | "paymentsEnabled" | "commissionDefaultRate" | "commissionPremiumRate" | "minOrderAmount" | "maxBookingAdvanceDays" | "createdAt" | "updatedAt", ExtArgs["result"]["commerceLifecycleConfig"]>
 
   export type $CommerceLifecycleConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "CommerceLifecycleConfig"
@@ -25472,6 +25487,7 @@ export namespace Prisma {
       autoConfirmEnabled: boolean
       autoConfirmHours: number
       refundWindowHours: number
+      withdrawalSettlementHoldHours: number
       paymentsEnabled: boolean
       commissionDefaultRate: number
       commissionPremiumRate: number
@@ -25907,6 +25923,7 @@ export namespace Prisma {
     readonly autoConfirmEnabled: FieldRef<"CommerceLifecycleConfig", 'Boolean'>
     readonly autoConfirmHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
     readonly refundWindowHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
+    readonly withdrawalSettlementHoldHours: FieldRef<"CommerceLifecycleConfig", 'Int'>
     readonly paymentsEnabled: FieldRef<"CommerceLifecycleConfig", 'Boolean'>
     readonly commissionDefaultRate: FieldRef<"CommerceLifecycleConfig", 'Float'>
     readonly commissionPremiumRate: FieldRef<"CommerceLifecycleConfig", 'Float'>
@@ -44913,6 +44930,7 @@ export namespace Prisma {
     autoConfirmEnabled: 'autoConfirmEnabled',
     autoConfirmHours: 'autoConfirmHours',
     refundWindowHours: 'refundWindowHours',
+    withdrawalSettlementHoldHours: 'withdrawalSettlementHoldHours',
     paymentsEnabled: 'paymentsEnabled',
     commissionDefaultRate: 'commissionDefaultRate',
     commissionPremiumRate: 'commissionPremiumRate',
@@ -47494,6 +47512,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
     autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    withdrawalSettlementHoldHours?: IntFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
     commissionDefaultRate?: FloatFilter<"CommerceLifecycleConfig"> | number
     commissionPremiumRate?: FloatFilter<"CommerceLifecycleConfig"> | number
@@ -47509,6 +47528,7 @@ export namespace Prisma {
     autoConfirmEnabled?: SortOrder
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     paymentsEnabled?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
@@ -47527,6 +47547,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
     autoConfirmHours?: IntFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntFilter<"CommerceLifecycleConfig"> | number
+    withdrawalSettlementHoldHours?: IntFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolFilter<"CommerceLifecycleConfig"> | boolean
     commissionDefaultRate?: FloatFilter<"CommerceLifecycleConfig"> | number
     commissionPremiumRate?: FloatFilter<"CommerceLifecycleConfig"> | number
@@ -47542,6 +47563,7 @@ export namespace Prisma {
     autoConfirmEnabled?: SortOrder
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     paymentsEnabled?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
@@ -47565,6 +47587,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolWithAggregatesFilter<"CommerceLifecycleConfig"> | boolean
     autoConfirmHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     refundWindowHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
+    withdrawalSettlementHoldHours?: IntWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     paymentsEnabled?: BoolWithAggregatesFilter<"CommerceLifecycleConfig"> | boolean
     commissionDefaultRate?: FloatWithAggregatesFilter<"CommerceLifecycleConfig"> | number
     commissionPremiumRate?: FloatWithAggregatesFilter<"CommerceLifecycleConfig"> | number
@@ -50905,6 +50928,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: number
     refundWindowHours?: number
+    withdrawalSettlementHoldHours?: number
     paymentsEnabled?: boolean
     commissionDefaultRate?: number
     commissionPremiumRate?: number
@@ -50920,6 +50944,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: number
     refundWindowHours?: number
+    withdrawalSettlementHoldHours?: number
     paymentsEnabled?: boolean
     commissionDefaultRate?: number
     commissionPremiumRate?: number
@@ -50935,6 +50960,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
+    withdrawalSettlementHoldHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
     commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
     commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
@@ -50950,6 +50976,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
+    withdrawalSettlementHoldHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
     commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
     commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
@@ -50965,6 +50992,7 @@ export namespace Prisma {
     autoConfirmEnabled?: boolean
     autoConfirmHours?: number
     refundWindowHours?: number
+    withdrawalSettlementHoldHours?: number
     paymentsEnabled?: boolean
     commissionDefaultRate?: number
     commissionPremiumRate?: number
@@ -50980,6 +51008,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
+    withdrawalSettlementHoldHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
     commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
     commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
@@ -50995,6 +51024,7 @@ export namespace Prisma {
     autoConfirmEnabled?: BoolFieldUpdateOperationsInput | boolean
     autoConfirmHours?: IntFieldUpdateOperationsInput | number
     refundWindowHours?: IntFieldUpdateOperationsInput | number
+    withdrawalSettlementHoldHours?: IntFieldUpdateOperationsInput | number
     paymentsEnabled?: BoolFieldUpdateOperationsInput | boolean
     commissionDefaultRate?: FloatFieldUpdateOperationsInput | number
     commissionPremiumRate?: FloatFieldUpdateOperationsInput | number
@@ -54442,6 +54472,7 @@ export namespace Prisma {
     autoConfirmEnabled?: SortOrder
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     paymentsEnabled?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
@@ -54454,6 +54485,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigAvgOrderByAggregateInput = {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder
@@ -54466,6 +54498,7 @@ export namespace Prisma {
     autoConfirmEnabled?: SortOrder
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     paymentsEnabled?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
@@ -54481,6 +54514,7 @@ export namespace Prisma {
     autoConfirmEnabled?: SortOrder
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     paymentsEnabled?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
@@ -54493,6 +54527,7 @@ export namespace Prisma {
   export type CommerceLifecycleConfigSumOrderByAggregateInput = {
     autoConfirmHours?: SortOrder
     refundWindowHours?: SortOrder
+    withdrawalSettlementHoldHours?: SortOrder
     commissionDefaultRate?: SortOrder
     commissionPremiumRate?: SortOrder
     minOrderAmount?: SortOrder

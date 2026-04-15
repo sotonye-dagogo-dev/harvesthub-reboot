@@ -1,5 +1,5 @@
 /**
- * POST /api/wallet/withdraw — Request withdrawal (vendors only)
+ * POST /api/wallet/withdraw — Request withdrawal (authenticated users)
  */
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
@@ -8,14 +8,13 @@ import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-lim
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { userWalletKey } from '@/lib/cache/keys';
 import { Prisma, TransactionType, TransactionStatus } from '../../../../prisma/generated/client';
-import { UserRole } from '@/lib/constants';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
+import { getCommerceLifecycleConfig } from '@/lib/services/commerceConfig';
 
 export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/wallet/withdraw', async () => {
         const user = await getCurrentUser();
         if (!user) return apiError('Unauthorized', 401);
-        if (user.role !== UserRole.VENDOR) return apiError('Vendors only', 403);
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
@@ -33,6 +32,42 @@ export async function POST(req: NextRequest) {
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
         if (!wallet) return apiError('Wallet not found', 404);
         if (!wallet.isActive) return apiError('Wallet is disabled', 403);
+
+        const commerceConfig = await getCommerceLifecycleConfig(prisma);
+        const settlementHoldWindowMs =
+            commerceConfig.withdrawalSettlementHoldHours * 60 * 60 * 1000;
+
+        const pendingSettlementWindowStart = new Date(
+            Date.now() - settlementHoldWindowMs
+        );
+        const pendingSettlement = await prisma.transaction.findFirst({
+            where: {
+                walletId: wallet.id,
+                type: TransactionType.PAYOUT,
+                status: TransactionStatus.PENDING,
+                createdAt: { gte: pendingSettlementWindowStart },
+            },
+            select: {
+                reference: true,
+                orderId: true,
+                createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        if (pendingSettlement) {
+            return apiError(
+                'Withdrawal is temporarily unavailable while a recent store settlement payout is pending release.',
+                409,
+                {
+                    code: 'WITHDRAWAL_PENDING_SETTLEMENT',
+                    payoutReference: pendingSettlement.reference,
+                    orderId: pendingSettlement.orderId,
+                    heldAt: pendingSettlement.createdAt.toISOString(),
+                }
+            );
+        }
+
         const pendingWithdrawalsAggregate = await prisma.transaction.aggregate({
             where: {
                 walletId: wallet.id,

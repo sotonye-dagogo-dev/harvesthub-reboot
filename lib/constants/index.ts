@@ -847,6 +847,8 @@ export const PLATFORM_DEFAULTS = {
     MIN_ORDER_AMOUNT: 500,
     /** Maximum booking advance days */
     MAX_BOOKING_ADVANCE_DAYS: 60,
+    /** Hours to hold withdrawals while recent settlement payout remains pending */
+    WITHDRAWAL_SETTLEMENT_HOLD_HOURS: 72,
     /** Whether the platform currently processes payments */
     PAYMENTS_ENABLED: false,
     /** Payment notice message shown at checkout */

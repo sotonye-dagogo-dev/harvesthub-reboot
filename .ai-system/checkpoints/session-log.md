@@ -39,6 +39,138 @@
 
 ---
 
+## Session 70 — 2026-04-15
+
+**Goal:**
+Make the withdrawal pending-settlement hold window configurable through operations settings instead of hardcoded runtime behavior.
+
+**Completed:**
+
+- Extended `CommerceLifecycleConfig` with persisted `withdrawalSettlementHoldHours` policy field.
+- Added migration `20260415182000_add_withdrawal_settlement_hold_hours` to update `commerce_lifecycle_configs`.
+- Updated commerce config service snapshot/read/upsert flow to include bounded hold-hours handling.
+- Extended `GET/PUT /api/admin/commerce-config` contract and validation for configurable hold window bounds (`1..720`).
+- Added operations settings lifecycle control for withdrawal settlement hold window and wired load/save behavior.
+- Refactored `POST /api/wallet/withdraw` to read hold-window hours from persisted commerce config instead of constant-only path.
+- Updated focused test mocks/contracts for commerce config snapshot shape and withdrawal policy behavior.
+- Validation results:
+  - `npx prisma generate` passed,
+  - focused Vitest suites passed (withdraw route + orders payment smoke),
+  - `npx tsc --noEmit` passed,
+  - focused `npx next lint --file ...` passed.
+
+**Files Modified:**
+
+- prisma/schema.prisma
+- prisma/migrations/20260415182000_add_withdrawal_settlement_hold_hours/migration.sql
+- lib/constants/index.ts
+- lib/services/commerceConfig.ts
+- app/api/admin/commerce-config/route.ts
+- app/(operations)/operations/settings/page.tsx
+- app/api/wallet/withdraw/route.ts
+- app/api/wallet/withdraw/**tests**/route.test.ts
+- app/api/orders/**tests**/route.payment-smoke.test.ts
+- prisma/generated/client/\* (regenerated artifacts)
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run a quick browser validation of operations settings save/load and verify withdrawal guard messaging reflects configured hold-window behavior.
+
+**Notes / Blockers:**
+
+- Migration file is created and client is regenerated; apply migration in target environments before relying on the new field.
+
+---
+
+## Session 69 — 2026-04-15
+
+**Goal:**
+Complete policy alignment requested in-session by enabling deposit/withdraw/checkout actions for authenticated users, replacing blanket withdrawal role gating with payout-context safeguards, and improving push health actionability.
+
+**Completed:**
+
+- Removed admin checkout hard-block behavior from `/checkout` UI and from `POST /api/orders` role guard path.
+- Updated orders smoke tests to assert admin/authenticated checkout now reaches payment verification contract instead of returning role-block code.
+- Removed vendor-only withdrawal hard-blocks from wallet UI and withdrawal API request path.
+- Added contextual withdrawal restriction (`WITHDRAWAL_PENDING_SETTLEMENT`) when recent pending payout settlement holds exist.
+- Added focused withdrawal API tests for authenticated admin withdrawal success path and settlement-hold rejection path.
+- Enhanced push-health UX in notification preferences with:
+  - visible run feedback and result toasts,
+  - one-click "Fix Push Setup" remediation action,
+  - last-check timestamp rendering,
+  - new regression test for default-permission repair flow.
+- Updated architecture/decision/repair/task-queue artifacts for policy drift prevention.
+- Validation results:
+  - focused Vitest suites passed (orders smoke, wallet role parity, withdraw route, notification preferences),
+  - `npx next lint --file ...` (touched files) passed,
+  - `npx tsc --noEmit` passed.
+
+**Files Modified:**
+
+- app/checkout/page.tsx
+- app/checkout/error-mapping.ts
+- app/api/orders/route.ts
+- app/api/orders/**tests**/route.payment-smoke.test.ts
+- app/wallet/page.tsx
+- app/wallet/**tests**/page.role-parity.test.tsx
+- app/api/wallet/withdraw/route.ts
+- app/api/wallet/withdraw/**tests**/route.test.ts
+- components/features/NotificationPreferences.tsx
+- components/features/**tests**/NotificationPreferences.test.tsx
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/agents/repair-system.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Run a browser smoke check on push setup repair and settlement-hold withdrawal UX copy to confirm final user-facing wording and action affordances.
+
+**Notes / Blockers:**
+
+- New withdrawal hold rule currently uses a recent pending payout window (72h) based on wallet payout transactions; if business policy changes, this window should move to configurable admin policy.
+
+---
+
+## Session 68 — 2026-04-15
+
+**Goal:**
+Resolve wallet inconsistency where checkout showed a fixed balance while wallet page showed live balance and blocked admin deposits with read-only messaging.
+
+**Completed:**
+
+- Removed admin-only hard-block from wallet deposit UI and API route so authenticated roles can deposit when gateway readiness allows.
+- Kept withdrawals vendor-only and updated wallet copy to communicate that policy clearly.
+- Replaced hardcoded checkout wallet balance (`₦50,000`) with live wallet summary from `/api/wallet`.
+- Added wallet checkout guard message when wallet balance is below current order total.
+- Updated wallet role parity tests and wallet deposit API tests for the new behavior.
+- Synced architecture/decision docs to remove stale admin-wallet-read-only guidance.
+- Validation results: focused wallet Vitest suites passed, `npx tsc --noEmit` passed, focused ESLint on touched files passed.
+
+**Files Modified:**
+
+- app/wallet/page.tsx
+- app/api/wallet/deposit/route.ts
+- app/checkout/page.tsx
+- app/wallet/**tests**/page.role-parity.test.tsx
+- app/api/wallet/deposit/**tests**/route.test.ts
+- .ai-system/memory/project-decisions.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/checkpoints/session-log.md
+
+**Next Task:**
+Optional follow-up: add explicit admin toggle for withdrawal policy in operations settings if role-based withdrawal controls need runtime configurability.
+
+**Notes / Blockers:**
+
+- Checkout is still buyer-only by design and remains blocked for admin/vendor order placement.
+
+---
+
 ## Session 67 — 2026-04-15
 
 **Goal:**

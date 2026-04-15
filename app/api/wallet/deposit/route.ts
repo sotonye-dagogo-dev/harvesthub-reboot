@@ -16,11 +16,6 @@ export async function POST(req: NextRequest) {
     return withApiHandler('POST /api/wallet/deposit', async () => {
         const user = await getCurrentUser();
         if (!user) return apiError('Unauthorized', 401);
-        if (user.role === 'ADMIN') {
-            return apiError('Admin wallets are read-only in this environment.', 403, {
-                code: 'WALLET_ROLE_BLOCKED',
-            });
-        }
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);

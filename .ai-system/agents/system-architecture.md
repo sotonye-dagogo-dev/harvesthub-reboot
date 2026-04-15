@@ -318,9 +318,10 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ```
 1. Admin opens `/operations/settings` and loads lifecycle panel state from `GET /api/admin/commerce-config`.
 2. API upserts/returns singleton config (`CommerceLifecycleConfig`) with bounded values.
-3. Admin updates auto-confirm enablement + SLA hours + refund request window via `PUT /api/admin/commerce-config`.
+3. Admin updates auto-confirm enablement + SLA hours + refund request window + withdrawal settlement hold window via `PUT /api/admin/commerce-config`.
 4. `POST /api/orders/auto-confirm` reads persisted config to determine enablement and window.
 5. `POST /api/orders/[id]/refund/request` enforces admin-configured refund window against delivered timestamp.
+6. `POST /api/wallet/withdraw` enforces pending-settlement hold checks using persisted `withdrawalSettlementHoldHours`.
 
 ### Admin Commission + Lifecycle Coordinated Settings Save Flow
 
@@ -340,6 +341,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 | Category commission defaults | Admin managed | `GET/PUT /api/admin/commission` | `CommissionConfig` |
 | Auto-confirm enabled + hours | Admin managed | `GET/PUT /api/admin/commerce-config` | `CommerceLifecycleConfig` |
 | Refund request window | Admin managed | `GET/PUT /api/admin/commerce-config` | `CommerceLifecycleConfig` |
+| Withdrawal settlement hold window | Admin managed | `GET/PUT /api/admin/commerce-config` | `CommerceLifecycleConfig` |
 | Payment processing enabled indicator | Runtime derived (read-only) | `GET /api/admin/payments/config` | Environment key readiness (`PAYSTACK_MODE` + key set) |
 | Minimum order amount display | Runtime default (read-only) | Client constant (`PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT`) | Build/runtime config constant |
 | Maximum booking advance display | Runtime default (read-only) | Client constant (`PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS`) | Build/runtime config constant |
@@ -378,8 +380,8 @@ Editable controls are limited to values with persisted API contracts. Runtime-de
 ```
 
 1. Wallet page requests wallet summary and renders derived balances (`current`, `available`, `pending`) from API response.
-2. Role guard logic determines action affordances for deposit/withdraw controls.
-3. Restricted roles see explicit disabled-state explanation text instead of hidden controls.
+2. Authenticated users can access deposit/withdraw controls when gateway and form prerequisites are satisfied.
+3. Restriction messaging is contextual (for example pending settlement holds) instead of blanket role-only lockouts.
 4. Focused tests verify role parity behavior and balance invariants to prevent regressions.
 
 ```
@@ -411,11 +413,12 @@ Editable controls are limited to values with persisted API contracts. Runtime-de
 
 ```
 
-1. Vendor withdrawal request creates `WITHDRAWAL` transaction intent (`PENDING`) without immediate wallet debit.
-2. Processing endpoint `POST /api/wallet/withdraw/process` initiates provider transfer and reconciles status.
-3. On success, wallet is debited and withdrawal transaction marked `COMPLETED`.
-4. On failure, transaction is marked `FAILED` and available balance remains unaffected.
-5. Wallet API exposes derived `availableBalance` and `pendingWithdrawals` for accurate UI display.
+1. Authenticated withdrawal request creates `WITHDRAWAL` transaction intent (`PENDING`) without immediate wallet debit.
+2. Request path applies contextual hold guard (`WITHDRAWAL_PENDING_SETTLEMENT`) when recent pending payout settlements exist.
+3. Processing endpoint `POST /api/wallet/withdraw/process` initiates provider transfer and reconciles status.
+4. On success, wallet is debited and withdrawal transaction marked `COMPLETED`.
+5. On failure, transaction is marked `FAILED` and available balance remains unaffected.
+6. Wallet API exposes derived `availableBalance` and `pendingWithdrawals` for accurate UI display.
 
 ```
 
@@ -577,6 +580,7 @@ Migration direction:
 | 2026-04-14 | Closed remaining queue with wallet sync reconciliation + settings control audit map + payment smoke evidence | Ensured deterministic wallet refresh after lifecycle mutations, documented settings control persistence ownership, and validated wallet/payments grouped flows with focused smoke suites |
 | 2026-04-15 | Hardened wallet/checkout payment reliability + notification/email delivery parity | Enforced buyer-only checkout + admin wallet read-only contract, removed synthetic payment verification shortcuts, added gateway-aware initialize/verify behavior, improved notification recency/push diagnostics, and routed order lifecycle emails through shared templates |
 | 2026-04-15 | Closed payment/notification reliability follow-ups | Added Paystack webhook replay-safe reconciliation (signature + idempotency + provider re-verification), completed unread-sync timing regression tests, and captured push delivery smoke checklist guidance |
+| 2026-04-15 | Switched checkout/withdraw access to authenticated policy with contextual payout guardrails | Removed blanket role hard-blocks for checkout/withdraw request actions, added pending-settlement contextual withdrawal restriction, and improved push health diagnostics with actionable repair flow |
 
 ### Email Change + Reverification Flow
 
@@ -628,7 +632,7 @@ Migration direction:
 
 ```
 
-1. Buyer starts checkout and initializes card payment through `/api/payments/initialize`.
+1. Authenticated user starts checkout and initializes card payment through `/api/payments/initialize`.
 2. API initializes provider payment (Paystack when configured) and returns provider reference + authorization URL.
 3. Buyer completes payment in provider-hosted page, then checkout verifies reference via `/api/payments/verify`.
 4. Orders API (`POST /api/orders`) re-verifies provider reference server-side before creating paid orders.
@@ -657,8 +661,9 @@ Migration direction:
 1. User initializes deposit payment from wallet UI.
 2. Wallet UI stores pending provider reference and waits for user confirmation after provider checkout completion.
 3. `/api/wallet/deposit` verifies the provider reference before crediting wallet balance.
-4. Admin wallet mutations are blocked at API/UI layer to keep admin wallets read-only by policy.
-5. Successful verification writes completed transaction metadata with gateway and verification context.
+4. Deposits are available for authenticated roles when payment gateway readiness checks pass.
+5. Withdrawals are available to authenticated users with contextual pending-settlement hold checks in `/api/wallet/withdraw`.
+6. Successful verification writes completed transaction metadata with gateway and verification context.
 
 ```
 

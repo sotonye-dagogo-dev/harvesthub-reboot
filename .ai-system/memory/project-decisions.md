@@ -23,6 +23,49 @@
 [What this decision affects going forward]
 ```
 
+## Withdrawal Settlement Hold Window Is Admin-Configurable Lifecycle Policy
+
+**Decision:** Persist withdrawal pending-settlement hold duration as `withdrawalSettlementHoldHours` in `CommerceLifecycleConfig` and manage it from operations settings (`GET/PUT /api/admin/commerce-config`) instead of hardcoding a fixed window.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Settlement timing policy is operational and may change by environment, release phase, or business controls. Hardcoded windows require code changes and redeploys for policy updates, increasing drift and operational friction.
+
+**Alternatives Considered:**
+
+- Keep hardcoded 72-hour window in withdrawal route (rejected: not configurable and slower policy iteration).
+- Store window in environment variable only (rejected: not admin-visible/editable and less auditable in app UI).
+
+**Implications:**
+
+- Operations settings now exposes a persisted "Withdrawal Settlement Hold Window" control.
+- Withdrawal guard path reads runtime policy from `CommerceLifecycleConfig` rather than static constant-only behavior.
+- Config updates are bounded (`1..720`) via admin API and service-level clamping.
+- Database migration is required before policy updates can be saved in environments.
+
+## Checkout, Deposit, and Withdraw Actions Are Enabled for Authenticated Users with Contextual Withdrawal Guardrails
+
+**Decision:** Enable checkout placement, wallet deposits, and wallet withdrawal requests for all authenticated users, while applying withdrawal restrictions only when payout/settlement context indicates active unresolved holds (not by role alone).
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Blanket role-based gating created contradictory user experience and blocked legitimate authenticated flows. Withdrawal safety requirements are domain-contextual (for example unresolved payout holds), so restrictions should follow transaction state rather than static role type.
+
+**Alternatives Considered:**
+
+- Keep buyer-only checkout and vendor-only withdrawals (rejected: directly conflicts with requested authenticated-access policy and caused UX inconsistency).
+- Remove all withdrawal restrictions entirely (rejected: ignores payout reconciliation safety requirements).
+
+**Implications:**
+
+- `POST /api/orders` no longer returns role-block response for authenticated non-buyer roles.
+- Checkout UI no longer disables placement based on admin role.
+- Wallet withdrawal UI/API no longer use vendor-only role hard blocks.
+- `POST /api/wallet/withdraw` now enforces contextual `WITHDRAWAL_PENDING_SETTLEMENT` restrictions when recent pending payout holds exist.
+- Supersedes prior same-day decisions that enforced buyer-only checkout and vendor-only/admin wallet mutation hard-block contracts.
+
 ## Paystack Webhook Reconciliation Must Be Replay-Safe and Verify-Backed
 
 **Decision:** Treat `/api/payments/webhook` as an idempotent reconciliation endpoint that only mutates transaction/order state after signature validation, replay-key acquisition, and provider-side reference re-verification.
@@ -63,7 +106,7 @@ Paystack recommends verifying both transaction status and amount before fulfillm
 - `POST /api/wallet/deposit` now enforces the same parity guards before wallet credits.
 - Checkout error mapping includes explicit user-safe guidance for mismatch outcomes.
 
-## Checkout and Wallet Role Policy Uses Hard-Block Contract for Admin Accounts
+## [Superseded] Checkout and Wallet Role Policy Uses Hard-Block Contract for Admin Accounts
 
 **Decision:** Enforce a hard-block policy where checkout order creation is buyer-only and admin wallet mutations remain read-only, with explicit user-facing UX guidance and API error codes.
 **Date:** 2026-04-15
@@ -82,6 +125,27 @@ Admin-facing operational surfaces and buyer commerce flows should not overlap in
 - `POST /api/orders` now returns `CHECKOUT_ROLE_BLOCKED` for non-buyer roles.
 - `POST /api/wallet/deposit` now returns `WALLET_ROLE_BLOCKED` for admin role.
 - `/checkout` and `/wallet` show explicit role-policy guidance and disable conflicting actions.
+
+## [Superseded] Checkout Remains Buyer-Only; Wallet Deposits Are Role-Agnostic
+
+**Decision:** Keep checkout order placement buyer-only, but allow wallet deposits for authenticated roles (including admin) while retaining vendor-only withdrawals.
+**Date:** 2026-04-15
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Operational/admin users require valid wallet top-up behavior for testing/reconciliation flows, and previous UI/API hard-blocks created confusing inconsistency with payment controls. Wallet restrictions should reflect action semantics: deposits are safe role-agnostic funding actions, withdrawals remain vendor settlement-specific.
+
+**Alternatives Considered:**
+
+- Keep admin wallet deposit hard-block (rejected: caused confusing UX and blocked legitimate operational/testing flows).
+- Allow all roles to withdraw (rejected: conflicts with current vendor settlement model).
+
+**Implications:**
+
+- `POST /api/wallet/deposit` no longer role-blocks admin deposits.
+- Wallet page enables deposit for authenticated roles when gateway is ready and keeps withdrawal vendor-only.
+- Checkout still blocks non-buyer order creation via `CHECKOUT_ROLE_BLOCKED`.
+- Supersedes the admin wallet-read-only portion of the previous role-policy decision.
 
 ## Payment Verification Must Be Reference-Driven, Not Suffix-Inferred
 

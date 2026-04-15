@@ -55,7 +55,7 @@ function buildWalletResource() {
 
 function buildPaymentResource() {
   return {
-    data: { paymentsEnabled: true },
+    data: { paymentsEnabled: true, gatewayReady: true },
     isLoading: false,
     isRefreshing: false,
     error: null,
@@ -68,7 +68,7 @@ describe("WalletPage role parity and balance invariants", () => {
     vi.clearAllMocks();
   });
 
-  it("shows read-only admin controls with disabled action explanations", () => {
+  it("allows admin deposit and withdrawal actions", () => {
     useAuthMock.mockReturnValue({ user: { id: "admin-1", role: UserRole.ADMIN } });
     useSmartResourceMock
       .mockReturnValueOnce(buildWalletResource())
@@ -79,15 +79,14 @@ describe("WalletPage role parity and balance invariants", () => {
     const depositButton = screen.getByRole("button", { name: /deposit/i });
     const withdrawButton = screen.getByRole("button", { name: /withdraw/i });
 
-    expect(depositButton).toBeDisabled();
-    expect(withdrawButton).toBeDisabled();
-    expect(screen.getByText(/admin wallets are read-only/i)).toBeInTheDocument();
+    expect(depositButton).toBeEnabled();
+    expect(withdrawButton).toBeEnabled();
     expect(screen.getAllByText(/available/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/pending/i).length).toBeGreaterThan(0);
   });
 
-  it("keeps withdraw action enabled only for vendors", () => {
-    useAuthMock.mockReturnValue({ user: { id: "vendor-1", role: UserRole.VENDOR } });
+  it("keeps withdraw action enabled for buyers", () => {
+    useAuthMock.mockReturnValue({ user: { id: "buyer-1", role: UserRole.BUYER } });
     useSmartResourceMock
       .mockReturnValueOnce(buildWalletResource())
       .mockReturnValueOnce(buildPaymentResource());

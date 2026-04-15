@@ -41,9 +41,5 @@ export function mapCheckoutErrorMessage(error: CheckoutErrorPayload): string {
     return "Payment currency could not be verified for this checkout. Please start payment again.";
   }
 
-  if (error.code === "CHECKOUT_ROLE_BLOCKED") {
-    return "This account role cannot complete checkout. Please sign in with a buyer account.";
-  }
-
   return error.error || "Failed to place order";
 }

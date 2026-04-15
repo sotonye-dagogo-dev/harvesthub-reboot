@@ -126,6 +126,7 @@ export function NotificationPreferences() {
   const [saving, setSaving] = useState(false);
   const [checkingPushHealth, setCheckingPushHealth] = useState(false);
   const [pushHealth, setPushHealth] = useState<PushHealthStatus | null>(null);
+  const [lastPushHealthCheckAt, setLastPushHealthCheckAt] = useState<Date | null>(null);
   const [notice, setNotice] = useState(
     "Critical order/payment/delivery emails remain enforced for account safety."
   );
@@ -166,14 +167,107 @@ export function NotificationPreferences() {
     }
   }, [data]);
 
-  const refreshPushHealth = async () => {
+  const refreshPushHealth = async (opts?: { notify?: boolean }) => {
+    const notify = opts?.notify ?? false;
     setCheckingPushHealth(true);
+    if (notify) {
+      message.loading({ content: "Running push health check...", key: "push-health" });
+    }
+
     try {
       const result = await checkPushHealth();
       setPushHealth(result);
+      setLastPushHealthCheckAt(new Date());
+
+      if (!notify) {
+        return;
+      }
+
+      if (!result.supported) {
+        message.warning({ content: result.message, key: "push-health" });
+        return;
+      }
+
+      if (result.permission === "default") {
+        message.info({
+          content:
+            "Browser push permission is not granted yet. Click 'Fix Push Setup' to request permission and subscribe.",
+          key: "push-health",
+        });
+        return;
+      }
+
+      if (result.permission === "denied") {
+        message.warning({
+          content:
+            "Push permission is blocked in this browser. Enable permission in browser settings, then run the health check again.",
+          key: "push-health",
+        });
+        return;
+      }
+
+      if (!result.hasSubscription || !result.backendSynced) {
+        message.warning({
+          content:
+            "Push setup is incomplete. Click 'Fix Push Setup' to repair browser subscription sync.",
+          key: "push-health",
+        });
+        return;
+      }
+
+      message.success({
+        content: "Push delivery is healthy and synchronized.",
+        key: "push-health",
+      });
+    } catch (pushHealthError) {
+      const details =
+        pushHealthError instanceof Error
+          ? pushHealthError.message
+          : "Unable to complete push health check.";
+      if (notify) {
+        message.error({ content: details, key: "push-health" });
+      }
     } finally {
       setCheckingPushHealth(false);
     }
+  };
+
+  const repairPushSetup = async () => {
+    setCheckingPushHealth(true);
+    message.loading({ content: "Attempting push setup repair...", key: "push-health-repair" });
+
+    try {
+      const enabled = await enablePushNotifications();
+      if (!enabled) {
+        const permission = getBrowserPushPermission();
+        if (permission === "denied") {
+          message.warning({
+            content:
+              "Push permission is blocked in browser settings. Allow notifications for this site and retry.",
+            key: "push-health-repair",
+          });
+        } else {
+          message.warning({
+            content:
+              "Unable to complete push setup on this browser. Please retry after checking permissions.",
+            key: "push-health-repair",
+          });
+        }
+      } else {
+        message.success({
+          content: "Push permission and subscription updated.",
+          key: "push-health-repair",
+        });
+      }
+    } catch (repairError) {
+      const details =
+        repairError instanceof Error ? repairError.message : "Push setup repair failed.";
+      message.error({ content: details, key: "push-health-repair" });
+    } finally {
+      setCheckingPushHealth(false);
+    }
+
+    await refreshPushHealth({ notify: true });
   };
 
   useEffect(() => {
@@ -316,6 +410,11 @@ export function NotificationPreferences() {
           <p className="text-ds-text-secondary">
             Verify browser permission, service worker readiness, and backend subscription sync.
           </p>
+          {lastPushHealthCheckAt ? (
+            <p className="text-xs text-ds-text-tertiary">
+              Last checked: {lastPushHealthCheckAt.toLocaleString()}
+            </p>
+          ) : null}
           {pushHealth ? (
             <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-3">
               <p className="font-medium text-ds-text-primary">{pushHealth.message}</p>
@@ -332,10 +431,22 @@ export function NotificationPreferences() {
               </p>
             </div>
           ) : null}
-          <div>
-            <Button onClick={refreshPushHealth} loading={checkingPushHealth}>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => void refreshPushHealth({ notify: true })}
+              loading={checkingPushHealth}
+            >
               Run Push Health Check
             </Button>
+            {pushHealth &&
+            pushHealth.supported &&
+            (pushHealth.permission !== "granted" ||
+              !pushHealth.hasSubscription ||
+              !pushHealth.backendSynced) ? (
+              <Button onClick={() => void repairPushSetup()} disabled={checkingPushHealth}>
+                Fix Push Setup
+              </Button>
+            ) : null}
           </div>
         </div>
       </Card>

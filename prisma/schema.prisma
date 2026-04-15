@@ -850,18 +850,19 @@ model CommissionConfig {
 }
 
 model CommerceLifecycleConfig {
-  id                   String   @id @default(cuid())
-  key                  String   @unique @default("default")
-  autoConfirmEnabled   Boolean  @default(true)
-  autoConfirmHours     Int      @default(48)
-  refundWindowHours    Int      @default(72)
-  paymentsEnabled      Boolean  @default(true)
-  commissionDefaultRate Float   @default(0.05)
-  commissionPremiumRate Float   @default(0.03)
-  minOrderAmount       Float    @default(500)
-  maxBookingAdvanceDays Int     @default(60)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                            String   @id @default(cuid())
+  key                           String   @unique @default("default")
+  autoConfirmEnabled            Boolean  @default(true)
+  autoConfirmHours              Int      @default(48)
+  refundWindowHours             Int      @default(72)
+  withdrawalSettlementHoldHours Int      @default(72)
+  paymentsEnabled               Boolean  @default(true)
+  commissionDefaultRate         Float    @default(0.05)
+  commissionPremiumRate         Float    @default(0.03)
+  minOrderAmount                Float    @default(500)
+  maxBookingAdvanceDays         Int      @default(60)
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
 
   @@map("commerce_lifecycle_configs")
 }

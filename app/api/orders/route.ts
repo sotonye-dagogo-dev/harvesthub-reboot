@@ -1,6 +1,6 @@
 /**
  * GET  /api/orders — List orders (role-filtered)
- * POST /api/orders — Create order (buyer only)
+ * POST /api/orders — Create order (authenticated users)
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
@@ -140,16 +140,6 @@ export async function POST(req: NextRequest) {
     try {
         const user = await getCurrentUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        if (user.role !== UserRole.BUYER) {
-            return NextResponse.json(
-                {
-                    error: 'Checkout is available for buyer accounts only.',
-                    code: 'CHECKOUT_ROLE_BLOCKED',
-                },
-                { status: 403 }
-            );
-        }
 
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);

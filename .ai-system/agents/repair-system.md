@@ -18,6 +18,38 @@
 
 ---
 
+## [Push health check appeared inert and lacked actionable recovery path]
+
+**Symptom:**
+
+- Clicking "Run Push Health Check" appeared to do nothing from user perspective.
+- Preference UI could show default permission / missing subscription state without clear next action.
+
+**Root Cause:**
+
+- Health-check action updated diagnostics state but did not provide explicit run-result feedback and recovery CTA flow.
+
+**Fix Applied:**
+
+- Added active check feedback (`message.loading`) and result toasts for supported/unsupported/permission-denied/incomplete/healthy outcomes.
+- Added one-click "Fix Push Setup" action that requests permission/subscription sync via notification context and then re-runs health diagnostics.
+- Added last-check timestamp in push-health panel for visible action confirmation.
+- Added regression coverage for default-permission -> repair action path.
+
+**Prevention:**
+
+- Diagnostics controls must provide visible progress feedback and a direct remediation path for unhealthy states.
+- Add focused UX tests for "default permission" and "unsynced subscription" states whenever push-health UI evolves.
+
+**Files Affected:**
+
+- components/features/NotificationPreferences.tsx
+- components/features/**tests**/NotificationPreferences.test.tsx
+
+**Date:** 2026-04-15
+
+---
+
 ## [Notification context tests hit maximum update depth with unstable mocked context object]
 
 **Symptom:**
