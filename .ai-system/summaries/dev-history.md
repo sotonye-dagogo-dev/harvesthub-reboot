@@ -22,6 +22,58 @@
 [What comes next]
 ```
 
+## 2026-04-16 — Cloud Execution: Ads/Wallet/Metadata/WhatsApp/Vendor-Card Reliability Closure
+
+**Summary:**
+Completed the full 2026-04-16 cloud execution queue in one pass with non-breaking reliability and UX hardening across ad/banner mutation dedupe, sidebar rail containment/motion behavior, wallet action containment, payment initialize diagnostics, chat intent payload quality, dynamic metadata parity, and vendor-card layout stability.
+
+**Completed:**
+
+- Added client request-key + submit-lock contracts for operations banners, advertise, and public ad application.
+- Added API idempotency/replay-safe contracts for banner create/update and ad-application submission.
+- Unified ad-application mutation semantics by routing `/api/ad-applications` and `/api/ads/apply` through shared submission service.
+- Implemented config-driven sidebar rail behavior (`adRail` config + `useAutoScrollRail`) for desktop vertical bounded scroll and mobile horizontal bounded rail.
+- Fixed wallet action-row overflow with responsive bounded action grid contract.
+- Added payment initialize provider-failure taxonomy (`PAYMENT_PROVIDER_IP_NOT_ALLOWED`, etc.) with user-safe messages + operator diagnostics path.
+- Added origin-aware WhatsApp prefilled message + canonical URL generation and normalized guard handling.
+- Hardened dynamic product/vendor metadata with shared fallback builder for title/description/image/url + OG/Twitter parity.
+- Redesigned `VendorCard` to fixed reusable structure with overflow-safe truncation/clamp behavior.
+- Added focused regression suites for dedupe, rail behavior, wallet containment, payment error mapping, WhatsApp intent, metadata fallback, and vendor card contract.
+- Passed final touched validation gate (`next lint --file ...`, `npx tsc --noEmit`, focused vitest suites).
+
+**Key Changes:**
+
+- Ad/banner mutations now support replay-safe idempotent behavior with short dedupe windows and response replay.
+- Off-platform WhatsApp handoff now carries source-aware intent context and canonical URLs while preserving guard-route safety.
+- Dynamic metadata for core entity pages now has parity-safe OG/Twitter/canonical outputs.
+
+**Next Sprint Focus:**
+Run CI verification and production smoke checks for sidebar rail interaction ergonomics and payment initialize diagnostics in real environments.
+
+## 2026-04-16 — Cloud One-Pass Handoff System + UX Reliability Plan Package
+
+**Summary:**
+Prepared a cloud-session execution package for a single-pass implementation of the reliability/UX issue bundle: ad/banner duplication, sidebar ad rail overflow/motion behavior, wallet action overflow, Paystack initialize hardening, chat-with-vendor intent improvements, dynamic metadata parity checks, and vendor-card redesign. This pass was planning/documentation only and added reusable handoff infrastructure for future cloud sessions.
+
+**Completed:**
+
+- Added a new feature spec in project plan for the 2026-04-16 reliability/UX wave.
+- Added a dedicated execution queue block in task queue with strict non-breaking/config-driven/modular constraints.
+- Added reusable cloud command (`.ai-system/commands/cloud-session-single-pass.md`).
+- Added reusable cloud handoff template (`.ai-system/planning/cloud-session-handoff-template.md`).
+- Added feature-specific temp execution plan with copy/paste kickoff prompt.
+- Expanded queue/temp-plan scope to include origin-aware WhatsApp chat message + URL payload requirements and dynamic metadata parity tasks.
+- Updated general instructions to require cloud handoff protocol artifacts before remote execution.
+- Logged supporting decisions for cloud handoff standardization, payment initialize amount contract, chat-intent policy, and metadata fallback parity.
+
+**Key Changes:**
+
+- Cloud-session work now has a repeatable command + template path rather than ad hoc prompts.
+- Handoff quality gates now explicitly enforce scope lock, non-breaking behavior, validation, and docs closure.
+
+**Next Sprint Focus:**
+Execute `.ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md` in cloud and close all queue items with focused test evidence.
+
 ## 2026-04-15 — Configurable Withdrawal Settlement Hold Policy
 
 **Summary:**

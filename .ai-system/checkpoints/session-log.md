@@ -39,6 +39,153 @@
 
 ---
 
+## Session 73 — 2026-04-16
+
+**Goal:**
+Execute the full 2026-04-16 cloud queue block in one uninterrupted pass (ads/banner dedupe, sidebar rail containment/motion, wallet containment, payment initialize diagnostics, WhatsApp intent payload, metadata parity, and vendor-card UX).
+
+**Completed:**
+
+- Added client request-key + submit-lock behavior for operations banners, advertise, and public ad-application submission flows.
+- Added API-side idempotency/replay behavior for banner create/update and unified ad-application submission semantics across `/api/ad-applications` and `/api/ads/apply`.
+- Added config-driven sidebar rail contract (`lib/config/adRail.ts`) and interaction-safe auto-scroll helper (`useAutoScrollRail`) with pause/resume behavior.
+- Updated wallet action row to bounded responsive grid so Deposit/Withdraw stay contained at desktop and narrow tablet widths.
+- Added payment initialize error taxonomy mapping with explicit app error codes + user-safe copy + operator diagnostics path (`/operations/settings`), including IP-not-allowed handling.
+- Added origin-aware WhatsApp intent helper and wired product/vendor pages to send meaningful prefilled message + canonical source URL through guard route.
+- Hardened dynamic metadata for product/vendor entity pages using shared metadata fallback builder (title/description/image/url + OG/Twitter/canonical parity).
+- Redesigned `VendorCard` to fixed reusable layout contract (smaller logo, inline name, badge below, full-width secondary info block, overflow-safe clamps).
+- Added focused tests for dedupe behavior, rail contract, wallet containment, payment error mapping, WhatsApp intent, metadata fallback parity, and vendor-card structure.
+- Validation completed:
+  - touched lint (`npx next lint --file ...`) passed,
+  - `npx tsc --noEmit` passed,
+  - focused touched Vitest suites passed.
+
+**Files Modified:**
+
+- app/(operations)/operations/banners/page.tsx
+- app/(operations)/operations/settings/page.tsx
+- app/ad-application/page.tsx
+- app/advertise/page.tsx
+- app/api/ad-applications/route.ts
+- app/api/ads/apply/route.ts
+- app/api/banners/route.ts
+- app/api/banners/[id]/route.ts
+- app/api/payments/initialize/route.ts
+- app/components/HomeContent.tsx
+- app/contact/whatsapp/page.tsx
+- app/products/[id]/page.tsx
+- app/vendors/[id]/page.tsx
+- app/wallet/page.tsx
+- components/features/VendorCard.tsx
+- lib/config/adRail.ts
+- lib/config/paymentErrors.ts
+- lib/hooks/useAutoScrollRail.ts
+- lib/seo/dynamicMetadata.ts
+- lib/services/adApplicationSubmission.ts
+- lib/utils/idempotency.ts
+- lib/utils/requestKey.ts
+- lib/utils/whatsappIntent.ts
+- app/api/payments/initialize/__tests__/route.test.ts
+- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/wallet/__tests__/page.role-parity.test.tsx
+- components/__tests__/VendorCard.test.tsx
+- lib/services/__tests__/adApplicationSubmission.test.ts
+- lib/__tests__/idempotency.test.ts
+- lib/__tests__/whatsappIntent.test.ts
+- lib/__tests__/dynamicMetadata.test.ts
+- .ai-system/planning/task-queue.md
+
+**Next Task:**
+Create/refresh PR summary and monitor CI for touched suites.
+
+**Notes / Blockers:**
+
+- Baseline repository full `npm test` still has unrelated pre-existing failures; touched focused suites for this queue block pass.
+
+---
+
+## Session 72 — 2026-04-16
+
+**Goal:**
+Expand the 2026-04-16 cloud-session plan scope to include chat-with-vendor intent quality, WhatsApp icon consistency, and dynamic metadata parity requirements before cloud handoff execution.
+
+**Completed:**
+
+- Extended the 2026-04-16 feature spec in project plan with:
+  - origin-aware WhatsApp intent payload requirements,
+  - product-page WhatsApp icon consistency requirement,
+  - dynamic metadata parity (`title`, `description`, `image`, `url`) and fallback hierarchy requirements.
+- Expanded cloud execution queue block with explicit tasks for:
+  - product/vendor origin-aware chat message and URL payload generation,
+  - guard-route context normalization,
+  - metadata parity audit/hardening and Open Graph/Twitter alignment.
+- Updated active cloud temp plan slices to include:
+  - dedicated chat intent/icon slice,
+  - dedicated metadata parity slice,
+  - adjusted final-gate lint scope for touched product/vendor/whatsapp files.
+- Added supporting decision entries for chat-intent policy and dynamic metadata fallback parity.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run the updated 2026-04-16 cloud temp plan with the expanded queue scope and close all slices in one pass.
+
+**Notes / Blockers:**
+
+- Dynamic product metadata already exists at baseline; cloud execution should run parity audit first and only harden uncovered gaps.
+
+---
+
+## Session 71 — 2026-04-16
+
+**Goal:**
+Prepare a cloud-session-ready one-pass execution package for the next UX/reliability issue wave (ads duplication, sidebar rail overflow, wallet action overflow, payment initialize hardening, vendor-card redesign).
+
+**Completed:**
+
+- Added a new feature spec in project plan for the 2026-04-16 issue bundle.
+- Added a concrete execution queue block with ordered tasks in task queue.
+- Added reusable cloud command:
+  - `.ai-system/commands/cloud-session-single-pass.md`
+- Added reusable handoff template:
+  - `.ai-system/planning/cloud-session-handoff-template.md`
+- Added feature-specific cloud temp execution plan:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md`
+- Added cloud handoff/process and payment amount contract decisions in project decision log.
+- Updated general instructions with mandatory cloud-session handoff protocol.
+
+**Files Modified:**
+
+- .ai-system/agents/general-instructions.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Files Added:**
+
+- .ai-system/commands/cloud-session-single-pass.md
+- .ai-system/planning/cloud-session-handoff-template.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md
+
+**Next Task:**
+Run the 2026-04-16 cloud temp plan in one pass and close the queue block with focused validation and documentation sync.
+
+**Notes / Blockers:**
+
+- No code implementation was performed in this local planning session; this pass is handoff preparation only.
+
+---
+
 ## Session 70 — 2026-04-15
 
 **Goal:**

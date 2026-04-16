@@ -198,6 +198,17 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 6. Upload-managed ad fields are expected to be Cloudinary-managed URLs produced by `/api/upload`.
 ```
 
+### Ad/Banner Idempotent Mutation Flow
+
+```
+1. Client mutation forms (`/operations/banners`, `/advertise`, `/ad-application`) generate request keys and apply submit-lock while request is in-flight.
+2. Banner/ad mutation routes derive idempotency key from request header or payload fingerprint fallback.
+3. API attempts Redis-backed guard acquisition and falls back to local in-memory guard when Redis is unavailable.
+4. First request writes once and stores replay payload for a short dedupe window.
+5. Replayed requests return replay-safe payload (or duplicate-processing acknowledgement) without duplicate writes.
+6. `/api/ad-applications` and `/api/ads/apply` share one submission service to prevent route-contract drift.
+```
+
 ### Banner Upload Placement Validation Flow
 
 ```
@@ -241,6 +252,25 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 6. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
 ```
 
+### Context-Aware WhatsApp Intent Flow
+
+```
+1. Product/vendor CTAs build origin-aware prefilled chat text via shared helper (`lib/utils/whatsappIntent.ts`).
+2. Intent payload includes source label plus canonical source URL before routing to guard page.
+3. Guard page normalizes source/vendor/message/url and rebuilds safe fallback message when context is incomplete.
+4. Confirm action opens `wa.me` with encoded prefilled text and emits sanitized source-aware telemetry.
+5. Product CTA includes explicit WhatsApp icon/green affordance for chat intent clarity.
+```
+
+### Dynamic Metadata Parity Flow (Entity Detail Pages)
+
+```
+1. Product/vendor dynamic routes resolve canonical base URL from request headers + env fallback.
+2. Shared metadata builder composes title, description, image, and canonical url with deterministic fallbacks.
+3. Open Graph and Twitter metadata are generated from the same normalized values to avoid preview drift.
+4. Missing entity fields degrade to safe defaults (no blank title/description/image/url output).
+```
+
 ### Signup Verification + Position Parity Flow
 
 ```
@@ -278,6 +308,15 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 4. On success, endpoint persists business record and verification audit metadata.
 5. On failure/unverified status, endpoint rejects mutation with payment-specific error codes (for example `PAYMENT_VERIFICATION_FAILED`) and verification payload context.
 6. Checkout client maps known API error codes (`INSUFFICIENT_WALLET_BALANCE`, `WALLET_NOT_AVAILABLE`, `PAYMENT_VERIFICATION_FAILED`) through shared mapper helper (`app/checkout/error-mapping.ts`) into explicit user-facing feedback.
+```
+
+### Payment Initialize Error Taxonomy Flow
+
+```
+1. `/api/payments/initialize` validates amount/email contract (merchant/app-supplied amount remains required).
+2. Provider initialize failures are mapped to stable app-level error codes (`PAYMENT_PROVIDER_IP_NOT_ALLOWED`, etc.).
+3. Response payload keeps user-safe message while including operator diagnostics path (`/operations/settings`) and action guidance.
+4. Operations settings Paystack panel documents diagnostics remediation path for initialize failures.
 ```
 
 ### Order Status Lifecycle + Delivered Payout Automation Flow
@@ -581,6 +620,7 @@ Migration direction:
 | 2026-04-15 | Hardened wallet/checkout payment reliability + notification/email delivery parity | Enforced buyer-only checkout + admin wallet read-only contract, removed synthetic payment verification shortcuts, added gateway-aware initialize/verify behavior, improved notification recency/push diagnostics, and routed order lifecycle emails through shared templates |
 | 2026-04-15 | Closed payment/notification reliability follow-ups | Added Paystack webhook replay-safe reconciliation (signature + idempotency + provider re-verification), completed unread-sync timing regression tests, and captured push delivery smoke checklist guidance |
 | 2026-04-15 | Switched checkout/withdraw access to authenticated policy with contextual payout guardrails | Removed blanket role hard-blocks for checkout/withdraw request actions, added pending-settlement contextual withdrawal restriction, and improved push health diagnostics with actionable repair flow |
+| 2026-04-16 | Closed ads/wallet/chat metadata reliability package | Added ad/banner mutation idempotency, unified ad submission semantics, config-driven sidebar rail motion/bounds, wallet action containment, payment initialize error taxonomy, context-aware WhatsApp intent payloads, and dynamic metadata parity builder |
 
 ### Email Change + Reverification Flow
 

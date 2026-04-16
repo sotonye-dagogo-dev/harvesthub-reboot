@@ -11,8 +11,16 @@ import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/midd
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { bannerKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
+import {
+    acquireIdempotencyGuard,
+    buildPayloadFingerprint,
+    getIdempotencyReplayResponse,
+    readIdempotencyKeyHeader,
+    setIdempotencyReplayResponse,
+} from '@/lib/utils/idempotency';
 
 interface RouteContext { params: Promise<{ id: string }>; }
+const BANNER_UPDATE_IDEMPOTENCY_TTL_SECONDS = 60 * 5;
 
 /**
  * Normalizes API update payload values into Prisma-compatible types.
@@ -71,11 +79,61 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         }
         normalizeBannerUpdateData(data);
 
+        const headerIdempotencyKey = readIdempotencyKeyHeader(req.headers);
+        const fallbackFingerprint = buildPayloadFingerprint({
+            id,
+            data,
+            updatedBy: user.userId,
+        });
+        const idempotencyKey = headerIdempotencyKey || fallbackFingerprint;
+        const guard = await acquireIdempotencyGuard({
+            scope: `banner-update:${id}`,
+            key: idempotencyKey,
+            ttlSeconds: BANNER_UPDATE_IDEMPOTENCY_TTL_SECONDS,
+        });
+
+        if (!guard.acquired) {
+            const replay = await getIdempotencyReplayResponse({
+                scope: `banner-update:${id}`,
+                key: idempotencyKey,
+            });
+            if (replay) {
+                return NextResponse.json(
+                    {
+                        ...replay.body,
+                        idempotency: { replayed: true, key: idempotencyKey, mode: guard.mode },
+                    },
+                    { status: replay.status }
+                );
+            }
+
+            return NextResponse.json(
+                {
+                    success: true,
+                    duplicate: true,
+                    message: 'Equivalent banner update is already processing.',
+                    idempotency: { replayed: true, key: idempotencyKey, mode: guard.mode },
+                },
+                { status: 202 }
+            );
+        }
+
         const updated = await prisma.banner.update({ where: { id }, data });
         await cacheInvalidate('cache:banners:*');
         await cacheInvalidate('banners:*');
         await cacheInvalidate(bannerKey());
-        return NextResponse.json({ success: true, banner: updated });
+        const replayBody = { success: true, banner: updated };
+        await setIdempotencyReplayResponse({
+            scope: `banner-update:${id}`,
+            key: idempotencyKey,
+            status: 200,
+            body: replayBody,
+            ttlSeconds: BANNER_UPDATE_IDEMPOTENCY_TTL_SECONDS,
+        });
+        return NextResponse.json({
+            ...replayBody,
+            idempotency: { replayed: false, key: idempotencyKey, mode: guard.mode },
+        });
     } catch (error) {
         console.error('PUT /api/banners/[id] error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

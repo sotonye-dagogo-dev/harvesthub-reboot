@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { isAntdFormValidationError } from "@/lib/utils/formErrors";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
+import { generateRequestKey } from "@/lib/utils/requestKey";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -26,6 +27,7 @@ export default function OperationsBannersPage() {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [placementWarning, setPlacementWarning] = useState<BannerPlacementWarning | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form] = Form.useForm();
   const previewPosition = (Form.useWatch("position", form) ?? "HERO") as
@@ -97,6 +99,8 @@ export default function OperationsBannersPage() {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const values = await form.validateFields();
       const normalizedDisplayOrder = Number(values.displayOrder ?? DEFAULT_DISPLAY_ORDER);
@@ -118,9 +122,13 @@ export default function OperationsBannersPage() {
 
       const endpoint = editingBanner ? `/api/banners/${editingBanner.id}` : "/api/banners";
       const method = editingBanner ? "PUT" : "POST";
+      const requestKey = generateRequestKey(editingBanner ? "banner-update" : "banner-create");
       const res = await fetch(endpoint, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": requestKey,
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
@@ -146,6 +154,8 @@ export default function OperationsBannersPage() {
         return;
       }
       message.error("Failed to save banner");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -323,6 +333,8 @@ export default function OperationsBannersPage() {
           setPlacementWarning(null);
         }}
         onOk={handleSubmit}
+        okButtonProps={{ loading: isSubmitting, disabled: isSubmitting }}
+        cancelButtonProps={{ disabled: isSubmitting }}
         width={700}
         okText={editingBanner ? "Update" : "Create"}
       >

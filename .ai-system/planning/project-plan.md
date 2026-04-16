@@ -271,10 +271,10 @@ Deliver a resilient commerce lifecycle that safely automates buyer confirmation 
 
 - Phase A merged with no Prisma schema migration.
 - Phase B added schema migration for admin lifecycle configuration persistence:
-	- Model: `CommerceLifecycleConfig`
-	- Migration: `20260414100529_add_commerce_lifecycle_config`
-	- Enum changes: none
-	- Backfill/default strategy: runtime singleton upsert with defaults (`autoConfirmEnabled=true`, `autoConfirmHours=48`, `refundWindowHours=72`) avoids explicit one-off backfill script.
+  - Model: `CommerceLifecycleConfig`
+  - Migration: `20260414100529_add_commerce_lifecycle_config`
+  - Enum changes: none
+  - Backfill/default strategy: runtime singleton upsert with defaults (`autoConfirmEnabled=true`, `autoConfirmHours=48`, `refundWindowHours=72`) avoids explicit one-off backfill script.
 - Residual risk statement: repository-wide full vitest still has pre-existing unrelated failures; touched commerce/whatsapp/product suites pass.
 
 **Rollout Order (Reconciled):**
@@ -576,6 +576,121 @@ Create a clear, user-facing notification inbox experience that matches email/pus
 
 ## Feature Spec - Placement-Aware Upload Validation + Responsive Header Search (Planned 2026-04-15)
 
+## Feature Spec - Ads/Wallet UX Reliability + Payment Initialize Hardening + WhatsApp Intent + Metadata Parity (Planned 2026-04-16)
+
+> **Section summary:** Planning package for cloud-session single-pass delivery of ad/banner duplication prevention, sidebar rail overflow safety + motion, wallet action containment, Paystack initialize hardening, vendor chat intent improvements, dynamic metadata parity, and home vendor-card redesign.
+
+**Feature Summary:**
+Deliver a non-breaking reliability and UX correction wave that hardens ad/banner submission flows against duplicate writes, fixes sidebar-rail containment/scroll behavior across breakpoints, prevents wallet action overflow, improves payment initialize diagnostics for Paystack upstream failures, upgrades vendor chat intent payloads, audits dynamic metadata parity, and redesigns vendor cards for stable layout and readability.
+
+**Why This Is Needed:**
+
+- Duplicate writes can occur during banner create/edit and ad submission paths due repeated user triggers and overlapping endpoint surfaces.
+- Sidebar ad rail can exceed parent bounds and lacks robust desktop/mobile overflow behavior under dense content.
+- Wallet action row can overflow desktop container in specific viewport widths.
+- Payment initialize can fail quickly with provider message (`Your IP address is not allowed to make this call`) and currently lacks user-safe, operator-actionable classification.
+- Product/vendor chat handoff currently lacks origin-aware prefilled intent text + canonical source URL payload.
+- Product page "Chat with vendor" affordance should visually include WhatsApp iconography in expected brand color.
+- Dynamic pages need verified title/description/image/url metadata parity with safe fallbacks.
+- Home vendor cards show clipping/stacking inconsistencies and require a fixed, reusable layout contract.
+
+**Architecture Impact:**
+
+- Ad/banner mutation paths:
+  - `app/api/banners/route.ts`
+  - `app/api/banners/[id]/route.ts`
+  - `app/api/ad-applications/route.ts`
+  - `app/api/ads/apply/route.ts`
+  - `app/(operations)/operations/banners/page.tsx`
+  - `app/advertise/page.tsx`
+  - `app/ad-application/page.tsx`
+- Home banner and vendor presentation:
+  - `app/components/HomeContent.tsx`
+  - `components/features/VendorCard.tsx`
+  - `components/features/BannerCarousel.tsx` (if rail motion helpers are shared)
+- Vendor chat intent + guard routing:
+  - `app/products/[id]/page.tsx`
+  - `app/vendors/[id]/page.tsx`
+  - `app/contact/whatsapp/page.tsx`
+  - `app/api/telemetry/off-platform-contact/route.ts` (if payload contract evolves)
+- Dynamic metadata generation audit:
+  - `app/products/[id]/page.tsx`
+  - `app/vendors/[id]/page.tsx`
+  - any other dynamic listing/detail pages with route params.
+- Wallet UI containment:
+  - `app/wallet/page.tsx`
+- Payment initialize + gateway diagnostics:
+  - `app/api/payments/initialize/route.ts`
+  - `lib/services/payments.ts`
+  - optional operations diagnostics surfacing in settings/payments panel.
+
+**New Modules or Services Required (preferred):**
+
+- `lib/config/adRail.ts` for desktop/mobile rail dimensions, gap tokens, max-height, motion interval, pause behavior.
+- `lib/utils/idempotency.ts` (or route-local equivalent) for request-key generation + duplicate suppression strategy.
+- `lib/utils/autoScrollRail.ts` (or component hook) to support safe auto-scroll with hover/touch pause and manual override.
+- `lib/config/paymentErrors.ts` to map provider errors (including IP restrictions) to stable app-level codes/messages.
+- `lib/utils/whatsappIntent.ts` for origin-aware prefilled message + URL composition (`product`, `vendor`, fallback).
+- `lib/seo/dynamicMetadata.ts` for shared dynamic metadata builder with Open Graph/Twitter + safe fallback mapping.
+
+**Data Flow:**
+
+1. User submits banner/ad mutation from operations or public forms.
+2. Client includes request guard metadata (idempotency key / submission fingerprint) and disables repeat-submit while in-flight.
+3. API mutation path validates dedupe window and either commits once or returns idempotent replay-safe response.
+4. Home sidebar rail renders bounded cards from active sidebar banners using config-driven overflow/motion policy.
+5. Desktop rail scrolls vertically within container bounds; mobile rail scrolls horizontally with manual + optional auto motion.
+6. Wallet action row renders in constrained responsive container with no button escape.
+7. Product/vendor chat CTA builds context-aware WhatsApp intent text and canonical source URL before routing through guard page.
+8. Dynamic page metadata is generated from entity fields (name, description, image/logo, canonical URL) with safe fallbacks.
+9. Payment initialize failures are classified into user-safe API errors with actionable operator diagnostics.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- Keep ad-rail behavior intentional and accessible: pause motion on hover/focus/touch-hold; never hijack click/tap navigation.
+- Reduce desktop sidebar tile gap to client-approved compact spacing using DS tokens, not ad hoc values.
+- Product chat CTA should include clear WhatsApp iconography in expected green brand tone.
+- Prefilled WhatsApp messages should read naturally and include source-aware context + URL.
+- Vendor card contract:
+  - smaller logo,
+  - store name beside logo,
+  - smaller verification badge below name,
+  - full-width secondary info block under header,
+  - fixed-height card sections and text ellipsis/clamp.
+- Wallet action buttons must remain fully visible in desktop and narrow tablet widths.
+
+**Potential Risks or Edge Cases:**
+
+- Over-aggressive duplicate suppression can block legitimate rapid edits if idempotency window is too broad.
+- Auto-scroll can fight user interaction without strict pause/resume and pointer-safe handling.
+- Provider error mapping can leak sensitive payload details if not sanitized.
+- Long or malformed entity text can degrade prefilled WhatsApp message quality without normalization/clamping.
+- Missing dynamic metadata fields can produce weak social previews without fallback hierarchy.
+- Divergent behavior between `/api/ad-applications` and `/api/ads/apply` can reintroduce duplication unless contracts are unified.
+
+**Architecture Doc Updates Needed:**
+
+- Add a dedicated `Ad/Banner Idempotent Mutation Flow` note in `.ai-system/agents/system-architecture.md`.
+- Extend home banner composition flow with explicit sidebar overflow + motion contract.
+- Add payment initialize error taxonomy note for operator diagnostics and user-safe feedback.
+- Add `Context-Aware WhatsApp Intent Flow` note for product/vendor origin payload composition.
+- Add `Dynamic Metadata Parity Flow` note for entity-backed title/description/image/url with fallback order.
+
+**Rollout Order:**
+
+1. Mutation dedupe/idempotency contracts for banner/ad creation/edit/submission.
+2. Sidebar rail overflow contract + responsive scrolling + optional auto motion safeguards.
+3. Wallet action-row containment fixes.
+4. Payment initialize error classification + diagnostics hardening.
+5. Product/vendor chat intent payload + WhatsApp icon consistency.
+6. Dynamic metadata parity audit and targeted hardening for dynamic pages.
+7. Vendor card redesign and fixed-dimension consistency.
+8. Focused tests + lint/typecheck + docs sync.
+
+---
+
+## Feature Spec - Placement-Aware Upload Validation + Responsive Header Search (Planned 2026-04-15)
+
 > **Section summary:** Planning package for two user-facing upgrades: non-blocking upload-time placement-ratio warnings for banner/sponsored creatives, and a fully functional navbar search experience with live suggestions + recent searches across screen sizes.
 
 **Feature Summary:**
@@ -592,16 +707,16 @@ Add hard validation logic at upload time that checks image dimensions against se
 - `components/ui/ImageUpload.tsx` upload callback contract and UI warning rendering.
 - `lib/constants/index.ts` (`AD_BANNER_DIMENSIONS`) and new placement-validation utility contracts.
 - Banner/sponsored forms:
-	- `app/(operations)/operations/banners/page.tsx`
-	- `app/advertise/page.tsx`
-	- `app/ad-application/page.tsx`
+  - `app/(operations)/operations/banners/page.tsx`
+  - `app/advertise/page.tsx`
+  - `app/ad-application/page.tsx`
 - Navbar/search surfaces:
-	- `components/layout/Header.tsx`
-	- `components/features/SearchBar.tsx`
-	- `components/features/AdvancedSearchBar.tsx` (merge/deprecate path)
+  - `components/layout/Header.tsx`
+  - `components/features/SearchBar.tsx`
+  - `components/features/AdvancedSearchBar.tsx` (merge/deprecate path)
 - Suggestion data source contract:
-	- `app/api/products/search/route.ts`
-	- `lib/data/clientDataFetchers.ts`
+  - `app/api/products/search/route.ts`
+  - `lib/data/clientDataFetchers.ts`
 
 **New Modules or Services Required:**
 
