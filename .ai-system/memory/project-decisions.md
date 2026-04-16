@@ -102,6 +102,46 @@ Inconsistent metadata weakens link previews, discoverability, and sharing qualit
 - Open Graph and Twitter metadata should remain aligned for consistent social rendering.
 - Missing entity fields must degrade gracefully without blank or malformed metadata output.
 
+## Ad/Banner Mutations Use Request-Key Idempotency with Payload-Fingerprint Fallback
+
+**Decision:** Banner create/update and ad-application submission routes now enforce short-window idempotent mutation guards using client request keys when provided, with payload fingerprint fallback and replay-safe response payloads.
+**Date:** 2026-04-16
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Duplicate writes were possible during rapid submit/retry flows and when `/api/ad-applications` and `/api/ads/apply` were both used. A shared idempotency contract prevents duplicate persistence while keeping responses deterministic for replayed requests.
+
+**Alternatives Considered:**
+
+- Database-level unique constraints over broad payload fields (rejected: high migration complexity and false-positive risk for legitimate repeat submissions).
+- Client-only submit lock without API dedupe (rejected: cannot protect retries, offline replay, or multi-tab duplicates).
+
+**Implications:**
+
+- Client mutation forms should send `x-idempotency-key` and keep submit-lock while requests are in-flight.
+- API routes keep Redis-first idempotency guard with local-memory fallback.
+- Replayed requests return replay-safe payload or duplicate-processing acknowledgement, without additional writes.
+
+## Payment Initialize Failures Must Map to Stable App Error Codes with Operator Path
+
+**Decision:** `/api/payments/initialize` now maps provider failure strings (including Paystack IP whitelist restrictions) into stable app-level codes and user-safe messages, while returning operator diagnostics pointing to `/operations/settings`.
+**Date:** 2026-04-16
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Raw provider errors were user-hostile and not actionable for operators. Mapped taxonomy enables predictable frontend behavior and clearer operations remediation paths.
+
+**Alternatives Considered:**
+
+- Surface provider raw error directly to users (rejected: leaks provider internals and produces confusing copy).
+- Keep generic single error message only (rejected: weak diagnostics and slower operations triage).
+
+**Implications:**
+
+- Frontends can rely on explicit `code` values from initialize errors.
+- Operations can use diagnostics guidance and Paystack panel to resolve upstream setup issues.
+- Amount-supplied-by-app initialize contract remains unchanged.
+
 ## Withdrawal Settlement Hold Window Is Admin-Configurable Lifecycle Policy
 
 **Decision:** Persist withdrawal pending-settlement hold duration as `withdrawalSettlementHoldHours` in `CommerceLifecycleConfig` and manage it from operations settings (`GET/PUT /api/admin/commerce-config`) instead of hardcoding a fixed window.
