@@ -14,6 +14,7 @@ import type { AddressFormData } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { getProductsClient } from "@/lib/data/clientDataFetchers";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ type CheckoutWalletSummary = {
 export default function CheckoutPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, reconcileWithCatalog } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("PICKUP");
   const [pickupService, setPickupService] = useState<PickupService>("SUNDAY_FIRST");
   const [selectedAddress, setSelectedAddress] = useState<Partial<AddressFormData> | null>(null);
@@ -164,6 +165,12 @@ export default function CheckoutPage() {
     refreshIntervalMs: 120_000,
     staleTimeMs: 20_000,
   });
+  const loadProductsRuntime = useCallback(async () => getProductsClient({ limit: 120 }), []);
+  const { data: runtimeProducts } = useSmartResource(loadProductsRuntime, {
+    key: "home:products",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 20_000,
+  });
 
   const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
   const gatewayReady = paymentConfig?.gatewayReady ?? false;
@@ -189,12 +196,60 @@ export default function CheckoutPage() {
     }
   }, [cardPaymentsAvailable, paymentMethod]);
 
+  useEffect(() => {
+    if (!Array.isArray(runtimeProducts) || runtimeProducts.length === 0 || items.length === 0) {
+      return;
+    }
+
+    const summary = reconcileWithCatalog(runtimeProducts);
+    if (summary.removedCount > 0 || summary.adjustedCount > 0) {
+      message.warning(
+        "Your cart was updated to match current product availability, stock, and pricing."
+      );
+    }
+  }, [runtimeProducts, items, reconcileWithCatalog]);
+
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
     { value: "SUNDAY_SECOND", label: "Sunday Service (Second)", time: "9:30 AM - 12:00 PM" },
     { value: "MIDWEEK", label: "Midweek Service", time: "Wednesday 6:00 PM - 8:00 PM" },
     { value: "SPECIAL_EVENT", label: "Special Event", time: "As scheduled" },
   ];
+
+  const reconcileCheckoutCartWithLiveDb = useCallback(async (): Promise<boolean> => {
+    if (items.length === 0) return false;
+
+    const fetched = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const res = await fetch(`/api/products/${item.productId}`, { cache: "no-store" });
+          if (res.status === 404) {
+            return { id: item.productId, isActive: false } as const;
+          }
+          if (!res.ok) {
+            return null;
+          }
+          const data = await res.json().catch(() => ({}));
+          if (data?.product && typeof data.product.id === "string") {
+            return data.product;
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    const liveCatalog = fetched.filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    if (liveCatalog.length === 0) return false;
+
+    const summary = reconcileWithCatalog(liveCatalog);
+    const changed = summary.removedCount > 0 || summary.adjustedCount > 0;
+    if (changed) {
+      message.warning("Your cart changed just now. Please review the updated checkout and continue.");
+    }
+    return changed;
+  }, [items, reconcileWithCatalog]);
 
   const handlePlaceOrder = async () => {
     if (deliveryMethod === "DELIVERY" && !selectedAddress) {
@@ -204,6 +259,11 @@ export default function CheckoutPage() {
 
     if (paymentMethod === "WALLET" && !hasSufficientWalletBalance) {
       message.error("Insufficient wallet balance for this order total.");
+      return;
+    }
+
+    const hasLiveCartChanges = await reconcileCheckoutCartWithLiveDb();
+    if (hasLiveCartChanges) {
       return;
     }
 

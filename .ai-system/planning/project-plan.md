@@ -772,6 +772,51 @@ Add hard validation logic at upload time that checks image dimensions against se
 
 ## Completed
 
+---
+
+## Feature Spec - Cart State Reconciliation + Sidebar Overflow Guard + WhatsApp/Wallet Handoff Reliability (Planned 2026-04-16)
+
+> **Section summary:** One-pass reliability closure for cart freshness, checkout pre-payment safety, sidebar containment, WhatsApp guard redirect continuity, and wallet deposit handoff.
+
+**Feature summary:**
+Ensure cart and checkout surfaces reconcile against current product reality, prevent sidebar rail overflow on standard desktop widths, restore WhatsApp guard redirection, and make wallet deposit payment handoff reliable.
+
+**Architecture impact:**
+
+- `lib/store/cartStore.ts` for reusable cart/catalog reconciliation.
+- `app/cart/page.tsx` and `app/checkout/page.tsx` for in-memory runtime reconciliation and checkout pre-payment refresh guard.
+- `app/components/HomeContent.tsx` for sidebar rail width/overflow containment.
+- `app/contact/whatsapp/page.tsx` for redirect behavior after guard acknowledgement.
+- `app/wallet/page.tsx` for robust payment-window handoff behavior in deposit initialization.
+
+**New modules/services required:**
+
+- None. Reuse existing cart store + runtime data (`home:products`) + existing payment/WhatsApp routes.
+
+**Data flow:**
+
+1. Buyer navigates to cart/checkout with persisted cart state.
+2. Cart items reconcile against runtime product cache (`home:products`) and clamp/remove stale/unavailable entries.
+3. On checkout action, live product snapshots are fetched right before payment/order processing and cart is reconciled again.
+4. If drift is detected, checkout pauses and buyer reviews updated totals/items before continuing.
+5. Card deposit/WhatsApp handoff uses redirect-safe navigation path that does not depend on popup timing after async work.
+
+**UI/UX considerations (design-system aligned):**
+
+- Keep user messaging concise and actionable when cart changes are applied.
+- Preserve existing card, modal, and action-button visual contracts.
+- Ensure sidebar rail remains bounded within parent grid columns without creating horizontal page overflow.
+
+**Potential risks/edge cases:**
+
+- Product fetch failures during preflight should not falsely clear carts.
+- Runtime refresh cadence can re-trigger cart reconciliation; notifications must remain non-spammy.
+- Popup blockers may still prevent new-tab behavior; same-tab fallback must preserve completion path.
+
+**Architecture doc updates needed:**
+
+- Add reconciliation note to architecture docs only if cart lifecycle contract is formally documented there in this pass.
+
 > **Section summary:** Tasks that have already shipped in the current repository state.
 
 - [x] Rename and rebrand Martgram to MyHarvestHub (project metadata, README)

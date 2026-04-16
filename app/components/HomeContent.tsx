@@ -219,14 +219,14 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       {/* Hero + Side Banner Deck */}
       {(activeBanners.length > 0 || activeSidebarBanners.length > 0) && (
         <section className="container mx-auto px-4 py-3">
-          <div className="grid gap-2 lg:grid-cols-12">
+          <div className="grid min-w-0 gap-2 lg:grid-cols-12">
             {activeBanners.length > 0 && (
-              <div className="lg:col-span-8">
+              <div className="min-w-0 lg:col-span-8">
                 <BannerCarousel banners={activeBanners} autoPlay />
               </div>
             )}
             {activeSidebarBanners.length > 0 && (
-              <aside className={hasHeroBanners ? "lg:col-span-4" : "lg:col-span-12"}>
+              <aside className={hasHeroBanners ? "min-w-0 lg:col-span-4" : "min-w-0 lg:col-span-12"}>
                 <div
                   data-testid="sidebar-banner-rail-mobile"
                   ref={mobileRailAutoScroll.railRef}
@@ -271,7 +271,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 <div
                   data-testid="sidebar-banner-grid"
                   ref={desktopRailAutoScroll.railRef}
-                  className={`hidden ${AD_RAIL_CONFIG.desktop.gapClass} lg:grid ${sidebarGridColumnsClass} ${
+                  className={`hidden w-full min-w-0 ${AD_RAIL_CONFIG.desktop.gapClass} lg:grid ${sidebarGridColumnsClass} ${
                     hasHeroBanners
                       ? `${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1`
                       : "overflow-visible"
@@ -283,7 +283,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                     const cardContent = (
                       <div
                         data-testid="sidebar-banner-tile"
-                        className="relative w-full max-w-[10rem] overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
+                        className="relative w-full min-w-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
                       >
                         <div className="relative aspect-square w-full">
                           <Image
@@ -305,7 +305,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       <Link
                         key={banner.id}
                         href={href}
-                        className="transition-opacity hover:opacity-95"
+                        className="block min-w-0 transition-opacity hover:opacity-95"
                       >
                         {cardContent}
                       </Link>

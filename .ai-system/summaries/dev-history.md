@@ -24,6 +24,39 @@
 
 ## 2026-04-16 — Cloud Execution: Ads/Wallet/Metadata/WhatsApp/Vendor-Card Reliability Closure
 
+## 2026-04-16 — Cart Freshness + Checkout Live Guard + Sidebar/WhatsApp/Wallet Reliability Closure
+
+**Summary:**
+Completed a one-pass reliability slice covering stale cart correction, checkout-time live product preflight, sidebar containment, WhatsApp guard redirect continuity, and wallet deposit handoff resilience. The pass also generated the requested cloud-session planning artifacts and completed touched validation.
+
+**Completed:**
+
+- Added feature planning artifacts for this slice:
+  - project-plan feature spec,
+  - task-queue execution block,
+  - temp cloud plan file (`cloud-session-temp-plan-2026-04-16-cart-sidebar-whatsapp-wallet.md`).
+- Added reusable cart reconciliation behavior in `lib/store/cartStore.ts`.
+- Updated cart and checkout to reconcile against runtime in-memory products and notify users when cart drift is corrected.
+- Added checkout pre-payment live product refresh/guard to pause checkout when stock/availability/pricing changed.
+- Preserved final DB validation path in `POST /api/orders`.
+- Fixed homepage sidebar rail containment classes to avoid desktop overflow.
+- Switched WhatsApp guard handoff to non-blocking telemetry + direct assign navigation.
+- Improved wallet deposit handoff with popup-safe fallback and blank-window timeout cleanup.
+- Added focused cart reconciliation tests and updated WhatsApp guard tests.
+- Passed focused tests + `npm run lint` + `npm run build` (with existing known sitemap warnings).
+- Ran parallel validation; code review suggestions were incorporated where valid; CodeQL final rerun timed out after initial successful security run.
+
+**Key Changes:**
+
+- Cart state now self-heals against current catalog state in both cart and checkout surfaces.
+- Checkout now performs a live product-state guard before payment/order processing to reduce stale-cart payment risk.
+- External handoff flows (WhatsApp and wallet deposit provider handoff) are now more robust in popup-restricted browser scenarios.
+
+**Next Sprint Focus:**
+Monitor CI and production telemetry for checkout preflight behavior under larger carts and evaluate whether a future bulk product preflight endpoint is needed to reduce per-item request overhead.
+
+## 2026-04-16 — Cloud Execution: Ads/Wallet/Metadata/WhatsApp/Vendor-Card Reliability Closure
+
 **Summary:**
 Completed the full 2026-04-16 cloud execution queue in one pass with non-breaking reliability and UX hardening across ad/banner mutation dedupe, sidebar rail containment/motion behavior, wallet action containment, payment initialize diagnostics, chat intent payload quality, dynamic metadata parity, and vendor-card layout stability.
 
