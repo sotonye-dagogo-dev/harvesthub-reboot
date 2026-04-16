@@ -23,6 +23,85 @@
 [What this decision affects going forward]
 ```
 
+## Cloud Session Work Requires Temp Plan + Scope-Locked One-Pass Command
+
+**Decision:** Any feature delegated to cloud execution must ship with a feature spec, queue block, and dedicated cloud temp plan, and should be kicked off with `.ai-system/commands/cloud-session-single-pass.md`.
+**Date:** 2026-04-16
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Cloud sessions were prone to scope drift and partial closure when prompts were ad hoc. A standardized handoff package improves determinism, non-breaking behavior, and documentation closure.
+
+**Alternatives Considered:**
+
+- Continue with freeform prompts only (rejected: inconsistent execution quality and weak handoff reproducibility).
+- Use only task queue without temp plan slices (rejected: insufficient sequencing and validation clarity for one-pass execution).
+
+**Implications:**
+
+- New cloud features should include temp-plan slices, locked constraints, and explicit final validation/docs gates.
+- Handoff prompts now consistently include scope lock and documentation sync requirements.
+
+## Payment Initialization Amount Must Be App-Supplied Before Provider Checkout
+
+**Decision:** Keep payment initialize flow amount-driven from the application request. Do not defer amount entry to provider-hosted checkout for wallet/ad initialization flows.
+**Date:** 2026-04-16
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Provider initialize APIs (including Paystack) expect merchant-supplied amount for transaction creation. Application-side amount also enables server-side validation, expected-amount checks, and deterministic reconciliation.
+
+**Alternatives Considered:**
+
+- Ask user to enter amount only on provider page (rejected: incompatible with initialize API contract and weakens reconciliation controls).
+- Hardcode fixed amount options only (rejected: reduces flexibility for wallet/ad use cases).
+
+**Implications:**
+
+- Wallet/ad payment initialize routes continue to require amount in request payload.
+- UX should clearly explain that provider checkout confirms payment details for the app-supplied amount.
+- Provider initialization failures (for example IP restriction) should be mapped to user-safe and operator-actionable diagnostics.
+
+## Chat-With-Vendor Messages Must Be Origin-Aware and URL-Anchored
+
+**Decision:** WhatsApp chat handoff payloads must include origin-aware meaningful text and canonical source URL context (`product` or `vendor`) before redirecting through the guard flow.
+**Date:** 2026-04-16
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Generic chat payloads reduce conversion quality and increase vendor clarification overhead. Product- and vendor-originated chats require distinct context to preserve user intent and trust.
+
+**Alternatives Considered:**
+
+- Keep minimal payload with only phone/vendor name (rejected: weak context and poorer vendor response quality).
+- Put full freeform text logic only on the client component level (rejected: harder to normalize consistently across entry points).
+
+**Implications:**
+
+- Product-origin chats should include product name + canonical product URL in starter text.
+- Vendor-origin chats should include vendor/store context + canonical vendor URL in starter text.
+- Guard route should normalize and preserve safe fallback behavior when context fields are missing.
+
+## Dynamic Entity Pages Require Metadata Parity with Safe Fallbacks
+
+**Decision:** Dynamic entity pages (starting with product and vendor detail pages) must provide consistent metadata coverage for `title`, `description`, `image`, and canonical `url`, including Open Graph/Twitter parity and safe fallback hierarchy.
+**Date:** 2026-04-16
+**Made by:** AI planning session (GitHub Copilot)
+
+**Reason:**
+Inconsistent metadata weakens link previews, discoverability, and sharing quality. Dynamic pages frequently have partial data and require deterministic fallback ordering.
+
+**Alternatives Considered:**
+
+- Keep title/description-only metadata on dynamic pages (rejected: incomplete preview parity).
+- Hardcode generic metadata for all dynamic pages (rejected: loses entity-specific relevance).
+
+**Implications:**
+
+- Metadata builders should source entity name, description, image/logo, and canonical URL with fallbacks.
+- Open Graph and Twitter metadata should remain aligned for consistent social rendering.
+- Missing entity fields must degrade gracefully without blank or malformed metadata output.
+
 ## Withdrawal Settlement Hold Window Is Admin-Configurable Lifecycle Policy
 
 **Decision:** Persist withdrawal pending-settlement hold duration as `withdrawalSettlementHoldHours` in `CommerceLifecycleConfig` and manage it from operations settings (`GET/PUT /api/admin/commerce-config`) instead of hardcoding a fixed window.

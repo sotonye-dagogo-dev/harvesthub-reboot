@@ -71,6 +71,42 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-16) — Ads Duplication Guard + Sidebar Rail + Wallet/Payment + WhatsApp Intent + Metadata + Vendor-Card UX
+
+> **Section summary:** One-pass cloud execution package for non-breaking reliability and UX hardening across ad/banner mutations, sidebar ad rail behavior, wallet action containment, payment initialize diagnostics, origin-aware WhatsApp chat intent, dynamic metadata parity, and vendor-card layout consistency.
+
+- [ ] Add idempotent/dedupe protection for banner create/edit and ad submission/application routes.
+  - [ ] Add client submit-lock and request-key plumbing on operations banners, advertise, and ad-application forms.
+  - [ ] Add API-side duplicate suppression window and replay-safe response contract for banner/ad mutation endpoints.
+  - [ ] Reconcile `/api/ad-applications` and `/api/ads/apply` mutation semantics to avoid double-write drift.
+- [ ] Enforce sidebar ad rail container bounds and overflow policy.
+  - [ ] Desktop: constrain sidebar rail to parent height and use internal vertical scroll.
+  - [ ] Mobile: ensure horizontal scroll rail with stable tile sizing and no parent overflow.
+  - [ ] Reduce desktop sidebar grid gap to compact token-aligned spacing.
+  - [ ] Add optional auto-scroll behavior with safe pause/resume on hover, focus, hold, tap, and manual scroll interaction.
+- [ ] Fix wallet action-row overflow so Withdraw/Deposit never escape desktop container bounds.
+- [ ] Harden payment initialize error handling for Paystack upstream restrictions.
+  - [ ] Map provider failures (including IP-not-allowed) to explicit app error codes + user-safe messages.
+  - [ ] Surface operator-actionable diagnostics path in operations-facing payment config context.
+  - [ ] Keep amount entry contract explicit (provider initialize requires merchant-supplied amount).
+- [ ] Improve product/vendor chat-with-vendor UX and context payload.
+  - [ ] Add WhatsApp icon (green/brand-appropriate) to product-page chat CTA.
+  - [ ] Add origin-aware prefilled message text + canonical URL payload for product-page initiated chats.
+  - [ ] Add origin-aware prefilled message text + canonical URL payload for vendor-page initiated chats.
+  - [ ] Ensure guard route receives normalized, meaningful context payload and preserves safe fallback behavior.
+- [ ] Audit and harden dynamic metadata parity for entity-driven pages.
+  - [ ] Verify `title`, `description`, `image`, and `url` metadata coverage for dynamic product/vendor pages (and adjacent dynamic listing detail pages where missing).
+  - [ ] Add shared safe fallback hierarchy for missing name/description/media/url fields.
+  - [ ] Align metadata shape with Open Graph/Twitter contracts for reliable social previews.
+- [ ] Redesign home vendor card layout for fixed, reusable, non-clipping presentation.
+  - [ ] Smaller logo, name inline to the right, smaller verification badge below name.
+  - [ ] Full-width secondary info block below header row.
+  - [ ] Fixed section sizing and text-ellipsis/line-clamp behavior for overflow fields.
+- [ ] Add/refresh focused tests for dedupe behavior, rail overflow/motion, wallet button containment, payment error mapping, WhatsApp intent payload generation, dynamic metadata fallback coverage, and vendor card layout contract.
+- [ ] Run focused validation (`vitest` touched suites, touched `next lint`, `tsc --noEmit`) and update `.ai-system` docs/checkpoints/history.
+
+---
+
 ## Feature Planning Queue (2026-04-15) — Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
 
 > **Section summary:** Reliability closure queue for contradictory admin wallet/checkout behavior, Paystack transaction-verification correctness, delayed in-app/push notification visibility, and plain order-notification email rendering.

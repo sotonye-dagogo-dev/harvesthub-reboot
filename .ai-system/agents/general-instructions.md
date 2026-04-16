@@ -46,6 +46,25 @@ Every time you make a plan or decide on architecture:
 
 ---
 
+## Cloud Session Handoff Protocol (required for remote execution)
+
+When work will be executed in a cloud session, package handoff artifacts before implementation starts:
+
+1. Add a feature spec section in `.ai-system/planning/project-plan.md`.
+2. Add a concrete execution block in `.ai-system/planning/task-queue.md` with ordered, testable tasks.
+3. Create a feature-scoped cloud temp plan in `.ai-system/planning/cloud-session-temp-plan-YYYY-MM-DD-<feature>.md`.
+4. Include a copy/paste kickoff prompt in the temp plan with:
+   - explicit read order,
+   - strict scope lock,
+   - non-blocking and backward-compatible constraints,
+   - required validation gates,
+   - required documentation sync list.
+5. Use `.ai-system/commands/cloud-session-single-pass.md` when preparing prompts for one-pass cloud execution.
+
+If cloud execution is requested without these artifacts, create/update them first.
+
+---
+
 ## Core Principles
 
 - **Modular architecture** — each module has a single, clear responsibility.
@@ -61,6 +80,7 @@ Every time you make a plan or decide on architecture:
 ## Execution Protocol
 
 ### Before implementing any feature:
+
 1. Run the bootstrap/health check (above).
 2. Read `task-queue.md` and identify the first incomplete task.
 3. Confirm it aligns with `system-architecture.md`.
@@ -68,6 +88,7 @@ Every time you make a plan or decide on architecture:
 5. If architecture changes are needed, update `system-architecture.md` before coding.
 
 ### After completing any task:
+
 1. Mark the task done [x] in `task-queue.md`.
 2. Update `.ai-system/checkpoints/session-log.md`.
 3. Add a summary to `.ai-system/summaries/dev-history.md`.
@@ -79,14 +100,14 @@ Every time you make a plan or decide on architecture:
 
 ## Agent Roles
 
-| Agent | Tool | Responsibility |
-|-------|------|----------------|
-| Planner | Continue | Analyze tasks, determine next steps, update task queue |
-| Architect | Continue | Design or update system architecture |
-| Coder | Cline | Implement code changes across multiple files |
-| Reviewer | Continue | Review code quality and architecture consistency |
-| Tester | Cline | Run tests, identify failures, trigger self-heal loop |
-| Historian | Continue | Update summaries, dev-history, and memory files |
+| Agent     | Tool     | Responsibility                                         |
+| --------- | -------- | ------------------------------------------------------ |
+| Planner   | Continue | Analyze tasks, determine next steps, update task queue |
+| Architect | Continue | Design or update system architecture                   |
+| Coder     | Cline    | Implement code changes across multiple files           |
+| Reviewer  | Continue | Review code quality and architecture consistency       |
+| Tester    | Cline    | Run tests, identify failures, trigger self-heal loop   |
+| Historian | Continue | Update summaries, dev-history, and memory files        |
 
 ---
 

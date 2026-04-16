@@ -39,6 +39,87 @@
 
 ---
 
+## Session 72 — 2026-04-16
+
+**Goal:**
+Expand the 2026-04-16 cloud-session plan scope to include chat-with-vendor intent quality, WhatsApp icon consistency, and dynamic metadata parity requirements before cloud handoff execution.
+
+**Completed:**
+
+- Extended the 2026-04-16 feature spec in project plan with:
+  - origin-aware WhatsApp intent payload requirements,
+  - product-page WhatsApp icon consistency requirement,
+  - dynamic metadata parity (`title`, `description`, `image`, `url`) and fallback hierarchy requirements.
+- Expanded cloud execution queue block with explicit tasks for:
+  - product/vendor origin-aware chat message and URL payload generation,
+  - guard-route context normalization,
+  - metadata parity audit/hardening and Open Graph/Twitter alignment.
+- Updated active cloud temp plan slices to include:
+  - dedicated chat intent/icon slice,
+  - dedicated metadata parity slice,
+  - adjusted final-gate lint scope for touched product/vendor/whatsapp files.
+- Added supporting decision entries for chat-intent policy and dynamic metadata fallback parity.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run the updated 2026-04-16 cloud temp plan with the expanded queue scope and close all slices in one pass.
+
+**Notes / Blockers:**
+
+- Dynamic product metadata already exists at baseline; cloud execution should run parity audit first and only harden uncovered gaps.
+
+---
+
+## Session 71 — 2026-04-16
+
+**Goal:**
+Prepare a cloud-session-ready one-pass execution package for the next UX/reliability issue wave (ads duplication, sidebar rail overflow, wallet action overflow, payment initialize hardening, vendor-card redesign).
+
+**Completed:**
+
+- Added a new feature spec in project plan for the 2026-04-16 issue bundle.
+- Added a concrete execution queue block with ordered tasks in task queue.
+- Added reusable cloud command:
+  - `.ai-system/commands/cloud-session-single-pass.md`
+- Added reusable handoff template:
+  - `.ai-system/planning/cloud-session-handoff-template.md`
+- Added feature-specific cloud temp execution plan:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md`
+- Added cloud handoff/process and payment amount contract decisions in project decision log.
+- Updated general instructions with mandatory cloud-session handoff protocol.
+
+**Files Modified:**
+
+- .ai-system/agents/general-instructions.md
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Files Added:**
+
+- .ai-system/commands/cloud-session-single-pass.md
+- .ai-system/planning/cloud-session-handoff-template.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-16-ads-wallet-payments-vendor-card.md
+
+**Next Task:**
+Run the 2026-04-16 cloud temp plan in one pass and close the queue block with focused validation and documentation sync.
+
+**Notes / Blockers:**
+
+- No code implementation was performed in this local planning session; this pass is handoff preparation only.
+
+---
+
 ## Session 70 — 2026-04-15
 
 **Goal:**
