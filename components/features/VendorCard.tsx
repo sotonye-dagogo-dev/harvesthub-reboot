@@ -33,41 +33,49 @@ export function VendorCard({
   return (
     <Link href={`/vendors/${id}`} className="block h-full">
       <Card className={cn("h-full transition-all hover:shadow-ds-lg", className)} hoverable>
-        <div className="flex h-full items-start gap-4">
-          {/* Vendor Logo */}
-          <VendorAvatar
-            src={logo}
-            alt={name}
-            label={name}
-            className="h-16 w-16 flex-shrink-0 rounded-ds-md"
-            shape="rounded"
-          />
+        <div className="flex h-full min-h-[172px] flex-col gap-3">
+          <div className="flex min-h-[48px] items-start gap-3">
+            <VendorAvatar
+              src={logo}
+              alt={name}
+              label={name}
+              className="h-12 w-12 flex-shrink-0 rounded-ds-md"
+              shape="rounded"
+            />
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-semibold text-ds-text-primary">{name}</h3>
+              <div className="mt-1">
+                {isVerified ? (
+                  <Badge variant="success" size="sm">
+                    Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="warning" size="sm">
+                    Unverified
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Vendor Info */}
-          <div className="flex min-h-[120px] min-w-0 flex-1 flex-col">
-            <div className="mb-1 flex items-center gap-2">
-              <h3 className="truncate font-semibold text-ds-text-primary">{name}</h3>
-              {isVerified ? (
-                <Badge variant="success" size="sm">
-                  Verified
-                </Badge>
+          <div className="flex flex-1 flex-col justify-between rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken p-3">
+            <div>
+              <p className="truncate text-sm text-ds-text-secondary">{category}</p>
+              {description ? (
+                <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm text-ds-text-secondary">
+                  {description}
+                </p>
               ) : (
-                <Badge variant="warning" size="sm">
-                  Unverified
-                </Badge>
+                <p className="mt-1 min-h-[2.5rem] text-sm text-ds-text-tertiary">
+                  No description provided yet.
+                </p>
               )}
             </div>
 
-            <p className="mb-2 text-sm text-ds-text-secondary">{category}</p>
-
-            {description && (
-              <p className="mb-2 line-clamp-2 text-sm text-ds-text-secondary">{description}</p>
-            )}
-
-            <div className="mt-auto flex flex-wrap items-center gap-3 text-sm text-ds-text-secondary">
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>{campus}</span>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-ds-text-secondary">
+              <div className="flex min-w-0 items-center gap-1">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{campus}</span>
               </div>
               {rating > 0 && (
                 <div className="flex items-center gap-1">

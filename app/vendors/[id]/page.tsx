@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import { ProductCard, ReviewCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
 import { getFirstValidImageUrl } from "@/lib/utils/images";
+import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/dynamicMetadata";
+import { buildVendorWhatsAppMessage } from "@/lib/utils/whatsappIntent";
 
 import { Button, Tag, Tabs } from "antd";
 import {
@@ -29,39 +30,41 @@ interface VendorDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-async function resolveBaseUrl(): Promise<string> {
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") || headerStore.get("host");
-  const protocol =
-    headerStore.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
-  if (host) {
-    return `${protocol}://${host}`;
-  }
-  return process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-}
-
 export async function generateMetadata({ params }: VendorDetailPageProps): Promise<Metadata> {
   const { id } = await params;
+  const baseUrl = await resolveCanonicalBaseUrl();
+  const path = `/vendors/${id}`;
   try {
-    const baseUrl = await resolveBaseUrl();
     const res = await fetch(`${baseUrl}/api/vendors/${id}`, { cache: "no-store" });
     if (!res.ok) throw new Error("Not found");
     const json = await res.json();
     const vendor = json.vendor;
     if (!vendor) throw new Error("Not found");
-    return {
-      title: `${vendor.storeName} | MyHarvestHub`,
-      description: vendor.storeDescription || `Shop from ${vendor.storeName} on MyHarvestHub`,
-    };
+    return buildDynamicEntityMetadata({
+      baseUrl,
+      path,
+      title: `${vendor.storeName || "Vendor"} | MyHarvestHub`,
+      description: vendor.storeDescription || `Shop from ${vendor.storeName || "this vendor"} on MyHarvestHub`,
+      imageUrl: vendor.storeLogo || vendor.storeBanner || "/myharvesthublogo.png",
+      fallbackTitle: "Vendor | MyHarvestHub",
+      fallbackDescription: "Discover trusted vendors on MyHarvestHub.",
+    });
   } catch {
-    return { title: "Vendor Not Found | MyHarvestHub" };
+    return buildDynamicEntityMetadata({
+      baseUrl,
+      path,
+      title: "Vendor Not Found | MyHarvestHub",
+      description: "This vendor profile is currently unavailable on MyHarvestHub.",
+      fallbackTitle: "Vendor Not Found | MyHarvestHub",
+      fallbackDescription: "Discover trusted vendors on MyHarvestHub.",
+    });
   }
 }
 
 export default async function VendorDetailPage({ params }: VendorDetailPageProps) {
   const { id } = await params;
   try {
-    const baseUrl = await resolveBaseUrl();
+    const baseUrl = await resolveCanonicalBaseUrl();
     const res = await fetch(`${baseUrl}/api/vendors/${id}`, { cache: "no-store" });
     if (!res.ok) return notFound();
     const json = await res.json();
@@ -95,6 +98,11 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
         : vendor.analytics?.averageRating || 0;
     const vendorVerified = vendor.status === "APPROVED";
     const vendorTotalOrders = vendor.analytics?.totalOrders || 0;
+    const vendorCanonicalUrl = new URL(`/vendors/${vendor.id}`, baseUrl).toString();
+    const vendorWhatsappMessage = buildVendorWhatsAppMessage({
+      vendorName: vendor.storeName || "this vendor",
+      canonicalUrl: vendorCanonicalUrl,
+    });
 
     return (
       <div className="min-h-screen bg-ds-surface-sunken py-8 dark:bg-ds-surface-sunken">
@@ -240,6 +248,9 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                         phone: vendor.whatsappNumber,
                         vendorName: vendor.storeName,
                         returnTo: `/vendors/${vendor.id}`,
+                        source: "vendor-profile",
+                        contextUrl: vendorCanonicalUrl,
+                        message: vendorWhatsappMessage,
                       },
                     }}
                     className="inline-flex items-center gap-2 rounded-ds-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"

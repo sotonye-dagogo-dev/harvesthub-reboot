@@ -5,6 +5,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/features";
 import { message } from "antd";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
+import { generateRequestKey } from "@/lib/utils/requestKey";
 
 type ApplyFormState = {
   name: string;
@@ -24,6 +25,7 @@ type ApplyFormState = {
   proofOfTransferUrl: string;
   imagePublicId?: string;
   proofPublicId?: string;
+  requestKey?: string;
 };
 
 const initialState: ApplyFormState = {
@@ -59,6 +61,7 @@ export default function AdApplicationPage() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
@@ -100,9 +103,13 @@ export default function AdApplicationPage() {
         throw new Error("Please upload proof of transfer for bank transfer.");
       }
 
+      const requestKey = generateRequestKey("public-ad-application-submit");
       const response = await fetch("/api/ads/apply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-idempotency-key": requestKey,
+        },
         body: JSON.stringify({
           ...form,
           paymentGateway: form.paymentMethod === "BANK_TRANSFER" ? undefined : "PAYSTACK",
@@ -116,6 +123,7 @@ export default function AdApplicationPage() {
           amountPaid: Number(form.amountPaid),
           position: "TOP",
           theme: "BUSINESS",
+          requestKey,
         }),
       });
 

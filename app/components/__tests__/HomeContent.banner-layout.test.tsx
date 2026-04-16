@@ -89,11 +89,13 @@ describe("HomeContent banner layout contract", () => {
 
     const mobileRail = screen.getByTestId("sidebar-banner-rail-mobile");
     expect(mobileRail.className).toContain("overflow-x-auto");
+    expect(mobileRail.className).toContain("gap-1.5");
 
     const grid = screen.getByTestId("sidebar-banner-grid");
     expect(grid.className).toContain("max-h-[26rem]");
     expect(grid.className).toContain("overflow-y-auto");
     expect(grid.className).toContain("grid-cols-2");
+    expect(grid.className).toContain("gap-1.5");
 
     const mobileTiles = within(mobileRail).getAllByTestId("sidebar-banner-tile");
     expect(mobileTiles.length).toBe(5);

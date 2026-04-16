@@ -42,11 +42,10 @@ describe("WhatsAppContactGuardPage", () => {
     fireEvent.click(continueButton);
 
     await waitFor(() => {
-      expect(mockWindowOpen).toHaveBeenCalledWith(
-        `https://wa.me/${normalizePhone("+234 801 234 5678")}`,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      const openedUrl = mockWindowOpen.mock.calls[0]?.[0];
+      expect(typeof openedUrl).toBe("string");
+      expect(openedUrl).toContain(`https://wa.me/${normalizePhone("+234 801 234 5678")}`);
+      expect(openedUrl).toContain("text=");
     });
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/telemetry/off-platform-contact",

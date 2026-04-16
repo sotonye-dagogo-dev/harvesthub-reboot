@@ -1,0 +1,21 @@
+export const AD_RAIL_CONFIG = {
+  desktop: {
+    maxHeightClass: "max-h-[26rem]",
+    gapClass: "gap-1.5",
+    autoScroll: {
+      stepPx: 112,
+      intervalMs: 2400,
+    },
+  },
+  mobile: {
+    gapClass: "gap-1.5",
+    tileWidthClass: "w-28 sm:w-32",
+    autoScroll: {
+      stepPx: 132,
+      intervalMs: 2600,
+    },
+  },
+  interactionPauseMs: 5000,
+} as const;
+
+export type AdRailConfig = typeof AD_RAIL_CONFIG;

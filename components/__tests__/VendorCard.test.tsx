@@ -19,4 +19,11 @@ describe("VendorCard", () => {
     render(<VendorCard {...baseProps} isVerified={false} />);
     expect(screen.getByText("Unverified")).toBeInTheDocument();
   });
+
+  it("renders fixed secondary info block for stable layout", () => {
+    render(<VendorCard {...baseProps} isVerified description="Fresh farm supplies and grocery items." />);
+    expect(screen.getByText("Fresh Hub")).toBeInTheDocument();
+    expect(screen.getByText("Grocery")).toBeInTheDocument();
+    expect(screen.getByText(/products/i)).toBeInTheDocument();
+  });
 });

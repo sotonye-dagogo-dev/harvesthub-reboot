@@ -640,6 +640,16 @@ export default function OperationsSettingsPage() {
                     IP whitelist: {paymentConfig.paystack.whitelistIps.join(", ")}
                   </p>
                 </div>
+                <div className="rounded-ds-sm border border-ds-border-subtle bg-ds-surface-sunken p-3 text-xs text-ds-text-secondary">
+                  <p className="font-semibold text-ds-text-primary">
+                    Payment initialize diagnostics path
+                  </p>
+                  <p className="mt-1">
+                    If user-facing payment initialization fails with
+                    <code className="mx-1">PAYMENT_PROVIDER_IP_NOT_ALLOWED</code>,
+                    update Paystack API IP whitelist and re-check keys in this panel.
+                  </p>
+                </div>
 
                 {paymentConfig.mode === "test" ? (
                   <div className="rounded-ds-sm border border-ds-status-info-border bg-ds-status-info-bg p-3">

@@ -11,6 +11,15 @@ import { cacheGet, cacheSet, cacheInvalidate } from '@/lib/cache/redis';
 import { bannerKey } from '@/lib/cache/keys';
 // Prisma types not required in this route
 import { UserRole } from '@/lib/constants';
+import {
+    acquireIdempotencyGuard,
+    buildPayloadFingerprint,
+    getIdempotencyReplayResponse,
+    readIdempotencyKeyHeader,
+    setIdempotencyReplayResponse,
+} from '@/lib/utils/idempotency';
+
+const BANNER_CREATE_IDEMPOTENCY_TTL_SECONDS = 60 * 5;
 
 export async function GET(req: NextRequest) {
     try {
@@ -80,6 +89,51 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'title is required for hero and sidebar banners' }, { status: 400 });
         }
 
+        const headerIdempotencyKey = readIdempotencyKeyHeader(req.headers);
+        const fallbackFingerprint = buildPayloadFingerprint({
+            title: normalizedTitle,
+            imageUrl,
+            linkUrl: linkUrl || null,
+            position: normalizedPosition,
+            isActive: isActive ?? true,
+            displayOrder: displayOrder ?? 0,
+            startDate: startDate || null,
+            endDate: endDate || null,
+            createdBy: user.userId,
+        });
+        const idempotencyKey = headerIdempotencyKey || fallbackFingerprint;
+        const guard = await acquireIdempotencyGuard({
+            scope: 'banner-create',
+            key: idempotencyKey,
+            ttlSeconds: BANNER_CREATE_IDEMPOTENCY_TTL_SECONDS,
+        });
+
+        if (!guard.acquired) {
+            const replay = await getIdempotencyReplayResponse({
+                scope: 'banner-create',
+                key: idempotencyKey,
+            });
+            if (replay) {
+                return NextResponse.json(
+                    {
+                        ...replay.body,
+                        idempotency: { replayed: true, key: idempotencyKey, mode: guard.mode },
+                    },
+                    { status: replay.status }
+                );
+            }
+
+            return NextResponse.json(
+                {
+                    success: true,
+                    duplicate: true,
+                    message: 'Equivalent banner request is already processing.',
+                    idempotency: { replayed: true, key: idempotencyKey, mode: guard.mode },
+                },
+                { status: 202 }
+            );
+        }
+
         const banner = await prismaAdapter.bannerDb.create({
             title: normalizedTitle,
             subtitle,
@@ -102,7 +156,21 @@ export async function POST(req: NextRequest) {
 
         await cacheInvalidate('cache:banners:*');
         await cacheInvalidate('banners:*');
-        return NextResponse.json({ success: true, banner }, { status: 201 });
+        const replayBody = { success: true, banner };
+        await setIdempotencyReplayResponse({
+            scope: 'banner-create',
+            key: idempotencyKey,
+            status: 201,
+            body: replayBody,
+            ttlSeconds: BANNER_CREATE_IDEMPOTENCY_TTL_SECONDS,
+        });
+        return NextResponse.json(
+            {
+                ...replayBody,
+                idempotency: { replayed: false, key: idempotencyKey, mode: guard.mode },
+            },
+            { status: 201 }
+        );
     } catch (error) {
         console.error('POST /api/banners error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

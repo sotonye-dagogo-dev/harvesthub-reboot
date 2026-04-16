@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, ArrowLeft, MessageCircle } from "lucide-react";
+import {
+  resolveWhatsAppIntentPayload,
+  sanitizeWhatsAppSource,
+  sanitizeVendorName,
+} from "@/lib/utils/whatsappIntent";
 
-const VENDOR_NAME_MAX_LENGTH = 80;
 const MIN_WHATSAPP_DIGITS = 10;
 const MAX_WHATSAPP_DIGITS = 15;
-const TELEMETRY_SOURCES = new Set(["vendor-profile", "product-page"]);
 
 function sanitizeReturnPath(value: string | null): string {
   if (!value) {
@@ -29,20 +32,8 @@ function sanitizeReturnPath(value: string | null): string {
   }
 }
 
-function sanitizeVendorName(value: string | null): string {
-  if (!value) return "this vendor";
-  const clean = value.trim();
-  return clean.length > 0 ? clean.slice(0, VENDOR_NAME_MAX_LENGTH) : "this vendor";
-}
-
 function normalizePhone(value: string | null): string {
   return (value || "").replace(/[^0-9]/g, "");
-}
-
-function sanitizeTelemetrySource(value: string | null): string {
-  if (!value) return "vendor-profile";
-  const normalized = value.trim().toLowerCase();
-  return TELEMETRY_SOURCES.has(normalized) ? normalized : "vendor-profile";
 }
 
 export default function WhatsAppContactGuardPage() {
@@ -52,9 +43,18 @@ export default function WhatsAppContactGuardPage() {
   const vendorName = sanitizeVendorName(searchParams.get("vendorName"));
   const returnTo = sanitizeReturnPath(searchParams.get("returnTo"));
   const phone = normalizePhone(searchParams.get("phone"));
-  const source = sanitizeTelemetrySource(searchParams.get("source"));
+  const source = sanitizeWhatsAppSource(searchParams.get("source"));
+  const intent = resolveWhatsAppIntentPayload({
+    source,
+    vendorName,
+    productName: searchParams.get("productName"),
+    message: searchParams.get("message"),
+    contextUrl: searchParams.get("contextUrl"),
+  });
   const isValidPhone = phone.length >= MIN_WHATSAPP_DIGITS && phone.length <= MAX_WHATSAPP_DIGITS;
-  const externalHref = isValidPhone ? `https://wa.me/${phone}` : null;
+  const externalHref = isValidPhone
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(intent.message)}`
+    : null;
 
   const handleContinue = async () => {
     if (!externalHref || isRedirecting) return;
@@ -92,10 +92,15 @@ export default function WhatsAppContactGuardPage() {
               Before you continue to WhatsApp
             </h1>
             <p className="mt-1 text-sm text-ds-text-secondary">
-              You’re about to leave MyHarvestHub and contact {vendorName} on an external platform.
+              You’re about to leave MyHarvestHub and contact {intent.vendorName} on an external platform.
             </p>
           </div>
         </div>
+        {intent.contextUrl ? (
+          <p className="mb-4 text-xs text-ds-text-secondary">
+            Chat context includes listing link: <span className="font-medium">{intent.contextUrl}</span>
+          </p>
+        ) : null}
 
         <ul className="mb-5 list-disc space-y-2 pl-5 text-sm text-ds-text-secondary">
           <li>Never share your password, OTP, or card PIN in chat.</li>
