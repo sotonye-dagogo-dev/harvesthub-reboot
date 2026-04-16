@@ -153,6 +153,23 @@ export default function WalletPage() {
     setIsProcessingDeposit(true);
     try {
       if (!pendingDepositReference) {
+        const paymentWindow = window.open("", "_blank", "noopener,noreferrer");
+        const blankWindowGuard =
+          paymentWindow && !paymentWindow.closed
+            ? window.setTimeout(() => {
+                try {
+                  if (
+                    paymentWindow &&
+                    !paymentWindow.closed &&
+                    paymentWindow.location.href === "about:blank"
+                  ) {
+                    paymentWindow.close();
+                  }
+                } catch {
+                  // Ignore cross-context access issues.
+                }
+              }, 45_000)
+            : null;
         const initializeRes = await fetch("/api/payments/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -169,16 +186,26 @@ export default function WalletPage() {
           !initializeData?.payment?.reference ||
           !initializeData?.payment?.authorizationUrl
         ) {
+          if (blankWindowGuard) {
+            window.clearTimeout(blankWindowGuard);
+          }
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.close();
+          }
           throw new Error(initializeData?.error || "Unable to initialize payment");
         }
 
         const reference = initializeData.payment.reference as string;
+        const authorizationUrl = initializeData.payment.authorizationUrl as string;
+        if (blankWindowGuard) {
+          window.clearTimeout(blankWindowGuard);
+        }
         setPendingDepositReference(reference);
-        window.open(
-          initializeData.payment.authorizationUrl as string,
-          "_blank",
-          "noopener,noreferrer"
-        );
+        if (paymentWindow && !paymentWindow.closed) {
+          paymentWindow.location.assign(authorizationUrl);
+        } else {
+          window.location.assign(authorizationUrl);
+        }
         message.info(
           `Deposit initialized (ref: ${reference}). Complete payment in the opened tab, then click Deposit Funds again to verify.`
         );

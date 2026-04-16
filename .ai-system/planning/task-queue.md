@@ -107,6 +107,23 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-16) — Cart Freshness + Checkout Live Validation + Sidebar/WhatsApp/Wallet Reliability
+
+> **Section summary:** One-pass closure for cart/catalog reconciliation, checkout live-state guard before payment, sidebar overflow containment, WhatsApp guard redirect continuity, and wallet deposit handoff reliability.
+
+- [x] Add reusable cart reconciliation contract in `lib/store/cartStore.ts`.
+- [x] Reconcile cart page state with runtime product cache (`home:products`) and surface safe user feedback on applied changes.
+- [x] Reconcile checkout page state with runtime product cache and add live pre-payment product refresh guard right before payment/order processing.
+- [x] Ensure order placement still performs final server-side stock/activity validation using DB state.
+- [x] Fix homepage sidebar rail containment classes to prevent desktop horizontal overflow without regressing internal rail scrolling behavior.
+- [x] Restore reliable `/contact/whatsapp` external handoff after guard acknowledgement.
+- [x] Restore reliable wallet deposit payment handoff (popup-safe with fallback navigation).
+- [x] Add/refresh focused tests for cart reconciliation and updated redirect/deposit behavior where practical.
+- [x] Run validation gate (`npm run lint`, `npm run build`, focused `vitest` for touched suites).
+- [x] Sync `.ai-system` docs (`task-queue`, `session-log`, `dev-history`) with completion details.
+
+---
+
 ## Feature Planning Queue (2026-04-15) — Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
 
 > **Section summary:** Reliability closure queue for contradictory admin wallet/checkout behavior, Paystack transaction-verification correctness, delayed in-app/push notification visibility, and plain order-notification email rendering.

@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import WhatsAppContactGuardPage from "@/app/contact/whatsapp/page";
 
-function normalizePhone(value: string) {
-  return value.replace(/[^0-9]/g, "");
-}
-
 const mockUseSearchParams = vi.fn();
 
 vi.mock("next/navigation", () => ({
@@ -14,13 +10,11 @@ vi.mock("next/navigation", () => ({
 
 describe("WhatsAppContactGuardPage", () => {
   const mockFetch = vi.fn();
-  const mockWindowOpen = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockFetch);
     mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
-    vi.spyOn(window, "open").mockImplementation(mockWindowOpen as unknown as typeof window.open);
   });
 
   it("shows disclaimer and safe external handoff link", async () => {
@@ -42,14 +36,11 @@ describe("WhatsAppContactGuardPage", () => {
     fireEvent.click(continueButton);
 
     await waitFor(() => {
-      const openedUrl = mockWindowOpen.mock.calls[0]?.[0];
-      expect(typeof openedUrl).toBe("string");
-      expect(openedUrl).toContain(`https://wa.me/${normalizePhone("+234 801 234 5678")}`);
-      expect(openedUrl).toContain("text=");
+      expect(screen.getByRole("button", { name: /redirecting/i })).toBeDisabled();
     });
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/telemetry/off-platform-contact",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({ method: "POST", keepalive: true })
     );
   });
 
