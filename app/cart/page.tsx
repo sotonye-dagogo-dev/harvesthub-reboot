@@ -1,17 +1,41 @@
 "use client";
 
+import { useCallback, useEffect } from "react";
 import { useCart } from "@/lib/store/cartStore";
 import { EmptyState, Button, Card } from "@/components/ui";
 import { CartItemComponent } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
-import { Popconfirm } from "antd";
+import { Popconfirm, message } from "antd";
+import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { getProductsClient } from "@/lib/data/clientDataFetchers";
 
 export const dynamic = "force-dynamic";
 
 export default function CartPage() {
-  const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart, reconcileWithCatalog } =
+    useCart();
+
+  const loadProducts = useCallback(async () => getProductsClient({ limit: 120 }), []);
+  const { data: runtimeProducts } = useSmartResource(loadProducts, {
+    key: "home:products",
+    staleTimeMs: 20_000,
+    refreshIntervalMs: 120_000,
+  });
+
+  useEffect(() => {
+    if (!Array.isArray(runtimeProducts) || runtimeProducts.length === 0 || items.length === 0) {
+      return;
+    }
+
+    const summary = reconcileWithCatalog(runtimeProducts);
+    if (summary.removedCount > 0 || summary.adjustedCount > 0) {
+      message.warning(
+        "Your cart was updated to reflect latest product availability, stock, and pricing."
+      );
+    }
+  }, [runtimeProducts, items.length, reconcileWithCatalog]);
 
   if (items.length === 0) {
     return (

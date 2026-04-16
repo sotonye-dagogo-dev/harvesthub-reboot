@@ -64,7 +64,7 @@ export default function WhatsAppContactGuardPage() {
       phone.length > 4 ? `${"*".repeat(Math.max(0, phone.length - 4))}${phone.slice(-4)}` : phone;
 
     try {
-      await fetch("/api/telemetry/off-platform-contact", {
+      void fetch("/api/telemetry/off-platform-contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -73,13 +73,13 @@ export default function WhatsAppContactGuardPage() {
           maskedPhone,
           source,
         }),
+        keepalive: true,
       });
     } catch {
       // Telemetry is best-effort and should not block contact handoff.
     }
 
-    window.open(externalHref, "_blank", "noopener,noreferrer");
-    setIsRedirecting(false);
+    window.location.assign(externalHref);
   };
 
   return (
