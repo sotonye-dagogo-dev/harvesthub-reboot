@@ -154,6 +154,22 @@ export default function WalletPage() {
     try {
       if (!pendingDepositReference) {
         const paymentWindow = window.open("", "_blank", "noopener,noreferrer");
+        const blankWindowGuard =
+          paymentWindow && !paymentWindow.closed
+            ? window.setTimeout(() => {
+                try {
+                  if (
+                    paymentWindow &&
+                    !paymentWindow.closed &&
+                    paymentWindow.location.href === "about:blank"
+                  ) {
+                    paymentWindow.close();
+                  }
+                } catch {
+                  // Ignore cross-context access issues.
+                }
+              }, 45_000)
+            : null;
         const initializeRes = await fetch("/api/payments/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -170,6 +186,9 @@ export default function WalletPage() {
           !initializeData?.payment?.reference ||
           !initializeData?.payment?.authorizationUrl
         ) {
+          if (blankWindowGuard) {
+            window.clearTimeout(blankWindowGuard);
+          }
           if (paymentWindow && !paymentWindow.closed) {
             paymentWindow.close();
           }
@@ -178,6 +197,9 @@ export default function WalletPage() {
 
         const reference = initializeData.payment.reference as string;
         const authorizationUrl = initializeData.payment.authorizationUrl as string;
+        if (blankWindowGuard) {
+          window.clearTimeout(blankWindowGuard);
+        }
         setPendingDepositReference(reference);
         if (paymentWindow && !paymentWindow.closed) {
           paymentWindow.location.assign(authorizationUrl);

@@ -39,6 +39,55 @@
 
 ---
 
+## Session 74 — 2026-04-16
+
+**Goal:**
+Execute the cart/sidebar/WhatsApp/wallet reliability pass in one cloud-style single run, including plan artifacts, implementation, tests, validation, and documentation sync.
+
+**Completed:**
+
+- Executed planning workflow from `plan-feature.md`: added a new feature spec and queue block for this scope and created cloud temp plan file:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-16-cart-sidebar-whatsapp-wallet.md`
+- Implemented reusable cart catalog reconciliation in `lib/store/cartStore.ts` with safe handling for inactive/missing/out-of-stock items and quantity/price/vendor refresh.
+- Wired cart and checkout pages to reconcile against in-memory runtime product cache (`home:products`), with user messaging when cart drift is corrected.
+- Added checkout live pre-payment product refresh (DB-backed product detail fetches) right before payment/order processing; checkout now pauses when drift is detected and asks buyer to re-review.
+- Kept final server-side DB validation in `POST /api/orders` path unchanged for checkout completion safety.
+- Fixed homepage sidebar rail overflow risk by tightening width/overflow containment classes in home hero/sidebar layout.
+- Restored reliable WhatsApp guard redirect by switching to non-blocking telemetry + `window.location.assign`.
+- Improved wallet deposit handoff reliability with popup-safe fallback navigation and blank-window guard timeout/cleanup.
+- Added/updated focused tests:
+  - `lib/store/__tests__/cartStore.reconcile.test.ts` (new)
+  - `app/contact/whatsapp/__tests__/page.test.tsx` (updated)
+- Validation:
+  - Focused tests for touched suites passed.
+  - `npm run lint` passed.
+  - `npm run build` passed (with existing known sitemap warnings).
+  - `parallel_validation` review + CodeQL ran once successfully and again after follow-up fixes; second run reported CodeQL timeout budget exhaustion, with no security alerts reported in successful scan.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-16-cart-sidebar-whatsapp-wallet.md
+- app/cart/page.tsx
+- app/checkout/page.tsx
+- app/components/HomeContent.tsx
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/wallet/page.tsx
+- lib/store/cartStore.ts
+- lib/store/__tests__/cartStore.reconcile.test.ts
+
+**Next Task:**
+Create/refresh PR summary and monitor CI for this reliability slice.
+
+**Notes / Blockers:**
+
+- Full-repo `npm test` still has baseline unrelated failures in this environment; touched focused suites pass.
+- Parallel validation warning indicates CodeQL timed out on the final rerun due time budget; do not rerun in this session.
+
+---
+
 ## Session 73 — 2026-04-16
 
 **Goal:**

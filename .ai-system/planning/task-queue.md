@@ -111,16 +111,16 @@
 
 > **Section summary:** One-pass closure for cart/catalog reconciliation, checkout live-state guard before payment, sidebar overflow containment, WhatsApp guard redirect continuity, and wallet deposit handoff reliability.
 
-- [ ] Add reusable cart reconciliation contract in `lib/store/cartStore.ts`.
-- [ ] Reconcile cart page state with runtime product cache (`home:products`) and surface safe user feedback on applied changes.
-- [ ] Reconcile checkout page state with runtime product cache and add live pre-payment product refresh guard right before payment/order processing.
-- [ ] Ensure order placement still performs final server-side stock/activity validation using DB state.
-- [ ] Fix homepage sidebar rail containment classes to prevent desktop horizontal overflow without regressing internal rail scrolling behavior.
-- [ ] Restore reliable `/contact/whatsapp` external handoff after guard acknowledgement.
-- [ ] Restore reliable wallet deposit payment handoff (popup-safe with fallback navigation).
-- [ ] Add/refresh focused tests for cart reconciliation and updated redirect/deposit behavior where practical.
-- [ ] Run validation gate (`npm run lint`, `npm run build`, focused `vitest` for touched suites).
-- [ ] Sync `.ai-system` docs (`task-queue`, `session-log`, `dev-history`) with completion details.
+- [x] Add reusable cart reconciliation contract in `lib/store/cartStore.ts`.
+- [x] Reconcile cart page state with runtime product cache (`home:products`) and surface safe user feedback on applied changes.
+- [x] Reconcile checkout page state with runtime product cache and add live pre-payment product refresh guard right before payment/order processing.
+- [x] Ensure order placement still performs final server-side stock/activity validation using DB state.
+- [x] Fix homepage sidebar rail containment classes to prevent desktop horizontal overflow without regressing internal rail scrolling behavior.
+- [x] Restore reliable `/contact/whatsapp` external handoff after guard acknowledgement.
+- [x] Restore reliable wallet deposit payment handoff (popup-safe with fallback navigation).
+- [x] Add/refresh focused tests for cart reconciliation and updated redirect/deposit behavior where practical.
+- [x] Run validation gate (`npm run lint`, `npm run build`, focused `vitest` for touched suites).
+- [x] Sync `.ai-system` docs (`task-queue`, `session-log`, `dev-history`) with completion details.
 
 ---
 

@@ -207,7 +207,7 @@ export default function CheckoutPage() {
         "Your cart was updated to match current product availability, stock, and pricing."
       );
     }
-  }, [runtimeProducts, items.length, reconcileWithCatalog]);
+  }, [runtimeProducts, items, reconcileWithCatalog]);
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },

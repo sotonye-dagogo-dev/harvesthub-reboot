@@ -35,7 +35,7 @@ export default function CartPage() {
         "Your cart was updated to reflect latest product availability, stock, and pricing."
       );
     }
-  }, [runtimeProducts, items.length, reconcileWithCatalog]);
+  }, [runtimeProducts, items, reconcileWithCatalog]);
 
   if (items.length === 0) {
     return (
