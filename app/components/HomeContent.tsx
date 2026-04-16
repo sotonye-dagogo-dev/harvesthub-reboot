@@ -17,7 +17,9 @@ import {
   PRODUCT_DISCOVERY_CATEGORIES,
   buildProductDiscoveryQueryString,
 } from "@/lib/config/productDiscovery";
+import { AD_RAIL_CONFIG } from "@/lib/config/adRail";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { useAutoScrollRail } from "@/lib/hooks/useAutoScrollRail";
 import {
   getBannersClient,
   getProductsClient,
@@ -135,6 +137,21 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   const sidebarImageSizes = hasHeroBanners
     ? "(min-width: 1280px) 13vw, (min-width: 1024px) 15vw, (min-width: 640px) 20vw, 44vw"
     : "(min-width: 1280px) 18vw, (min-width: 1024px) 20vw, (min-width: 640px) 28vw, 44vw";
+  const enableRailAutoScroll = activeSidebarBanners.length > 1;
+  const mobileRailAutoScroll = useAutoScrollRail({
+    enabled: enableRailAutoScroll,
+    direction: "horizontal",
+    stepPx: AD_RAIL_CONFIG.mobile.autoScroll.stepPx,
+    intervalMs: AD_RAIL_CONFIG.mobile.autoScroll.intervalMs,
+    pauseAfterInteractionMs: AD_RAIL_CONFIG.interactionPauseMs,
+  });
+  const desktopRailAutoScroll = useAutoScrollRail({
+    enabled: enableRailAutoScroll,
+    direction: "vertical",
+    stepPx: AD_RAIL_CONFIG.desktop.autoScroll.stepPx,
+    intervalMs: AD_RAIL_CONFIG.desktop.autoScroll.intervalMs,
+    pauseAfterInteractionMs: AD_RAIL_CONFIG.interactionPauseMs,
+  });
 
   // Get featured products
   const featuredProducts = liveProducts
@@ -212,15 +229,17 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
               <aside className={hasHeroBanners ? "lg:col-span-4" : "lg:col-span-12"}>
                 <div
                   data-testid="sidebar-banner-rail-mobile"
-                  className="flex gap-2 overflow-x-auto pb-1 lg:hidden"
+                  ref={mobileRailAutoScroll.railRef}
+                  className={`flex ${AD_RAIL_CONFIG.mobile.gapClass} overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 lg:hidden`}
+                  {...mobileRailAutoScroll.bind}
                 >
                   {activeSidebarBanners.map((banner) => {
                     const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
                     const cardContent = (
-                      <div
-                        data-testid="sidebar-banner-tile"
-                        className="relative w-28 flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm sm:w-32"
-                      >
+                        <div
+                          data-testid="sidebar-banner-tile"
+                          className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
+                        >
                         <div className="relative aspect-square w-full">
                           <Image
                             src={banner.imageUrl}
@@ -251,11 +270,13 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
                 <div
                   data-testid="sidebar-banner-grid"
-                  className={`hidden gap-2 lg:grid ${sidebarGridColumnsClass} ${
+                  ref={desktopRailAutoScroll.railRef}
+                  className={`hidden ${AD_RAIL_CONFIG.desktop.gapClass} lg:grid ${sidebarGridColumnsClass} ${
                     hasHeroBanners
-                      ? "max-h-[26rem] overflow-y-auto pr-1"
+                      ? `${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1`
                       : "overflow-visible"
                   }`}
+                  {...desktopRailAutoScroll.bind}
                 >
                   {activeSidebarBanners.map((banner) => {
                     const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;

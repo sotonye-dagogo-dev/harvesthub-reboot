@@ -83,6 +83,7 @@ describe("WalletPage role parity and balance invariants", () => {
     expect(withdrawButton).toBeEnabled();
     expect(screen.getAllByText(/available/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/pending/i).length).toBeGreaterThan(0);
+    expect(screen.getByTestId("wallet-action-row").className).toContain("sm:grid-cols-2");
   });
 
   it("keeps withdraw action enabled for buyers", () => {

@@ -4,6 +4,7 @@ import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { getRateLimitResponse, rateLimitByIP, rateLimitByUser } from '@/lib/middleware/rate-limit';
 import { initializePayment } from '@/lib/services/payments';
+import { mapPaymentInitializeError } from '@/lib/config/paymentErrors';
 
 const initializeSchema = z.object({
     gateway: z.enum(['PAYSTACK', 'FLUTTERWAVE']),
@@ -48,8 +49,16 @@ export async function POST(req: NextRequest) {
                 metadata: payload.metadata,
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to initialize payment';
-            return apiError(message, 502);
+            const rawMessage = error instanceof Error ? error.message : 'Unable to initialize payment';
+            const mapped = mapPaymentInitializeError(rawMessage);
+            return apiError(mapped.message, 502, {
+                code: mapped.code,
+                diagnostics: {
+                    operatorAction: mapped.operatorAction,
+                    operatorPath: '/operations/settings',
+                    providerMessageCaptured: Boolean(rawMessage),
+                },
+            });
         }
 
         return apiSuccess({
@@ -57,7 +66,7 @@ export async function POST(req: NextRequest) {
             note:
                 initialized.status === 'STUBBED'
                     ? 'Gateway credentials are not configured. Verification will remain pending until provider integration is active.'
-                    : 'Payment initialized with provider gateway.',
+                    : 'Payment initialized with provider gateway. Amount was supplied by the app request payload.',
         });
     });
 }

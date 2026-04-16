@@ -39,6 +39,72 @@
 
 ---
 
+## Session 73 — 2026-04-16
+
+**Goal:**
+Execute the full 2026-04-16 cloud queue block in one uninterrupted pass (ads/banner dedupe, sidebar rail containment/motion, wallet containment, payment initialize diagnostics, WhatsApp intent payload, metadata parity, and vendor-card UX).
+
+**Completed:**
+
+- Added client request-key + submit-lock behavior for operations banners, advertise, and public ad-application submission flows.
+- Added API-side idempotency/replay behavior for banner create/update and unified ad-application submission semantics across `/api/ad-applications` and `/api/ads/apply`.
+- Added config-driven sidebar rail contract (`lib/config/adRail.ts`) and interaction-safe auto-scroll helper (`useAutoScrollRail`) with pause/resume behavior.
+- Updated wallet action row to bounded responsive grid so Deposit/Withdraw stay contained at desktop and narrow tablet widths.
+- Added payment initialize error taxonomy mapping with explicit app error codes + user-safe copy + operator diagnostics path (`/operations/settings`), including IP-not-allowed handling.
+- Added origin-aware WhatsApp intent helper and wired product/vendor pages to send meaningful prefilled message + canonical source URL through guard route.
+- Hardened dynamic metadata for product/vendor entity pages using shared metadata fallback builder (title/description/image/url + OG/Twitter/canonical parity).
+- Redesigned `VendorCard` to fixed reusable layout contract (smaller logo, inline name, badge below, full-width secondary info block, overflow-safe clamps).
+- Added focused tests for dedupe behavior, rail contract, wallet containment, payment error mapping, WhatsApp intent, metadata fallback parity, and vendor-card structure.
+- Validation completed:
+  - touched lint (`npx next lint --file ...`) passed,
+  - `npx tsc --noEmit` passed,
+  - focused touched Vitest suites passed.
+
+**Files Modified:**
+
+- app/(operations)/operations/banners/page.tsx
+- app/(operations)/operations/settings/page.tsx
+- app/ad-application/page.tsx
+- app/advertise/page.tsx
+- app/api/ad-applications/route.ts
+- app/api/ads/apply/route.ts
+- app/api/banners/route.ts
+- app/api/banners/[id]/route.ts
+- app/api/payments/initialize/route.ts
+- app/components/HomeContent.tsx
+- app/contact/whatsapp/page.tsx
+- app/products/[id]/page.tsx
+- app/vendors/[id]/page.tsx
+- app/wallet/page.tsx
+- components/features/VendorCard.tsx
+- lib/config/adRail.ts
+- lib/config/paymentErrors.ts
+- lib/hooks/useAutoScrollRail.ts
+- lib/seo/dynamicMetadata.ts
+- lib/services/adApplicationSubmission.ts
+- lib/utils/idempotency.ts
+- lib/utils/requestKey.ts
+- lib/utils/whatsappIntent.ts
+- app/api/payments/initialize/__tests__/route.test.ts
+- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/wallet/__tests__/page.role-parity.test.tsx
+- components/__tests__/VendorCard.test.tsx
+- lib/services/__tests__/adApplicationSubmission.test.ts
+- lib/__tests__/idempotency.test.ts
+- lib/__tests__/whatsappIntent.test.ts
+- lib/__tests__/dynamicMetadata.test.ts
+- .ai-system/planning/task-queue.md
+
+**Next Task:**
+Create/refresh PR summary and monitor CI for touched suites.
+
+**Notes / Blockers:**
+
+- Baseline repository full `npm test` still has unrelated pre-existing failures; touched focused suites for this queue block pass.
+
+---
+
 ## Session 72 — 2026-04-16
 
 **Goal:**

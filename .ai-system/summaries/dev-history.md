@@ -22,6 +22,34 @@
 [What comes next]
 ```
 
+## 2026-04-16 — Cloud Execution: Ads/Wallet/Metadata/WhatsApp/Vendor-Card Reliability Closure
+
+**Summary:**
+Completed the full 2026-04-16 cloud execution queue in one pass with non-breaking reliability and UX hardening across ad/banner mutation dedupe, sidebar rail containment/motion behavior, wallet action containment, payment initialize diagnostics, chat intent payload quality, dynamic metadata parity, and vendor-card layout stability.
+
+**Completed:**
+
+- Added client request-key + submit-lock contracts for operations banners, advertise, and public ad application.
+- Added API idempotency/replay-safe contracts for banner create/update and ad-application submission.
+- Unified ad-application mutation semantics by routing `/api/ad-applications` and `/api/ads/apply` through shared submission service.
+- Implemented config-driven sidebar rail behavior (`adRail` config + `useAutoScrollRail`) for desktop vertical bounded scroll and mobile horizontal bounded rail.
+- Fixed wallet action-row overflow with responsive bounded action grid contract.
+- Added payment initialize provider-failure taxonomy (`PAYMENT_PROVIDER_IP_NOT_ALLOWED`, etc.) with user-safe messages + operator diagnostics path.
+- Added origin-aware WhatsApp prefilled message + canonical URL generation and normalized guard handling.
+- Hardened dynamic product/vendor metadata with shared fallback builder for title/description/image/url + OG/Twitter parity.
+- Redesigned `VendorCard` to fixed reusable structure with overflow-safe truncation/clamp behavior.
+- Added focused regression suites for dedupe, rail behavior, wallet containment, payment error mapping, WhatsApp intent, metadata fallback, and vendor card contract.
+- Passed final touched validation gate (`next lint --file ...`, `npx tsc --noEmit`, focused vitest suites).
+
+**Key Changes:**
+
+- Ad/banner mutations now support replay-safe idempotent behavior with short dedupe windows and response replay.
+- Off-platform WhatsApp handoff now carries source-aware intent context and canonical URLs while preserving guard-route safety.
+- Dynamic metadata for core entity pages now has parity-safe OG/Twitter/canonical outputs.
+
+**Next Sprint Focus:**
+Run CI verification and production smoke checks for sidebar rail interaction ergonomics and payment initialize diagnostics in real environments.
+
 ## 2026-04-16 — Cloud One-Pass Handoff System + UX Reliability Plan Package
 
 **Summary:**

@@ -370,9 +370,13 @@ export default function WalletPage() {
                 Pending withdrawal hold: {formatCurrency(pendingWithdrawals)}
               </p>
             ) : null}
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div
+              data-testid="wallet-action-row"
+              className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2"
+            >
               <Button
                 fullWidth
+                className="min-w-0"
                 onClick={() => setShowDepositModal(true)}
                 disabled={!cardDepositAvailable}
               >
@@ -381,7 +385,12 @@ export default function WalletPage() {
                   Deposit
                 </>
               </Button>
-              <Button fullWidth variant="outline" onClick={() => setShowWithdrawModal(true)}>
+              <Button
+                fullWidth
+                className="min-w-0"
+                variant="outline"
+                onClick={() => setShowWithdrawModal(true)}
+              >
                 <>
                   <ArrowUpCircle className="mr-2 h-5 w-5" />
                   Withdraw

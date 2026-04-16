@@ -8,6 +8,9 @@ import { formatCurrency } from "@/lib/utils";
 import { getFirstValidImageUrl, getSafeImageUrl } from "@/lib/utils/images";
 import { prisma } from "@/lib/db/prisma";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
+import { MessageCircle } from "lucide-react";
+import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/dynamicMetadata";
+import { buildProductWhatsAppMessage } from "@/lib/utils/whatsappIntent";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -66,15 +69,33 @@ async function fetchProduct(id: string) {
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { id } = await params;
+  const baseUrl = await resolveCanonicalBaseUrl();
+  const path = `/products/${id}`;
   const product = await fetchProduct(id);
   if (!product) {
-    return { title: "Product Not Found | MyHarvestHub" };
+    return buildDynamicEntityMetadata({
+      baseUrl,
+      path,
+      title: "Product Not Found | MyHarvestHub",
+      description: "This product is currently unavailable on MyHarvestHub.",
+      fallbackTitle: "Product Not Found | MyHarvestHub",
+      fallbackDescription: "Browse verified vendors and products on MyHarvestHub.",
+    });
   }
 
-  return {
-    title: `${product.name} | MyHarvestHub`,
-    description: product.description || `Buy ${product.name} on MyHarvestHub`,
-  };
+  const productName =
+    typeof product.name === "string" && product.name.trim().length > 0 ? product.name : "Product";
+  const image = getFirstValidImageUrl(product.images) || "/placeholder-product.jpg";
+
+  return buildDynamicEntityMetadata({
+    baseUrl,
+    path,
+    title: `${productName} | MyHarvestHub`,
+    description: product.description || `Buy ${productName} on MyHarvestHub`,
+    imageUrl: image,
+    fallbackTitle: "Product | MyHarvestHub",
+    fallbackDescription: "Discover products on MyHarvestHub.",
+  });
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -86,6 +107,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   }
 
   const productVendorId = typeof product.vendorId === "string" ? product.vendorId : "";
+  const baseUrl = await resolveCanonicalBaseUrl();
+  const canonicalProductUrl = new URL(`/products/${id}`, baseUrl).toString();
   const productCategory = typeof product.category === "string" ? product.category : null;
 
   const relatedOrFilters: Array<Record<string, unknown>> =
@@ -134,22 +157,30 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     typeof product.vendor?.storeName === "string" && product.vendor.storeName.trim().length > 0
       ? product.vendor.storeName
       : "Vendor";
+  const productName =
+    typeof product.name === "string" && product.name.trim().length > 0 ? product.name : "Product";
   const vendorVerified = product.vendor?.status === "APPROVED";
   const vendorHref = productVendorId ? `/vendors/${productVendorId}` : "/vendors";
+  const whatsappMessage = buildProductWhatsAppMessage({
+    vendorName,
+    productName,
+    canonicalUrl: canonicalProductUrl,
+  });
   const whatsappGuardHref = product.vendor?.whatsappNumber
     ? `/contact/whatsapp?${new URLSearchParams({
         vendorName,
         phone: product.vendor.whatsappNumber,
         returnTo: `/products/${id}`,
         source: "product-page",
+        productName: productName,
+        contextUrl: canonicalProductUrl,
+        message: whatsappMessage,
       }).toString()}`
     : null;
   const orderingAllowed = vendorVerified;
   const productPrice = Number.isFinite(product.price) ? product.price : 0;
   const productDiscount = Number.isFinite(product.discount ?? NaN) ? (product.discount ?? 0) : 0;
   const productStock = Number.isFinite(product.stock) ? product.stock : 0;
-  const productName =
-    typeof product.name === "string" && product.name.trim().length > 0 ? product.name : "Product";
   const discountedPrice =
     productDiscount > 0 ? productPrice - (productPrice * productDiscount) / 100 : productPrice;
 
@@ -188,13 +219,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               {vendorName}
             </Link>
           </p>
-          <p className="mt-2 text-sm text-ds-text-secondary">
-            {whatsappGuardHref ? (
-              <Link href={whatsappGuardHref} className="text-ds-text-brand hover:underline">
-                Chat with vendor on WhatsApp
-              </Link>
-            ) : (
-              "Vendor chat is currently unavailable for this listing."
+            <p className="mt-2 text-sm text-ds-text-secondary">
+              {whatsappGuardHref ? (
+                <Link
+                  href={whatsappGuardHref}
+                  className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat with vendor on WhatsApp
+                </Link>
+              ) : (
+                "Vendor chat is currently unavailable for this listing."
             )}
           </p>
 

@@ -10,6 +10,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/localDraft";
 import { enqueueOfflineItem, replayOfflineQueue } from "@/lib/utils/offlineQueue";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
+import { generateRequestKey } from "@/lib/utils/requestKey";
 
 const { RangePicker } = DatePicker;
 const AD_APPLICATION_DRAFT_KEY = "myharvesthub.ad-application.draft.v1";
@@ -61,6 +62,7 @@ interface DraftPayload {
   paymentGateway?: "PAYSTACK" | "FLUTTERWAVE";
   paymentReference?: string;
   paymentVerificationReference?: string;
+  requestKey?: string;
 }
 
 export default function AdvertisePage() {
@@ -152,9 +154,13 @@ export default function AdvertisePage() {
   };
 
   const submitApplication = async (body: DraftPayload) => {
+    const requestKey = body.requestKey;
     const res = await fetch("/api/ad-applications", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(requestKey ? { "x-idempotency-key": requestKey } : {}),
+      },
       body: JSON.stringify(body),
     });
 
@@ -187,6 +193,7 @@ export default function AdvertisePage() {
   }, []);
 
   const onFinish = async (values: FormValues) => {
+    if (loading) return;
     if (!imageUpload?.url) {
       message.error("Please upload your banner image.");
       return;
@@ -259,6 +266,7 @@ export default function AdvertisePage() {
         paymentVerificationReference: isBankTransfer ? undefined : paymentVerificationReference,
         imagePublicId: imageUpload.publicId,
         proofPublicId: isBankTransfer ? proofUpload?.publicId : undefined,
+        requestKey: generateRequestKey("ad-application-submit"),
       };
 
       if (!navigator.onLine) {

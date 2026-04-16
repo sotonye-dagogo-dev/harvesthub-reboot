@@ -18,6 +18,72 @@
 
 ---
 
+## [Banner/ad mutation retries could create duplicate records]
+
+**Symptom:**
+
+- Rapid repeated submit actions on banner/ad forms could create duplicate writes.
+- Public ad submissions could drift when `/api/ad-applications` and `/api/ads/apply` paths were hit with equivalent payloads.
+
+**Root Cause:**
+
+- Mutation routes lacked request-key idempotency guard and replay-safe response contract.
+- Ad submission logic was duplicated across two routes without shared mutation service.
+
+**Fix Applied:**
+
+- Added client request-key + submit-lock behavior for banner/advertise/ad-application forms.
+- Added Redis-first (local fallback) idempotency guard + replay cache for banner create/update and shared ad submission service.
+- Unified `/api/ad-applications` and `/api/ads/apply` submission semantics through one service module.
+
+**Prevention:**
+
+- Treat externally-triggered mutation endpoints as replayable and idempotent by default.
+- For mirrored mutation routes, use one shared service implementation to avoid contract drift.
+
+**Files Affected:**
+
+- app/api/banners/route.ts
+- app/api/banners/[id]/route.ts
+- app/api/ad-applications/route.ts
+- app/api/ads/apply/route.ts
+- lib/services/adApplicationSubmission.ts
+- lib/utils/idempotency.ts
+
+**Date:** 2026-04-16
+
+---
+
+## [Dynamic product/vendor metadata parity was incomplete for social previews]
+
+**Symptom:**
+
+- Dynamic detail pages provided title/description but lacked consistent image/url parity for Open Graph and Twitter metadata.
+
+**Root Cause:**
+
+- Metadata logic was implemented per-page without a shared fallback hierarchy for missing fields.
+
+**Fix Applied:**
+
+- Added shared dynamic metadata builder with fallback-safe title/description/image/url contract.
+- Updated product/vendor dynamic pages to use canonical URL resolution and OG/Twitter parity output.
+
+**Prevention:**
+
+- Use shared metadata builder for entity detail routes instead of ad hoc page-level metadata composition.
+- Include canonical URL + image fallback in every dynamic metadata contract.
+
+**Files Affected:**
+
+- lib/seo/dynamicMetadata.ts
+- app/products/[id]/page.tsx
+- app/vendors/[id]/page.tsx
+
+**Date:** 2026-04-16
+
+---
+
 ## [Push health check appeared inert and lacked actionable recovery path]
 
 **Symptom:**
