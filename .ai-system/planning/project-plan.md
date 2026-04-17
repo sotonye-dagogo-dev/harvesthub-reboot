@@ -817,6 +817,111 @@ Ensure cart and checkout surfaces reconcile against current product reality, pre
 
 - Add reconciliation note to architecture docs only if cart lifecycle contract is formally documented there in this pass.
 
+---
+
+## Feature Spec - Home/Discovery/Voucher Restoration + Deals Foundation + Product Detail Expansion + Table Standardization (Planned 2026-04-17)
+
+> **Section summary:** Planning package for homepage layout corrections, discovery/search expansion with campus indexing, voucher/coupon lifecycle restoration, trending/deals confirmation, product detail enrichment, and reusable table standardization.
+
+**Feature summary:**
+Deliver a tightly scoped reliability and UX restoration wave across buyer and operations surfaces by fixing sidebar and product-card layout regressions, extending search to campus-aware discovery, restoring vouchers/coupons end-to-end, confirming and hardening the trending algorithm with deals foundations, enriching product detail context, and eliminating overflow-prone non-standard tables.
+
+**Why this is needed:**
+
+- Home desktop sidebar rail can visually exceed hero bounds and tile sizing still feels oversized in dense ad scenarios.
+- Some product-listing surfaces are rendering card layouts inconsistently (single-card full-width behavior instead of expected grid density).
+- Search currently does not fully leverage campus index in API and query/filter surfaces.
+- Voucher/coupon backend artifacts exist but checkout/public/admin end-to-end UX is incomplete and not fully operational.
+- Trending logic currently relies on a narrow metric (sales/review slices) and lacks a dedicated deals-ready contract for discounted limited-time products.
+- Product detail page needs stronger buyer confidence context (vendor stats, policy info, similar products context richness).
+- Multiple operations tables still use ad hoc/Ant table implementations that create horizontal overflow and inconsistent behavior.
+
+**Architecture impact:**
+
+- Home/discovery UI:
+  - `app/components/HomeContent.tsx`
+  - `components/features/ProductsContent.tsx`
+  - `components/features/ProductCard.tsx` and related list wrappers
+  - `lib/config/adRail.ts`
+- Search/campus indexing:
+  - `app/api/products/route.ts`
+  - `app/api/products/search/route.ts`
+  - `lib/data/prismaAdapter.ts` and/or search fetcher adapters used by product discovery
+  - `lib/config/productDiscovery.ts`
+- Voucher/coupon restoration:
+  - `app/api/vouchers/*`
+  - `app/api/admin/vouchers/*`
+  - `app/checkout/page.tsx`
+  - operations/admin voucher management page(s) under `app/(operations)/operations/*`
+  - authenticated voucher history page(s) under `app/*`
+  - transaction-safe helpers in `lib/db/transactions.ts`
+- Trending/deals foundation:
+  - `app/api/products/trending/route.ts`
+  - home/deals composition in `app/components/HomeContent.tsx`
+  - optional config module for trending/deals weighting/windows under `lib/config/*`
+- Product detail expansion:
+  - `app/products/[id]/page.tsx`
+  - supporting API/data access selectors for vendor stats/policy/related products
+- Table standardization:
+  - `components/ui/Table.tsx` (and potential reusable data-table wrapper)
+  - operations pages currently using direct `antd` table primitives (for example banners/users and similar pages)
+
+**New modules/services required (preferred):**
+
+- `lib/config/trendingDeals.ts` for scoring weights, recency windows, discount/deal eligibility, and limited-period thresholds.
+- `lib/services/vouchers.ts` (or equivalent shared service) to unify validate/apply/redeem semantics and prevent route drift.
+- `app/(operations)/operations/vouchers/page.tsx` for CRUD management UI using shared table/form patterns.
+- `app/vouchers/page.tsx` (or profile subsection) for authenticated users to view available/used voucher history.
+- Shared table wrapper enhancements (or migration guidelines) to enforce overflow-safe defaults across operations lists.
+
+**Data flow (target):**
+
+1. Discovery search includes product text + vendor name + vendor campus index filters in API and UI query state.
+2. Buyer can enter voucher/coupon at checkout; system validates against limits, applicability, validity windows, and order total.
+3. Voucher redemption is transaction-safe: redemption record write + usage counter update + order discount linkage happen atomically.
+4. Authenticated user can view voucher inventory and redemption usage timeline.
+5. Admin manages vouchers via CRUD surface with predictable validation and status visibility.
+6. Trending score contract is confirmed and parameterized; deals section derives from trending products that meet active discount/promo time constraints.
+7. Product detail page surfaces richer vendor stats/policy metadata plus related/similar products in stable responsive sections.
+8. Operations tables render through reusable overflow-safe table components with consistent mobile/desktop behavior.
+
+**UI/UX considerations (design-system aligned):**
+
+- Desktop sidebar rail height should not exceed hero visual footprint when rendered side-by-side.
+- Sidebar ad tiles should remain compact and square with consistent spacing tokens.
+- Product-card collections must preserve expected multi-column grid behavior on supported breakpoints.
+- Voucher entry feedback at checkout must be explicit, reversible, and non-destructive.
+- Voucher history and admin management surfaces should use clear status chips (active, expired, used, exhausted, inactive).
+- Product detail enrichment sections should be scannable and stacked responsively without overwhelming primary buy information.
+- Table surfaces should retain readability with horizontal containment and avoid viewport-level overflow.
+
+**Potential risks/edge cases:**
+
+- Campus-index search could widen query scope and impact response performance without proper indexing/selectivity.
+- Voucher race conditions (near-simultaneous redemption at usage limits) require strict transactional guards.
+- Deals/trending weighting changes may unexpectedly reorder products without explainability if configuration is opaque.
+- Migrating tables may regress sorting/actions if each page has bespoke column/action logic.
+- Product detail enrichment can introduce heavy queries unless vendor/policy/related selectors are bounded and cached.
+
+**Architecture doc updates needed:**
+
+- Add/refresh discovery flow notes for campus-aware search.
+- Add voucher lifecycle flow covering validate/apply/redeem/history/admin.
+- Add trending/deals scoring flow and time-window constraints.
+- Add operations table standardization guidance for overflow-safe reusable table usage.
+
+**Rollout order:**
+
+1. Homepage sidebar bound/tile-sizing and product-card grid consistency fixes.
+2. Campus-index search contract expansion (API + discovery state/UI controls).
+3. Voucher/coupon restoration end-to-end (checkout apply, user history, admin CRUD, transactional safety).
+4. Trending algorithm confirmation + configurable deals foundation.
+5. Product detail page enrichment (vendor stats, delivery policy, related/similar products).
+6. Operations table migration to reusable overflow-safe table contract.
+7. Focused validation and documentation sync.
+
+---
+
 > **Section summary:** Tasks that have already shipped in the current repository state.
 
 - [x] Rename and rebrand Martgram to MyHarvestHub (project metadata, README)
