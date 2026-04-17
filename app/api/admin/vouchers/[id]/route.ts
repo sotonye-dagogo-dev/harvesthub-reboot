@@ -76,3 +76,32 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
+export async function DELETE(_req: NextRequest, context: RouteContext) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== UserRole.ADMIN) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const rl = await rateLimitByUser(user.userId);
+        if (!rl.success) return getRateLimitResponse(rl);
+
+        const { id } = await context.params;
+        const existing = await prisma.voucher.findUnique({ where: { id } });
+        if (!existing) return NextResponse.json({ error: 'Voucher not found' }, { status: 404 });
+
+        // Only allow deletion if no redemptions exist (safety guard)
+        const redemptionCount = await prisma.voucherRedemption.count({ where: { voucherId: id } });
+        if (redemptionCount > 0) {
+            // Soft delete by deactivating instead of hard delete
+            await prisma.voucher.update({ where: { id }, data: { isActive: false } });
+            return NextResponse.json({ success: true, message: 'Voucher deactivated (has redemptions)' });
+        }
+
+        await prisma.voucher.delete({ where: { id } });
+        return NextResponse.json({ success: true, message: 'Voucher deleted' });
+    } catch (error) {
+        console.error('DELETE /api/admin/vouchers/[id] error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}

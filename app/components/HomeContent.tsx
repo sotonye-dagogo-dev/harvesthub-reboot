@@ -348,7 +348,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {featuredProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -356,28 +356,24 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div
+                  <ProductCard
                     key={product.id}
-                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
-                  >
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    image={product.images[0] || "/placeholder-product.jpg"}
+                    vendorName={vendorName}
+                    vendorId={product.vendorId}
+                    rating={avgRating}
+                    reviewCount={reviewCount}
+                    stock={product.stock}
+                    discount={product.discount}
+                    isFeatured={product.isFeatured}
+                    isVendorVerified={vendorStatus === "APPROVED"}
+                    isFavorite={isFavorite(product.id)}
+                    onToggleFavorite={() => guardedToggleFavorite(product.id)}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
                 );
               })}
             </div>
@@ -398,7 +394,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {trendingProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -406,28 +402,24 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div
+                  <ProductCard
                     key={product.id}
-                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
-                  >
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    image={product.images[0] || "/placeholder-product.jpg"}
+                    vendorName={vendorName}
+                    vendorId={product.vendorId}
+                    rating={avgRating}
+                    reviewCount={reviewCount}
+                    stock={product.stock}
+                    discount={product.discount}
+                    isFeatured={product.isFeatured}
+                    isVendorVerified={vendorStatus === "APPROVED"}
+                    isFavorite={isFavorite(product.id)}
+                    onToggleFavorite={() => guardedToggleFavorite(product.id)}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
                 );
               })}
             </div>
@@ -448,7 +440,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {newArrivals.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -456,28 +448,24 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div
+                  <ProductCard
                     key={product.id}
-                    className="min-w-[140px] max-w-[140px] snap-start sm:min-w-[170px] sm:max-w-[170px] md:min-w-[200px] md:max-w-[200px]"
-                  >
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    image={product.images[0] || "/placeholder-product.jpg"}
+                    vendorName={vendorName}
+                    vendorId={product.vendorId}
+                    rating={avgRating}
+                    reviewCount={reviewCount}
+                    stock={product.stock}
+                    discount={product.discount}
+                    isFeatured={product.isFeatured}
+                    isVendorVerified={vendorStatus === "APPROVED"}
+                    isFavorite={isFavorite(product.id)}
+                    onToggleFavorite={() => guardedToggleFavorite(product.id)}
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
                 );
               })}
             </div>
@@ -498,24 +486,20 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory sm:gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {popularVendors.map((vendor) => (
-                <div
+                <VendorCard
                   key={vendor.id}
-                  className="h-full min-w-[220px] max-w-[220px] snap-start sm:min-w-[260px] sm:max-w-[260px]"
-                >
-                  <VendorCard
-                    id={vendor.id}
-                    name={vendor.storeName}
-                    description={vendor.storeDescription || ""}
-                    logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
-                    category={formatVendorCategory(vendor.category)}
-                    campus={vendor.campus}
-                    rating={vendor.analytics?.averageRating || 0}
-                    productCount={vendor.productCount}
-                    isVerified={isVendorVerified(vendor)}
-                  />
-                </div>
+                  id={vendor.id}
+                  name={vendor.storeName}
+                  description={vendor.storeDescription || ""}
+                  logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
+                  category={formatVendorCategory(vendor.category)}
+                  campus={vendor.campus}
+                  rating={vendor.analytics?.averageRating || 0}
+                  productCount={vendor.productCount}
+                  isVerified={isVendorVerified(vendor)}
+                />
               ))}
             </div>
           </section>
