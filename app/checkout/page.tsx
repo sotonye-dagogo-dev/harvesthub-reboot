@@ -6,8 +6,8 @@ import { useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
-import { Radio, message } from "antd";
-import { Store, Wallet, CreditCard, Truck, CheckCircle, Info, CalendarClock } from "lucide-react";
+import { Radio, message, Tag } from "antd";
+import { Store, Wallet, CreditCard, Truck, CheckCircle, Info, CalendarClock, Ticket } from "lucide-react";
 import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
@@ -39,6 +39,14 @@ export default function CheckoutPage() {
   const [cardPaymentReference, setCardPaymentReference] = useState<string | null>(null);
   const [cardPaymentState, setCardPaymentState] = useState<CardPaymentState>("IDLE");
 
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    id: string;
+    code: string;
+    discount: number;
+  } | null>(null);
+  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+
   const hasServiceItems = useMemo(() => items.some((item) => item.isService), [items]);
   const hasMultipleVendors = useMemo(() => {
     const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
@@ -50,7 +58,8 @@ export default function CheckoutPage() {
   );
   const vendorCount = Math.max(1, vendorIds.length);
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
-  const total = totalPrice + deliveryFee;
+  const voucherDiscount = appliedVoucher?.discount ?? 0;
+  const total = totalPrice + deliveryFee - voucherDiscount;
   const vendorStatusKey = useMemo(() => vendorIds.slice().sort().join(","), [vendorIds]);
   const vendorOrderPayload = useMemo(
     () =>
@@ -251,6 +260,55 @@ export default function CheckoutPage() {
     return changed;
   }, [items, reconcileWithCatalog]);
 
+  const handleApplyVoucher = async () => {
+    const code = voucherCode.trim().toUpperCase();
+    if (!code) {
+      message.error("Please enter a voucher code");
+      return;
+    }
+    if (appliedVoucher?.code === code) {
+      message.info("This voucher is already applied");
+      return;
+    }
+    // Clear previous voucher before applying a new one to prevent stacking
+    if (appliedVoucher) {
+      setAppliedVoucher(null);
+    }
+    setIsValidatingVoucher(true);
+    try {
+      const res = await fetch("/api/vouchers/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, orderTotal: totalPrice + deliveryFee }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({} as { error?: string }));
+        throw new Error((err as { error?: string }).error || "Invalid voucher code");
+      }
+      const data = await res.json() as { voucher: { id: string; code: string; discount: number } };
+      setAppliedVoucher({
+        id: data.voucher.id,
+        code: data.voucher.code,
+        discount: data.voucher.discount,
+      });
+      message.success(`Voucher applied! Saving ${formatCurrency(data.voucher.discount)}`);
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : "Failed to validate voucher");
+    } finally {
+      setIsValidatingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+    message.info("Voucher removed");
+  };
+
+  const handleVoucherKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") void handleApplyVoucher();
+  };
+
   const handlePlaceOrder = async () => {
     if (deliveryMethod === "DELIVERY" && !selectedAddress) {
       message.error("Please select or add a delivery address");
@@ -379,6 +437,8 @@ export default function CheckoutPage() {
           paymentVerificationReference:
             paymentMethod === "CARD" && paymentReference ? paymentReference : undefined,
           vendorVerificationAcknowledged,
+          voucherCode: appliedVoucher?.code,
+          voucherDiscount: appliedVoucher?.discount,
         }),
       });
       const orderData = await orderRes.json().catch(() => ({}));
@@ -668,6 +728,55 @@ export default function CheckoutPage() {
               </div>
             ) : null}
           </Card>
+
+          {/* Voucher / Coupon */}
+          <Card>
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-ds-text-primary">
+              <Ticket className="h-5 w-5 text-ds-text-brand" />
+              Voucher / Coupon
+            </h2>
+            {appliedVoucher ? (
+              <div className="flex items-center justify-between rounded-ds-md border border-ds-status-success-border bg-ds-status-success-bg p-3">
+                <div>
+                  <p className="text-sm font-medium text-ds-status-success-text">
+                    <Tag color="green">{appliedVoucher.code}</Tag> applied
+                  </p>
+                  <p className="mt-0.5 text-xs text-ds-text-secondary">
+                    You save {formatCurrency(appliedVoucher.discount)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveVoucher}
+                  className="text-xs text-ds-status-error hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                  onKeyDown={handleVoucherKeyDown}
+                  placeholder="Enter voucher code"
+                  className="flex-1 rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary placeholder:text-ds-text-placeholder focus:border-ds-brand-primary focus:outline-none"
+                  disabled={isValidatingVoucher}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleApplyVoucher()}
+                  loading={isValidatingVoucher}
+                  disabled={isValidatingVoucher || !voucherCode.trim()}
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+          </Card>
         </div>
 
         {/* Order Summary */}
@@ -689,6 +798,12 @@ export default function CheckoutPage() {
                   Delivery is applied per vendor package ({vendorCount} vendors).
                 </p>
               ) : null}
+              {appliedVoucher && (
+                <div className="flex items-center justify-between text-ds-status-success-text">
+                  <span>Voucher discount</span>
+                  <span className="font-medium">-{formatCurrency(voucherDiscount)}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-4 border-t border-ds-border-base pt-4">

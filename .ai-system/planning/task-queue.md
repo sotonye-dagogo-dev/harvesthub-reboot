@@ -984,3 +984,53 @@
   - [x] Add header search tests for live suggestions, recent history interactions, keyboard controls, and responsive dropdown states.
   - [x] Run touched-scope validation (`eslint`, `npx tsc --noEmit`, focused Vitest).
   - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/checkpoints/session-log.md`, `.ai-system/summaries/dev-history.md`, and `.ai-system/memory/project-decisions.md` after implementation.
+
+---
+
+## Cloud Session Execution Queue (2026-04-17) — Home Layout + Campus Search + Voucher Restoration + Trending/Deals + Product Detail + DataTable Standardization
+
+> **Section summary:** One-pass execution queue for homepage layout parity fixes, campus-index discovery expansion, voucher/coupon restoration across buyer/admin flows, trending/deals algorithm foundation, product detail expansion, and overflow-safe reusable table rollout.
+
+- [x] Slice 1 — Home sidebar and product-card layout parity.
+  - [x] Constrain desktop sidebar container so its rendered height does not exceed adjacent hero banner footprint.
+  - [x] Scale sidebar ad tiles down for denser desktop presentation while preserving responsive behavior.
+  - [x] Fix affected product-listing surfaces to render expected grid card density (no single-card full-width regression).
+  - [x] Add/refresh focused tests for sidebar containment and product-card grid layout behavior.
+
+- [x] Slice 2 — Campus-index discovery/search expansion.
+  - [x] Extend products/discovery API query contract to include campus filtering/index-aware search matching.
+  - [x] Extend discovery UI/query-state plumbing to expose and persist campus-aware search/filter behavior.
+  - [x] Ensure search suggestions/discovery routes can return campus-relevant results without breaking current search behavior.
+  - [x] Add/refresh focused tests for campus search/filter contracts and query-state rehydration.
+
+- [x] Slice 3 — Voucher/coupon restoration end-to-end with transactional safety.
+  - [x] Audit and reuse existing voucher artifacts (`app/api/vouchers/*`, `app/api/admin/vouchers/*`, schema/models) before introducing new logic.
+  - [x] Restore checkout voucher entry/apply flow with explicit success/failure feedback and recalculated totals.
+  - [x] Restore authenticated user voucher page for available/used voucher visibility and usage history.
+  - [x] Restore/admin-deliver voucher management CRUD surface in operations using reusable table/forms.
+  - [x] Enforce atomic redemption semantics and usage-limit integrity (ACID-safe update + redemption record linkage).
+  - [x] Add/refresh focused tests for validate/apply/redeem limit checks, duplicate-redeem race handling, and CRUD behavior.
+
+- [x] Slice 4 — Trending algorithm confirmation + deals foundation.
+  - [x] Confirm and document canonical trending score inputs (sales, engagement, recency, availability constraints as applicable).
+  - [x] Refactor trending selection into config-driven contract to avoid hardcoded scoring behavior.
+  - [x] Lay foundation for home deals section: trending products with active discount/promotion and bounded time windows.
+  - [x] Add/refresh focused tests for trending ordering and deals eligibility window logic.
+
+- [x] Slice 5 — Product detail page enrichment.
+  - [x] Add summarized vendor stats/information section(s) in dedicated product page.
+  - [x] Add delivery policy (and related trust/context policy) section(s) sourced safely from existing data contracts/fallbacks.
+  - [x] Expand related/similar products section quality and data relevance.
+  - [x] Add/refresh focused tests for new product-detail section rendering and fallback behavior.
+
+- [x] Slice 6 — Reusable data-table standardization across operations.
+  - [x] Inventory operations pages using non-reusable tables (including banners/users and similar surfaces).
+  - [x] Migrate those tables to the main reusable data-table component (or reusable wrapper) with overflow-safe defaults.
+  - [x] Preserve per-page actions/sorting/filtering while eliminating viewport overflow regressions.
+  - [x] Add/refresh focused tests for overflow containment and key table interactions on migrated pages.
+
+- [x] Slice 7 — Final quality gate + documentation closure.
+  - [x] Run validation gate (`npm run lint`, `npx tsc --noEmit`, touched/focused tests, and any existing route/table audits).
+  - [x] Update `.ai-system/planning/task-queue.md` statuses and capture blockers with exact file-level context if any remain.
+  - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md`.
+  - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/memory/project-decisions.md`, and `.ai-system/agents/repair-system.md` where contracts/patterns changed.

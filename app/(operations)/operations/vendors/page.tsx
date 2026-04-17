@@ -431,13 +431,15 @@ export default function OperationsVendorsPage() {
         />
       ) : (
         <Card>
-          <Table
-            dataSource={filteredVendors}
-            columns={columns}
-            rowKey="id"
-            pagination={{ defaultPageSize: 10, showSizeChanger: true }}
-            scroll={{ x: 900 }}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              dataSource={filteredVendors}
+              columns={columns}
+              rowKey="id"
+              pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+              scroll={{ x: 900 }}
+            />
+          </div>
         </Card>
       )}
     </div>

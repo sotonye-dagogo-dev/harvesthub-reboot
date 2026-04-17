@@ -3838,3 +3838,54 @@ Restore feedback toast reliability, harden remember-me session behavior, unblock
 
 - Provided screenshot URL: `https://github.com/user-attachments/assets/5c952b37-e593-47c2-be52-798f1d1aac28`
 - Local Playwright capture: `/tmp/playwright-logs/ad-application-ui.png`
+
+---
+
+## Session 2026-04-17 — Cloud Single-Pass: Home/Search/Vouchers/Deals/Product/Tables
+
+**Goal:**
+Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-deals-product-table.md
+
+**Completed:**
+
+### Slice 0 — Baseline
+- npm run build ✅ npm run lint ✅ before session start
+
+### Slice 1 — Home Sidebar + Product Grid
+- `lib/config/adRail.ts` — `maxHeightClass` changed from `max-h-[26rem]` to `lg:max-h-[300px] xl:max-h-[332px]` (matches BannerCarousel hero heights exactly)
+- `app/components/HomeContent.tsx` — Featured Products, Trending Now, New Arrivals, Popular Vendors: converted from horizontal scroll carousels to responsive CSS grids (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`)
+
+### Slice 2 — Campus-Aware Search
+- `app/api/products/search/route.ts` — Added `campus` query param; typed via `Campus` enum; applied as `AND` filter to avoid OR-clause vendor conflicts
+- `app/api/products/route.ts` — Campus added to filterHash for correct cache keying; vendor storeName added to text search OR clause
+
+### Slice 3 — Voucher/Coupon End-to-End
+- `app/checkout/page.tsx` — Voucher code input card, apply/remove handlers, `/api/vouchers/validate` call, discount reflected in summary and order payload
+- `app/api/vouchers/my/route.ts` (new) — Available vouchers + user redemption history
+- `app/vouchers/page.tsx` (new) — User-facing available vouchers and history page
+- `app/(operations)/operations/vouchers/page.tsx` (new) — Admin CRUD page with list, create, edit (modal), deactivate, delete
+- `app/api/admin/vouchers/[id]/route.ts` — Added `DELETE` handler with soft-delete guard (deactivates if redemptions exist, hard-deletes if none)
+
+### Slice 4 — Trending Config + Deals Foundation
+- `lib/config/trendingDeals.ts` (new) — TRENDING_CONFIG (weights: sales 60%, rating 25%, recency 15%, 30-day newness window) and DEALS_CONFIG (5% min discount, 12 home page limit)
+- `app/api/products/trending/route.ts` — Upgraded to composite score using config; over-fetches and re-ranks
+- `app/api/products/deals/route.ts` (new) — Returns active discounted products (discount >= DEALS_CONFIG.minDiscountPercent)
+- `app/components/HomeContent.tsx` — Added `dealsProducts` derivation and "🔥 Hot Deals" section after New Arrivals
+
+### Slice 5 — Product Detail Enrichment
+- `app/products/[id]/page.tsx` — Expanded vendor SELECT to include campus, category, storeDescription, storeLogo, averageRating, totalReviews, totalSales, totalOrders; added Vendor Summary Card and Delivery & Policy 4-tile grid between main content and related products; bumped related products to take:6 with xl:grid-cols-6
+
+### Slice 6 — Operations Table Overflow
+- `app/(operations)/operations/banners/page.tsx` — `overflow-x-auto` wrapper + `scroll={{ x: 'max-content' }}`
+- `app/(operations)/operations/ads/page.tsx` — `overflow-x-auto` wrapper + `scroll={{ x: 'max-content' }}`
+- `app/(operations)/operations/products/page.tsx` — `overflow-x-auto` wrapper
+- `app/(operations)/operations/marketing-content/page.tsx` — `overflow-x-auto` wrapper
+- `app/(operations)/operations/bug-reports/page.tsx` — `overflow-x-auto` wrapper
+- `app/(operations)/operations/vendors/page.tsx` — `overflow-x-auto` wrapper
+
+**Validation:**
+- `npm run build` ✅
+- `npm run lint` ✅ (no warnings or errors)
+
+**Next Task:**
+No blockers. 2026-04-17 queue block complete. Future sessions can pick up from task-queue.md.
