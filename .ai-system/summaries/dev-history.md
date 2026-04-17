@@ -22,6 +22,30 @@
 [What comes next]
 ```
 
+## 2026-04-17 — Home Rail Responsive Density + Voucher Nav Access Wiring
+
+**Summary:**
+Corrected home product rail card widths so exactly 2/3/4 cards are visible at sm/md/lg breakpoints while maintaining horizontal-scroll overflow. Wired the existing voucher feature (pages already existed) into all navigation surfaces: RBAC routeConfig, nav labelMap, admin sidebar, header (desktop + mobile), and admin dashboard quick actions.
+
+**Completed:**
+- Fixed `HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS` for responsive 2/3/4 density.
+- Registered `/vouchers` and `/operations/vouchers` in RBAC routeConfig.
+- Added voucher labels to navigation labelMap.
+- Admin sidebar now shows Vouchers (Ticket icon) in `ADMIN_LINK_ORDER`.
+- Header shows Vouchers link for all authenticated users.
+- Admin dashboard quick actions includes "Manage Vouchers" → `/operations/vouchers`.
+
+**Key Changes:**
+- `app/components/HomeContent.tsx`: responsive rail item widths.
+- `lib/rbac/routeConfig.ts`, `lib/navigation.ts`: route + label registration.
+- `components/layout/Sidebar.tsx`, `components/layout/Header.tsx`: nav wiring.
+- `app/api/operations/dashboard/route.ts`: voucher quick action.
+
+**Next Sprint Focus:**
+Any additional UX polish or voucher discoverability (e.g. homepage promo section, profile page link).
+
+---
+
 ## 2026-04-17 — Card Density + Footer Links Grid + Wallet Paystack Handoff Fix
 
 **Summary:**

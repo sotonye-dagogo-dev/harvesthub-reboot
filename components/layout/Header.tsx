@@ -15,6 +15,7 @@ import {
   Heart,
   Store,
   Bell,
+  Ticket,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -171,6 +172,20 @@ export function Header() {
                 >
                   <Heart className="h-4 w-4" />
                   <span className="hidden lg:block">Favourites</span>
+                </Link>
+
+                {/* Vouchers - All users */}
+                <Link
+                  href="/vouchers"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive("/vouchers")
+                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
+                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                  )}
+                >
+                  <Ticket className="h-4 w-4" />
+                  <span className="hidden lg:block">Vouchers</span>
                 </Link>
 
                 {/* Wallet - All users */}
@@ -383,6 +398,21 @@ export function Header() {
                   >
                     <Heart className="h-5 w-5" />
                     Favourites
+                  </Link>
+
+                  {/* Vouchers */}
+                  <Link
+                    href="/vouchers"
+                    className={cn(
+                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
+                      isActive("/vouchers")
+                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
+                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
+                    )}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    <Ticket className="h-5 w-5" />
+                    Vouchers
                   </Link>
 
                   {/* Wallet */}
