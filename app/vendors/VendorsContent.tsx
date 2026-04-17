@@ -154,7 +154,7 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
           />
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:grid-cols-4">
               {paginatedVendors.map((vendor) => (
                 <VendorCard
                   key={vendor.id}
