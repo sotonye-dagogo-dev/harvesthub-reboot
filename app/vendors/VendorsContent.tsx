@@ -14,12 +14,13 @@ interface VendorsContentProps {
   products: Product[];
 }
 
+const VENDORS_DISCOVERY_ITEMS_PER_PAGE = 12;
+
 export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedCampus, setSelectedCampus] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
 
   // Get all approved vendors with product counts
   const allVendors = useMemo(
@@ -65,10 +66,10 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
     [allVendors]
   );
 
-  const totalPages = Math.ceil(filteredVendors.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredVendors.length / VENDORS_DISCOVERY_ITEMS_PER_PAGE);
   const paginatedVendors = filteredVendors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (currentPage - 1) * VENDORS_DISCOVERY_ITEMS_PER_PAGE,
+    currentPage * VENDORS_DISCOVERY_ITEMS_PER_PAGE
   );
 
   return (

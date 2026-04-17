@@ -32,6 +32,11 @@ interface HomeContentProps {
   vendors: Vendor[];
 }
 
+const HOME_RAIL_CONTAINER_CLASS =
+  "flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2";
+const HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS = "w-[15rem] flex-shrink-0 sm:w-[16rem] lg:w-[17rem]";
+const HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS = "w-[18rem] flex-shrink-0 sm:w-[19rem] lg:w-[20rem]";
+
 function normalizeBannerText(value: string | null | undefined): string {
   if (!value) return "";
   return value
@@ -42,11 +47,6 @@ function normalizeBannerText(value: string | null | undefined): string {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
-  const homeRailClass =
-    "flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2";
-  const productRailItemClass = "w-[15rem] flex-shrink-0 sm:w-[16rem] lg:w-[17rem]";
-  const vendorRailItemClass = "w-[18rem] flex-shrink-0 sm:w-[19rem] lg:w-[20rem]";
-
   const fetchHomeResource = useCallback(
     async (): Promise<{ banners: Banner[]; products: Product[]; vendors: Vendor[] }> => ({
       banners: await getBannersClient(),
@@ -359,7 +359,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={homeRailClass}>
+            <div className={HOME_RAIL_CONTAINER_CLASS}>
               {featuredProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -367,7 +367,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div key={product.id} className={productRailItemClass}>
+                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
                     <ProductCard
                       id={product.id}
                       name={product.name}
@@ -406,7 +406,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={homeRailClass}>
+            <div className={HOME_RAIL_CONTAINER_CLASS}>
               {trendingProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -414,7 +414,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div key={product.id} className={productRailItemClass}>
+                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
                     <ProductCard
                       id={product.id}
                       name={product.name}
@@ -453,7 +453,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={homeRailClass}>
+            <div className={HOME_RAIL_CONTAINER_CLASS}>
               {newArrivals.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -461,7 +461,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div key={product.id} className={productRailItemClass}>
+                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
                     <ProductCard
                       id={product.id}
                       name={product.name}
@@ -500,7 +500,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={homeRailClass}>
+            <div className={HOME_RAIL_CONTAINER_CLASS}>
               {dealsProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -508,7 +508,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 const { avgRating, reviewCount } = getProductReviewMetrics(product);
 
                 return (
-                  <div key={product.id} className={productRailItemClass}>
+                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
                     <ProductCard
                       id={product.id}
                       name={product.name}
@@ -547,9 +547,9 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={homeRailClass}>
+            <div className={HOME_RAIL_CONTAINER_CLASS}>
               {popularVendors.map((vendor) => (
-                <div key={vendor.id} className={vendorRailItemClass}>
+                <div key={vendor.id} className={HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS}>
                   <VendorCard
                     id={vendor.id}
                     name={vendor.storeName}
