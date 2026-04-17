@@ -570,14 +570,16 @@ export default function OperationsProductsPage() {
         </div>
       </div>
 
-      <Table
-        rowKey="id"
-        loading={loading || isRefreshing}
-        columns={columns}
-        dataSource={products ?? []}
-        pagination={{ defaultPageSize: 10 }}
-        scroll={{ x: 1100 }}
-      />
+      <div className="overflow-x-auto">
+        <Table
+          rowKey="id"
+          loading={loading || isRefreshing}
+          columns={columns}
+          dataSource={products ?? []}
+          pagination={{ defaultPageSize: 10 }}
+          scroll={{ x: 1100 }}
+        />
+      </div>
 
       <Modal
         title={editingProduct ? "Edit Product" : "Add Product"}

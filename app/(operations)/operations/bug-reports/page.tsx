@@ -330,20 +330,22 @@ export default function OperationsBugReportsPage() {
         />
       ) : (
         <Card>
-          <Table
-            columns={columns}
-            dataSource={reports}
-            rowKey="id"
-            pagination={{
-              current: page,
-              defaultPageSize: 20,
-              total,
-              onChange: (p) => setPage(p),
-              showTotal: (t) => `${t} reports`,
-            }}
-            scroll={{ x: 900 }}
-            size="middle"
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={reports}
+              rowKey="id"
+              pagination={{
+                current: page,
+                defaultPageSize: 20,
+                total,
+                onChange: (p) => setPage(p),
+                showTotal: (t) => `${t} reports`,
+              }}
+              scroll={{ x: 900 }}
+              size="middle"
+            />
+          </div>
         </Card>
       )}
 

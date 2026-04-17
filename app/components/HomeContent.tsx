@@ -170,6 +170,12 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 8);
 
+  // Get deals (products with discount >= 5%)
+  const dealsProducts = liveProducts
+    .filter((p) => p.isActive && typeof p.discount === 'number' && p.discount >= 5)
+    .sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0))
+    .slice(0, 12);
+
   // Get popular vendors (vendors with most products)
   const popularVendors = liveVendors
     .map((vendor) => ({
@@ -466,6 +472,53 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                     onToggleFavorite={() => guardedToggleFavorite(product.id)}
                     onAddToCart={() => handleAddToCart(product)}
                   />
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Hot Deals */}
+        {dealsProducts.length > 0 && (
+          <section className="mb-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
+                🔥 Hot Deals
+              </h2>
+              <Link
+                href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
+                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
+              >
+                View All →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+              {dealsProducts.map((product) => {
+                const vendor = liveVendors.find((v) => v.id === product.vendorId);
+                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+                const vendorStatus = vendor?.status || product.vendor?.status;
+                const { avgRating, reviewCount } = getProductReviewMetrics(product);
+
+                return (
+                  <div key={product.id}>
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      price={product.price}
+                      image={product.images[0] || "/placeholder-product.jpg"}
+                      vendorName={vendorName}
+                      vendorId={product.vendorId}
+                      rating={avgRating}
+                      reviewCount={reviewCount}
+                      stock={product.stock}
+                      discount={product.discount}
+                      isFeatured={product.isFeatured}
+                      isVendorVerified={vendorStatus === "APPROVED"}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
+                      onAddToCart={() => handleAddToCart(product)}
+                    />
+                  </div>
                 );
               })}
             </div>
