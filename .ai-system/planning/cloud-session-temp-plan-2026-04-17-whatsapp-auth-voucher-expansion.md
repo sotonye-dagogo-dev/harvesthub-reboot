@@ -49,7 +49,7 @@ Do not:
   - Enforce configured voucher scope in `/api/vouchers/validate` using checkout context.
   - Send checkout context when applying voucher.
 
-- [ ] Slice 5 — Validation + docs closure + PR
+- [x] Slice 5 — Validation + docs closure + PR
   - Run `npm run lint`, `npm run build`, and focused touched tests.
   - Sync `.ai-system` docs (`task-queue`, `session-log`, `dev-history`, architecture/decisions if required).
   - Raise PR.

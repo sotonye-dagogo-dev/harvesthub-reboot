@@ -84,7 +84,7 @@
 - [x] Update buyer vouchers listing API to suppress private vouchers from dashboard response.
 - [x] Update checkout voucher-validate request payload and enforce voucher scope applicability in `/api/vouchers/validate`.
 - [x] Run validation (`npm run lint`, `npm run build`, focused touched tests).
-- [ ] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/memory/repair if needed) and raise PR.
+- [x] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/memory/repair if needed) and raise PR.
 
 ---
 
