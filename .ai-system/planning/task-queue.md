@@ -1041,24 +1041,24 @@
 
 > **Section summary:** One-pass execution queue for home card rail conversion, dedicated discovery grid+pagination parity, and footer quick-link mobile grid readability.
 
-- [ ] Slice 1 — Home product-card rail conversion.
-  - [ ] Convert Featured Products section from grid layout to horizontal rail.
-  - [ ] Convert Trending Now section from grid layout to horizontal rail.
-  - [ ] Convert New Arrivals section from grid layout to horizontal rail.
-  - [ ] Convert Hot Deals section from grid layout to horizontal rail.
+- [x] Slice 1 — Home product-card rail conversion.
+  - [x] Convert Featured Products section from grid layout to horizontal rail.
+  - [x] Convert Trending Now section from grid layout to horizontal rail.
+  - [x] Convert New Arrivals section from grid layout to horizontal rail.
+  - [x] Convert Hot Deals section from grid layout to horizontal rail.
 
-- [ ] Slice 2 — Home vendor-card rail conversion.
-  - [ ] Convert Popular Vendors section from grid layout to horizontal rail with fixed card widths.
+- [x] Slice 2 — Home vendor-card rail conversion.
+  - [x] Convert Popular Vendors section from grid layout to horizontal rail with fixed card widths.
 
-- [ ] Slice 3 — Dedicated discovery pages keep grid + pagination.
-  - [ ] Preserve `/products` grid + pagination behavior for general and category-query exploration.
-  - [ ] Add pagination to `/vendors` while preserving gridded card display and active filters.
-  - [ ] Ensure page index resets safely when vendor filters/search criteria change.
+- [x] Slice 3 — Dedicated discovery pages keep grid + pagination.
+  - [x] Preserve `/products` grid + pagination behavior for general and category-query exploration.
+  - [x] Add pagination to `/vendors` while preserving gridded card display and active filters.
+  - [x] Ensure page index resets safely when vendor filters/search criteria change.
 
-- [ ] Slice 4 — Footer mobile quick-links grid.
-  - [ ] Update footer quick links to render as an appropriate mobile-first grid while preserving desktop readability.
+- [x] Slice 4 — Footer mobile quick-links grid.
+  - [x] Update footer quick links to render as an appropriate mobile-first grid while preserving desktop readability.
 
-- [ ] Slice 5 — Validation + documentation closure.
-  - [ ] Run validation gate (`npm run lint`, `npm run build`, focused/touched tests as practical).
-  - [ ] Update `.ai-system/planning/task-queue.md` with completion status.
-  - [ ] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md`.
+- [x] Slice 5 — Validation + documentation closure.
+  - [x] Run validation gate (`npm run lint`, `npm run build`, focused/touched tests as practical).
+  - [x] Update `.ai-system/planning/task-queue.md` with completion status.
+  - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md`.

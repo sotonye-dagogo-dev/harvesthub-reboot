@@ -22,6 +22,27 @@
 [What comes next]
 ```
 
+## 2026-04-17 — Home Rails + Discovery Grid/Pagination + Mobile Footer Link Grid
+
+**Summary:**
+Completed the requested one-pass layout parity update after creating planning artifacts with the `plan-feature` and cloud-session temp-plan workflow. Home marketplace card sections now use horizontal rails, while dedicated discovery surfaces remain grid-based with pagination behavior. Footer quick links were also optimized for mobile scannability using a compact grid presentation.
+
+**Completed:**
+- Added 2026-04-17 feature spec and queue block in `.ai-system` planning docs.
+- Created `.ai-system/planning/cloud-session-temp-plan-2026-04-17-home-rails-discovery-grid.md` for scope-locked cloud execution.
+- Converted home Featured/Trending/New Arrivals/Hot Deals/Popular Vendors sections to horizontal rails.
+- Added vendor discovery pagination in `/vendors` while preserving filters and grid card display.
+- Updated footer quick links to a mobile-first grid layout.
+- Validation: `npm run lint` passed; `npm run build` passed with known sitemap warnings; focused HomeContent banner-layout test still reflects pre-existing assertion mismatch.
+
+**Key Changes:**
+- Home page now behaves as quick-browse rail-first catalog surface.
+- Dedicated product/vendor exploration remains structured as grid + pagination for deeper discovery.
+- Footer quick-link navigation is more compact and readable on small screens.
+
+**Next Sprint Focus:**
+Monitor CI and reviewers’ feedback for any needed class-level tuning to rail card widths and vendor pagination density across breakpoints.
+
 ## 2026-04-16 — Cloud Execution: Ads/Wallet/Metadata/WhatsApp/Vendor-Card Reliability Closure
 
 ## 2026-04-16 — Cart Freshness + Checkout Live Guard + Sidebar/WhatsApp/Wallet Reliability Closure
