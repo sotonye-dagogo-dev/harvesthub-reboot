@@ -57,6 +57,8 @@ export const routeConfig: RouteConfig[] = [
     { path: '/faqs', labelKey: 'faqs', featureKey: 'faqs', public: true },
     { path: '/terms', labelKey: 'terms', featureKey: 'terms', public: true },
     { path: '/privacy', labelKey: 'privacy', featureKey: 'privacy', public: true },
+    { path: '/vouchers', labelKey: 'vouchers', featureKey: 'vouchers', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
+    { path: '/operations/vouchers', labelKey: 'adminVouchers', featureKey: 'operations-vouchers', public: false, roles: [UserRole.ADMIN] },
     { path: '/unauthorized', labelKey: 'unauthorized', featureKey: 'unauthorized', public: true },
 ];
 
