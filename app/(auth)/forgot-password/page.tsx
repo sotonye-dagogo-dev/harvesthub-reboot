@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Form, Input, Button, Alert, Card, Typography } from "antd";
+import { Form, Input, Button, Alert, Card, Typography, App } from "antd";
 import { MailOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { forgotPasswordSchema } from "@/lib/schemas/auth.schemas";
 import { z } from "zod";
+import { getFriendlyPasswordError } from "@/lib/utils/authMessages";
 
 const { Title, Text } = Typography;
 
@@ -13,15 +14,14 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const [form] = Form.useForm();
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
 
   const handleSubmit = async (values: ForgotPasswordFormData) => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
@@ -42,7 +42,8 @@ export default function ForgotPasswordPage() {
         setResetToken(data.token);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const raw = err instanceof Error ? err.message : "An error occurred";
+      message.error(getFriendlyPasswordError(raw));
     } finally {
       setLoading(false);
     }
@@ -121,17 +122,6 @@ export default function ForgotPasswordPage() {
             Enter your email address and we&apos;ll send you instructions to reset your password.
           </Text>
         </div>
-
-        {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            closable
-            onClose={() => setError(null)}
-            className="mb-4"
-          />
-        )}
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
           <Form.Item
