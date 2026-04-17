@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { VendorCard } from "@/components/features";
 import { Input, Select } from "antd";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, SimplePagination } from "@/components/ui";
 import { Search } from "lucide-react";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Vendor, Product } from "@/lib/types";
@@ -14,10 +14,13 @@ interface VendorsContentProps {
   products: Product[];
 }
 
+const VENDORS_PER_PAGE = 12;
+
 export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedCampus, setSelectedCampus] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Get all approved vendors with product counts
   const allVendors = useMemo(
@@ -47,6 +50,10 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
     });
   }, [allVendors, searchTerm, selectedCategory, selectedCampus]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedCampus]);
+
   // Get unique categories
   const categories = useMemo(
     () => Array.from(new Set(allVendors.map((v) => v.category))),
@@ -57,6 +64,12 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const campuses = useMemo(
     () => Array.from(new Set(allVendors.map((v) => v.campus))),
     [allVendors]
+  );
+
+  const totalPages = Math.ceil(filteredVendors.length / VENDORS_PER_PAGE);
+  const paginatedVendors = filteredVendors.slice(
+    (currentPage - 1) * VENDORS_PER_PAGE,
+    currentPage * VENDORS_PER_PAGE
   );
 
   return (
@@ -129,6 +142,10 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
           </div>
         </div>
 
+        <div className="mb-4 text-sm text-ds-text-secondary">
+          Showing {paginatedVendors.length} of {filteredVendors.length} vendors
+        </div>
+
         {/* Vendors Grid */}
         {filteredVendors.length === 0 ? (
           <EmptyState
@@ -136,22 +153,33 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
             description="Try adjusting your filters or search query"
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {filteredVendors.map((vendor) => (
-              <VendorCard
-                key={vendor.id}
-                id={vendor.id}
-                name={vendor.storeName}
-                description={vendor.storeDescription || ""}
-                logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
-                category={formatVendorCategory(vendor.category)}
-                campus={vendor.campus}
-                rating={vendor.analytics?.averageRating || 0}
-                productCount={vendor.productCount}
-                isVerified={isVendorVerified(vendor)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {paginatedVendors.map((vendor) => (
+                <VendorCard
+                  key={vendor.id}
+                  id={vendor.id}
+                  name={vendor.storeName}
+                  description={vendor.storeDescription || ""}
+                  logo={vendor.storeLogo || "/placeholder-vendor.jpg"}
+                  category={formatVendorCategory(vendor.category)}
+                  campus={vendor.campus}
+                  rating={vendor.analytics?.averageRating || 0}
+                  productCount={vendor.productCount}
+                  isVerified={isVendorVerified(vendor)}
+                />
+              ))}
+            </div>
+            {totalPages > 1 ? (
+              <div className="mt-8 flex justify-center">
+                <SimplePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            ) : null}
+          </>
         )}
 
         {/* Stats */}
