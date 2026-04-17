@@ -363,7 +363,9 @@ export default function OperationsAdsPage() {
         </div>
       </div>
 
-      <Table<ApplicationRow> dataSource={applications} columns={columns} loading={loading} />
+      <div className="overflow-x-auto">
+        <Table<ApplicationRow> dataSource={applications} columns={columns} loading={loading} scroll={{ x: 'max-content' }} />
+      </div>
     </div>
   );
 }

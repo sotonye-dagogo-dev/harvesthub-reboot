@@ -35,6 +35,14 @@ type ProductApiResponse = {
       storeName?: string | null;
       status?: string | null;
       whatsappNumber?: string | null;
+      campus?: string | null;
+      category?: string | null;
+      storeDescription?: string | null;
+      storeLogo?: string | null;
+      averageRating?: number | null;
+      totalReviews?: number | null;
+      totalSales?: number | null;
+      totalOrders?: number | null;
     } | null;
     reviews?: Array<{ rating?: number | null }>;
   };
@@ -51,6 +59,14 @@ async function fetchProduct(id: string) {
             storeName: true,
             status: true,
             whatsappNumber: true,
+            campus: true,
+            category: true,
+            storeDescription: true,
+            storeLogo: true,
+            averageRating: true,
+            totalReviews: true,
+            totalSales: true,
+            totalOrders: true,
           },
         },
         reviews: {
@@ -128,7 +144,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         vendor: { select: { storeName: true, status: true } },
       },
       orderBy: { sales: "desc" },
-      take: 4,
+      take: 6,
     })
     .catch(() => []);
   const relatedProducts = (Array.isArray(relatedProductsRaw) ? relatedProductsRaw : []) as Array<{
@@ -178,6 +194,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       }).toString()}`
     : null;
   const orderingAllowed = vendorVerified;
+  const vendorAvgRating = product.vendor?.averageRating ?? null;
   const productPrice = Number.isFinite(product.price) ? product.price : 0;
   const productDiscount = Number.isFinite(product.discount ?? NaN) ? (product.discount ?? 0) : 0;
   const productStock = Number.isFinite(product.stock) ? product.stock : 0;
@@ -269,10 +286,109 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
       </div>
 
+      {/* Vendor Summary Card */}
+      {product.vendor && (
+        <section className="mt-8">
+          <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">About the Vendor</h2>
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-5 shadow-ds-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Link href={vendorHref} className="text-lg font-bold text-ds-text-brand hover:underline">
+                    {vendorName}
+                  </Link>
+                  {vendorVerified ? (
+                    <Badge variant="success">Verified</Badge>
+                  ) : (
+                    <Badge variant="warning">Unverified</Badge>
+                  )}
+                </div>
+                {product.vendor.category && (
+                  <p className="mt-1 text-sm text-ds-text-secondary">{String(product.vendor.category).replace(/_/g, " ")}</p>
+                )}
+                {product.vendor.campus && (
+                  <p className="mt-1 text-sm text-ds-text-secondary">📍 {product.vendor.campus}</p>
+                )}
+                {product.vendor.storeDescription && (
+                  <p className="mt-2 text-sm text-ds-text-secondary line-clamp-3">{product.vendor.storeDescription}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+                {vendorAvgRating ? (
+                  <div className="text-right">
+                    <p className="text-xs text-ds-text-secondary">Vendor Rating</p>
+                    <p className="font-bold text-ds-text-primary">
+                      ⭐ {Number(vendorAvgRating).toFixed(1)}
+                    </p>
+                  </div>
+                ) : null}
+                <Link
+                  href={vendorHref}
+                  className="inline-flex items-center rounded-ds-md border border-ds-brand-primary px-4 py-2 text-sm font-medium text-ds-text-brand transition-colors hover:bg-ds-brand-surface"
+                >
+                  View Store →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Delivery & Policy */}
+      <section className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Delivery &amp; Pickup</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🏪</span>
+              <div>
+                <p className="font-semibold text-ds-text-primary">Church Pickup</p>
+                <p className="mt-1 text-sm text-ds-text-secondary">
+                  Available at Sunday services (1st &amp; 2nd) and midweek. Coordinate directly with your vendor after ordering.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🚚</span>
+              <div>
+                <p className="font-semibold text-ds-text-primary">Home Delivery</p>
+                <p className="mt-1 text-sm text-ds-text-secondary">
+                  Delivery is available at checkout with a fee per vendor. Delivery timeframes are coordinated by the vendor.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🔄</span>
+              <div>
+                <p className="font-semibold text-ds-text-primary">Returns &amp; Cancellations</p>
+                <p className="mt-1 text-sm text-ds-text-secondary">
+                  Contact the vendor directly to discuss returns. Orders can be cancelled before the vendor begins processing.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🛡️</span>
+              <div>
+                <p className="font-semibold text-ds-text-primary">Buyer Protection</p>
+                <p className="mt-1 text-sm text-ds-text-secondary">
+                  All transactions are recorded on MyHarvestHub. Report any issues to our platform support for assistance.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {relatedProducts.length > 0 && (
         <section className="mt-12">
           <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Related Products</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {relatedProducts.map((related) => (
               <ProductCard
                 key={related.id}

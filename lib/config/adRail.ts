@@ -1,6 +1,6 @@
 export const AD_RAIL_CONFIG = {
   desktop: {
-    maxHeightClass: "max-h-[26rem]",
+    maxHeightClass: "lg:max-h-[300px] xl:max-h-[332px]",
     gapClass: "gap-1.5",
     autoScroll: {
       stepPx: 112,

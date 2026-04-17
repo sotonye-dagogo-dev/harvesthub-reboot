@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import type { Prisma } from '../../../../prisma/generated/client';
+import { Campus } from '../../../../prisma/generated/client';
 
 export async function GET(req: NextRequest) {
     try {
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
         const listingType = searchParams.get('listingType');
         const minRating = searchParams.get('minRating');
         const inStock = searchParams.get('inStock');
+        const campus = searchParams.get('campus');
         const sort = searchParams.get('sort') || 'newest';
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
@@ -38,6 +40,18 @@ export async function GET(req: NextRequest) {
         if (listingType) where.listingType = listingType as Prisma.ProductWhereInput['listingType'];
         if (minRating) where.averageRating = { gte: parseFloat(minRating) };
         if (inStock === 'true') where.stock = { gt: 0 };
+        if (campus) {
+            const campusEnum = Object.values(Campus).find(
+                (c) => c.toUpperCase() === campus.toUpperCase()
+            );
+            if (campusEnum) {
+                // Use AND to avoid conflict with OR clause vendor relation conditions
+                where.AND = [
+                    ...(Array.isArray(where.AND) ? where.AND : []),
+                    { vendor: { campus: campusEnum } },
+                ] as Prisma.ProductWhereInput[];
+            }
+        }
         if (minPrice || maxPrice) {
             where.price = {};
             if (minPrice) where.price.gte = parseFloat(minPrice);

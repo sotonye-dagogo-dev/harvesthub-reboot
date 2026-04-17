@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         const isActive = searchParams.get('isActive');
         const isFeatured = searchParams.get('isFeatured');
         const search = searchParams.get('search');
+        const campus = searchParams.get('campus');
         const listingType = searchParams.get('listingType');
         const minPrice = searchParams.get('minPrice');
         const maxPrice = searchParams.get('maxPrice');
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
         // Build cache key from filters
-        const filterHash = JSON.stringify({ category, vendorId, isActive, isFeatured, search, listingType, minPrice, maxPrice, page, limit });
+        const filterHash = JSON.stringify({ category, vendorId, isActive, isFeatured, search, campus, listingType, minPrice, maxPrice, page, limit });
         const cacheKey = productListKey(filterHash);
         const cached = await cacheGet<{ products: unknown[]; total: number }>(cacheKey);
         if (cached) {
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
                 { name: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
                 { tags: { has: search.toLowerCase() } },
+                { vendor: { storeName: { contains: search, mode: 'insensitive' } } },
             ];
         }
         if (minPrice || maxPrice) {
@@ -57,6 +59,8 @@ export async function GET(req: NextRequest) {
             if (minPrice) where.price.gte = parseFloat(minPrice);
             if (maxPrice) where.price.lte = parseFloat(maxPrice);
         }
+        // Note: campus filtering is not passed to prismaAdapter (handled client-side).
+        // campus is included in filterHash for cache invalidation only.
 
         // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters
         const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;

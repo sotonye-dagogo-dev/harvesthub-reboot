@@ -316,12 +316,15 @@ export default function OperationsBannersPage() {
         </Card>
       ) : (
         <Card>
-          <Table
-            columns={columns}
-            dataSource={banners}
-            rowKey="id"
-            pagination={{ defaultPageSize: 10 }}
-          />
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={banners}
+              rowKey="id"
+              pagination={{ defaultPageSize: 10 }}
+              scroll={{ x: 'max-content' }}
+            />
+          </div>
         </Card>
       )}
 

@@ -365,14 +365,16 @@ export default function OperationsMarketingContentPage() {
       ) : content.length === 0 ? (
         <Empty description="No content found." />
       ) : (
-        <Table
-          dataSource={content}
-          columns={columns}
-          rowKey="id"
-          loading={isRefreshing}
-          pagination={{ defaultPageSize: 10 }}
-          scroll={{ x: 600 }}
-        />
+        <div className="overflow-x-auto">
+          <Table
+            dataSource={content}
+            columns={columns}
+            rowKey="id"
+            loading={isRefreshing}
+            pagination={{ defaultPageSize: 10 }}
+            scroll={{ x: 600 }}
+          />
+        </div>
       )}
 
       {/* Create/Edit Modal */}
