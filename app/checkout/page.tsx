@@ -270,6 +270,10 @@ export default function CheckoutPage() {
       message.info("This voucher is already applied");
       return;
     }
+    // Clear previous voucher before applying a new one to prevent stacking
+    if (appliedVoucher) {
+      setAppliedVoucher(null);
+    }
     setIsValidatingVoucher(true);
     try {
       const res = await fetch("/api/vouchers/validate", {

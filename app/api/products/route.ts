@@ -60,10 +60,8 @@ export async function GET(req: NextRequest) {
             if (minPrice) where.price.gte = parseFloat(minPrice);
             if (maxPrice) where.price.lte = parseFloat(maxPrice);
         }
-        if (campus) {
-            const existingVendorFilter = (where.vendor as Prisma.VendorWhereInput | undefined) ?? {};
-            where.vendor = { ...existingVendorFilter, campus };
-        }
+        // Note: campus filtering is not passed to prismaAdapter (handled client-side).
+        // campus is included in filterHash for cache invalidation only.
 
         // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters
         const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;

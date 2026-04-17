@@ -41,8 +41,11 @@ export async function GET(req: NextRequest) {
         if (minRating) where.averageRating = { gte: parseFloat(minRating) };
         if (inStock === 'true') where.stock = { gt: 0 };
         if (campus) {
-            const existingVendorFilter = (where.vendor as Prisma.VendorWhereInput | undefined) ?? {};
-            where.vendor = { ...existingVendorFilter, campus };
+            // Use AND to avoid conflict with OR clause vendor relation conditions
+            where.AND = [
+                ...(Array.isArray(where.AND) ? where.AND : []),
+                { vendor: { campus } },
+            ];
         }
         if (minPrice || maxPrice) {
             where.price = {};
