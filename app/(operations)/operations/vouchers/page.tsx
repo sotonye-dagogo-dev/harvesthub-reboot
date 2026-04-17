@@ -46,8 +46,8 @@ export default function OperationsVouchersPage() {
 
   const fetchVouchers = useCallback(async (): Promise<Voucher[]> => {
     const res = await fetch("/api/admin/vouchers?limit=100");
-    const data = (await res.json().catch(() => ({}))) as VouchersResponse;
     if (!res.ok) throw new Error("Failed to load vouchers");
+    const data = await res.json() as VouchersResponse;
     return data.vouchers ?? [];
   }, []);
 
@@ -106,8 +106,10 @@ export default function OperationsVouchersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to save voucher");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({} as { error?: string }));
+        throw new Error((err as { error?: string }).error || "Failed to save voucher");
+      }
 
       message.success(editingVoucher ? "Voucher updated" : "Voucher created");
       setShowModal(false);
@@ -132,8 +134,10 @@ export default function OperationsVouchersPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ isActive: !voucher.isActive }),
           });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.error || "Failed to update voucher");
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({} as { error?: string }));
+            throw new Error((err as { error?: string }).error || "Failed to update voucher");
+          }
           mutate((prev) =>
             (prev ?? []).map((v) => (v.id === voucher.id ? { ...v, isActive: !voucher.isActive } : v))
           );
@@ -149,8 +153,11 @@ export default function OperationsVouchersPage() {
     openActionConfirm(ActionConfirmPresets.delete("voucher"), async () => {
       try {
         const res = await fetch(`/api/admin/vouchers/${voucher.id}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to delete voucher");
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({} as { error?: string }));
+          throw new Error((err as { error?: string }).error || "Failed to delete voucher");
+        }
+        const data = await res.json() as { message?: string };
         mutate((prev) => (prev ?? []).filter((v) => v.id !== voucher.id));
         message.success(data.message ?? "Voucher removed");
       } catch (err) {

@@ -281,10 +281,11 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, orderTotal: totalPrice + deliveryFee }),
       });
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Invalid voucher code");
+        const err = await res.json().catch(() => ({} as { error?: string }));
+        throw new Error((err as { error?: string }).error || "Invalid voucher code");
       }
+      const data = await res.json() as { voucher: { id: string; code: string; discount: number } };
       setAppliedVoucher({
         id: data.voucher.id,
         code: data.voucher.code,

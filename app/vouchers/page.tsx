@@ -61,9 +61,11 @@ export default function MyVouchersPage() {
 
   const fetchMyVouchers = useCallback(async (): Promise<MyVouchersResponse> => {
     const res = await fetch("/api/vouchers/my", { cache: "no-store" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Failed to load vouchers");
-    return data as MyVouchersResponse;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({} as { error?: string }));
+      throw new Error((err as { error?: string }).error || "Failed to load vouchers");
+    }
+    return res.json() as Promise<MyVouchersResponse>;
   }, []);
 
   const { data, isLoading, error } = useSmartResource(fetchMyVouchers, {
