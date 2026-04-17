@@ -52,7 +52,6 @@ export async function GET(req: NextRequest) {
                 { description: { contains: search, mode: 'insensitive' } },
                 { tags: { has: search.toLowerCase() } },
                 { vendor: { storeName: { contains: search, mode: 'insensitive' } } },
-                { vendor: { campus: { contains: search, mode: 'insensitive' } } },
             ];
         }
         if (minPrice || maxPrice) {

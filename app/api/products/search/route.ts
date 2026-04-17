@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import type { Prisma } from '../../../../prisma/generated/client';
+import { Campus } from '../../../../prisma/generated/client';
 
 export async function GET(req: NextRequest) {
     try {
@@ -32,7 +33,6 @@ export async function GET(req: NextRequest) {
                 { description: { contains: q, mode: 'insensitive' } },
                 { tags: { has: q.toLowerCase() } },
                 { vendor: { storeName: { contains: q, mode: 'insensitive' } } },
-                { vendor: { campus: { contains: q, mode: 'insensitive' } } },
             ];
         }
         if (category) where.category = category as Prisma.ProductWhereInput['category'];
@@ -41,11 +41,16 @@ export async function GET(req: NextRequest) {
         if (minRating) where.averageRating = { gte: parseFloat(minRating) };
         if (inStock === 'true') where.stock = { gt: 0 };
         if (campus) {
-            // Use AND to avoid conflict with OR clause vendor relation conditions
-            where.AND = [
-                ...(Array.isArray(where.AND) ? where.AND : []),
-                { vendor: { campus } },
-            ];
+            const campusEnum = Object.values(Campus).find(
+                (c) => c.toUpperCase() === campus.toUpperCase()
+            );
+            if (campusEnum) {
+                // Use AND to avoid conflict with OR clause vendor relation conditions
+                where.AND = [
+                    ...(Array.isArray(where.AND) ? where.AND : []),
+                    { vendor: { campus: campusEnum } },
+                ] as Prisma.ProductWhereInput[];
+            }
         }
         if (minPrice || maxPrice) {
             where.price = {};

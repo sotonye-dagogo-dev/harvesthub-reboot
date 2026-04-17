@@ -39,7 +39,10 @@ type ProductApiResponse = {
       category?: string | null;
       storeDescription?: string | null;
       storeLogo?: string | null;
-      analytics?: unknown;
+      averageRating?: number | null;
+      totalReviews?: number | null;
+      totalSales?: number | null;
+      totalOrders?: number | null;
     } | null;
     reviews?: Array<{ rating?: number | null }>;
   };
@@ -60,7 +63,10 @@ async function fetchProduct(id: string) {
             category: true,
             storeDescription: true,
             storeLogo: true,
-            analytics: true,
+            averageRating: true,
+            totalReviews: true,
+            totalSales: true,
+            totalOrders: true,
           },
         },
         reviews: {
@@ -188,7 +194,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       }).toString()}`
     : null;
   const orderingAllowed = vendorVerified;
-  const vendorAnalytics = product.vendor?.analytics as { averageRating?: number; totalReviews?: number } | null;
+  const vendorAvgRating = product.vendor?.averageRating ?? null;
   const productPrice = Number.isFinite(product.price) ? product.price : 0;
   const productDiscount = Number.isFinite(product.discount ?? NaN) ? (product.discount ?? 0) : 0;
   const productStock = Number.isFinite(product.stock) ? product.stock : 0;
@@ -308,11 +314,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 )}
               </div>
               <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-                {vendorAnalytics?.averageRating ? (
+                {vendorAvgRating ? (
                   <div className="text-right">
                     <p className="text-xs text-ds-text-secondary">Vendor Rating</p>
                     <p className="font-bold text-ds-text-primary">
-                      ⭐ {Number(vendorAnalytics.averageRating).toFixed(1)}
+                      ⭐ {Number(vendorAvgRating).toFixed(1)}
                     </p>
                   </div>
                 ) : null}

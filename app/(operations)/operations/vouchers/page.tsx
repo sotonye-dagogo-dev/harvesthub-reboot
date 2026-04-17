@@ -57,6 +57,12 @@ export default function OperationsVouchersPage() {
     staleTimeMs: 10_000,
   });
 
+  const activeCount = useMemo(() => vouchers.filter((v) => v.isActive).length, [vouchers]);
+  const expiredCount = useMemo(() => {
+    const now = new Date();
+    return vouchers.filter((v) => new Date(v.validTo) < now).length;
+  }, [vouchers]);
+
   if (user?.role !== "ADMIN") {
     router.push("/unauthorized");
     return null;
@@ -165,12 +171,6 @@ export default function OperationsVouchersPage() {
       }
     });
   };
-
-  const activeCount = useMemo(() => vouchers.filter((v) => v.isActive).length, [vouchers]);
-  const expiredCount = useMemo(() => {
-    const now = new Date();
-    return vouchers.filter((v) => new Date(v.validTo) < now).length;
-  }, [vouchers]);
 
   return (
     <div className="space-y-6">
