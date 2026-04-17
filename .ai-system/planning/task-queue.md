@@ -1034,3 +1034,31 @@
   - [x] Update `.ai-system/planning/task-queue.md` statuses and capture blockers with exact file-level context if any remain.
   - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md`.
   - [x] Update `.ai-system/agents/system-architecture.md`, `.ai-system/memory/project-decisions.md`, and `.ai-system/agents/repair-system.md` where contracts/patterns changed.
+
+---
+
+## Cloud Session Execution Queue (2026-04-17) — Home Rails + Discovery Grid/Pagination + Mobile Footer Quick-Link Grid
+
+> **Section summary:** One-pass execution queue for home card rail conversion, dedicated discovery grid+pagination parity, and footer quick-link mobile grid readability.
+
+- [x] Slice 1 — Home product-card rail conversion.
+  - [x] Convert Featured Products section from grid layout to horizontal rail.
+  - [x] Convert Trending Now section from grid layout to horizontal rail.
+  - [x] Convert New Arrivals section from grid layout to horizontal rail.
+  - [x] Convert Hot Deals section from grid layout to horizontal rail.
+
+- [x] Slice 2 — Home vendor-card rail conversion.
+  - [x] Convert Popular Vendors section from grid layout to horizontal rail with fixed card widths.
+
+- [x] Slice 3 — Dedicated discovery pages keep grid + pagination.
+  - [x] Preserve `/products` grid + pagination behavior for general and category-query exploration.
+  - [x] Add pagination to `/vendors` while preserving gridded card display and active filters.
+  - [x] Ensure page index resets safely when vendor filters/search criteria change.
+
+- [x] Slice 4 — Footer mobile quick-links grid.
+  - [x] Update footer quick links to render as an appropriate mobile-first grid while preserving desktop readability.
+
+- [x] Slice 5 — Validation + documentation closure.
+  - [x] Run validation gate (`npm run lint`, `npm run build`, focused/touched tests as practical).
+  - [x] Update `.ai-system/planning/task-queue.md` with completion status.
+  - [x] Update `.ai-system/checkpoints/session-log.md` and `.ai-system/summaries/dev-history.md`.
