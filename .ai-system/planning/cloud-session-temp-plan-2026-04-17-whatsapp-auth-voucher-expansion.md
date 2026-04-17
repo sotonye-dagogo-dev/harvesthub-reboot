@@ -31,20 +31,20 @@ Do not:
 
 ## Execution Slices
 
-- [ ] Slice 1 — WhatsApp auth guard continuation safety
+- [x] Slice 1 — WhatsApp auth guard continuation safety
   - Guard `/contact/whatsapp` for authenticated users.
   - Persist safe internal continuation path for delayed/interrupted signup.
   - Refire continuation after successful verify-email + login.
 
-- [ ] Slice 2 — Pickup wording update
+- [x] Slice 2 — Pickup wording update
   - Update product detail pickup copy to “Available at Sunday or Midweek services”.
 
-- [ ] Slice 3 — Voucher dynamic scope + private visibility controls
+- [x] Slice 3 — Voucher dynamic scope + private visibility controls
   - Add reusable voucher scope parser/matcher (campus/category/product/vendor + visibility).
   - Extend admin voucher create/update/list behavior for new scope inputs and hidden/private voucher mode.
   - Extend operations voucher UI form/table to configure and display new scope/visibility state.
 
-- [ ] Slice 4 — Voucher interpretation in buyer flows
+- [x] Slice 4 — Voucher interpretation in buyer flows
   - Hide private vouchers from `/api/vouchers/my` dashboard payload.
   - Enforce configured voucher scope in `/api/vouchers/validate` using checkout context.
   - Send checkout context when applying voucher.

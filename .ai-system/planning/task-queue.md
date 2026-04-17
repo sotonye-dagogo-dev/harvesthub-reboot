@@ -75,15 +75,15 @@
 
 > **Section summary:** One-pass cloud execution queue to enforce auth-guarded WhatsApp handoff continuity, update requested pickup copy, and deliver configurable voucher scope/visibility behavior.
 
-- [ ] Add auth-guarded continuation flow for `/contact/whatsapp` with safe redirect/refire after signup/email verification/login.
-- [ ] Add shared safe internal redirect continuation helper and wire it through login/signup/verify-email continuity points.
-- [ ] Update product-detail pickup copy to “Available at Sunday or Midweek services.”
-- [ ] Add reusable voucher scope parser/matcher for categories/vendors/campuses/products + visibility.
-- [ ] Extend admin vouchers APIs (`GET`/`POST`/`PATCH`) to support scope + visibility fields while preserving backward compatibility.
-- [ ] Extend operations vouchers UI to configure and display voucher scope + private/public visibility.
-- [ ] Update buyer vouchers listing API to suppress private vouchers from dashboard response.
-- [ ] Update checkout voucher-validate request payload and enforce voucher scope applicability in `/api/vouchers/validate`.
-- [ ] Run validation (`npm run lint`, `npm run build`, focused touched tests).
+- [x] Add auth-guarded continuation flow for `/contact/whatsapp` with safe redirect/refire after signup/email verification/login.
+- [x] Add shared safe internal redirect continuation helper and wire it through login/signup/verify-email continuity points.
+- [x] Update product-detail pickup copy to “Available at Sunday or Midweek services.”
+- [x] Add reusable voucher scope parser/matcher for categories/vendors/campuses/products + visibility.
+- [x] Extend admin vouchers APIs (`GET`/`POST`/`PATCH`) to support scope + visibility fields while preserving backward compatibility.
+- [x] Extend operations vouchers UI to configure and display voucher scope + private/public visibility.
+- [x] Update buyer vouchers listing API to suppress private vouchers from dashboard response.
+- [x] Update checkout voucher-validate request payload and enforce voucher scope applicability in `/api/vouchers/validate`.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched tests).
 - [ ] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/memory/repair if needed) and raise PR.
 
 ---

@@ -42,6 +42,46 @@ Cloud sessions were prone to scope drift and partial closure when prompts were a
 - New cloud features should include temp-plan slices, locked constraints, and explicit final validation/docs gates.
 - Handoff prompts now consistently include scope lock and documentation sync requirements.
 
+## WhatsApp Guard Handoff Must Be Auth-Gated with Durable Safe Continuation
+
+**Decision:** `/contact/whatsapp` now requires authentication and stores a sanitized internal continuation path so users who start unauthenticated can complete signup/verify-email/login and then refire the original guard intent.
+**Date:** 2026-04-17
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Client requested seamless and interruption-tolerant chat continuation after auth completion. Persisted safe continuation avoids dead-ends during delayed email verification and prevents unsafe external redirect injection.
+
+**Alternatives Considered:**
+
+- Keep guard page publicly accessible and rely on user manually returning after signup (rejected: poor continuity and conversion risk).
+- Pass unsanitized raw `from` query through auth screens only (rejected: open-redirect risk and brittle across interruptions).
+
+**Implications:**
+
+- Auth and signup surfaces should preserve/refire only sanitized internal continuation paths.
+- Login consumes pending continuation fallback when explicit `from` is absent.
+- Future off-platform handoff flows should follow the same safe-continuation contract.
+
+## Voucher Targeting Uses Config-Driven Scope + PRIVATE Visibility
+
+**Decision:** Voucher applicability is now interpreted via reusable scope fields (categories, vendors, campuses, products) and a visibility mode (`PUBLIC`/`PRIVATE`) that hides private vouchers from buyer dashboard discovery while still allowing checkout code redemption.
+**Date:** 2026-04-17
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Client requested more granular campaign targeting and code-only vouchers. A shared scope parser/matcher keeps behavior dynamic and backward compatible without introducing hardcoded campaign branches.
+
+**Alternatives Considered:**
+
+- Add separate bespoke voucher types per campaign scenario (rejected: rigid and hard to maintain).
+- Use `isActive` to simulate hidden vouchers (rejected: deactivates checkout usability instead of hiding discovery only).
+
+**Implications:**
+
+- Admin voucher APIs/UI accept and persist scope + visibility configuration.
+- Buyer dashboard excludes `PRIVATE` vouchers while `/api/vouchers/validate` enforces targeting scope from checkout context.
+- Shared helper (`lib/vouchers/scope.ts`) should be reused for future voucher-related rules to avoid interpretation drift.
+
 ## Payment Initialization Amount Must Be App-Supplied Before Provider Checkout
 
 **Decision:** Keep payment initialize flow amount-driven from the application request. Do not defer amount entry to provider-hosted checkout for wallet/ad initialization flows.
