@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
             if (maxPrice) where.price.lte = parseFloat(maxPrice);
         }
         if (campus) {
-            where.vendor = { ...((where.vendor as object) || {}), campus };
+            const existingVendorFilter = (where.vendor as Prisma.VendorWhereInput | undefined) ?? {};
+            where.vendor = { ...existingVendorFilter, campus };
         }
 
         // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters

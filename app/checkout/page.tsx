@@ -300,6 +300,10 @@ export default function CheckoutPage() {
     message.info("Voucher removed");
   };
 
+  const handleVoucherKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") void handleApplyVoucher();
+  };
+
   const handlePlaceOrder = async () => {
     if (deliveryMethod === "DELIVERY" && !selectedAddress) {
       message.error("Please select or add a delivery address");
@@ -750,7 +754,7 @@ export default function CheckoutPage() {
                   type="text"
                   value={voucherCode}
                   onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => { if (e.key === "Enter") void handleApplyVoucher(); }}
+                  onKeyDown={handleVoucherKeyDown}
                   placeholder="Enter voucher code"
                   className="flex-1 rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary placeholder:text-ds-text-placeholder focus:border-ds-brand-primary focus:outline-none"
                   disabled={isValidatingVoucher}

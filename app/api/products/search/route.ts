@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
         if (minRating) where.averageRating = { gte: parseFloat(minRating) };
         if (inStock === 'true') where.stock = { gt: 0 };
         if (campus) {
-            where.vendor = { ...((where.vendor as object) || {}), campus };
+            const existingVendorFilter = (where.vendor as Prisma.VendorWhereInput | undefined) ?? {};
+            where.vendor = { ...existingVendorFilter, campus };
         }
         if (minPrice || maxPrice) {
             where.price = {};
