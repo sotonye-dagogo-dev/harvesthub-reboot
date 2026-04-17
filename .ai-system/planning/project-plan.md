@@ -78,6 +78,38 @@
 
 ---
 
+## Cloud Session Feature Spec - Home/Product/Vendor Card Density + Footer Link Grid + Wallet Deposit Handoff (Planned 2026-04-17)
+
+> **Section summary:** Scope-locked corrective pass for oversized product/vendor cards, footer link-section mobile layout, and wallet deposit redirect reliability to Paystack checkout.
+
+**Feature Objective:**
+Restore expected browsing density and responsive layout behavior across home rails, product/category discovery grids, and vendor discovery grids while fixing wallet deposit redirect behavior so users consistently reach Paystack checkout instead of blank pages.
+
+**Why This Is Needed:**
+
+- Product cards became oversized, reducing visible product density in home and discovery surfaces.
+- Footer mobile layout only gridded quick-link items, not the full footer links block sections.
+- Wallet deposit flow intermittently opened/left blank pages instead of reliably handing off to Paystack checkout.
+
+**Acceptance Criteria:**
+
+- Home product rails keep horizontal-scroll behavior while showing approximately two product cards at a time.
+- Products/category discovery grid uses 3 columns on mobile/tablet and 4 columns on large screens.
+- Find vendors page applies similar 3-column mobile/tablet and 4-column large-screen card density.
+- Footer links block (Quick Links, Support, Contact Us) renders in a mobile grid layout instead of pure stacked sections.
+- Wallet deposit initialization opens Paystack checkout directly (with safe fallback) and no longer depends on a pre-opened blank tab flow.
+
+**Rollout Order:**
+
+1. Restore home rail card width density.
+2. Restore products discovery grid density.
+3. Apply vendor discovery grid parity.
+4. Grid footer links sections on mobile.
+5. Stabilize wallet deposit handoff to direct Paystack open + fallback navigation.
+6. Validate (`lint`, `build`, focused touched tests) and sync docs.
+
+---
+
 ## Cloud Session Feature Spec - Production Readiness Completion (Planned 2026-04-04)
 
 > **Section summary:** Execution spec for the cloud session to complete interrupted refactor work and deliver production-ready behavior across critical platform flows.
