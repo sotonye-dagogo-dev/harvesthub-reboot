@@ -922,6 +922,56 @@ Deliver a tightly scoped reliability and UX restoration wave across buyer and op
 
 ---
 
+## Cloud Session Feature Spec - Home Rail Layout + Discovery Grid/Pagination + Mobile Footer Link Grid (Planned 2026-04-17)
+
+> **Section summary:** One-pass feature package to enforce home-as-rail browsing while keeping dedicated discovery pages grid-based and paginated, plus mobile footer quick-link grid readability.
+
+**Feature Objective:**
+Align marketplace browsing layouts by making home card sections horizontally scrollable rails, while preserving gridded + paginated exploration on dedicated products/category-view and vendors discovery pages.
+
+**Why This Is Needed:**
+
+- Home currently mixes category-first discovery with dense card grids, which reduces quick-scan browsing on smaller viewports.
+- Dedicated discovery pages should remain structured, filter-driven, and paginated for deeper exploration.
+- Footer quick links are currently linear on mobile and need a compact, scannable grid format.
+
+**Architecture Impact:**
+
+- `app/components/HomeContent.tsx` (home product/vendor presentation contract).
+- `app/vendors/VendorsContent.tsx` (find-vendors page pagination while retaining grid layout).
+- `components/layout/Footer.tsx` (quick-links mobile layout contract).
+- No API contract changes required.
+
+**Acceptance Criteria:**
+
+- Home product-card sections (featured, trending, new arrivals, hot deals) render as horizontal scroll rails, not multi-column grids.
+- Home vendor-card section renders as a horizontal rail, not grid.
+- Dedicated `/products` and category-driven product exploration continue to render grid cards with pagination.
+- `/vendors` (find vendors) renders grid cards with pagination controls.
+- Footer quick links render in a mobile-friendly grid without harming desktop readability.
+
+**UI/UX Constraints (Design-System Aligned):**
+
+- Preserve existing card visuals, spacing tokens, and typography; only adjust container layout behavior.
+- Rails must keep cards fixed-width and scrollable with no viewport overflow regressions.
+- Grid+pagination behavior on dedicated pages must remain deterministic after filters/search change.
+- Footer quick-link mobile grid should remain keyboard-accessible and link order-preserving.
+
+**Risks and Edge Cases:**
+
+- Horizontal rail sizing can accidentally clip card content on narrow devices if item widths are too large.
+- Vendor pagination must reset page index after filter changes to prevent empty pages.
+- Footer quick-link grid must avoid wrapping regressions for longer labels.
+
+**Rollout Order:**
+
+1. Update home card sections to horizontal rails.
+2. Add pagination to vendors discovery grid.
+3. Convert footer quick links to mobile grid contract.
+4. Validate lint/build/focused tests and sync `.ai-system` docs.
+
+---
+
 > **Section summary:** Tasks that have already shipped in the current repository state.
 
 - [x] Rename and rebrand Martgram to MyHarvestHub (project metadata, README)
