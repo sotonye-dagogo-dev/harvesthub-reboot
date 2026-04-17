@@ -22,6 +22,27 @@
 [What comes next]
 ```
 
+## 2026-04-17 — Card Density + Footer Links Grid + Wallet Paystack Handoff Fix
+
+**Summary:**
+Completed a scope-locked corrective pass for the reported layout and wallet issues after producing required cloud-session planning artifacts. Home/product/vendor card density behavior was restored to match requested viewport expectations, footer links sections were made mobile-grid friendly, and wallet deposit handoff was simplified to avoid blank-page outcomes.
+
+**Completed:**
+- Added planning artifacts: feature spec, queue block, and temp cloud plan file (`cloud-session-temp-plan-2026-04-17-card-density-footer-wallet-paystack.md`).
+- Reduced home product rail item width so approximately two products are visible while preserving horizontal scroll behavior.
+- Updated products/category viewer to `3/3/4` responsive grid columns.
+- Applied matching `3/3/4` responsive density to `/vendors`.
+- Updated footer section grid so the links sections block (Quick Links, Support, Contact Us) is gridded on mobile.
+- Switched wallet deposit to direct Paystack URL open with same-tab fallback instead of pre-opening a blank tab.
+- Validation: `npm run lint` passed; `npm run build` passed with known sitemap warnings; focused tests retain a pre-existing HomeContent expectation drift.
+
+**Key Changes:**
+- Restored compact discovery density without removing existing rail/grid paradigms.
+- Improved wallet payment handoff reliability in popup-restricted browser scenarios.
+
+**Next Sprint Focus:**
+Run/monitor CI and parallel validation, then tune any class-level expectation tests if maintainers decide to update banner-layout assertions in a separate cleanup pass.
+
 ## 2026-04-17 — Home Rails + Discovery Grid/Pagination + Mobile Footer Link Grid
 
 **Summary:**

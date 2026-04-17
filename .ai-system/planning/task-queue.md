@@ -71,6 +71,20 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-17) — Card Density + Footer Grid + Wallet Paystack Handoff
+
+> **Section summary:** One-pass corrective queue to restore discovery/home density behavior, footer links-section mobile grid layout, and direct wallet deposit handoff reliability to Paystack checkout.
+
+- [x] Restore home product rail card width density so approximately two products remain visible at a time.
+- [x] Restore products/category discovery responsive grid contract to `3/3/4` columns (mobile/tablet/large).
+- [x] Apply matching responsive card-density contract on `/vendors` (`3/3/4`).
+- [x] Update footer links sections container (Quick Links, Support, Contact Us) to mobile-grid behavior.
+- [x] Replace wallet pre-open blank-window deposit handoff with direct Paystack open + same-tab fallback navigation.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`) — lint/build passed; focused suite retains pre-existing `HomeContent.banner-layout` expectation drift.
+- [x] Sync `.ai-system` closure docs (`session-log`, `dev-history`, architecture/memory/repair when needed).
+
+---
+
 ## Cloud Session Execution Queue (2026-04-16) — Ads Duplication Guard + Sidebar Rail + Wallet/Payment + WhatsApp Intent + Metadata + Vendor-Card UX
 
 > **Section summary:** One-pass cloud execution package for non-breaking reliability and UX hardening across ad/banner mutations, sidebar ad rail behavior, wallet action containment, payment initialize diagnostics, origin-aware WhatsApp chat intent, dynamic metadata parity, and vendor-card layout consistency.
