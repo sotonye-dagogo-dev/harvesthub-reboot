@@ -4,12 +4,27 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { getPendingAuthRedirect, sanitizeInternalRedirectPath } from "@/lib/utils/authRedirect";
+
+function withLoginContinuation(redirectPath: string, continuation: string): string {
+  if (!continuation) return redirectPath;
+  const safePath = sanitizeInternalRedirectPath(redirectPath, "/login?verified=1");
+  const parsed = new URL(safePath, "https://myharvesthub.local");
+  if (!parsed.pathname.startsWith("/login")) {
+    return safePath;
+  }
+  if (!parsed.searchParams.get("from")) {
+    parsed.searchParams.set("from", continuation);
+  }
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
 
 export default function VerifyEmailPage() {
   const router = useRouter();
   const search = useSearchParams();
   const token = search.get("token") || "";
   const emailFromQuery = search.get("email") || "";
+  const continuationFromQuery = sanitizeInternalRedirectPath(search.get("from"), "");
   const isEmailChangeToken = token.startsWith("email-change:");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
@@ -38,11 +53,12 @@ export default function VerifyEmailPage() {
         if (res.ok && data.success) {
           setStatus("success");
           setMessage(data.message || "Email verified successfully.");
-          setRedirectPath(
+          const baseRedirect =
             typeof data.redirectTo === "string" && data.redirectTo.length > 0
               ? data.redirectTo
-              : "/login?verified=1"
-          );
+              : "/login?verified=1";
+          const continuation = continuationFromQuery || getPendingAuthRedirect() || "";
+          setRedirectPath(withLoginContinuation(baseRedirect, continuation));
         } else {
           setStatus("error");
           setMessage(data.error || "Verification failed.");
@@ -52,7 +68,7 @@ export default function VerifyEmailPage() {
         setMessage((err instanceof Error && err.message) || "Network error");
       }
     })();
-  }, [router, token]);
+  }, [continuationFromQuery, router, token]);
 
   useEffect(() => {
     if (status !== "success") {

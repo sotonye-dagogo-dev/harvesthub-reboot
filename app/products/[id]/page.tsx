@@ -344,7 +344,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <p className="font-semibold text-ds-text-primary">Church Pickup</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
-                  Available at Sunday services (1st &amp; 2nd) and midweek. Coordinate directly with your vendor after ordering.
+                  Available at Sunday or Midweek services. Coordinate directly with your vendor after ordering.
                 </p>
               </div>
             </div>

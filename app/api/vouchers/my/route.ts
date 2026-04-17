@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { parseVoucherScope } from '@/lib/vouchers/scope';
 
 export async function GET(_req: NextRequest) {
     try {
@@ -45,20 +46,27 @@ export async function GET(_req: NextRequest) {
             {}
         );
 
-        const available = allVouchers.map((v) => ({
-            id: v.id,
-            code: v.code,
-            type: v.type,
-            value: v.value,
-            minOrderAmount: v.minOrderAmount,
-            maxDiscount: v.maxDiscount,
-            validFrom: v.validFrom,
-            validTo: v.validTo,
-            usageLimit: v.usageLimit,
-            usedCount: v.usedCount,
-            perUserLimit: v.perUserLimit,
-            userUsedCount: userRedemptionCountByVoucher[v.id] ?? 0,
-        }));
+        const available = allVouchers
+            .map((v) => {
+                const scope = parseVoucherScope(v.applicableCategories, v.applicableVendors);
+                return {
+                    id: v.id,
+                    code: v.code,
+                    type: v.type,
+                    value: v.value,
+                    minOrderAmount: v.minOrderAmount,
+                    maxDiscount: v.maxDiscount,
+                    validFrom: v.validFrom,
+                    validTo: v.validTo,
+                    usageLimit: v.usageLimit,
+                    usedCount: v.usedCount,
+                    perUserLimit: v.perUserLimit,
+                    userUsedCount: userRedemptionCountByVoucher[v.id] ?? 0,
+                    visibility: scope.visibility,
+                };
+            })
+            .filter((voucher) => voucher.visibility !== 'PRIVATE')
+            .map(({ visibility: _visibility, ...voucher }) => voucher);
 
         return NextResponse.json({ available, redemptions: userRedemptions });
     } catch (error) {

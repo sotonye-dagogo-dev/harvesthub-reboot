@@ -279,7 +279,15 @@ export default function CheckoutPage() {
       const res = await fetch("/api/vouchers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, orderTotal: totalPrice + deliveryFee }),
+        body: JSON.stringify({
+          code,
+          orderTotal: totalPrice + deliveryFee,
+          cartItems: items.map((item) => ({
+            productId: item.productId,
+            vendorId: item.vendorId,
+          })),
+          vendorIds,
+        }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({} as { error?: string }));

@@ -7,6 +7,8 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { VoucherType } from '@/prisma/generated/client';
+import { buildVoucherScopeStorage, parseVoucherScope, type VoucherVisibility } from '@/lib/vouchers/scope';
 
 interface RouteContext {
     params: Promise<{ id: string }>;
@@ -57,12 +59,56 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         if (!existing) return NextResponse.json({ error: 'Voucher not found' }, { status: 404 });
 
         const body = await req.json();
-        const allowedFields = ['isActive', 'value', 'usageLimit', 'perUserLimit', 'validTo', 'maxDiscount', 'minOrderAmount', 'applicableCategories', 'applicableVendors'];
         const data: Record<string, unknown> = {};
-        for (const field of allowedFields) {
-            if (body[field] !== undefined) {
-                data[field] = field === 'validTo' ? new Date(body[field]) : body[field];
+
+        if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
+        if (body.value !== undefined) data.value = Number(body.value);
+        if (body.usageLimit !== undefined) data.usageLimit = body.usageLimit === null ? null : Number(body.usageLimit);
+        if (body.perUserLimit !== undefined) data.perUserLimit = Number(body.perUserLimit);
+        if (body.validFrom !== undefined) data.validFrom = new Date(body.validFrom);
+        if (body.validTo !== undefined) data.validTo = new Date(body.validTo);
+        if (body.maxDiscount !== undefined) data.maxDiscount = body.maxDiscount === null ? null : Number(body.maxDiscount);
+        if (body.minOrderAmount !== undefined) data.minOrderAmount = Number(body.minOrderAmount);
+        if (body.type !== undefined) {
+            if (!Object.values(VoucherType).includes(body.type as VoucherType)) {
+                return NextResponse.json({ error: 'Invalid voucher type' }, { status: 400 });
             }
+            data.type = body.type;
+        }
+
+        const hasScopePatch =
+            body.applicableCategories !== undefined ||
+            body.applicableVendors !== undefined ||
+            body.applicableCampuses !== undefined ||
+            body.applicableProducts !== undefined ||
+            body.visibility !== undefined;
+        if (hasScopePatch) {
+            const existingScope = parseVoucherScope(existing.applicableCategories, existing.applicableVendors);
+            const mergedScope = {
+                categories:
+                    body.applicableCategories !== undefined
+                        ? Array.isArray(body.applicableCategories) ? body.applicableCategories : []
+                        : existingScope.categories,
+                vendorIds:
+                    body.applicableVendors !== undefined
+                        ? Array.isArray(body.applicableVendors) ? body.applicableVendors : []
+                        : existingScope.vendorIds,
+                campuses:
+                    body.applicableCampuses !== undefined
+                        ? Array.isArray(body.applicableCampuses) ? body.applicableCampuses : []
+                        : existingScope.campuses,
+                productIds:
+                    body.applicableProducts !== undefined
+                        ? Array.isArray(body.applicableProducts) ? body.applicableProducts : []
+                        : existingScope.productIds,
+                visibility:
+                    body.visibility !== undefined
+                        ? (typeof body.visibility === 'string' ? body.visibility.toUpperCase() : 'PUBLIC') as VoucherVisibility
+                        : existingScope.visibility,
+            };
+            const scopeStorage = buildVoucherScopeStorage(mergedScope);
+            data.applicableCategories = scopeStorage.applicableCategories;
+            data.applicableVendors = scopeStorage.applicableVendors;
         }
 
         if (Object.keys(data).length === 0) {

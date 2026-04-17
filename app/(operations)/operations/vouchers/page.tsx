@@ -11,6 +11,8 @@ import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, Ticket } from "lucide-reac
 import { App, Form, Input, InputNumber, Modal, Select, Switch, DatePicker } from "antd";
 import type { VoucherType } from "@/prisma/generated/client";
 import dayjs from "dayjs";
+import { CAMPUS_LOCATIONS, PRODUCT_CATEGORIES } from "@/lib/constants";
+import { parseVoucherScope, type VoucherVisibility } from "@/lib/vouchers/scope";
 
 interface Voucher {
   id: string;
@@ -26,12 +28,27 @@ interface Voucher {
   validTo: string;
   isActive: boolean;
   createdAt: string;
+  applicableCategories?: string[] | null;
+  applicableVendors?: unknown;
+  applicableCampuses?: string[] | null;
+  applicableProducts?: string[] | null;
+  visibility?: VoucherVisibility;
   _count?: { redemptions: number };
 }
 
 interface VouchersResponse {
   vouchers: Voucher[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+interface VendorOption {
+  id: string;
+  storeName?: string | null;
+}
+
+interface ProductOption {
+  id: string;
+  name?: string | null;
 }
 
 export default function OperationsVouchersPage() {
@@ -51,10 +68,34 @@ export default function OperationsVouchersPage() {
     return data.vouchers ?? [];
   }, []);
 
+  const fetchVendorOptions = useCallback(async (): Promise<VendorOption[]> => {
+    const res = await fetch("/api/vendors?limit=100&includeAllStatuses=true");
+    if (!res.ok) return [];
+    const data = await res.json() as { vendors?: VendorOption[] };
+    return Array.isArray(data.vendors) ? data.vendors : [];
+  }, []);
+
+  const fetchProductOptions = useCallback(async (): Promise<ProductOption[]> => {
+    const res = await fetch("/api/products?limit=100");
+    if (!res.ok) return [];
+    const data = await res.json() as { products?: ProductOption[] };
+    return Array.isArray(data.products) ? data.products : [];
+  }, []);
+
   const { data: vouchers = [], isLoading, error, mutate, refresh } = useSmartResource(fetchVouchers, {
     key: "operations-vouchers",
     refreshIntervalMs: 60_000,
     staleTimeMs: 10_000,
+  });
+  const { data: vendorOptions = [] } = useSmartResource(fetchVendorOptions, {
+    key: "operations-voucher-vendors",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 30_000,
+  });
+  const { data: productOptions = [] } = useSmartResource(fetchProductOptions, {
+    key: "operations-voucher-products",
+    refreshIntervalMs: 120_000,
+    staleTimeMs: 30_000,
   });
 
   const activeCount = useMemo(() => vouchers.filter((v) => v.isActive).length, [vouchers]);
@@ -71,11 +112,21 @@ export default function OperationsVouchersPage() {
   const handleCreate = () => {
     setEditingVoucher(null);
     form.resetFields();
-    form.setFieldsValue({ isActive: true, perUserLimit: 1, type: "PERCENTAGE" });
+    form.setFieldsValue({
+      isActive: true,
+      perUserLimit: 1,
+      type: "PERCENTAGE",
+      visibility: "PUBLIC",
+      applicableCategories: [],
+      applicableVendors: [],
+      applicableCampuses: [],
+      applicableProducts: [],
+    });
     setShowModal(true);
   };
 
   const handleEdit = (voucher: Voucher) => {
+    const scope = parseVoucherScope(voucher.applicableCategories, voucher.applicableVendors);
     setEditingVoucher(voucher);
     form.setFieldsValue({
       type: voucher.type,
@@ -87,6 +138,11 @@ export default function OperationsVouchersPage() {
       validFrom: dayjs(voucher.validFrom),
       validTo: dayjs(voucher.validTo),
       isActive: voucher.isActive,
+      applicableCategories: scope.categories,
+      applicableVendors: scope.vendorIds,
+      applicableCampuses: scope.campuses,
+      applicableProducts: scope.productIds,
+      visibility: scope.visibility,
     });
     setShowModal(true);
   };
@@ -100,6 +156,11 @@ export default function OperationsVouchersPage() {
         ...values,
         validFrom: values.validFrom.toISOString(),
         validTo: values.validTo.toISOString(),
+        applicableCategories: values.applicableCategories ?? [],
+        applicableVendors: values.applicableVendors ?? [],
+        applicableCampuses: values.applicableCampuses ?? [],
+        applicableProducts: values.applicableProducts ?? [],
+        visibility: values.visibility ?? "PUBLIC",
       };
 
       const url = editingVoucher
@@ -252,10 +313,23 @@ export default function OperationsVouchersPage() {
                 {vouchers.map((v) => {
                   const now = new Date();
                   const expired = new Date(v.validTo) < now;
+                  const scope = parseVoucherScope(v.applicableCategories, v.applicableVendors);
                   const label =
-                    v.type === "PERCENTAGE" ? `${v.value}% off` : `${formatCurrency(v.value)} off`;
+                    v.type === "PERCENTAGE"
+                      ? `${v.value}% off`
+                      : v.type === "FREE_DELIVERY"
+                        ? "Free delivery"
+                        : `${formatCurrency(v.value)} off`;
                   const usageLabel = v.usageLimit ? `${v.usedCount}/${v.usageLimit}` : `${v.usedCount} used`;
                   const redemptionsLabel = v._count?.redemptions ?? 0;
+                  const scopeSummary = [
+                    scope.campuses.length > 0 ? `${scope.campuses.length} campuses` : null,
+                    scope.categories.length > 0 ? `${scope.categories.length} categories` : null,
+                    scope.productIds.length > 0 ? `${scope.productIds.length} products` : null,
+                    scope.vendorIds.length > 0 ? `${scope.vendorIds.length} vendors` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
 
                   return (
                     <tr key={v.id} className="border-b border-ds-border-base last:border-0 hover:bg-ds-surface-sunken">
@@ -264,6 +338,12 @@ export default function OperationsVouchersPage() {
                         <p className="font-medium text-ds-text-primary">{label}</p>
                         {v.minOrderAmount ? (
                           <p className="text-xs text-ds-text-tertiary">Min. {formatCurrency(Number(v.minOrderAmount))}</p>
+                        ) : null}
+                        <p className="text-xs text-ds-text-tertiary">
+                          {scopeSummary || "All products/vendors/campuses"}
+                        </p>
+                        {scope.visibility === "PRIVATE" ? (
+                          <p className="text-xs text-ds-status-info-text">Private code (hidden from dashboard)</p>
                         ) : null}
                       </td>
                       <td className="px-4 py-3">
@@ -348,7 +428,8 @@ export default function OperationsVouchersPage() {
             >
               <Select>
                 <Select.Option value="PERCENTAGE">Percentage (%)</Select.Option>
-                <Select.Option value="FIXED">Fixed Amount (₦)</Select.Option>
+                <Select.Option value="FIXED_AMOUNT">Fixed Amount (₦)</Select.Option>
+                <Select.Option value="FREE_DELIVERY">Free Delivery</Select.Option>
               </Select>
             </Form.Item>
 
@@ -402,6 +483,62 @@ export default function OperationsVouchersPage() {
 
           <Form.Item name="isActive" label="Active" valuePropName="checked">
             <Switch />
+          </Form.Item>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Form.Item name="visibility" label="Dashboard Visibility" initialValue="PUBLIC">
+              <Select>
+                <Select.Option value="PUBLIC">Public (show in buyer dashboard)</Select.Option>
+                <Select.Option value="PRIVATE">Private (code-only at checkout)</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="applicableCampuses" label="Applicable Campuses">
+              <Select
+                mode="multiple"
+                allowClear
+                options={CAMPUS_LOCATIONS.map((campus) => ({
+                  value: campus.value,
+                  label: campus.label,
+                }))}
+                placeholder="All campuses"
+              />
+            </Form.Item>
+          </div>
+
+          <Form.Item name="applicableCategories" label="Applicable Categories">
+            <Select
+              mode="multiple"
+              allowClear
+              options={PRODUCT_CATEGORIES.map((category) => ({
+                value: category.value,
+                label: category.label,
+              }))}
+              placeholder="All categories"
+            />
+          </Form.Item>
+
+          <Form.Item name="applicableVendors" label="Applicable Vendors">
+            <Select
+              mode="multiple"
+              allowClear
+              options={vendorOptions.map((vendor) => ({
+                value: vendor.id,
+                label: vendor.storeName || vendor.id,
+              }))}
+              placeholder="All vendors"
+            />
+          </Form.Item>
+
+          <Form.Item name="applicableProducts" label="Applicable Products">
+            <Select
+              mode="multiple"
+              allowClear
+              options={productOptions.map((product) => ({
+                value: product.id,
+                label: product.name || product.id,
+              }))}
+              placeholder="All products"
+            />
           </Form.Item>
         </Form>
       </Modal>

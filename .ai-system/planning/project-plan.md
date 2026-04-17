@@ -78,6 +78,39 @@
 
 ---
 
+## Cloud Session Feature Spec - WhatsApp Auth-Guard Continuation + Pickup Copy + Voucher Scope Expansion (Planned 2026-04-17)
+
+> **Section summary:** Scope-locked implementation for authenticated WhatsApp handoff continuity, requested pickup copy replacement, and flexible voucher applicability/visibility controls.
+
+**Feature Objective:**
+Ensure WhatsApp contact redirection is auth-guarded with safe continuation through signup/email verification/login, update requested pickup copy, and expand vouchers to support configurable scope targeting (campus/category/product/vendor) plus private code-only vouchers hidden from buyer dashboards.
+
+**Why This Is Needed:**
+
+- Client requires a guarded and seamless WhatsApp redirect flow for unauthenticated users, including delayed/interrupted signup/verification completion paths.
+- Product detail pickup copy must reflect updated business wording.
+- Voucher operations need granular applicability controls and private/internal campaign vouchers that still work at checkout.
+
+**Acceptance Criteria:**
+
+- `/contact/whatsapp` requires authentication and safely persists continuation intent for unauthenticated users.
+- After signup and successful verify-email/login completion, users resume the intended WhatsApp guard flow.
+- Product detail pickup text reads: “Available at Sunday or Midweek services.”
+- Admin voucher create/edit supports scope by campuses, categories, products, and vendors.
+- Admin can mark voucher visibility as private (hidden from buyer voucher dashboard).
+- Voucher validation enforces configured scope filters at checkout and buyer voucher dashboard excludes private vouchers.
+
+**Rollout Order:**
+
+1. Add redirect continuation helper and auth guard wiring in WhatsApp/login/signup/verify-email flow.
+2. Apply pickup copy update.
+3. Add reusable voucher scope parser/matcher utilities.
+4. Extend admin voucher APIs and operations UI for scope/visibility configuration.
+5. Enforce scope/visibility in buyer voucher listing and voucher validate endpoint.
+6. Validate (`lint`, `build`, focused touched tests) and sync docs/PR.
+
+---
+
 ## Cloud Session Feature Spec - Home/Product/Vendor Card Density + Footer Link Grid + Wallet Deposit Handoff (Planned 2026-04-17)
 
 > **Section summary:** Scope-locked corrective pass for oversized product/vendor cards, footer link-section mobile layout, and wallet deposit redirect reliability to Paystack checkout.

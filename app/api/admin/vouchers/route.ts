@@ -9,6 +9,12 @@ import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-lim
 import { VoucherType } from '../../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
 import crypto from 'crypto';
+import {
+    buildVoucherScopeStorage,
+    parseVoucherScope,
+    type VoucherScopeConfig,
+    type VoucherVisibility,
+} from '@/lib/vouchers/scope';
 
 export async function GET(req: NextRequest) {
     try {
@@ -42,8 +48,20 @@ export async function GET(req: NextRequest) {
             prisma.voucher.count({ where }),
         ]);
 
+        const normalizedVouchers = vouchers.map((voucher) => {
+            const scope = parseVoucherScope(voucher.applicableCategories, voucher.applicableVendors);
+            return {
+                ...voucher,
+                applicableCategories: scope.categories,
+                applicableVendors: scope.vendorIds,
+                applicableCampuses: scope.campuses,
+                applicableProducts: scope.productIds,
+                visibility: scope.visibility,
+            };
+        });
+
         return NextResponse.json({
-            vouchers,
+            vouchers: normalizedVouchers,
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
     } catch (error) {
@@ -83,6 +101,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'validTo must be after validFrom' }, { status: 400 });
         }
 
+        const requestedScope: VoucherScopeConfig = {
+            categories: Array.isArray(voucherData.applicableCategories) ? voucherData.applicableCategories : [],
+            vendorIds: Array.isArray(voucherData.applicableVendors) ? voucherData.applicableVendors : [],
+            campuses: Array.isArray(voucherData.applicableCampuses) ? voucherData.applicableCampuses : [],
+            productIds: Array.isArray(voucherData.applicableProducts) ? voucherData.applicableProducts : [],
+            visibility: (typeof voucherData.visibility === 'string' ? voucherData.visibility.toUpperCase() : 'PUBLIC') as VoucherVisibility,
+        };
+        const scopeStorage = buildVoucherScopeStorage(requestedScope);
+
         const baseData = {
             type: voucherData.type as VoucherType,
             value: voucherData.value,
@@ -93,8 +120,8 @@ export async function POST(req: NextRequest) {
             validFrom: new Date(voucherData.validFrom),
             validTo: new Date(voucherData.validTo),
             isActive: voucherData.isActive ?? true,
-            applicableCategories: voucherData.applicableCategories ?? [],
-            applicableVendors: voucherData.applicableVendors ?? [],
+            applicableCategories: scopeStorage.applicableCategories,
+            applicableVendors: scopeStorage.applicableVendors,
             createdBy: user.userId,
         };
 

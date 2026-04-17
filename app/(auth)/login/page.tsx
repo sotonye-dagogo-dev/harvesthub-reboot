@@ -7,6 +7,11 @@ import { Form, Input, Button, Alert, Divider, Checkbox } from "antd";
 import { MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { PageLoader } from "@/components/ui";
+import {
+  clearPendingAuthRedirect,
+  consumePendingAuthRedirect,
+  sanitizeInternalRedirectPath,
+} from "@/lib/utils/authRedirect";
 
 const REMEMBER_ME_KEY = "myharvesthub_remember_me";
 
@@ -26,7 +31,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const redirectTo = searchParams.get("from") || "/";
+  const redirectFromQuery = sanitizeInternalRedirectPath(searchParams.get("from"), "");
   const verified = searchParams.get("verified");
   const emailChanged = searchParams.get("emailChanged");
 
@@ -64,6 +69,10 @@ function LoginForm() {
         password: values.password,
         rememberMe: values.rememberMe,
       });
+      const redirectTo = redirectFromQuery || consumePendingAuthRedirect() || "/";
+      if (redirectFromQuery) {
+        clearPendingAuthRedirect();
+      }
       router.push(redirectTo);
     } catch (err) {
       const errorMessage =
@@ -179,7 +188,11 @@ function LoginForm() {
           Don&apos;t have an account?{" "}
         </span>
         <Link
-          href="/signup"
+          href={
+            redirectFromQuery
+              ? `/signup?from=${encodeURIComponent(redirectFromQuery)}`
+              : "/signup"
+          }
           className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
         >
           Sign up
