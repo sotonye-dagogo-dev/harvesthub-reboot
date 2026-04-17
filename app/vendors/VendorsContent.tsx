@@ -14,7 +14,7 @@ interface VendorsContentProps {
   products: Product[];
 }
 
-const VENDORS_DISCOVERY_ITEMS_PER_PAGE = 12;
+const VENDORS_PER_PAGE = 12;
 
 export function VendorsContent({ vendors, products }: VendorsContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,10 +66,10 @@ export function VendorsContent({ vendors, products }: VendorsContentProps) {
     [allVendors]
   );
 
-  const totalPages = Math.ceil(filteredVendors.length / VENDORS_DISCOVERY_ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredVendors.length / VENDORS_PER_PAGE);
   const paginatedVendors = filteredVendors.slice(
-    (currentPage - 1) * VENDORS_DISCOVERY_ITEMS_PER_PAGE,
-    currentPage * VENDORS_DISCOVERY_ITEMS_PER_PAGE
+    (currentPage - 1) * VENDORS_PER_PAGE,
+    currentPage * VENDORS_PER_PAGE
   );
 
   return (

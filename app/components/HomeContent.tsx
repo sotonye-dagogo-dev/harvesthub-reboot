@@ -34,6 +34,8 @@ interface HomeContentProps {
 
 const HOME_RAIL_CONTAINER_CLASS =
   "flex gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2";
+const HOME_RAIL_FOCUS_CLASS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-brand-primary focus-visible:ring-offset-2";
 const HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS = "w-[15rem] flex-shrink-0 sm:w-[16rem] lg:w-[17rem]";
 const HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS = "w-[18rem] flex-shrink-0 sm:w-[19rem] lg:w-[20rem]";
 
@@ -359,7 +361,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={HOME_RAIL_CONTAINER_CLASS}>
+            <div
+              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+              tabIndex={0}
+              aria-label="Featured products horizontal list"
+            >
               {featuredProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -406,7 +412,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={HOME_RAIL_CONTAINER_CLASS}>
+            <div
+              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+              tabIndex={0}
+              aria-label="Trending products horizontal list"
+            >
               {trendingProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -453,7 +463,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={HOME_RAIL_CONTAINER_CLASS}>
+            <div
+              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+              tabIndex={0}
+              aria-label="New arrivals horizontal list"
+            >
               {newArrivals.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -500,7 +514,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={HOME_RAIL_CONTAINER_CLASS}>
+            <div
+              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+              tabIndex={0}
+              aria-label="Hot deals horizontal list"
+            >
               {dealsProducts.map((product) => {
                 const vendor = liveVendors.find((v) => v.id === product.vendorId);
                 const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
@@ -547,7 +565,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 View All →
               </Link>
             </div>
-            <div className={HOME_RAIL_CONTAINER_CLASS}>
+            <div
+              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+              tabIndex={0}
+              aria-label="Popular vendors horizontal list"
+            >
               {popularVendors.map((vendor) => (
                 <div key={vendor.id} className={HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS}>
                   <VendorCard
