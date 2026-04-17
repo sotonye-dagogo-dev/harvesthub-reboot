@@ -80,6 +80,11 @@ async function getAdminMetrics() {
             href: "/operations/vendors",
         },
         {
+            title: "Manage Vouchers",
+            description: "Create, edit, and manage discount vouchers and coupons.",
+            href: "/operations/vouchers",
+        },
+        {
             title: "Publish Public Content",
             description: "Edit banners, policy pages, and help content.",
             href: "/operations/public-content",

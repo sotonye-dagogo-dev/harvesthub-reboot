@@ -37,7 +37,7 @@ const HOME_RAIL_CONTAINER_CLASS =
 const HOME_RAIL_FOCUS_CLASS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-brand-primary focus-visible:ring-offset-2";
 const HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS =
-  "w-[calc((100%-0.75rem)/2)] min-w-[10.5rem] flex-shrink-0 sm:w-[calc((100%-0.75rem)/2)] lg:w-[calc((100%-0.75rem)/2)]";
+  "w-[calc((100%-0.75rem)/2)] min-w-[10.5rem] flex-shrink-0 md:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-2.25rem)/4)]";
 const HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS = "w-[18rem] flex-shrink-0 sm:w-[19rem] lg:w-[20rem]";
 
 function normalizeBannerText(value: string | null | undefined): string {
