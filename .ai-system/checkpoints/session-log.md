@@ -39,6 +39,55 @@
 
 ---
 
+## Session 79 — 2026-04-18
+
+**Goal:**
+Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow for top/hero banner navigator rework, compact hero action panel placement, fill-first top/ad image behavior, and PR-ready closure.
+
+**Completed:**
+
+- Added planning artifacts for this scope:
+  - Feature spec in `.ai-system/planning/project-plan.md`.
+  - Queue block in `.ai-system/planning/task-queue.md`.
+  - Temp cloud plan file: `.ai-system/planning/cloud-session-temp-plan-2026-04-18-banner-navigator-rework.md`.
+- Removed manual navigator controls and progress indicators from `TopAdBanner` while preserving rotation and click-through behavior.
+- Refactored `BannerCarousel` so hero controls no longer overlay image content:
+  - Added compact below-image action panel containing previous/next, center indicators, and Know More CTA.
+  - Reduced nav/Know More control sizing to keep panel lightweight.
+- Applied fill-first image rendering for top and ad/sidebar banner surfaces:
+  - Runtime: top strip image + home sidebar ad tiles.
+  - Preview parity: banner placement preview image rendering.
+- Added/updated focused banner tests to cover:
+  - Top multi-banner strips rendering without manual navigator controls.
+  - Hero Know More control placement outside image viewport.
+- Validation:
+  - `npx vitest run components/__tests__/TopAdBanner.contract.test.tsx components/__tests__/BannerCarousel.visual-contract.test.tsx` passed.
+  - `npm run lint` passed.
+  - `npm run build` passed (with known existing sitemap warnings unchanged).
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-18-banner-navigator-rework.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- app/components/HomeContent.tsx
+- components/features/TopAdBanner.tsx
+- components/features/BannerCarousel.tsx
+- components/features/BannerPlacementPreview.tsx
+- components/__tests__/TopAdBanner.contract.test.tsx
+- components/__tests__/BannerCarousel.visual-contract.test.tsx
+
+**Next Task:**
+Raise PR for review.
+
+**Notes / Blockers:**
+- Build retains known environment warnings for sitemap Prisma `findMany` in this runtime; behavior is pre-existing and unchanged by this slice.
+- `parallel_validation`: code review produced non-blocking fit-mode opinions (kept per client directive), and CodeQL timed out after one successful earlier scan reported 0 alerts.
+
+---
+
 ## Session 78 — 2026-04-17
 
 **Goal:**

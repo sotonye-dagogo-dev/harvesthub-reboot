@@ -23,6 +23,26 @@
 [What this decision affects going forward]
 ```
 
+## Top Banner Uses Navigator-Free Strip; Hero Uses Compact Below-Image Action Panel
+
+**Decision:** Remove all explicit navigator controls from the top banner strip, and render hero carousel navigation/indicators/Know More inside a thin action panel below the hero image instead of overlaying controls on the image.
+**Date:** 2026-04-18
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Client feedback identified control overlays as visually distorting banner presentation and increasing perceived page weight. Moving hero controls into a compact external panel preserves action discoverability while reducing image interference.
+
+**Alternatives Considered:**
+
+- Keep existing overlay controls and only reduce opacity/size (rejected: still overlays imagery and did not satisfy removal request for top strip).
+- Remove hero controls entirely (rejected: weak discoverability for multi-banner navigation and details access).
+
+**Implications:**
+
+- Top banner remains rotation/link-capable but has no manual controls.
+- Hero action affordances are centralized in a compact panel below imagery.
+- Banner-focused visual contracts should assert below-image control placement and compact control sizing.
+
 ## Cloud Session Work Requires Temp Plan + Scope-Locked One-Pass Command
 
 **Decision:** Any feature delegated to cloud execution must ship with a feature spec, queue block, and dedicated cloud temp plan, and should be kicked off with `.ai-system/commands/cloud-session-single-pass.md`.

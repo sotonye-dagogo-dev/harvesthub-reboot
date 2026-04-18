@@ -33,7 +33,7 @@ function PreviewFrame({
         className={`relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-sunken ${className}`}
       >
         {imageUrl ? (
-          <Image src={imageUrl} alt={`${label} banner preview`} fill className="object-contain" unoptimized />
+          <Image src={imageUrl} alt={`${label} banner preview`} fill className="object-fill" unoptimized />
         ) : (
           <div className="flex h-full items-center justify-center px-3 text-center text-xs text-ds-text-tertiary">
             Upload an image to preview this placement.
@@ -64,6 +64,10 @@ export function BannerPlacementPreview({
   return (
     <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3">
       <p className="mb-2 text-sm font-medium text-ds-text-primary">Frontend Preview</p>
+      <p className="mb-2 text-xs text-ds-text-secondary">
+        Images are rendered fill-first in banner containers. Use recommended placement dimensions to avoid
+        stretching.
+      </p>
       {position === "TOP" ? (
         <>
           <p className="mb-2 text-xs text-ds-text-secondary">

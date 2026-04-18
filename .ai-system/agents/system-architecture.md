@@ -75,9 +75,9 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Home Banner Deck Composition Flow
 
 ```
-1. Global layout renders `TOP` banners as a compact full-width strip (roughly half previous height) with `object-contain` image strategy to keep clipping near zero.
+1. Global layout renders `TOP` banners as a compact full-width strip (roughly half previous height) with fill-first image rendering and no in-strip navigator controls.
 2. Home surface loads active banner payloads and separates them by placement (`HERO`, `SIDEBAR`).
-3. Hero placement renders as image-first carousel with reduced viewport height contract (~1/6 shorter) and `Know More` CTA for modal details.
+3. Hero placement renders as image-first carousel with reduced viewport height contract (~1/6 shorter) and a compact below-image action panel containing nav controls, center indicators, and `Know More` CTA for modal details.
 4. Sidebar placement renders compact square banner tiles in a denser responsive grid so more ads remain visible at once.
 5. Banner links/actions remain config/data-driven with fallback to non-clickable cards when no destination is configured.
 6. Operations/advertise preview surfaces mirror runtime placement ratios to avoid preview-runtime drift.

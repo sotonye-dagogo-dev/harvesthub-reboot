@@ -259,7 +259,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                             src={banner.imageUrl}
                             alt={normalizeBannerText(banner.title) || "Sidebar banner"}
                             fill
-                            className="object-cover"
+                            className="object-fill"
                             sizes={sidebarImageSizes}
                           />
                         </div>
@@ -304,7 +304,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                             src={banner.imageUrl}
                             alt={normalizeBannerText(banner.title) || "Sidebar banner"}
                             fill
-                            className="object-cover"
+                            className="object-fill"
                             sizes={sidebarImageSizes}
                           />
                         </div>
