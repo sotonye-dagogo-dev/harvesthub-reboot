@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { HomeContent } from "@/app/components/HomeContent";
 
 vi.mock("@/components/features", () => ({
@@ -109,5 +109,27 @@ describe("HomeContent banner layout contract", () => {
     desktopTiles.forEach((tile) => {
       expect(tile.innerHTML).toContain("aspect-square");
     });
+  });
+
+  it("opens modal details when sidebar ad tiles are clicked instead of navigating immediately", () => {
+    const banners = [
+      buildBanner("hero-1", "HERO"),
+      {
+        ...buildBanner("side-linked", "SIDEBAR"),
+        title: "Sidebar Promo",
+        description: "Learn more in modal",
+        linkUrl: "/operations/dashboard",
+      },
+    ];
+
+    render(<HomeContent banners={banners} products={[]} vendors={[]} />);
+
+    const sidebarButtons = screen.getAllByRole("button", { name: /know more about sidebar promo/i });
+    expect(sidebarButtons.length).toBeGreaterThan(0);
+    fireEvent.click(sidebarButtons[0]);
+
+    expect(screen.getByRole("dialog", { name: /sidebar promo – details/i })).toBeInTheDocument();
+    expect(screen.getByText("Sidebar Promo")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sidebar promo/i })).not.toBeInTheDocument();
   });
 });

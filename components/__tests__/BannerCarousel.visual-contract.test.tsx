@@ -70,4 +70,35 @@ describe("BannerCarousel visual contract", () => {
     expect(modalImage.className).toContain("h-56");
     expect(modalImage.className).toContain("sm:h-64");
   });
+
+  it("uses icon-only caret nav controls and icon-only info action in the hero panel", () => {
+    render(
+      <BannerCarousel
+        autoPlay={false}
+        banners={[
+          {
+            id: "hero-1",
+            title: "Hero One",
+            image: "/hero-banner.jpg",
+          },
+          {
+            id: "hero-2",
+            title: "Hero Two",
+            image: "/hero-banner-two.jpg",
+          },
+        ]}
+      />
+    );
+
+    const prevButton = screen.getByRole("button", { name: /previous banner/i });
+    const nextButton = screen.getByRole("button", { name: /next banner/i });
+    const infoButton = screen.getByRole("button", { name: /know more about hero one/i });
+
+    expect(prevButton).toBeInTheDocument();
+    expect(nextButton).toBeInTheDocument();
+    expect(infoButton).toBeInTheDocument();
+    expect(prevButton).not.toHaveTextContent(/prev/i);
+    expect(nextButton).not.toHaveTextContent(/next/i);
+    expect(infoButton).not.toHaveTextContent(/know more/i);
+  });
 });
