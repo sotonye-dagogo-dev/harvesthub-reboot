@@ -22,6 +22,29 @@
 [What comes next]
 ```
 
+## 2026-04-18 — Hero Icon Controls + Sidebar Modal-First Ad Interaction
+
+**Summary:**
+Completed the requested minor UX follow-up for home banners with a cloud-session temp plan artifact and one-pass implementation. Hero action panel controls were simplified to icon-only interactions, hero image corner rounding was restored, and sidebar ad tile clicks were changed to open modal details first instead of immediate redirect.
+
+**Completed:**
+- Added temp plan file: `.ai-system/planning/cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md`.
+- Refactored `BannerCarousel` controls to caret icon-only prev/next plus info-icon Know More trigger.
+- Added explicit rounded hero viewport corners for full image border restoration.
+- Exported/reused shared `BannerActionModal` in home sidebar flow.
+- Updated `HomeContent` sidebar tile click behavior to modal-first payload handoff.
+- Updated focused tests for icon controls + sidebar modal behavior.
+- Validation: `npm run lint` passed, `npm run build` passed (known sitemap warnings unchanged), focused touched vitest suites passed.
+
+**Key Changes:**
+- Sidebar ad interactions are now consistent with hero "Know More" behavior via a shared modal viewer path.
+- Hero action panel now has lower visual weight while maintaining accessibility labels.
+
+**Next Sprint Focus:**
+Run `parallel_validation`, resolve any valid findings, and finalize PR delivery.
+
+---
+
 ## 2026-04-18 — Top/Hero Banner Navigator Rework + Fill-First Banner Images
 
 **Summary:**

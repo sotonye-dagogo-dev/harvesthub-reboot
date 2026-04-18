@@ -39,6 +39,48 @@
 
 ---
 
+## Session 80 — 2026-04-18
+
+**Goal:**
+Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` follow-up for minor hero/sidebar banner UX changes (iconized controls, rounded hero image corners, and sidebar modal-first click behavior), then prepare PR-ready closure.
+
+**Completed:**
+
+- Added temp cloud plan artifact:
+  - `.ai-system/planning/cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md`.
+- Updated hero banner action panel UX in `BannerCarousel`:
+  - Prev/next buttons are now caret icon-only controls.
+  - Know More is now an info icon trigger (ARIA label retained).
+  - Hero viewport now has explicit rounded corners including lower image corners.
+- Extracted and reused the hero modal viewer component (`BannerActionModal`) so it can serve both hero and sidebar ad details.
+- Updated home sidebar ad interaction:
+  - Sidebar ad tiles now open modal details first instead of immediate redirect.
+  - Clicked sidebar ad payload is mapped and passed into shared modal viewer.
+- Updated focused tests:
+  - Hero visual contract now verifies icon-only controls.
+  - Home banner layout test now verifies sidebar modal-first click behavior and refreshed rail-height expectation via config.
+- Validation:
+  - `npm run lint` passed.
+  - `npm run build` passed (known existing sitemap warnings unchanged).
+  - `npx vitest run components/__tests__/BannerCarousel.visual-contract.test.tsx app/components/__tests__/HomeContent.banner-layout.test.tsx` passed.
+
+**Files Modified:**
+
+- .ai-system/planning/cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md
+- .ai-system/planning/task-queue.md
+- app/components/HomeContent.tsx
+- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- components/features/BannerCarousel.tsx
+- components/__tests__/BannerCarousel.visual-contract.test.tsx
+
+**Next Task:**
+Run `parallel_validation`, address any valid findings, then raise/finalize PR.
+
+**Notes / Blockers:**
+- Full-suite tests remain baseline-red in this repository (pre-existing, unrelated to this scope).
+
+---
+
 ## Session 79 — 2026-04-18
 
 **Goal:**

@@ -32,6 +32,22 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-18) — Hero Icon Controls + Sidebar Modal-First Ad Click
+
+> **Section summary:** Follow-up one-pass queue to iconize hero action controls, restore rounded hero image corners, and route sidebar ad clicks through the shared modal viewer flow.
+
+- [x] Create cloud temp plan artifact for this follow-up scope (`cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md`).
+- [x] Switch hero action-panel prev/next controls to caret icon-only buttons while preserving accessible labels.
+- [x] Replace hero Know More text button with info icon trigger while preserving modal open behavior and accessibility labels.
+- [x] Restore explicit rounded hero image viewport corners (including lower corners).
+- [x] Change sidebar ad tile click contract to open modal details viewer first instead of immediate redirect.
+- [x] Reuse shared hero/banner modal component for sidebar ad payload rendering.
+- [x] Refresh focused tests for icon-control and sidebar modal behavior.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`).
+- [x] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`) and raise PR.
+
+---
+
 ## Cloud Session Execution Queue (2026-04-18) — Top/Hero Banner Navigator Rework + Fill Behavior
 
 > **Section summary:** One-pass cloud queue to remove top-banner navigators, move hero controls under image into a compact action panel, and enforce fill behavior for top/ad banner assets.

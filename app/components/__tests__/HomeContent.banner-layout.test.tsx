@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { HomeContent } from "@/app/components/HomeContent";
+import { AD_RAIL_CONFIG } from "@/lib/config/adRail";
 
 vi.mock("@/components/features", () => ({
   BannerCarousel: () => <div data-testid="hero-carousel" />,
@@ -92,7 +93,10 @@ describe("HomeContent banner layout contract", () => {
     expect(mobileRail.className).toContain("gap-1.5");
 
     const grid = screen.getByTestId("sidebar-banner-grid");
-    expect(grid.className).toContain("max-h-[26rem]");
+    const expectedDesktopMaxHeightClasses = AD_RAIL_CONFIG.desktop.maxHeightClass.split(" ");
+    expectedDesktopMaxHeightClasses.forEach((heightClass) => {
+      expect(grid.className).toContain(heightClass);
+    });
     expect(grid.className).toContain("overflow-y-auto");
     expect(grid.className).toContain("grid-cols-2");
     expect(grid.className).toContain("gap-1.5");
