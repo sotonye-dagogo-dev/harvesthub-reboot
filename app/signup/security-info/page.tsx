@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFormData } from "@/app/providers";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { UserRole, VendorCategory, Campus, Position } from "@/lib/constants";
 import SecurityInfo from "../components/SecurityInfo";
+import { getPendingAuthRedirect, sanitizeInternalRedirectPath } from "@/lib/utils/authRedirect";
 
 export default function SecurityInfoPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { formData, updateFormData } = useFormData();
   const { register } = useAuth();
 
@@ -104,7 +106,15 @@ export default function SecurityInfoPage() {
       await register(payload);
 
       // Redirect to verify email page
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      const continuationFromQuery = sanitizeInternalRedirectPath(searchParams.get("from"), "");
+      const continuation = continuationFromQuery || getPendingAuthRedirect();
+      const verifyParams = new URLSearchParams({
+        email: formData.email,
+      });
+      if (continuation) {
+        verifyParams.set("from", continuation);
+      }
+      router.push(`/verify-email?${verifyParams.toString()}`);
     } catch (error) {
       console.error("Registration failed:", error);
       // Error will be handled by SecurityInfo component

@@ -22,6 +22,30 @@
 [What comes next]
 ```
 
+## 2026-04-17 — WhatsApp Auth Continuation + Voucher Scope/Visibility Expansion
+
+**Summary:**
+Completed the requested cloud-style one-pass feature package for auth-guarded WhatsApp continuation, pickup copy replacement, and expanded voucher configuration controls. Unauthenticated WhatsApp intent now survives signup/email verification/login interruptions through safe continuation storage/refire, and vouchers now support campus/category/product/vendor targeting plus private dashboard-hidden mode.
+
+**Completed:**
+- Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-17-whatsapp-auth-voucher-expansion.md`).
+- Added `/contact/whatsapp` auth guard continuity using `lib/utils/authRedirect.ts`, wired through signup security, verify-email, and login flow.
+- Updated product detail pickup copy to “Available at Sunday or Midweek services.”
+- Added `lib/vouchers/scope.ts` and wired voucher scope/visibility behavior through admin voucher APIs and operations vouchers UI.
+- Updated `/api/vouchers/my` to hide PRIVATE vouchers from dashboard listing.
+- Updated checkout voucher validate request context and `/api/vouchers/validate` applicability enforcement.
+- Validation: `npm run lint` passed, `npm run build` passed (known sitemap warnings unchanged), focused WhatsApp guard tests passed.
+- Parallel validation: code review completed; CodeQL reported zero alerts but analysis failed to complete in this environment.
+
+**Key Changes:**
+- Off-platform WhatsApp contact is now authentication-gated with safe, delayed continuation support.
+- Voucher behavior is now config-driven for targeting and dashboard visibility without schema migration changes.
+
+**Next Sprint Focus:**
+Run parallel validation feedback loop and finalize PR/CI monitoring for this feature slice.
+
+---
+
 ## 2026-04-17 — Home Rail Responsive Density + Voucher Nav Access Wiring
 
 **Summary:**

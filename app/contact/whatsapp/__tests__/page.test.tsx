@@ -3,9 +3,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import WhatsAppContactGuardPage from "@/app/contact/whatsapp/page";
 
 const mockUseSearchParams = vi.fn();
+const mockReplace = vi.fn();
+const mockUseAuth = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => mockUseSearchParams(),
+  useRouter: () => ({ replace: mockReplace }),
+}));
+vi.mock("@/lib/contexts/AuthContext", () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 describe("WhatsAppContactGuardPage", () => {
@@ -15,6 +21,10 @@ describe("WhatsAppContactGuardPage", () => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockFetch);
     mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
+    mockUseAuth.mockReturnValue({
+      user: { id: "user-1", role: "BUYER" },
+      isLoading: false,
+    });
   });
 
   it("shows disclaimer and safe external handoff link", async () => {
@@ -72,5 +82,28 @@ describe("WhatsAppContactGuardPage", () => {
     render(<WhatsAppContactGuardPage />);
 
     expect(screen.getByRole("link", { name: /^back$/i })).toHaveAttribute("href", "/vendors");
+  });
+
+  it("redirects unauthenticated users to signup and preserves continuation", async () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      isLoading: false,
+    });
+    mockUseSearchParams.mockReturnValue(
+      new URLSearchParams({
+        vendorName: "Fresh Farm",
+        phone: "+2348012345678",
+        returnTo: "/vendors/vendor-1",
+      })
+    );
+
+    render(<WhatsAppContactGuardPage />);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        expect.stringContaining("/signup?from=%2Fcontact%2Fwhatsapp%3F")
+      );
+    });
+    expect(screen.queryByRole("button", { name: /continue to whatsapp/i })).not.toBeInTheDocument();
   });
 });

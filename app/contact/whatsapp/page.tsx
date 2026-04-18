@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowLeft, MessageCircle } from "lucide-react";
 import {
   resolveWhatsAppIntentPayload,
   sanitizeWhatsAppSource,
   sanitizeVendorName,
 } from "@/lib/utils/whatsappIntent";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { setPendingAuthRedirect } from "@/lib/utils/authRedirect";
 
 const MIN_WHATSAPP_DIGITS = 10;
 const MAX_WHATSAPP_DIGITS = 15;
@@ -37,8 +39,11 @@ function normalizePhone(value: string | null): string {
 }
 
 export default function WhatsAppContactGuardPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, isLoading } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const searchQuery = useMemo(() => searchParams.toString(), [searchParams]);
 
   const vendorName = sanitizeVendorName(searchParams.get("vendorName"));
   const returnTo = sanitizeReturnPath(searchParams.get("returnTo"));
@@ -55,6 +60,14 @@ export default function WhatsAppContactGuardPage() {
   const externalHref = isValidPhone
     ? `https://wa.me/${phone}?text=${encodeURIComponent(intent.message)}`
     : null;
+
+  useEffect(() => {
+    if (isLoading || user) return;
+
+    const intendedPath = `/contact/whatsapp${searchQuery ? `?${searchQuery}` : ""}`;
+    setPendingAuthRedirect(intendedPath);
+    router.replace(`/signup?from=${encodeURIComponent(intendedPath)}`);
+  }, [isLoading, router, searchQuery, user]);
 
   const handleContinue = async () => {
     if (!externalHref || isRedirecting) return;
@@ -81,6 +94,28 @@ export default function WhatsAppContactGuardPage() {
 
     window.location.assign(externalHref);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-10">
+        <div className="rounded-ds-lg border border-ds-border-base bg-ds-surface-base p-6 shadow-ds-sm">
+          <p className="text-sm text-ds-text-secondary">Checking your account status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-10">
+        <div className="rounded-ds-lg border border-ds-border-base bg-ds-surface-base p-6 shadow-ds-sm">
+          <p className="text-sm text-ds-text-secondary">
+            Redirecting you to signup so you can continue to vendor chat safely.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10">

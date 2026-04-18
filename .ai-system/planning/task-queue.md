@@ -71,6 +71,23 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-17) — WhatsApp Auth Continuation + Pickup Copy + Voucher Scope Expansion
+
+> **Section summary:** One-pass cloud execution queue to enforce auth-guarded WhatsApp handoff continuity, update requested pickup copy, and deliver configurable voucher scope/visibility behavior.
+
+- [x] Add auth-guarded continuation flow for `/contact/whatsapp` with safe redirect/refire after signup/email verification/login.
+- [x] Add shared safe internal redirect continuation helper and wire it through login/signup/verify-email continuity points.
+- [x] Update product-detail pickup copy to “Available at Sunday or Midweek services.”
+- [x] Add reusable voucher scope parser/matcher for categories/vendors/campuses/products + visibility.
+- [x] Extend admin vouchers APIs (`GET`/`POST`/`PATCH`) to support scope + visibility fields while preserving backward compatibility.
+- [x] Extend operations vouchers UI to configure and display voucher scope + private/public visibility.
+- [x] Update buyer vouchers listing API to suppress private vouchers from dashboard response.
+- [x] Update checkout voucher-validate request payload and enforce voucher scope applicability in `/api/vouchers/validate`.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched tests).
+- [x] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/memory/repair if needed) and raise PR.
+
+---
+
 ## Cloud Session Execution Queue (2026-04-17) — Card Density + Footer Grid + Wallet Paystack Handoff
 
 > **Section summary:** One-pass corrective queue to restore discovery/home density behavior, footer links-section mobile grid layout, and direct wallet deposit handoff reliability to Paystack checkout.
