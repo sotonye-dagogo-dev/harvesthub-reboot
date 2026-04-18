@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
+import { BannerActionModal } from "@/components/features/BannerCarousel";
 import { useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { formatVendorCategory } from "@/lib/utils/format";
 import type { Banner, Product, Vendor } from "@/lib/types";
+import type { BannerItem } from "@/components/features";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { isVendorVerified } from "@/lib/utils/vendor";
 import { useToast } from "@/lib/contexts/ToastContext";
@@ -50,6 +52,8 @@ function normalizeBannerText(value: string | null | undefined): string {
 }
 
 export function HomeContent({ banners, products, vendors }: HomeContentProps) {
+  const [activeSidebarModalBanner, setActiveSidebarModalBanner] = useState<BannerItem | null>(null);
+
   const fetchHomeResource = useCallback(
     async (): Promise<{ banners: Banner[]; products: Product[]; vendors: Vendor[] }> => ({
       banners: await getBannersClient(),
@@ -228,6 +232,29 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     toast.success(`${product.name} added to cart`);
   };
 
+  const mapBannerToModalItem = useCallback(
+    (banner: Banner): BannerItem => ({
+      id: banner.id,
+      title: normalizeBannerText(banner.title) || "Sponsored promotion",
+      subtitle: banner.subtitle ?? undefined,
+      image: banner.imageUrl,
+      link: banner.linkUrl ?? undefined,
+      description: banner.description ?? undefined,
+      actions:
+        banner.actions?.map((a) => ({
+          label: a.label,
+          href: a.href,
+          variant: a.variant,
+          openInNewTab: a.openInNewTab,
+        })) ?? undefined,
+      theme: banner.theme ?? undefined,
+      accentColor: banner.accentColor ?? undefined,
+      details: banner.details ?? undefined,
+      knowMoreLabel: banner.knowMoreLabel ?? undefined,
+    }),
+    []
+  );
+
   return (
     <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
       {/* Hero + Side Banner Deck */}
@@ -248,12 +275,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                   {...mobileRailAutoScroll.bind}
                 >
                   {activeSidebarBanners.map((banner) => {
-                    const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
                     const cardContent = (
-                        <div
-                          data-testid="sidebar-banner-tile"
-                          className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
-                        >
+                      <div
+                        data-testid="sidebar-banner-tile"
+                        className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
+                      >
                         <div className="relative aspect-square w-full">
                           <Image
                             src={banner.imageUrl}
@@ -266,18 +292,16 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       </div>
                     );
 
-                    if (!href) {
-                      return <div key={banner.id}>{cardContent}</div>;
-                    }
-
                     return (
-                      <Link
+                      <button
+                        type="button"
                         key={banner.id}
-                        href={href}
+                        onClick={() => setActiveSidebarModalBanner(mapBannerToModalItem(banner))}
                         className="transition-opacity hover:opacity-95"
+                        aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
                       >
                         {cardContent}
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
@@ -293,7 +317,6 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                   {...desktopRailAutoScroll.bind}
                 >
                   {activeSidebarBanners.map((banner) => {
-                    const href = banner.actions?.[0]?.href || banner.linkUrl || undefined;
                     const cardContent = (
                       <div
                         data-testid="sidebar-banner-tile"
@@ -311,18 +334,16 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       </div>
                     );
 
-                    if (!href) {
-                      return <div key={banner.id}>{cardContent}</div>;
-                    }
-
                     return (
-                      <Link
+                      <button
+                        type="button"
                         key={banner.id}
-                        href={href}
+                        onClick={() => setActiveSidebarModalBanner(mapBannerToModalItem(banner))}
                         className="block min-w-0 transition-opacity hover:opacity-95"
+                        aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
                       >
                         {cardContent}
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
@@ -590,6 +611,13 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
           </section>
         )}
       </div>
+
+      {activeSidebarModalBanner ? (
+        <BannerActionModal
+          banner={activeSidebarModalBanner}
+          onClose={() => setActiveSidebarModalBanner(null)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -183,7 +183,7 @@ interface ActionModalProps {
   onClose: () => void;
 }
 
-function ActionModal({ banner, onClose }: ActionModalProps) {
+export function BannerActionModal({ banner, onClose }: ActionModalProps) {
   const tokens = getTheme(banner.theme);
   const hasActions = banner.actions && banner.actions.length > 0;
 
@@ -392,44 +392,42 @@ export function BannerCarousel({
   return (
     <>
       <div className={cn("relative overflow-hidden rounded-ds-lg", className)}>
-        {/*
-         * Height breakdown:
-         *   < md  → compact hero visual
-         *   md+   → wider desktop hero visual
-         */}
+      {/*
+       * Height breakdown:
+       *   < md  → compact hero visual
+       *   md+   → wider desktop hero visual
+       */}
         <div
           data-testid="hero-banner-viewport"
-          className="relative h-[184px] sm:h-[216px] md:h-[268px] lg:h-[300px] xl:h-[332px]"
+          className="relative h-[184px] overflow-hidden rounded-ds-lg sm:h-[216px] md:h-[268px] lg:h-[300px] xl:h-[332px]"
         >
           {banners.map((banner, index) => (
             <Slide key={banner.id} banner={banner} isActive={index === currentIndex} />
           ))}
         </div>
-        <div className="flex min-h-[30px] items-center justify-between gap-2 border-t border-ds-border-base bg-ds-surface-base/95 px-2 py-1">
+        <div className="mt-1 flex min-h-[30px] items-center justify-between gap-2 rounded-ds-lg border border-ds-border-base bg-ds-surface-base/95 px-2 py-1">
           {banners.length > 1 ? (
             <div className="flex items-center gap-1">
               <button
                 onClick={goToPrev}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-ds-sm px-1.5 py-0.5 text-xs font-medium transition-colors",
+                  "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
                   currentTokens.secondaryBtn
                 )}
                 aria-label="Previous banner"
               >
                 <ChevronLeft className="h-3 w-3" />
-                Prev
               </button>
               <button
                 onClick={goToNext}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-ds-sm px-1.5 py-0.5 text-xs font-medium transition-colors",
+                  "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
                   currentTokens.secondaryBtn
                 )}
                 aria-label="Next banner"
               >
-                Next
                 <ChevronRight className="h-3 w-3" />
               </button>
             </div>
@@ -460,19 +458,19 @@ export function BannerCarousel({
           <button
             onClick={() => setModalOpen(true)}
             className={cn(
-              "inline-flex items-center justify-center rounded-ds-sm px-2 py-0.5 text-xs font-semibold transition-colors",
+              "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-semibold transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
               currentTokens.primaryBtn
             )}
             aria-label={`${knowMoreLabel} about ${currentBanner.title}`}
           >
-            {knowMoreLabel}
+            <Info className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
       {/* Action Modal (small screens only, triggered by Know More) */}
-      {modalOpen && <ActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />}
+      {modalOpen && <BannerActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />}
     </>
   );
 }
