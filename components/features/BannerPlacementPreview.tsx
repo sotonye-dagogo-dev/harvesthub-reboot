@@ -33,7 +33,7 @@ function PreviewFrame({
         className={`relative overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-sunken ${className}`}
       >
         {imageUrl ? (
-          <Image src={imageUrl} alt={`${label} banner preview`} fill className="object-contain" unoptimized />
+          <Image src={imageUrl} alt={`${label} banner preview`} fill className="object-fill" unoptimized />
         ) : (
           <div className="flex h-full items-center justify-center px-3 text-center text-xs text-ds-text-tertiary">
             Upload an image to preview this placement.

@@ -78,6 +78,37 @@
 
 ---
 
+## Cloud Session Feature Spec - Top/Hero Banner Navigator Rework + Fill Behavior (Planned 2026-04-18)
+
+> **Section summary:** Scope-locked UI refinement to remove intrusive top-banner controls, move hero controls into a compact below-image action panel, and enforce fill behavior for top/ad banner images.
+
+**Feature Objective:**
+Simplify banner UX by removing top-strip navigators entirely, relocating hero carousel controls into a thinner action panel under the hero image, and ensuring top/ad banner images fully fill containers without empty space.
+
+**Why This Is Needed:**
+
+- Client reports top/hero overlay navigators distort banner presentation and compete visually with imagery.
+- Hero controls currently consume on-image space and increase perceived page height impact.
+- Top/ad banner images should follow fixed placement guides and fill banner containers edge-to-edge.
+
+**Acceptance Criteria:**
+
+- Top banner shows no left/right/dot navigation controls while retaining rotation behavior.
+- Hero carousel no longer overlays arrows/dots/Know More on the image; all are moved to a thin panel below the image.
+- Hero panel nav and Know More controls use smaller button/text sizing to reduce vertical footprint.
+- Top and ad banner images render fill-first with no empty container gaps.
+- Existing banner behavior remains backward compatible (rotation, link actions, modal details).
+
+**Rollout Order:**
+
+1. Update top banner UI to remove navigator controls and enforce fill image strategy.
+2. Refactor hero carousel to render a compact below-image action panel with nav + indicators + Know More.
+3. Apply fill image strategy to ad/sidebar banner rendering and placement preview surfaces.
+4. Refresh banner tests/contracts and run validation (`lint`, `build`, focused touched tests).
+5. Sync `.ai-system` planning/checkpoint/history and raise PR.
+
+---
+
 ## Cloud Session Feature Spec - WhatsApp Auth-Guard Continuation + Pickup Copy + Voucher Scope Expansion (Planned 2026-04-17)
 
 > **Section summary:** Scope-locked implementation for authenticated WhatsApp handoff continuity, requested pickup copy replacement, and flexible voucher applicability/visibility controls.

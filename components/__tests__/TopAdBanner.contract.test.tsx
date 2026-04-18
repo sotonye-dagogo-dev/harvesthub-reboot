@@ -86,4 +86,18 @@ describe("TopAdBanner contract", () => {
       expect(getTopBannersClient).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("does not render manual navigator controls for multi-banner top strip", async () => {
+    vi.mocked(getTopBannersClient).mockResolvedValue([
+      buildBanner(),
+      buildBanner({ id: "banner-2", displayOrder: 1 }),
+    ]);
+
+    render(<TopAdBanner />);
+
+    await screen.findByTestId("top-ad-strip");
+    expect(screen.queryByRole("button", { name: /previous ad/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /next ad/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /go to ad/i })).not.toBeInTheDocument();
+  });
 });
