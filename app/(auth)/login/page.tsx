@@ -3,10 +3,16 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Form, Input, Button, Alert, Divider, Checkbox } from "antd";
+import { Form, Input, Button, Divider, Checkbox, App } from "antd";
 import { MailOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { PageLoader } from "@/components/ui";
+import {
+  clearPendingAuthRedirect,
+  consumePendingAuthRedirect,
+  sanitizeInternalRedirectPath,
+} from "@/lib/utils/authRedirect";
+import { getFriendlyLoginError } from "@/lib/utils/authMessages";
 
 const REMEMBER_ME_KEY = "myharvesthub_remember_me";
 
@@ -20,13 +26,12 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  const { message } = App.useApp();
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const redirectTo = searchParams.get("from") || "/";
+  const redirectFromQuery = sanitizeInternalRedirectPath(searchParams.get("from"), "");
   const verified = searchParams.get("verified");
   const emailChanged = searchParams.get("emailChanged");
 
@@ -44,19 +49,17 @@ function LoginForm() {
 
   useEffect(() => {
     if (emailChanged === "1") {
-      setInfoMessage("Email changed successfully. Please sign in with your new email address.");
+      message.info("Email changed successfully. Please sign in with your new email address.");
       return;
     }
     if (verified === "1") {
-      setInfoMessage("Email verified successfully. You can now sign in.");
-      return;
+      message.success("Email verified successfully. You can now sign in.");
     }
-    setInfoMessage(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailChanged, verified]);
 
   const handleLogin = async (values: LoginFormData) => {
     setLoading(true);
-    setError(null);
 
     try {
       await login({
@@ -64,11 +67,14 @@ function LoginForm() {
         password: values.password,
         rememberMe: values.rememberMe,
       });
+      const redirectTo = redirectFromQuery || consumePendingAuthRedirect() || "/";
+      if (redirectFromQuery) {
+        clearPendingAuthRedirect();
+      }
       router.push(redirectTo);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to login. Please check your credentials.";
-      setError(errorMessage);
+      const raw = err instanceof Error ? err.message : "Failed to login. Please check your credentials.";
+      message.error(getFriendlyLoginError(raw));
     } finally {
       setLoading(false);
     }
@@ -85,29 +91,6 @@ function LoginForm() {
           Sign in to your account
         </p>
       </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert
-          message={error}
-          type="error"
-          showIcon
-          closable
-          onClose={() => setError(null)}
-          className="mb-6"
-        />
-      )}
-
-      {infoMessage && (
-        <Alert
-          message={infoMessage}
-          type="success"
-          showIcon
-          closable
-          onClose={() => setInfoMessage(null)}
-          className="mb-6"
-        />
-      )}
 
       {/* Login Form */}
       <Form form={form} layout="vertical" onFinish={handleLogin} size="large" requiredMark={false}>
@@ -179,7 +162,11 @@ function LoginForm() {
           Don&apos;t have an account?{" "}
         </span>
         <Link
-          href="/signup"
+          href={
+            redirectFromQuery
+              ? `/signup?from=${encodeURIComponent(redirectFromQuery)}`
+              : "/signup"
+          }
           className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
         >
           Sign up

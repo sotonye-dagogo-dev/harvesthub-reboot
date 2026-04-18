@@ -38,7 +38,10 @@ export async function POST(request: NextRequest) {
         } catch (dbErr) {
             // eslint-disable-next-line no-console
             console.error('Prisma query failed in login route:', dbErr);
-            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+            return NextResponse.json(
+                { error: 'We\u2019re having trouble connecting right now. Please try again in a moment.' },
+                { status: 500 }
+            );
         }
 
         if (!user) {

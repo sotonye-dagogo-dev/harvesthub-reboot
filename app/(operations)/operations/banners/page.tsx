@@ -139,11 +139,17 @@ export default function OperationsBannersPage() {
       message.success(
         editingBanner ? "Banner updated successfully" : "Banner created successfully"
       );
-      await reloadBanners();
 
       setShowModal(false);
       setPlacementWarning(null);
       form.resetFields();
+
+      // Reload list in background; don't block the modal close on list refresh
+      reloadBanners().catch((reloadErr) => {
+        message.error(
+          reloadErr instanceof Error ? reloadErr.message : "Failed to refresh banner list"
+        );
+      });
     } catch (error) {
       if (isAntdFormValidationError(error)) {
         message.error("Please fill in all required fields");

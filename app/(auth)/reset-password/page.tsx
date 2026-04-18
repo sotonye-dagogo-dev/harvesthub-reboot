@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { Form, Input, Button, Alert, Card, Typography } from "antd";
+import { Form, Input, Button, Alert, Card, Typography, App } from "antd";
 import { LockOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPasswordSchema } from "@/lib/schemas/auth.schemas";
 import { z } from "zod";
+import { getFriendlyPasswordError } from "@/lib/utils/authMessages";
 
 const { Title, Text } = Typography;
 
@@ -17,9 +18,10 @@ type ResetPasswordFormData = Omit<z.infer<typeof resetPasswordSchema>, "email" |
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [invalidLink, setInvalidLink] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
@@ -29,7 +31,7 @@ function ResetPasswordForm() {
     const emailParam = searchParams.get("email");
 
     if (!tokenParam || !emailParam) {
-      setError("Invalid reset link. Please request a new password reset.");
+      setInvalidLink("Invalid reset link. Please request a new password reset.");
     } else {
       setToken(tokenParam);
       setEmail(emailParam);
@@ -38,13 +40,12 @@ function ResetPasswordForm() {
 
   const handleSubmit = async (values: ResetPasswordFormData) => {
     if (!token || !email) {
-      setError("Invalid reset link. Please request a new password reset.");
+      message.error("Invalid reset link. Please request a new password reset.");
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
@@ -70,7 +71,8 @@ function ResetPasswordForm() {
         router.push("/login");
       }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const raw = err instanceof Error ? err.message : "An error occurred";
+      message.error(getFriendlyPasswordError(raw));
     } finally {
       setLoading(false);
     }
@@ -105,13 +107,13 @@ function ResetPasswordForm() {
     );
   }
 
-  if (error && (!token || !email)) {
+  if (invalidLink) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
           <Alert
             message="Invalid Reset Link"
-            description={error}
+            description={invalidLink}
             type="error"
             showIcon
             className="mb-4"
@@ -136,17 +138,6 @@ function ResetPasswordForm() {
           </Title>
           <Text className="text-ds-text-secondary">Enter your new password below.</Text>
         </div>
-
-        {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            closable
-            onClose={() => setError(null)}
-            className="mb-4"
-          />
-        )}
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
           <Form.Item

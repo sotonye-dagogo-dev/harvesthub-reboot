@@ -1,8 +1,9 @@
 "use client";
 
-import { Form, Input, Checkbox, Progress, Alert } from "antd";
+import { Form, Input, Checkbox, Progress, App } from "antd";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent } from "react";
+import { getFriendlySignupError } from "@/lib/utils/authMessages";
 
 interface FormValues {
   password: string;
@@ -18,8 +19,8 @@ interface SecurityInfoProps {
 
 export default function SecurityInfo({ onNext, updateFormData, formData }: SecurityInfoProps) {
   const [form] = Form.useForm<FormValues>();
+  const { message } = App.useApp();
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState<string>("");
   const [passwordStrength, setPasswordStrength] = useState<number>(0);
 
@@ -88,7 +89,6 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
 
   const onFinish = async (values: FormValues): Promise<void> => {
     setLoading(true);
-    setError(null);
 
     try {
       // Update the shared form data context before registration
@@ -97,9 +97,9 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
       // Call the registration API with the most recently validated security payload
       await onNext(values);
     } catch (err) {
-      const errorMessage =
+      const raw =
         err instanceof Error ? err.message : "Registration failed. Please try again.";
-      setError(errorMessage);
+      message.error(getFriendlySignupError(raw));
     } finally {
       setLoading(false);
     }
@@ -111,18 +111,6 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
         <h3 className="text-2xl font-bold text-ds-text-primary mb-2">Security Information</h3>
         <p className="text-sm text-ds-text-secondary">Create a strong password for your account</p>
       </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert
-          message={error}
-          type="error"
-          showIcon
-          closable
-          onClose={() => setError(null)}
-          className="mb-4 w-full"
-        />
-      )}
 
       <Form
         form={form}

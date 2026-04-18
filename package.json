@@ -24,6 +24,7 @@
     "db:deploy:if-server": "node scripts/prisma-deploy-if-server.mjs"
   },
   "dependencies": {
+    "@ant-design/cssinjs": "^2.1.2",
     "@ant-design/icons": "^5.6.1",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@prisma/adapter-pg": "^7.5.0",

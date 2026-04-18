@@ -39,6 +39,65 @@
 
 ---
 
+## Session 78 — 2026-04-17
+
+**Goal:**
+Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow for WhatsApp auth-guard continuity, pickup copy replacement, and expanded voucher targeting/private visibility behavior; then prepare PR-ready closure.
+
+**Completed:**
+
+- Added planning artifacts for this scope:
+  - Feature spec in `.ai-system/planning/project-plan.md`.
+  - Queue block in `.ai-system/planning/task-queue.md`.
+  - Temp cloud plan file: `.ai-system/planning/cloud-session-temp-plan-2026-04-17-whatsapp-auth-voucher-expansion.md`.
+- Implemented authenticated guard continuity for `/contact/whatsapp`:
+  - Unauthenticated users are routed to signup and a safe internal continuation path is persisted.
+  - Signup security step forwards continuation into verify-email.
+  - Verify-email and login now preserve/refire continuation after auth completion.
+- Updated product detail pickup copy to “Available at Sunday or Midweek services.”
+- Added reusable helpers:
+  - `lib/utils/authRedirect.ts` for safe redirect continuation storage/consumption.
+  - `lib/vouchers/scope.ts` for voucher scope parsing/storage/matching.
+- Expanded voucher system:
+  - Admin vouchers API (`GET`/`POST`/`PATCH`) now supports scope fields (campuses/categories/products/vendors) and `PUBLIC`/`PRIVATE` visibility.
+  - Operations voucher UI now configures and displays scope + visibility.
+  - Buyer vouchers API suppresses PRIVATE vouchers from dashboard listing.
+  - Checkout voucher validate now sends cart context; validate endpoint enforces scope applicability using product/vendor metadata.
+- Validation:
+  - `npm run lint` passed.
+  - `npx vitest run app/contact/whatsapp/__tests__/page.test.tsx` passed.
+  - `npm run build` passed (with known existing sitemap warnings).
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-17-whatsapp-auth-voucher-expansion.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- app/contact/whatsapp/page.tsx
+- app/contact/whatsapp/__tests__/page.test.tsx
+- app/signup/security-info/page.tsx
+- app/verify-email/page.tsx
+- app/(auth)/login/page.tsx
+- app/products/[id]/page.tsx
+- app/checkout/page.tsx
+- app/api/vouchers/validate/route.ts
+- app/api/vouchers/my/route.ts
+- app/api/admin/vouchers/route.ts
+- app/api/admin/vouchers/[id]/route.ts
+- app/(operations)/operations/vouchers/page.tsx
+- lib/utils/authRedirect.ts
+- lib/vouchers/scope.ts
+
+**Next Task:**
+Run `parallel_validation`, resolve any valid findings, and raise PR.
+
+**Notes / Blockers:**
+- `parallel_validation` code review completed with no blocking issues; CodeQL scan returned 0 alerts but analysis failed due tool/runtime execution failure in this session.
+
+---
+
 ## Session 77 — 2026-04-17
 
 **Goal:**

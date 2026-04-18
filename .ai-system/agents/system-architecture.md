@@ -246,10 +246,12 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ```
 1. Buyer clicks vendor WhatsApp CTA on `/vendors/[id]` or product-detail chat pointer on `/products/[id]`.
 2. CTA navigates to internal guard page (`/contact/whatsapp`) with vendor context + sanitized phone params.
-3. Guard page displays safety disclaimer and off-platform warning before any external navigation.
-4. User explicitly confirms with "Continue to WhatsApp" before browser opens `wa.me`.
-5. Guard page emits lightweight telemetry marker (`/api/telemetry/off-platform-contact`) with sanitized source context.
-6. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
+3. Guard page enforces auth; unauthenticated users are routed to signup with a persisted safe continuation path.
+4. Signup -> verify-email -> login flow refires the stored continuation so users return to the same guard intent after completion.
+5. Guard page displays safety disclaimer and off-platform warning before any external navigation.
+6. User explicitly confirms with "Continue to WhatsApp" before browser opens `wa.me`.
+7. Guard page emits lightweight telemetry marker (`/api/telemetry/off-platform-contact`) with sanitized source context.
+8. Invalid/missing phone context blocks external handoff and keeps user in internal safe state.
 ```
 
 ### Context-Aware WhatsApp Intent Flow
@@ -260,6 +262,17 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 3. Guard page normalizes source/vendor/message/url and rebuilds safe fallback message when context is incomplete.
 4. Confirm action opens `wa.me` with encoded prefilled text and emits sanitized source-aware telemetry.
 5. Product CTA includes explicit WhatsApp icon/green affordance for chat intent clarity.
+```
+
+### Voucher Scope + Visibility Flow
+
+```
+1. Operations configures voucher scope in `/operations/vouchers` using campuses, categories, vendors, products, and visibility (PUBLIC/PRIVATE).
+2. Admin voucher APIs persist scope as normalized JSON-compatible fields while preserving legacy array compatibility.
+3. Buyer voucher dashboard API (`/api/vouchers/my`) excludes PRIVATE vouchers from visible availability payloads.
+4. Checkout sends cart context (product/vendor IDs) to `/api/vouchers/validate`.
+5. Validate route resolves product/vendor category/campus metadata and enforces scope applicability before returning discount.
+6. Voucher applicability remains config-driven and reusable through shared `lib/vouchers/scope.ts` helpers.
 ```
 
 ### Dynamic Metadata Parity Flow (Entity Detail Pages)
