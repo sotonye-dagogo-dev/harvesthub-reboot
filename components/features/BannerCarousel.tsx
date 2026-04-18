@@ -5,21 +5,15 @@
  * ─────────────────────────────────────────────────────────────────
  * Dual-section hero carousel designed for the landing page.
  *
- * Layout (≥ md screens):
- *   ┌─────────────────────────────┬────────────────┐
- *   │   Display panel             │  Action panel  │
- *   │   (image + overlay text)    │  (CTA buttons) │
- *   └─────────────────────────────┴────────────────┘
- *
- * Layout (< md / small screens):
+ * Layout:
  *   ┌──────────────────────────────────────────────┐
- *   │   Full-width image with overlay title        │
- *   │   "Know More" chip → opens action modal      │
+ *   │   Full-width image viewport                  │
+ *   ├──────────────────────────────────────────────┤
+ *   │ Thin action panel (nav + dots + know more)  │
  *   └──────────────────────────────────────────────┘
  *
- * Fallback (banner has no actions):
- *   - Large screen: image fills full width with gradient overlay text
- *   - Small screen:  same full image; "Know More" chip is hidden (no modal)
+ * Know More opens a modal details sheet and keeps the hero image free
+ * from overlaid navigator controls.
  *
  * All timing, labels, and theme tokens come from BANNER_CONFIG so
  * the component is theme-agnostic and easy to extend.
@@ -308,13 +302,9 @@ function ActionModal({ banner, onClose }: ActionModalProps) {
 interface SlideProps {
   banner: BannerItem;
   isActive: boolean;
-  onKnowMore: () => void;
 }
 
-function Slide({ banner, isActive, onKnowMore }: SlideProps) {
-  const tokens = getTheme(banner.theme);
-  const knowMoreLabel = banner.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
-
+function Slide({ banner, isActive }: SlideProps) {
   return (
     <div
       className={cn(
@@ -328,24 +318,11 @@ function Slide({ banner, isActive, onKnowMore }: SlideProps) {
           src={banner.image}
           alt={banner.title}
           fill
-          className="object-cover"
+          className="object-fill"
           priority={isActive}
           sizes="100vw"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-        <div className="absolute bottom-3 right-3 z-20">
-          <button
-            onClick={onKnowMore}
-            className={cn(
-              "rounded-ds-md px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors sm:px-4 sm:py-2 sm:text-sm",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-              tokens.primaryBtn
-            )}
-            aria-label={`${knowMoreLabel} about ${banner.title}`}
-          >
-            {knowMoreLabel}
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -409,6 +386,8 @@ export function BannerCarousel({
 
   const currentBanner = banners[currentIndex];
   if (!currentBanner) return null;
+  const currentTokens = getTheme(currentBanner.theme);
+  const knowMoreLabel = currentBanner.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
 
   return (
     <>
@@ -423,53 +402,73 @@ export function BannerCarousel({
           className="relative h-[184px] sm:h-[216px] md:h-[268px] lg:h-[300px] xl:h-[332px]"
         >
           {banners.map((banner, index) => (
-            <Slide
-              key={banner.id}
-              banner={banner}
-              isActive={index === currentIndex}
-              onKnowMore={() => setModalOpen(true)}
-            />
+            <Slide key={banner.id} banner={banner} isActive={index === currentIndex} />
           ))}
         </div>
-
-        {/* Navigation Arrows */}
-        {banners.length > 1 && (
-          <>
-            <button
-              onClick={goToPrev}
-              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              aria-label="Previous banner"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={goToNext}
-              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-ds-full bg-ds-surface-base/90 p-1.5 text-ds-text-primary shadow-ds-md transition-all hover:bg-ds-surface-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              aria-label="Next banner"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
-
-        {/* Dot Indicators */}
-        {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
-            {banners.map((_, index) => (
+        <div className="flex min-h-[30px] items-center justify-between gap-2 border-t border-ds-border-base bg-ds-surface-base/95 px-2 py-1">
+          {banners.length > 1 ? (
+            <div className="flex items-center gap-1">
               <button
-                key={index}
-                onClick={() => goTo(index)}
+                onClick={goToPrev}
                 className={cn(
-                  "h-2 rounded-ds-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  index === currentIndex
-                    ? "w-6 bg-ds-surface-base"
-                    : "w-2 bg-ds-surface-base/50 hover:bg-ds-surface-base/80"
+                  "inline-flex items-center gap-1 rounded-ds-sm px-1.5 py-0.5 text-xs font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+                  currentTokens.secondaryBtn
                 )}
-                aria-label={`Go to banner ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
+                aria-label="Previous banner"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                Prev
+              </button>
+              <button
+                onClick={goToNext}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-ds-sm px-1.5 py-0.5 text-xs font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+                  currentTokens.secondaryBtn
+                )}
+                aria-label="Next banner"
+              >
+                Next
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {banners.length > 1 ? (
+            <div className="flex items-center justify-center gap-1.5">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goTo(index)}
+                  className={cn(
+                    "h-2 rounded-ds-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+                    index === currentIndex
+                      ? "w-6 bg-ds-text-primary"
+                      : "w-2 bg-ds-text-tertiary/45 hover:bg-ds-text-tertiary/70"
+                  )}
+                  aria-label={`Go to banner ${index + 1}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div />
+          )}
+
+          <button
+            onClick={() => setModalOpen(true)}
+            className={cn(
+              "inline-flex items-center justify-center rounded-ds-sm px-2 py-0.5 text-xs font-semibold transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+              currentTokens.primaryBtn
+            )}
+            aria-label={`${knowMoreLabel} about ${currentBanner.title}`}
+          >
+            {knowMoreLabel}
+          </button>
+        </div>
       </div>
 
       {/* Action Modal (small screens only, triggered by Know More) */}

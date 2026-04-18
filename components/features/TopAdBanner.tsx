@@ -5,8 +5,8 @@
  * ─────────────────────────────────────────────────────────────────
  * A full-width, non-dismissible ad strip rendered in normal document
  * flow below the navbar. It rotates through all active TOP banners
- * on a configurable interval, supports background images, and shows
- * navigation controls when multiple banners are present.
+ * on a configurable interval, supports background images, and keeps
+ * the strip image-only without manual navigator controls.
  *
  * Config lives in BANNER_CONFIG so interval / storage-key can be
  * changed from one place without touching this file.
@@ -16,7 +16,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
@@ -110,15 +109,6 @@ export function TopAdBanner() {
     };
   }, [banners, startRotation]);
 
-  // ── Manual navigation (restarts timer) ────────────────────────
-  const goTo = useCallback(
-    (idx: number, list: typeof banners) => {
-      setCurrentIndex(idx);
-      startRotation(list);
-    },
-    [startRotation]
-  );
-
   if (banners.length === 0) return null;
 
   const banner = banners[currentIndex];
@@ -148,72 +138,12 @@ export function TopAdBanner() {
             src={banner.imageUrl}
             alt=""
             fill
-            className="object-contain"
+            className="object-fill"
             sizes="100vw"
             priority
           />
           <div className="absolute inset-0 bg-black/15" />
         </>
-      )}
-
-      {/* Left nav (multi-banner) */}
-      {banners.length > 1 && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const newIdx = (currentIndex - 1 + banners.length) % banners.length;
-            goTo(newIdx, banners);
-          }}
-          className="relative z-10 flex-shrink-0 rounded-ds-xs p-0.5 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          aria-label="Previous ad"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-        </button>
-      )}
-
-      <div className="relative z-10 flex-1" />
-
-      {/* Right-side nav */}
-      <div className="relative z-10 flex flex-shrink-0 items-center gap-1">
-        {/* Right nav */}
-        {banners.length > 1 && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const newIdx = (currentIndex + 1) % banners.length;
-              goTo(newIdx, banners);
-            }}
-            className="flex-shrink-0 rounded-ds-xs p-0.5 opacity-70 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            aria-label="Next ad"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Progress indicators */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-0 left-0 z-10 flex w-full gap-0.5 px-1 pb-px">
-          {banners.map((_, i) => (
-            <button
-              key={i}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                goTo(i, banners);
-              }}
-              className={cn(
-                "h-px flex-1 rounded-ds-full transition-all duration-300",
-                i === currentIndex
-                  ? themeClasses.indicator
-                  : "bg-ds-surface-base/30 hover:bg-ds-surface-base/50"
-              )}
-              aria-label={`Go to ad ${i + 1}`}
-            />
-          ))}
-        </div>
       )}
     </div>
   );

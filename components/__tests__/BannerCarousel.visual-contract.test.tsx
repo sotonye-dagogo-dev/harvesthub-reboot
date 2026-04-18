@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { BannerCarousel } from "@/components/features/BannerCarousel";
 
 describe("BannerCarousel visual contract", () => {
-  it("keeps hero slide viewport image-first and uses View More CTA instead of direct title copy", () => {
+  it("keeps hero slide viewport image-first and places Know More control below the image", () => {
     render(
       <BannerCarousel
         autoPlay={false}
@@ -18,7 +18,12 @@ describe("BannerCarousel visual contract", () => {
       />
     );
 
-    expect(screen.getByRole("button", { name: /know more about mega electronics promo/i })).toBeInTheDocument();
+    const knowMoreButton = screen.getByRole("button", {
+      name: /know more about mega electronics promo/i,
+    });
+    expect(knowMoreButton).toBeInTheDocument();
+    const viewport = screen.getByTestId("hero-banner-viewport");
+    expect(viewport).not.toContainElement(knowMoreButton);
     expect(screen.queryByText("Mega Electronics Promo")).not.toBeInTheDocument();
   });
 
