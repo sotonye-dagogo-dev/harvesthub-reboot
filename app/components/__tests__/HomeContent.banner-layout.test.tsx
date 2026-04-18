@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { HomeContent } from "@/app/components/HomeContent";
+import { AD_RAIL_CONFIG } from "@/lib/config/adRail";
 
 vi.mock("@/components/features", () => ({
   BannerCarousel: () => <div data-testid="hero-carousel" />,
@@ -92,7 +93,10 @@ describe("HomeContent banner layout contract", () => {
     expect(mobileRail.className).toContain("gap-1.5");
 
     const grid = screen.getByTestId("sidebar-banner-grid");
-    expect(grid.className).toContain("max-h-[26rem]");
+    const expectedDesktopMaxHeightClasses = AD_RAIL_CONFIG.desktop.maxHeightClass.split(" ");
+    expectedDesktopMaxHeightClasses.forEach((heightClass) => {
+      expect(grid.className).toContain(heightClass);
+    });
     expect(grid.className).toContain("overflow-y-auto");
     expect(grid.className).toContain("grid-cols-2");
     expect(grid.className).toContain("gap-1.5");
@@ -109,5 +113,27 @@ describe("HomeContent banner layout contract", () => {
     desktopTiles.forEach((tile) => {
       expect(tile.innerHTML).toContain("aspect-square");
     });
+  });
+
+  it("opens modal details when sidebar ad tiles are clicked instead of navigating immediately", () => {
+    const banners = [
+      buildBanner("hero-1", "HERO"),
+      {
+        ...buildBanner("side-linked", "SIDEBAR"),
+        title: "Sidebar Promo",
+        description: "Learn more in modal",
+        linkUrl: "/operations/dashboard",
+      },
+    ];
+
+    render(<HomeContent banners={banners} products={[]} vendors={[]} />);
+
+    const sidebarButtons = screen.getAllByRole("button", { name: /know more about sidebar promo/i });
+    expect(sidebarButtons.length).toBeGreaterThan(0);
+    fireEvent.click(sidebarButtons[0]);
+
+    expect(screen.getByRole("dialog", { name: /sidebar promo – details/i })).toBeInTheDocument();
+    expect(screen.getByText("Sidebar Promo")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sidebar promo/i })).not.toBeInTheDocument();
   });
 });
