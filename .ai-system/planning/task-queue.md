@@ -36,13 +36,13 @@
 
 > **Section summary:** One-pass cloud queue to remove top-banner navigators, move hero controls under image into a compact action panel, and enforce fill behavior for top/ad banner assets.
 
-- [ ] Remove top-banner navigators/indicators while preserving rotation/link behavior.
-- [ ] Move hero nav controls, indicator, and Know More CTA into a thin action panel below hero image.
-- [ ] Reduce hero action-panel navigation + Know More button/text sizes without regressing accessibility.
-- [ ] Enforce fill-first rendering for top and ad/sidebar banner images (runtime + placement preview parity).
-- [ ] Refresh banner tests/contracts for the new control placement behavior.
-- [ ] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`).
-- [ ] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/decisions if needed) and raise PR.
+- [x] Remove top-banner navigators/indicators while preserving rotation/link behavior.
+- [x] Move hero nav controls, indicator, and Know More CTA into a thin action panel below hero image.
+- [x] Reduce hero action-panel navigation + Know More button/text sizes without regressing accessibility.
+- [x] Enforce fill-first rendering for top and ad/sidebar banner images (runtime + placement preview parity).
+- [x] Refresh banner tests/contracts for the new control placement behavior.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`).
+- [x] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/decisions if needed) and raise PR.
 
 ---
 

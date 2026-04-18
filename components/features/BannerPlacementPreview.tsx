@@ -64,6 +64,10 @@ export function BannerPlacementPreview({
   return (
     <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3">
       <p className="mb-2 text-sm font-medium text-ds-text-primary">Frontend Preview</p>
+      <p className="mb-2 text-xs text-ds-text-secondary">
+        Images are rendered fill-first in banner containers. Use recommended placement dimensions to avoid
+        stretching.
+      </p>
       {position === "TOP" ? (
         <>
           <p className="mb-2 text-xs text-ds-text-secondary">

@@ -22,6 +22,29 @@
 [What comes next]
 ```
 
+## 2026-04-18 — Top/Hero Banner Navigator Rework + Fill-First Banner Images
+
+**Summary:**
+Completed the requested one-pass banner UX refinement package after producing the required plan-feature and cloud temp-plan artifacts. Top banner manual controls were removed, hero controls were moved out of the image into a compact action panel below the viewport, and top/ad banner images were switched to fill-first rendering to avoid empty banner gaps.
+
+**Completed:**
+- Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-18-banner-navigator-rework.md`).
+- Removed top banner manual navigation/indicator controls while preserving rotation and click-through behavior.
+- Refactored hero carousel control placement into a thin below-image panel (prev/next + center indicators + Know More).
+- Reduced hero control/button text sizing for lower UI footprint.
+- Applied fill-first image rendering in top strip, sidebar ad tiles, and banner placement preview.
+- Updated focused banner contract tests for navigator removal and below-image Know More placement.
+- Validation: focused banner tests passed, `npm run lint` passed, `npm run build` passed with unchanged known sitemap warnings.
+
+**Key Changes:**
+- Hero imagery is now less obstructed by controls, with actions consolidated in a dedicated compact panel.
+- Top/ad banner image handling now prioritizes edge-to-edge fill behavior aligned with provided guide dimensions.
+
+**Next Sprint Focus:**
+Run parallel validation feedback loop and finalize PR/CI review for this banner UX slice.
+
+---
+
 ## 2026-04-17 — WhatsApp Auth Continuation + Voucher Scope/Visibility Expansion
 
 **Summary:**
