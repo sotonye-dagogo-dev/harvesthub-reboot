@@ -411,9 +411,9 @@ export function BannerCarousel({
               <button
                 onClick={goToPrev}
                 className={cn(
-                  "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-medium transition-colors",
+                  "inline-flex items-center justify-center rounded-ds-sm border border-ds-border-base bg-ds-surface-base p-1 text-xs font-medium text-ds-text-secondary transition-colors",
+                  "hover:border-ds-border-strong hover:bg-ds-surface-sunken hover:text-ds-text-primary",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
-                  currentTokens.secondaryBtn
                 )}
                 aria-label="Previous banner"
               >
@@ -422,9 +422,9 @@ export function BannerCarousel({
               <button
                 onClick={goToNext}
                 className={cn(
-                  "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-medium transition-colors",
+                  "inline-flex items-center justify-center rounded-ds-sm border border-ds-border-base bg-ds-surface-base p-1 text-xs font-medium text-ds-text-secondary transition-colors",
+                  "hover:border-ds-border-strong hover:bg-ds-surface-sunken hover:text-ds-text-primary",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
-                  currentTokens.secondaryBtn
                 )}
                 aria-label="Next banner"
               >

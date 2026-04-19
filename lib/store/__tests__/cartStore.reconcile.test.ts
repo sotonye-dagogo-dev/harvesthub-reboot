@@ -106,4 +106,44 @@ describe("cartStore reconcileWithCatalog", () => {
     expect(useCart.getState().totalItems).toBe(1);
     expect(useCart.getState().totalPrice).toBe(100);
   });
+
+  it("hydrates discounted and original pricing from live catalog data", () => {
+    useCart.setState({
+      items: [
+        {
+          productId: "discounted-product",
+          name: "Discounted Product",
+          price: 1000,
+          image: "/product.jpg",
+          vendorId: "vendor-1",
+          vendorName: "Vendor 1",
+          quantity: 2,
+          stock: 5,
+        },
+      ],
+      totalItems: 2,
+      totalPrice: 2000,
+    });
+
+    const summary = useCart.getState().reconcileWithCatalog([
+      {
+        id: "discounted-product",
+        isActive: true,
+        price: 1000,
+        discount: 25,
+        stock: 5,
+      },
+    ]);
+
+    expect(summary).toEqual({ removedCount: 0, adjustedCount: 1 });
+    expect(useCart.getState().items[0]).toEqual(
+      expect.objectContaining({
+        productId: "discounted-product",
+        price: 750,
+        originalPrice: 1000,
+        discountPercent: 25,
+      })
+    );
+    expect(useCart.getState().totalPrice).toBe(1500);
+  });
 });

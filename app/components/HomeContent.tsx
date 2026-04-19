@@ -220,10 +220,15 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     if (!requireAuth("add items to your cart")) return;
     const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+    const discountPercent = Math.min(Math.max(Number(product.discount ?? 0), 0), 100);
+    const effectivePrice =
+      discountPercent > 0 ? Math.max(product.price - (product.price * discountPercent) / 100, 0) : product.price;
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: effectivePrice,
+      originalPrice: discountPercent > 0 ? product.price : undefined,
+      discountPercent: discountPercent > 0 ? discountPercent : undefined,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
       vendorName,

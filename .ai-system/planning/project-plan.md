@@ -109,6 +109,38 @@ Simplify banner UX by removing top-strip navigators entirely, relocating hero ca
 
 ---
 
+## Cloud Session Feature Spec - Design Token Compliance + Payment Initialize Diagnostics + Discount Parity (Planned 2026-04-19)
+
+> **Section summary:** Scope-locked corrective pass to align hero control styling with semantic tokens, enforce dark-mode form-control surface parity, harden payment-initialize diagnostics for serverless/IP restrictions, and restore discounted pricing parity in cart/checkout.
+
+**Feature Objective:**
+Close user-visible UX and payment-operability gaps by ensuring design-system compliant controls, reliable dark-mode inputs, actionable Paystack initialization diagnostics, and accurate discount-aware cart/checkout totals.
+
+**Why This Is Needed:**
+
+- Hero action-panel nav controls still carry theme-bound styling instead of shared semantic token classes.
+- Some native form controls display white backgrounds in dark mode, reducing UI consistency and readability.
+- Payment initialization failures (`PAYMENT_PROVIDER_IP_NOT_ALLOWED`, SSL/TLS transport failures) need clearer serverless-aware operator guidance.
+- Discounted products currently surface original pricing in cart/checkout instead of preserving original + discounted presentation and totals.
+
+**Acceptance Criteria:**
+
+- Hero banner prev/next nav controls use semantic DS tokens and preserve accessibility/focus behavior.
+- Native `input/textarea/select` controls render DS surface/text tokens in dark mode by default.
+- Payment initialize diagnostics explain serverless egress/API allowlist constraints and map SSL/TLS transport failures to provider-unavailable messaging.
+- Cart and checkout display discounted line pricing with original-price strike-through when applicable.
+- Order summaries include product-discount deduction and continue to apply voucher totals correctly.
+
+**Rollout Order:**
+
+1. Tokenize hero nav control styling.
+2. Add global native-form-control dark-mode surface guard.
+3. Update payment initialize error mapping and operations diagnostics copy.
+4. Implement discount-aware cart state/UI parity across cart + checkout.
+5. Run validation and sync `.ai-system` closure docs.
+
+---
+
 ## Cloud Session Feature Spec - WhatsApp Auth-Guard Continuation + Pickup Copy + Voucher Scope Expansion (Planned 2026-04-17)
 
 > **Section summary:** Scope-locked implementation for authenticated WhatsApp handoff continuity, requested pickup copy replacement, and flexible voucher applicability/visibility controls.

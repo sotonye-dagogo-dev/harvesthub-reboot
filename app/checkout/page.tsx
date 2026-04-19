@@ -58,6 +58,11 @@ export default function CheckoutPage() {
   );
   const vendorCount = Math.max(1, vendorIds.length);
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
+  const originalItemsTotal = useMemo(
+    () => items.reduce((sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity, 0),
+    [items]
+  );
+  const productDiscountTotal = Math.max(0, originalItemsTotal - totalPrice);
   const voucherDiscount = appliedVoucher?.discount ?? 0;
   const total = totalPrice + deliveryFee - voucherDiscount;
   const vendorStatusKey = useMemo(() => vendorIds.slice().sort().join(","), [vendorIds]);
@@ -582,8 +587,15 @@ export default function CheckoutPage() {
                       {item.vendorName} · {item.isService ? "Booking" : `Qty: ${item.quantity}`}
                     </div>
                   </div>
-                  <div className="font-semibold text-ds-text-primary">
-                    {formatCurrency(item.price * item.quantity)}
+                  <div className="text-right">
+                    <p className="font-semibold text-ds-text-primary">
+                      {formatCurrency(item.price * item.quantity)}
+                    </p>
+                    {typeof item.originalPrice === "number" && item.originalPrice > item.price ? (
+                      <p className="text-xs text-ds-text-tertiary line-through">
+                        {formatCurrency(item.originalPrice * item.quantity)}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -797,6 +809,12 @@ export default function CheckoutPage() {
                 <span>Subtotal ({items.length} items)</span>
                 <span className="font-medium">{formatCurrency(totalPrice)}</span>
               </div>
+              {productDiscountTotal > 0 ? (
+                <div className="flex items-center justify-between text-ds-status-success-text">
+                  <span>Product discounts</span>
+                  <span className="font-medium">-{formatCurrency(productDiscountTotal)}</span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Delivery Fee</span>
                 <span className="font-medium">{formatCurrency(deliveryFee)}</span>

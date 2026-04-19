@@ -16,6 +16,11 @@ export const dynamic = "force-dynamic";
 export default function CartPage() {
   const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart, reconcileWithCatalog } =
     useCart();
+  const originalTotalPrice = items.reduce(
+    (sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity,
+    0
+  );
+  const productDiscountTotal = Math.max(0, originalTotalPrice - totalPrice);
 
   const loadProducts = useCallback(async () => getProductsClient({ limit: 120 }), []);
   const { data: runtimeProducts } = useSmartResource(loadProducts, {
@@ -83,6 +88,8 @@ export default function CartPage() {
               id={item.productId}
               name={item.name}
               price={item.price}
+              originalPrice={item.originalPrice}
+              discountPercent={item.discountPercent}
               image={item.image}
               vendorName={item.vendorName}
               quantity={item.quantity}
@@ -103,6 +110,12 @@ export default function CartPage() {
                 <span>Subtotal ({totalItems} items)</span>
                 <span className="font-medium">{formatCurrency(totalPrice)}</span>
               </div>
+              {productDiscountTotal > 0 ? (
+                <div className="flex items-center justify-between text-ds-status-success-text">
+                  <span>Product discounts</span>
+                  <span className="font-medium">-{formatCurrency(productDiscountTotal)}</span>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between text-ds-text-secondary">
                 <span>Delivery Fee</span>
                 <span className="text-sm text-ds-text-tertiary">Calculated at checkout</span>

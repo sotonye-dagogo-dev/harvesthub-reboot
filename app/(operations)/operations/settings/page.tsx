@@ -647,7 +647,8 @@ export default function OperationsSettingsPage() {
                   <p className="mt-1">
                     If user-facing payment initialization fails with
                     <code className="mx-1">PAYMENT_PROVIDER_IP_NOT_ALLOWED</code>,
-                    update Paystack API IP whitelist and re-check keys in this panel.
+                    update Paystack API allowlist. For Vercel/serverless, use static outbound egress
+                    or disable API IP restriction, then re-check keys/mode in this panel.
                   </p>
                 </div>
 
