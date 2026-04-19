@@ -23,7 +23,7 @@ export function mapPaymentInitializeError(message: string): PaymentInitializeErr
       message:
         "Payment initialization is temporarily restricted. Please try again shortly or use bank transfer.",
       operatorAction:
-        "Allow the server IP in Paystack dashboard API whitelist and confirm keys in /operations/settings.",
+        "Update Paystack API IP allowlist: for Vercel/serverless use static egress or disable API IP restriction, then confirm keys/mode in /operations/settings.",
     };
   }
 
@@ -41,7 +41,10 @@ export function mapPaymentInitializeError(message: string): PaymentInitializeErr
     normalized.includes("timed out") ||
     normalized.includes("timeout") ||
     normalized.includes("network") ||
-    normalized.includes("unavailable")
+    normalized.includes("unavailable") ||
+    normalized.includes("ssl") ||
+    normalized.includes("tls") ||
+    normalized.includes("fetch failed")
   ) {
     return {
       code: "PAYMENT_PROVIDER_UNAVAILABLE",

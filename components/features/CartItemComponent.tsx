@@ -9,6 +9,8 @@ interface CartItemProps {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
+  discountPercent?: number;
   quantity: number;
   image: string;
   vendorName: string;
@@ -22,6 +24,8 @@ export function CartItemComponent({
   id,
   name,
   price,
+  originalPrice,
+  discountPercent,
   quantity,
   image,
   vendorName,
@@ -50,7 +54,19 @@ export function CartItemComponent({
       <div className="flex-1">
         <h3 className="font-medium text-ds-text-primary">{name}</h3>
         <p className="text-sm text-ds-text-secondary">{vendorName}</p>
-        <p className="text-lg font-semibold text-ds-text-brand mt-2">{formatCurrency(price)}</p>
+        <div className="mt-2 flex items-center gap-2">
+          <p className="text-lg font-semibold text-ds-text-brand">{formatCurrency(price)}</p>
+          {typeof originalPrice === "number" && originalPrice > price ? (
+            <>
+              <p className="text-sm text-ds-text-tertiary line-through">{formatCurrency(originalPrice)}</p>
+              {typeof discountPercent === "number" && discountPercent > 0 ? (
+                <span className="rounded-ds-full bg-ds-status-success-bg px-2 py-0.5 text-xs font-medium text-ds-status-success-text">
+                  -{discountPercent}%
+                </span>
+              ) : null}
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-col items-end justify-between">

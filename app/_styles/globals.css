@@ -306,6 +306,19 @@
   a {
     @apply text-ds-text-link hover:text-ds-text-link-hover transition-colors;
   }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    @apply bg-ds-surface-base text-ds-text-primary border-ds-border-base;
+    /* Ensure browser-native controls (date/select pickers, etc.) respect dark mode surfaces. */
+    color-scheme: light dark;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-ds-text-placeholder;
+  }
 }
 
 /* ============================================================================

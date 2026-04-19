@@ -2,10 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 
-interface CartItem {
+export interface CartItem {
     productId: string;
     name: string;
     price: number;
+    originalPrice?: number;
+    discountPercent?: number;
     image: string;
     vendorId: string;
     vendorName: string;
@@ -19,6 +21,7 @@ interface CartCatalogProduct {
     id: string;
     name?: string | null;
     price?: number | null;
+    discount?: number | null;
     stock?: number | null;
     isActive?: boolean | null;
     listingType?: string | null;
@@ -34,6 +37,45 @@ const isServiceItem = (item: { stock: number; isService?: boolean }) =>
     item.isService || item.stock >= SERVICE_UNLIMITED_STOCK;
 
 const isServiceListing = (listingType?: string | null) => listingType === "SERVICE";
+
+export const normalizeDiscountPercent = (discount: number | null | undefined): number => {
+    const parsed = Number(discount ?? 0);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return 0;
+    }
+    return Math.min(parsed, 100);
+};
+
+export const resolveDiscountedPrice = (price: number, discountPercent: number): number =>
+    Math.max(price - (price * discountPercent) / 100, 0);
+
+export const buildCartPricing = (price: number, discount: number | null | undefined) => {
+    const discountPercent = normalizeDiscountPercent(discount);
+    const effectivePrice = resolveDiscountedPrice(price, discountPercent);
+
+    return {
+        price: effectivePrice,
+        originalPrice: discountPercent > 0 ? price : undefined,
+        discountPercent: discountPercent > 0 ? discountPercent : undefined,
+    };
+};
+
+export const getCartPricingBreakdown = (
+    items: Array<Pick<CartItem, "price" | "originalPrice" | "quantity">>
+) => {
+    const effectiveTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const originalTotal = items.reduce(
+        (sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity,
+        0
+    );
+    const productDiscountTotal = Math.max(0, originalTotal - effectiveTotal);
+
+    return {
+        effectiveTotal,
+        originalTotal,
+        productDiscountTotal,
+    };
+};
 
 const recalculateTotals = (items: CartItem[]) => ({
     totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -167,7 +209,10 @@ export const useCart = create<CartStore>()(
                     const normalizedName = typeof live.name === "string" && live.name.trim().length > 0
                         ? live.name
                         : item.name;
-                    const normalizedPrice = Number.isFinite(live.price) ? Number(live.price) : item.price;
+                    const normalizedBasePrice = Number.isFinite(live.price) ? Number(live.price) : item.price;
+                    const normalizedDiscountPercent = normalizeDiscountPercent(live.discount);
+                    const normalizedPrice = resolveDiscountedPrice(normalizedBasePrice, normalizedDiscountPercent);
+                    const normalizedOriginalPrice = normalizedDiscountPercent > 0 ? normalizedBasePrice : undefined;
                     const normalizedImage =
                         (Array.isArray(live.images) && typeof live.images[0] === "string" && live.images[0]) ||
                         (typeof live.mainImage === "string" && live.mainImage) ||
@@ -185,6 +230,8 @@ export const useCart = create<CartStore>()(
                         ...item,
                         name: normalizedName,
                         price: normalizedPrice,
+                        originalPrice: normalizedOriginalPrice,
+                        discountPercent: normalizedDiscountPercent > 0 ? normalizedDiscountPercent : undefined,
                         image: normalizedImage,
                         vendorId: normalizedVendorId,
                         vendorName: normalizedVendorName,
@@ -196,6 +243,8 @@ export const useCart = create<CartStore>()(
                     if (
                         nextItem.name !== item.name ||
                         nextItem.price !== item.price ||
+                        nextItem.originalPrice !== item.originalPrice ||
+                        nextItem.discountPercent !== item.discountPercent ||
                         nextItem.image !== item.image ||
                         nextItem.vendorId !== item.vendorId ||
                         nextItem.vendorName !== item.vendorName ||

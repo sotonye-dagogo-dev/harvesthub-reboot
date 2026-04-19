@@ -23,6 +23,26 @@
 [What this decision affects going forward]
 ```
 
+## Cart Pricing Persists Effective and Original Amounts for Discount Parity
+
+**Decision:** Cart state stores discount-aware pricing as effective `price` plus optional `originalPrice` and `discountPercent`, and checkout/cart summaries compute product discount from these fields before voucher deduction.
+**Date:** 2026-04-19
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Product cards/details already expose discounted pricing semantics, but cart/checkout previously drifted by using undiscounted values only. Persisting structured pricing metadata keeps order totals, UI display, and downstream reconciliation consistent without changing external API contracts.
+
+**Alternatives Considered:**
+
+- Keep only base price in cart and recompute discount ad hoc in each page (rejected: duplicates logic and increases drift risk).
+- Replace cart price with discounted amount only and drop original context (rejected: cannot render original-vs-discounted UX parity).
+
+**Implications:**
+
+- All add-to-cart entry points must provide discount-aware fields consistently.
+- Cart and checkout should render strike-through original amounts only when `originalPrice > price`.
+- Live catalog reconciliation should refresh both effective and original discount metadata.
+
 ## Top Banner Uses Navigator-Free Strip; Hero Uses Compact Below-Image Action Panel
 
 **Decision:** Remove all explicit navigator controls from the top banner strip, and render hero carousel navigation/indicators/Know More inside a thin action panel below the hero image instead of overlaying controls on the image.
