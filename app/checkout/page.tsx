@@ -357,10 +357,7 @@ export default function CheckoutPage() {
           );
         }
 
-        const paystackPublicKey =
-          paymentConfig?.paystackPublicKey ||
-          process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ||
-          null;
+        const paystackPublicKey = paymentConfig?.paystackPublicKey || null;
         if (!paystackPublicKey) {
           throw new Error("Paystack public key is unavailable for inline card checkout.");
         }
@@ -372,7 +369,7 @@ export default function CheckoutPage() {
         setCardPaymentState("INITIALIZED");
 
         const resolvedReference: string = await new Promise((resolve, reject) => {
-          void initializePaystackInlinePayment({
+          initializePaystackInlinePayment({
             key: paystackPublicKey,
             email: user.email,
             amount: total,

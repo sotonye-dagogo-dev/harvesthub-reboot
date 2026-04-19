@@ -47,6 +47,10 @@ async function loadPaystackInlineScript(): Promise<PaystackPopRuntime> {
   );
 
   if (existingScript) {
+    if (window.PaystackPop?.setup) {
+      return window.PaystackPop;
+    }
+
     await new Promise<void>((resolve, reject) => {
       existingScript.addEventListener("load", () => resolve(), { once: true });
       existingScript.addEventListener(
@@ -74,8 +78,11 @@ async function loadPaystackInlineScript(): Promise<PaystackPopRuntime> {
 }
 
 export function buildPaystackReference(prefix = "PAY"): string {
-  const random = Math.random().toString(36).slice(2, 10).toUpperCase();
-  return `${prefix}-${Date.now()}-${random}`;
+  const securePart =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+  return `${prefix}-${Date.now()}-${securePart}`;
 }
 
 export async function initializePaystackInlinePayment(

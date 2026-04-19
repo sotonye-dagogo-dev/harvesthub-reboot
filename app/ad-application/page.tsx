@@ -79,15 +79,13 @@ export default function AdApplicationPage() {
           (typeof configData?.paystackPublicKey === "string" &&
           configData.paystackPublicKey.trim().length > 0
             ? configData.paystackPublicKey.trim()
-            : null) ||
-          process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ||
-          null;
+            : null);
         if (!paystackPublicKey) {
           throw new Error("Paystack public key is unavailable for inline payment.");
         }
 
         const resolvedReference: string = await new Promise((resolve, reject) => {
-          void initializePaystackInlinePayment({
+          initializePaystackInlinePayment({
             key: paystackPublicKey,
             email: form.email,
             amount: Number(form.amountPaid),

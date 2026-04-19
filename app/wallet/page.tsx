@@ -157,8 +157,7 @@ export default function WalletPage() {
 
     setIsProcessingDeposit(true);
     try {
-      const paystackPublicKey =
-        paymentConfig?.paystackPublicKey || process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || null;
+      const paystackPublicKey = paymentConfig?.paystackPublicKey || null;
       if (!paystackPublicKey) {
         throw new Error("Paystack public key is unavailable for inline wallet deposit.");
       }
@@ -167,7 +166,7 @@ export default function WalletPage() {
       }
 
       const paymentReference: string = await new Promise((resolve, reject) => {
-        void initializePaystackInlinePayment({
+        initializePaystackInlinePayment({
           key: paystackPublicKey,
           email: user.email,
           amount,
@@ -491,22 +490,8 @@ export default function WalletPage() {
       >
         <div className="space-y-3">
           <p className="text-xs text-ds-text-secondary">
-            {pendingDepositReference
-              ? "Payment initialized. Complete payment in the opened tab, then confirm deposit."
-              : "Enter an amount between ₦100 and ₦1,000,000."}
+            Enter an amount between ₦100 and ₦1,000,000.
           </p>
-          {pendingDepositReference ? (
-            <div className="rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-3 text-xs text-ds-status-info-text">
-              <p className="font-semibold">Pending reference: {pendingDepositReference}</p>
-              <button
-                type="button"
-                className="mt-2 text-ds-text-brand underline"
-                onClick={() => setPendingDepositReference(null)}
-              >
-                Reinitialize payment
-              </button>
-            </div>
-          ) : null}
           <Input
             value={depositAmount}
             onChange={(e) => setDepositAmount(e.target.value)}
