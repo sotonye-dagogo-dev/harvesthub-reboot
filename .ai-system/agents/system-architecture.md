@@ -315,7 +315,7 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 ### Payment Verification Enforcement Flow
 
 ```
-1. Client initializes payment via `/api/payments/initialize` and receives a reference.
+1. Client initializes Paystack card handoff via inline popup (`https://js.paystack.co/v1/inline.js`) using runtime payment config public key and receives a provider reference.
 2. Client submits payment metadata to downstream mutation endpoint (`/api/orders` or `/api/wallet/deposit`).
 3. Mutation endpoint verifies payment server-side via `lib/services/payments.ts` before any persistence action.
 4. On success, endpoint persists business record and verification audit metadata.
@@ -685,9 +685,9 @@ Migration direction:
 
 ```
 
-1. Authenticated user starts checkout and initializes card payment through `/api/payments/initialize`.
-2. API initializes provider payment (Paystack when configured) and returns provider reference + authorization URL.
-3. Buyer completes payment in provider-hosted page, then checkout verifies reference via `/api/payments/verify`.
+1. Authenticated user starts checkout and launches Paystack inline popup using runtime-configured public key.
+2. Buyer completes payment in popup and receives provider reference callback in checkout client.
+3. Checkout verifies provider reference via `/api/payments/verify`.
 4. Orders API (`POST /api/orders`) re-verifies provider reference server-side before creating paid orders.
 5. On successful verification, order status-history stores payment verification timeline metadata (`verificationStatus`, `verificationProviderStatus`, `paymentVerifiedAt`).
 6. On failed/pending/not-found/unavailable states, order creation is rejected with typed error codes for explicit checkout UX mapping.
@@ -698,7 +698,7 @@ Migration direction:
 
 ```
 
-1. Paystack posts callback events to `/api/payments/webhook` with `x-paystack-signature`.
+1. Paystack posts callback events to `/api/payments/webhook` (or compatibility alias `/api/paystack-webhook`) with `x-paystack-signature`.
 2. Route validates signature before any persistence side effects.
 3. Route acquires replay guard key (`paystack:webhook:<event|reference>`) via Redis with local-memory fallback when Redis is unavailable.
 4. Supported payment events are re-verified against provider status through `verifyPayment` before reconciliation writes.
@@ -711,8 +711,8 @@ Migration direction:
 
 ```
 
-1. User initializes deposit payment from wallet UI.
-2. Wallet UI stores pending provider reference and waits for user confirmation after provider checkout completion.
+1. User initializes deposit payment from wallet UI via Paystack inline popup.
+2. Wallet UI receives provider reference callback and immediately submits deposit mutation payload.
 3. `/api/wallet/deposit` verifies the provider reference before crediting wallet balance.
 4. Deposits are available for authenticated roles when payment gateway readiness checks pass.
 5. Withdrawals are available to authenticated users with contextual pending-settlement hold checks in `/api/wallet/withdraw`.

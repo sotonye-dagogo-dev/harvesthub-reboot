@@ -45,6 +45,8 @@ export async function getPaymentProcessingRuntimeConfig() {
     mode: env.paystackMode,
     paymentsEnabled,
     gatewayReady: isGatewayReady("PAYSTACK"),
+    paystackPublicKey: env.paystackPublicKey || null,
+    inlinePopupEnabled: Boolean(env.paystackPublicKey),
     minOrderAmount,
     maxBookingAdvanceDays,
   };

@@ -15,6 +15,7 @@ import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getProductsClient } from "@/lib/data/clientDataFetchers";
+import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
 
 export const dynamic = "force-dynamic";
 
@@ -128,6 +129,7 @@ export default function CheckoutPage() {
   const loadPaymentConfig = useCallback(async (): Promise<{
     paymentsEnabled: boolean;
     gatewayReady: boolean;
+    paystackPublicKey: string | null;
   }> => {
     const res = await fetch("/api/payments/config", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -137,6 +139,10 @@ export default function CheckoutPage() {
     return {
       paymentsEnabled: Boolean(data?.paymentsEnabled),
       gatewayReady: Boolean(data?.gatewayReady),
+      paystackPublicKey:
+        typeof data?.paystackPublicKey === "string" && data.paystackPublicKey.trim().length > 0
+          ? data.paystackPublicKey.trim()
+          : null,
     };
   }, []);
 
@@ -351,41 +357,36 @@ export default function CheckoutPage() {
           );
         }
 
-        if (!cardPaymentReference) {
-          const paymentRes = await fetch("/api/payments/initialize", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              gateway: "PAYSTACK",
-              amount: total,
-              currency: "NGN",
-              callbackUrl:
-                typeof window !== "undefined" ? `${window.location.origin}/checkout` : undefined,
-              metadata: {
-                source: "checkout",
-                itemCount: items.length,
-                vendorCount,
-                deliveryMethod,
-              },
-            }),
-          });
-
-          const paymentData = await paymentRes.json().catch(() => ({}));
-          if (!paymentRes.ok || !paymentData?.payment?.authorizationUrl) {
-            throw new Error(paymentData?.error || "Unable to initialize card payment");
-          }
-
-          const initializedReference = String(paymentData.payment.reference);
-          setCardPaymentReference(initializedReference);
-          setCardPaymentState("INITIALIZED");
-
-          window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
-          message.info(
-            `Payment initialized (ref: ${initializedReference}). Complete payment in the opened tab, then click again to verify and place the order.`
-          );
-
-          return;
+        const paystackPublicKey = paymentConfig?.paystackPublicKey || null;
+        if (!paystackPublicKey) {
+          throw new Error("Paystack public key is unavailable for inline card checkout.");
         }
+        if (!user?.email) {
+          throw new Error("Account email is required to initialize inline card checkout.");
+        }
+
+        const initializedReference = cardPaymentReference || buildPaystackReference("CHK");
+        setCardPaymentState("INITIALIZED");
+
+        const resolvedReference: string = await new Promise((resolve, reject) => {
+          initializePaystackInlinePayment({
+            key: paystackPublicKey,
+            email: user.email,
+            amount: total,
+            currency: "NGN",
+            reference: initializedReference,
+            metadata: {
+              source: "checkout",
+              itemCount: items.length,
+              vendorCount,
+              deliveryMethod,
+            },
+            onSuccess: (result) => resolve(result.reference),
+            onClose: () => reject(new Error("Payment popup closed before completion.")),
+          }).catch(reject);
+        });
+
+        setCardPaymentReference(resolvedReference);
 
         setCardPaymentState("VERIFYING");
         const verifyRes = await fetch("/api/payments/verify", {
@@ -393,7 +394,7 @@ export default function CheckoutPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             gateway: "PAYSTACK",
-            reference: cardPaymentReference,
+            reference: resolvedReference,
           }),
         });
         const verifyData = await verifyRes.json().catch(() => ({}));
@@ -416,7 +417,7 @@ export default function CheckoutPage() {
         }
 
         setCardPaymentState("VERIFIED");
-        paymentReference = cardPaymentReference;
+        paymentReference = resolvedReference;
       }
 
       const orderRes = await fetch("/api/orders", {

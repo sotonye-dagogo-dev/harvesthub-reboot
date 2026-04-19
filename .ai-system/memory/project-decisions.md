@@ -23,6 +23,26 @@
 [What this decision affects going forward]
 ```
 
+## Paystack Initialization Uses Client Inline Popup with Webhook Alias Compatibility
+
+**Decision:** Paystack initialization for checkout, wallet deposit, and ad payment surfaces now runs client-side via inline popup (`js.paystack.co`), while backend webhook reconciliation remains canonical and is reachable via both `/api/payments/webhook` and `/api/paystack-webhook`.
+**Date:** 2026-04-19
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Server-side Paystack initialization can fail in serverless hosting due to provider IP allowlist controls. Moving initialization to browser-hosted popup avoids those server egress restrictions while preserving existing downstream verification and reconciliation contracts.
+
+**Alternatives Considered:**
+
+- Keep server-side `/api/payments/initialize` as primary Paystack initializer (rejected: still vulnerable to provider IP restrictions).
+- Add a new Paystack SDK dependency for popup launch (rejected: unnecessary dependency when official script already supports inline setup).
+
+**Implications:**
+
+- Payment clients must resolve a runtime-safe Paystack public key before launching popup.
+- Existing env naming remains supported, including fallback support for `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`.
+- Integrators can point Paystack webhooks to either `/api/payments/webhook` or `/api/paystack-webhook`.
+
 ## Cart Pricing Persists Effective and Original Amounts for Discount Parity
 
 **Decision:** Cart state stores discount-aware pricing as effective `price` plus optional `originalPrice` and `discountPercent`, and checkout/cart summaries compute product discount from these fields before voucher deduction.

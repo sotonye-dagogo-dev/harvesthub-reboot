@@ -78,6 +78,38 @@
 
 ---
 
+## Cloud Session Feature Spec - Paystack Inline Popup + Webhook Alias Hardening (Planned 2026-04-19)
+
+> **Section summary:** Scope-locked payment reliability pass to avoid server-side Paystack initialization/IP-allowlist failures by shifting initialization to client inline popup and preserving webhook-driven reconciliation.
+
+**Feature Objective:**
+Move Paystack payment initialization to browser inline popup flows across checkout/wallet/ad surfaces so serverless IP restrictions no longer block initialization, while preserving current backend verification and webhook reconciliation contracts.
+
+**Why This Is Needed:**
+
+- Server-side Paystack initialization can fail in hosted/serverless environments due to provider IP allowlist restrictions.
+- Existing flows rely on `/api/payments/initialize` for Paystack checkout handoff, creating avoidable provider-edge failures.
+- Webhook signature verification and reconciliation already exist and should remain canonical for authenticity checks.
+- Business requested an explicit `/api/paystack-webhook` endpoint compatibility path.
+
+**Acceptance Criteria:**
+
+- Client payment surfaces use Paystack inline popup initialized with configured public key.
+- Payment config contract returns sanitized public key readiness value without exposing secrets.
+- Existing env naming remains supported, with fallback compatibility for `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`.
+- `/api/paystack-webhook` accepts POST and routes through the existing webhook signature verification + reconciliation handler.
+- No unrelated API/public contract regressions on checkout/wallet/ad submission flows.
+
+**Rollout Order:**
+
+1. Add runtime/public-key contract support.
+2. Implement reusable inline popup utility.
+3. Migrate checkout, wallet, and ad payment entry points.
+4. Add webhook alias endpoint.
+5. Run validation and sync `.ai-system` closure docs.
+
+---
+
 ## Cloud Session Feature Spec - Top/Hero Banner Navigator Rework + Fill Behavior (Planned 2026-04-18)
 
 > **Section summary:** Scope-locked UI refinement to remove intrusive top-banner controls, move hero controls into a compact below-image action panel, and enforce fill behavior for top/ad banner images.
