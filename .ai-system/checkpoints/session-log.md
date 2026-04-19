@@ -39,6 +39,63 @@
 
 ---
 
+## Session 81 — 2026-04-19
+
+**Goal:**
+Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow for design-system compliance hardening, Paystack initialize diagnostics clarity, and discount pricing parity across cart/checkout; then prepare PR-ready closure.
+
+**Completed:**
+
+- Added planning artifacts for this scope:
+  - Feature spec in `.ai-system/planning/project-plan.md`.
+  - Queue block in `.ai-system/planning/task-queue.md`.
+  - Temp cloud plan: `.ai-system/planning/cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md`.
+- Updated hero banner action panel prev/next controls to semantic DS token classes (removed theme-specific nav styling dependency).
+- Added platform base-form surface guard in global styles so native `input/textarea/select` controls inherit DS surfaces/text tokens in dark mode.
+- Refined payment initialize diagnostics:
+  - Updated IP allowlist operator guidance for serverless/static-egress realities.
+  - Added SSL/TLS/fetch-failure keyword mapping into provider-unavailable classification.
+  - Mirrored diagnostics copy improvements in operations settings panel.
+- Implemented discount parity in cart + checkout:
+  - Cart store now tracks effective price plus optional `originalPrice` and `discountPercent`.
+  - Add-to-cart entry points now compute and store discounted unit prices.
+  - Cart/checkout line items now show discounted totals with original-price strike-through where applicable.
+  - Cart/checkout summaries now show product-discount deduction while preserving voucher deduction behavior.
+- Added focused regression test coverage for discount hydration in cart reconciliation.
+- Validation:
+  - `npm run lint` passed.
+  - `npm run build` passed (known existing sitemap warnings unchanged).
+  - `npx vitest lib/store/__tests__/cartStore.reconcile.test.ts app/api/payments/initialize/__tests__/route.test.ts` passed.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md
+- .ai-system/checkpoints/session-log.md
+- app/_styles/globals.css
+- components/features/BannerCarousel.tsx
+- lib/config/paymentErrors.ts
+- app/(operations)/operations/settings/page.tsx
+- lib/store/cartStore.ts
+- components/features/ProductsContent.tsx
+- app/components/HomeContent.tsx
+- app/favourites/page.tsx
+- components/features/CartItemComponent.tsx
+- app/cart/page.tsx
+- app/checkout/page.tsx
+- lib/store/__tests__/cartStore.reconcile.test.ts
+
+**Next Task:**
+Run `parallel_validation`, resolve any valid findings, finalize `.ai-system` closure checklist item, and raise PR.
+
+**Notes / Blockers:**
+- Full-suite vitest remains baseline-red in repository; focused touched suites are green.
+- `parallel_validation` code review findings were addressed (shared pricing helpers + selector comment).
+- Final `parallel_validation` CodeQL scan timed out after earlier run reported 0 alerts; tool instructed not to re-run due session time budget.
+
+---
+
 ## Session 80 — 2026-04-18
 
 **Goal:**

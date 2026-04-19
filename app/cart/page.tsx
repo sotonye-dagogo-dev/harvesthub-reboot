@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { useCart } from "@/lib/store/cartStore";
+import { getCartPricingBreakdown, useCart } from "@/lib/store/cartStore";
 import { EmptyState, Button, Card } from "@/components/ui";
 import { CartItemComponent } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
@@ -16,11 +16,7 @@ export const dynamic = "force-dynamic";
 export default function CartPage() {
   const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart, reconcileWithCatalog } =
     useCart();
-  const originalTotalPrice = items.reduce(
-    (sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity,
-    0
-  );
-  const productDiscountTotal = Math.max(0, originalTotalPrice - totalPrice);
+  const { productDiscountTotal } = getCartPricingBreakdown(items);
 
   const loadProducts = useCallback(async () => getProductsClient({ limit: 120 }), []);
   const { data: runtimeProducts } = useSmartResource(loadProducts, {

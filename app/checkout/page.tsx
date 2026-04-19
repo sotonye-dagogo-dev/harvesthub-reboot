@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/lib/store/cartStore";
+import { getCartPricingBreakdown, useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
@@ -58,11 +58,7 @@ export default function CheckoutPage() {
   );
   const vendorCount = Math.max(1, vendorIds.length);
   const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
-  const originalItemsTotal = useMemo(
-    () => items.reduce((sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity, 0),
-    [items]
-  );
-  const productDiscountTotal = Math.max(0, originalItemsTotal - totalPrice);
+  const { productDiscountTotal } = useMemo(() => getCartPricingBreakdown(items), [items]);
   const voucherDiscount = appliedVoucher?.discount ?? 0;
   const total = totalPrice + deliveryFee - voucherDiscount;
   const vendorStatusKey = useMemo(() => vendorIds.slice().sort().join(","), [vendorIds]);

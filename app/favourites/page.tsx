@@ -7,7 +7,7 @@ import { ProductCard } from "@/components/features";
 import { EmptyState } from "@/components/ui";
 import { getProductsClient, getVendorsClient } from "@/lib/data/clientDataFetchers";
 import type { Product, Vendor } from "@/lib/types";
-import { useCart } from "@/lib/store/cartStore";
+import { buildCartPricing, useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { useToast } from "@/lib/contexts/ToastContext";
@@ -51,15 +51,11 @@ export default function FavouritesPage() {
 
     const vendor = vendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-    const discountPercent = Math.min(Math.max(Number(product.discount ?? 0), 0), 100);
-    const effectivePrice =
-      discountPercent > 0 ? Math.max(product.price - (product.price * discountPercent) / 100, 0) : product.price;
+    const pricing = buildCartPricing(product.price, product.discount);
     addItem({
       productId: product.id,
       name: product.name,
-      price: effectivePrice,
-      originalPrice: discountPercent > 0 ? product.price : undefined,
-      discountPercent: discountPercent > 0 ? discountPercent : undefined,
+      ...pricing,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
       vendorName,

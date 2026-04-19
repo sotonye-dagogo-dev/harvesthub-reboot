@@ -37,13 +37,13 @@
 > **Section summary:** One-pass corrective queue for hero nav tokenization, dark-mode form control surface compliance, payment initialize diagnostics clarity for serverless/IP allowlist restrictions, and cart/checkout discount parity.
 
 - [x] Create cloud temp plan artifact for this scope (`cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md`).
-- [ ] Apply semantic design-system token styling to hero banner action-panel navigation controls.
-- [ ] Add platform-level native form control surface guard so input/textarea/select dark mode no longer regresses to white.
-- [ ] Refine payment initialize diagnostics copy/mapping for serverless IP-allowlist restrictions and SSL/TLS transport failures.
-- [ ] Ensure cart and checkout honor discounted pricing with original+discount display parity and correct summary composition.
-- [ ] Add/refresh focused tests for touched cart pricing reconciliation behavior.
-- [ ] Run validation (`npm run lint`, `npm run build`, focused touched tests).
-- [ ] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/repair/decisions if needed) and raise PR.
+- [x] Apply semantic design-system token styling to hero banner action-panel navigation controls.
+- [x] Add platform-level native form control surface guard so input/textarea/select dark mode no longer regresses to white.
+- [x] Refine payment initialize diagnostics copy/mapping for serverless IP-allowlist restrictions and SSL/TLS transport failures.
+- [x] Ensure cart and checkout honor discounted pricing with original+discount display parity and correct summary composition.
+- [x] Add/refresh focused tests for touched cart pricing reconciliation behavior.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched tests).
+- [x] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/repair/decisions if needed) and raise PR.
 
 ---
 

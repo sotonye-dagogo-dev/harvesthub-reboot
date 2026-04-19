@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
 import { BannerActionModal } from "@/components/features/BannerCarousel";
-import { useCart } from "@/lib/store/cartStore";
+import { buildCartPricing, useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { formatVendorCategory } from "@/lib/utils/format";
@@ -220,15 +220,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     if (!requireAuth("add items to your cart")) return;
     const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-    const discountPercent = Math.min(Math.max(Number(product.discount ?? 0), 0), 100);
-    const effectivePrice =
-      discountPercent > 0 ? Math.max(product.price - (product.price * discountPercent) / 100, 0) : product.price;
+    const pricing = buildCartPricing(product.price, product.discount);
     addItem({
       productId: product.id,
       name: product.name,
-      price: effectivePrice,
-      originalPrice: discountPercent > 0 ? product.price : undefined,
-      discountPercent: discountPercent > 0 ? discountPercent : undefined,
+      ...pricing,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
       vendorName,

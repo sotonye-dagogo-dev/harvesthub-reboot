@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 
-interface CartItem {
+export interface CartItem {
     productId: string;
     name: string;
     price: number;
@@ -38,7 +38,7 @@ const isServiceItem = (item: { stock: number; isService?: boolean }) =>
 
 const isServiceListing = (listingType?: string | null) => listingType === "SERVICE";
 
-const normalizeDiscount = (discount: number | null | undefined): number => {
+export const normalizeDiscountPercent = (discount: number | null | undefined): number => {
     const parsed = Number(discount ?? 0);
     if (!Number.isFinite(parsed) || parsed <= 0) {
         return 0;
@@ -46,8 +46,36 @@ const normalizeDiscount = (discount: number | null | undefined): number => {
     return Math.min(parsed, 100);
 };
 
-const resolveDiscountedPrice = (price: number, discountPercent: number): number =>
+export const resolveDiscountedPrice = (price: number, discountPercent: number): number =>
     Math.max(price - (price * discountPercent) / 100, 0);
+
+export const buildCartPricing = (price: number, discount: number | null | undefined) => {
+    const discountPercent = normalizeDiscountPercent(discount);
+    const effectivePrice = resolveDiscountedPrice(price, discountPercent);
+
+    return {
+        price: effectivePrice,
+        originalPrice: discountPercent > 0 ? price : undefined,
+        discountPercent: discountPercent > 0 ? discountPercent : undefined,
+    };
+};
+
+export const getCartPricingBreakdown = (
+    items: Array<Pick<CartItem, "price" | "originalPrice" | "quantity">>
+) => {
+    const effectiveTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const originalTotal = items.reduce(
+        (sum, item) => sum + (item.originalPrice ?? item.price) * item.quantity,
+        0
+    );
+    const productDiscountTotal = Math.max(0, originalTotal - effectiveTotal);
+
+    return {
+        effectiveTotal,
+        originalTotal,
+        productDiscountTotal,
+    };
+};
 
 const recalculateTotals = (items: CartItem[]) => ({
     totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -181,8 +209,8 @@ export const useCart = create<CartStore>()(
                     const normalizedName = typeof live.name === "string" && live.name.trim().length > 0
                         ? live.name
                         : item.name;
-                    const normalizedBasePrice = Number.isFinite(live.price) ? Number(live.price) : (item.originalPrice ?? item.price);
-                    const normalizedDiscountPercent = normalizeDiscount(live.discount);
+                    const normalizedBasePrice = Number.isFinite(live.price) ? Number(live.price) : item.price;
+                    const normalizedDiscountPercent = normalizeDiscountPercent(live.discount);
                     const normalizedPrice = resolveDiscountedPrice(normalizedBasePrice, normalizedDiscountPercent);
                     const normalizedOriginalPrice = normalizedDiscountPercent > 0 ? normalizedBasePrice : undefined;
                     const normalizedImage =
