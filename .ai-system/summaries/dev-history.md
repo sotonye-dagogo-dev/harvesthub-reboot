@@ -22,6 +22,31 @@
 [What comes next]
 ```
 
+## 2026-04-19 — Design Token Compliance + Payment Initialize Diagnostics + Discount Parity
+
+**Summary:**
+Completed the requested one-pass corrective slice after generating the required feature/queue/temp-plan artifacts. The pass standardized hero nav controls on semantic tokens, hardened dark-mode native form control surfaces, improved Paystack initialize diagnostics for serverless IP-allowlist realities, and restored discount parity across cart and checkout totals/UI.
+
+**Completed:**
+- Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md`).
+- Tokenized hero banner prev/next control styling in `BannerCarousel`.
+- Added global native-form (`input/textarea/select`) DS surface guard in `app/_styles/globals.css`.
+- Updated payment error mapping and operations diagnostics copy for serverless API allowlist guidance and SSL/TLS transport-failure classification.
+- Added discount-aware cart storage (`originalPrice`, `discountPercent`) and updated add-to-cart flows (home/products/favourites) to store effective discounted price.
+- Updated cart/checkout UI to render discounted + original pricing and include product-discount summary rows while preserving voucher calculations.
+- Added focused cart reconciliation test for discount hydration.
+- Validation passed: `npm run lint`, `npm run build` (known sitemap warnings unchanged), and focused touched vitest suites.
+- Parallel validation: review feedback was incorporated; final CodeQL run timed out after an earlier 0-alert scan in-session.
+
+**Key Changes:**
+- Cart/checkout now display and calculate discounted pricing consistently with product cards/detail pages.
+- Payment initialize diagnostics now provide operator guidance that fits Vercel/serverless deployment constraints.
+
+**Next Sprint Focus:**
+Complete parallel validation pass, address valid review findings if any, and finalize PR delivery.
+
+---
+
 ## 2026-04-18 — Hero Icon Controls + Sidebar Modal-First Ad Interaction
 
 **Summary:**

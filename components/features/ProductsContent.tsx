@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { ProductCard, FilterSidebar, CategoryNav, SearchBar } from "@/components/features";
 import { SimplePagination, EmptyState } from "@/components/ui";
-import { useCart } from "@/lib/store/cartStore";
+import { buildCartPricing, useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
@@ -271,10 +271,11 @@ export default function ProductsContent({
     if (!requireAuth("add items to your cart")) return;
     const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+    const pricing = buildCartPricing(product.price, product.discount);
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      ...pricing,
       image: product.images[0] || "/placeholder-product.jpg",
       vendorId: product.vendorId,
       vendorName,

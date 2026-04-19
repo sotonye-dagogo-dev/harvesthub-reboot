@@ -18,6 +18,43 @@
 
 ---
 
+## [Cart/checkout showed original price for discounted products]
+
+**Symptom:**
+
+- Discounted products appeared correctly on product cards/detail pages but cart and checkout displayed only original prices.
+- Voucher deductions stacked on top of undiscounted subtotals, overstating payable totals.
+
+**Root Cause:**
+
+- Cart state persisted only a single `price` field sourced from base product price.
+- Add-to-cart flows did not normalize/store discount metadata, so downstream cart/checkout screens had no original-vs-discounted context.
+
+**Fix Applied:**
+
+- Cart store now tracks effective unit `price` plus optional `originalPrice` and `discountPercent`.
+- Add-to-cart entry points compute discounted unit pricing before persistence.
+- Cart and checkout now render discounted totals with original-price strike-through and include explicit product-discount summary rows.
+
+**Prevention:**
+
+- Treat price persistence as a structured contract (`effective`, `original`, `discount`) across all cart mutation entry points.
+- When product pricing schema includes discount fields, ensure checkout summary formulas explicitly include product-discount deduction before voucher application.
+
+**Files Affected:**
+
+- lib/store/cartStore.ts
+- components/features/ProductsContent.tsx
+- app/components/HomeContent.tsx
+- app/favourites/page.tsx
+- app/cart/page.tsx
+- app/checkout/page.tsx
+- components/features/CartItemComponent.tsx
+
+**Date:** 2026-04-19
+
+---
+
 ## [Banner/ad mutation retries could create duplicate records]
 
 **Symptom:**
