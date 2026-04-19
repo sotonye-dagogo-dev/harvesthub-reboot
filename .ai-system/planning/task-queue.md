@@ -32,6 +32,22 @@
 
 ---
 
+## Cloud Session Execution Queue (2026-04-19) — Paystack Inline Popup + Webhook Alias Hardening
+
+> **Section summary:** One-pass payment integration queue to move client payment initialization to Paystack inline popup, preserve webhook signature verification, add `/api/paystack-webhook` compatibility endpoint, and keep existing contracts non-breaking.
+
+- [x] Create cloud temp plan artifact for this scope (`cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md`).
+- [ ] Expose runtime-safe Paystack public key in payment config contracts while honoring existing env naming/fallbacks.
+- [ ] Add reusable client-side Paystack inline launcher utility and deterministic payment-reference helper.
+- [ ] Migrate checkout card payment flow from server initialize endpoint to inline popup initialization.
+- [ ] Migrate wallet deposit and ad-payment entry points to inline popup initialization.
+- [ ] Add `/api/paystack-webhook` POST route alias to current webhook reconciliation handler.
+- [ ] Update focused tests affected by the inline initialization flow and verify webhook compatibility path.
+- [ ] Run validation (`npm run lint`, `npm run build`, focused touched tests).
+- [ ] Sync `.ai-system` closure docs (`task-queue`, `session-log`, `dev-history`, architecture/decisions if needed) and raise PR.
+
+---
+
 ## Cloud Session Execution Queue (2026-04-19) — Design Token Compliance + Payment Initialize Diagnostics + Discount Parity
 
 > **Section summary:** One-pass corrective queue for hero nav tokenization, dark-mode form control surface compliance, payment initialize diagnostics clarity for serverless/IP allowlist restrictions, and cart/checkout discount parity.

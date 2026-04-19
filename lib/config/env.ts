@@ -18,6 +18,7 @@ const envSchema = z.object({
   PAYSTACK_LIVE_SECRET_KEY: z.string().optional(),
   PAYSTACK_TEST_CALLBACK_URL: z.string().optional(),
   PAYSTACK_LIVE_CALLBACK_URL: z.string().optional(),
+  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().optional(),
   PAYSTACK_PUBLIC_KEY: z.string().optional(),
   PAYSTACK_SECRET_KEY: z.string().optional(),
   FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
@@ -85,8 +86,8 @@ export const env = {
   paystackLiveCallbackUrl: raw.PAYSTACK_LIVE_CALLBACK_URL,
   paystackPublicKey:
     toPaystackMode(raw.PAYSTACK_MODE) === 'live'
-      ? raw.PAYSTACK_LIVE_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY
-      : raw.PAYSTACK_TEST_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY,
+      ? raw.PAYSTACK_LIVE_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY || raw.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
+      : raw.PAYSTACK_TEST_PUBLIC_KEY || raw.PAYSTACK_PUBLIC_KEY || raw.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
   paystackSecretKey:
     toPaystackMode(raw.PAYSTACK_MODE) === 'live'
       ? raw.PAYSTACK_LIVE_SECRET_KEY || raw.PAYSTACK_SECRET_KEY

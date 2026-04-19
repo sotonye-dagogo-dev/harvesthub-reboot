@@ -6,6 +6,7 @@ import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/feat
 import { message } from "antd";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 import { generateRequestKey } from "@/lib/utils/requestKey";
+import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
 
 type ApplyFormState = {
   name: string;
@@ -72,33 +73,38 @@ export default function AdApplicationPage() {
       const isBankTransfer = form.paymentMethod === "BANK_TRANSFER";
 
       if (!isBankTransfer) {
-        const paymentRes = await fetch("/api/payments/initialize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            gateway: "PAYSTACK",
-            amount: Number(form.amountPaid),
+        const configRes = await fetch("/api/payments/config", { cache: "no-store" });
+        const configData = await configRes.json().catch(() => ({}));
+        const paystackPublicKey =
+          (typeof configData?.paystackPublicKey === "string" &&
+          configData.paystackPublicKey.trim().length > 0
+            ? configData.paystackPublicKey.trim()
+            : null) ||
+          process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ||
+          null;
+        if (!paystackPublicKey) {
+          throw new Error("Paystack public key is unavailable for inline payment.");
+        }
+
+        const resolvedReference: string = await new Promise((resolve, reject) => {
+          void initializePaystackInlinePayment({
+            key: paystackPublicKey,
             email: form.email,
+            amount: Number(form.amountPaid),
             currency: "NGN",
+            reference: buildPaystackReference("PUBADV"),
             metadata: {
               source: "public-ad-application",
               paymentMethod: form.paymentMethod,
             },
-          }),
+            onSuccess: (result) => resolve(result.reference),
+            onClose: () => reject(new Error("Payment popup closed before completion.")),
+          }).catch(reject);
         });
-        const paymentData = await paymentRes.json().catch(() => ({}));
-        if (!paymentRes.ok || !paymentData?.payment?.reference) {
-          throw new Error(paymentData?.error || "Unable to initialize payment");
-        }
-        paymentReference = String(paymentData.payment.reference);
-        if (!paymentData.payment.verificationReference) {
-          throw new Error("Unable to determine payment verification reference");
-        }
-        paymentVerificationReference = String(paymentData.payment.verificationReference);
-        if (paymentData?.payment?.authorizationUrl) {
-          window.open(paymentData.payment.authorizationUrl, "_blank", "noopener,noreferrer");
-          message.info("Payment initialized. Complete payment in the opened tab.");
-        }
+
+        paymentReference = resolvedReference;
+        paymentVerificationReference = resolvedReference;
+        message.success("Payment completed successfully.");
       } else if (!form.proofOfTransferUrl) {
         throw new Error("Please upload proof of transfer for bank transfer.");
       }

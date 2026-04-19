@@ -12,6 +12,7 @@ import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { emitWalletSync, subscribeWalletSync } from "@/lib/utils/walletSync";
 import type { ReactElement } from "react";
+import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
 
 const NIGERIAN_ACCOUNT_NUMBER_LENGTH = 10;
 
@@ -20,7 +21,6 @@ export default function WalletPage() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState("");
-  const [pendingDepositReference, setPendingDepositReference] = useState<string | null>(null);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isProcessingDeposit, setIsProcessingDeposit] = useState(false);
   const [isProcessingWithdraw, setIsProcessingWithdraw] = useState(false);
@@ -78,6 +78,7 @@ export default function WalletPage() {
   const loadPaymentConfig = useCallback(async (): Promise<{
     paymentsEnabled: boolean;
     gatewayReady: boolean;
+    paystackPublicKey: string | null;
   }> => {
     const res = await fetch("/api/payments/config", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -87,6 +88,10 @@ export default function WalletPage() {
     return {
       paymentsEnabled: Boolean(data?.paymentsEnabled),
       gatewayReady: Boolean(data?.gatewayReady),
+      paystackPublicKey:
+        typeof data?.paystackPublicKey === "string" && data.paystackPublicKey.trim().length > 0
+          ? data.paystackPublicKey.trim()
+          : null,
     };
   }, []);
 
@@ -152,38 +157,27 @@ export default function WalletPage() {
 
     setIsProcessingDeposit(true);
     try {
-      if (!pendingDepositReference) {
-        const initializeRes = await fetch("/api/payments/initialize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            gateway: "PAYSTACK",
-            amount,
-            currency: "NGN",
-            metadata: { source: "wallet-deposit" },
-          }),
-        });
-        const initializeData = await initializeRes.json().catch(() => ({}));
-        if (
-          !initializeRes.ok ||
-          !initializeData?.payment?.reference ||
-          !initializeData?.payment?.authorizationUrl
-        ) {
-          throw new Error(initializeData?.error || "Unable to initialize payment");
-        }
-
-        const reference = initializeData.payment.reference as string;
-        const authorizationUrl = initializeData.payment.authorizationUrl as string;
-        setPendingDepositReference(reference);
-        const paymentWindow = window.open(authorizationUrl, "_blank", "noopener,noreferrer");
-        if (!paymentWindow) {
-          window.location.assign(authorizationUrl);
-        }
-        message.info(
-          `Deposit initialized (ref: ${reference}). Complete payment in the opened tab, then click Deposit Funds again to verify.`
-        );
-        return;
+      const paystackPublicKey =
+        paymentConfig?.paystackPublicKey || process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || null;
+      if (!paystackPublicKey) {
+        throw new Error("Paystack public key is unavailable for inline wallet deposit.");
       }
+      if (!user?.email) {
+        throw new Error("Account email is required to initialize wallet deposit.");
+      }
+
+      const paymentReference: string = await new Promise((resolve, reject) => {
+        void initializePaystackInlinePayment({
+          key: paystackPublicKey,
+          email: user.email,
+          amount,
+          currency: "NGN",
+          reference: buildPaystackReference("WAL"),
+          metadata: { source: "wallet-deposit" },
+          onSuccess: (result) => resolve(result.reference),
+          onClose: () => reject(new Error("Payment popup closed before completion.")),
+        }).catch(reject);
+      });
 
       const depositRes = await fetch("/api/wallet/deposit", {
         method: "POST",
@@ -191,9 +185,9 @@ export default function WalletPage() {
         body: JSON.stringify({
           amount,
           description: "Wallet deposit via verified card transaction",
-          paymentReference: pendingDepositReference,
+          paymentReference,
           paymentGateway: "PAYSTACK",
-          paymentVerificationReference: pendingDepositReference,
+          paymentVerificationReference: paymentReference,
         }),
       });
       const depositData = await depositRes.json().catch(() => ({}));
@@ -204,7 +198,6 @@ export default function WalletPage() {
       message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
       emitWalletSync("wallet-deposit");
       await refresh(true);
-      setPendingDepositReference(null);
       setShowDepositModal(false);
       setDepositAmount("");
     } catch (error) {

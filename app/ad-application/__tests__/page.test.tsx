@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AdApplicationPage from '@/app/ad-application/page';
 
+const initializePaystackInlinePaymentMock = vi.fn();
+
 vi.mock('@/components/ui/ImageUpload', () => ({
   default: ({ folderType, onUploaded }: { folderType: string; onUploaded?: (result: { url: string; publicId: string }) => void }) => (
     <button
@@ -22,9 +24,15 @@ vi.mock('@/components/ui/ImageUpload', () => ({
   ),
 }));
 
+vi.mock('@/lib/utils/paystackInline', () => ({
+  buildPaystackReference: () => 'PUBADV-TEST-REF',
+  initializePaystackInlinePayment: (...args: unknown[]) => initializePaystackInlinePaymentMock(...args),
+}));
+
 describe('AdApplicationPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    initializePaystackInlinePaymentMock.mockReset();
     vi.spyOn(window, 'open').mockImplementation(() => null);
   });
 
@@ -65,16 +73,16 @@ describe('AdApplicationPage', () => {
   });
 
   it('initializes payment for card applications and submits without proof upload', async () => {
+    initializePaystackInlinePaymentMock.mockImplementation(async (params: { onSuccess: (payload: { reference: string }) => void }) => {
+      params.onSuccess({ reference: 'PAY-TEST-REF' });
+    });
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          payment: {
-            reference: 'PAY-TEST-REF',
-            verificationReference: 'PAY-TEST-REF-success',
-            authorizationUrl: 'https://checkout.paystack.com/PAY-TEST-REF',
-          },
+          success: true,
+          paystackPublicKey: 'pk_test_inline_123',
         }),
       })
       .mockResolvedValueOnce({
@@ -101,7 +109,8 @@ describe('AdApplicationPage', () => {
     });
 
     const [firstUrl] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(firstUrl).toBe('/api/payments/initialize');
+    expect(firstUrl).toBe('/api/payments/config');
+    expect(initializePaystackInlinePaymentMock).toHaveBeenCalledTimes(1);
 
     const [secondUrl, secondOptions] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(secondUrl).toBe('/api/ads/apply');
