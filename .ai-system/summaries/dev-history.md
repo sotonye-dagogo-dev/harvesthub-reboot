@@ -22,6 +22,29 @@
 [What comes next]
 ```
 
+## 2026-04-19 — Paystack Inline Popup + Webhook Alias Hardening
+
+**Summary:**
+Completed a scope-locked Paystack reliability pass to move payment initialization away from server-side provider calls and into browser inline popup flows. This reduces hosted IP-allowlist friction while preserving existing verification and reconciliation contracts. A compatibility webhook alias endpoint was also added for simpler Paystack dashboard routing.
+
+**Completed:**
+- Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md`).
+- Added reusable `lib/utils/paystackInline.ts` utility for script loading, popup initialization, and callback handling.
+- Added env/runtime contract support for public-key fallback (`NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`) and exposed sanitized `paystackPublicKey` via `/api/payments/config`.
+- Migrated checkout/wallet/advertise/ad-application card initialization to inline popup instead of `/api/payments/initialize`.
+- Added `app/api/paystack-webhook/route.ts` alias reusing the existing webhook reconciliation handler.
+- Updated focused ad-application test expectations for inline-popup flow.
+- Validation passed: `npm run lint`, `npm run build` (known sitemap warnings unchanged), focused touched tests for ad-application + payments webhook.
+
+**Key Changes:**
+- Paystack initialization now happens client-side for core card flows, reducing server egress/IP restriction failure risk.
+- Webhook endpoint compatibility now supports both `/api/payments/webhook` and `/api/paystack-webhook`.
+
+**Next Sprint Focus:**
+Run parallel validation feedback loop, resolve valid findings, and finalize PR delivery.
+
+---
+
 ## 2026-04-19 — Design Token Compliance + Payment Initialize Diagnostics + Discount Parity
 
 **Summary:**

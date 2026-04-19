@@ -39,6 +39,59 @@
 
 ---
 
+## Session 82 — 2026-04-19
+
+**Goal:**
+Execute `plan-feature.md` + `cloud-session-single-pass.md` flow for Paystack inline popup integration to bypass server-side initialize/IP restrictions, create temp plan artifacts, and close with PR-ready validation/docs sync.
+
+**Completed:**
+
+- Added planning artifacts for this scope:
+  - Feature spec in `.ai-system/planning/project-plan.md`.
+  - Queue block in `.ai-system/planning/task-queue.md`.
+  - Temp cloud plan: `.ai-system/planning/cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md`.
+- Added reusable Paystack inline utility (`lib/utils/paystackInline.ts`) with script loading, deterministic references, and callback/close handling.
+- Updated runtime payment config contracts to expose sanitized `paystackPublicKey` and support `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` fallback in env normalization.
+- Migrated Paystack initialization in these client flows from server initialize endpoint to inline popup:
+  - `app/checkout/page.tsx`
+  - `app/wallet/page.tsx`
+  - `app/advertise/page.tsx`
+  - `app/ad-application/page.tsx`
+- Added webhook compatibility alias route:
+  - `POST /api/paystack-webhook` now reuses existing `/api/payments/webhook` reconciliation handler.
+- Updated focused tests for ad-application card flow to reflect inline-popup contract.
+- Updated architecture + decisions docs to capture the new Paystack initialization and webhook alias behavior.
+- Validation:
+  - `npm run lint` passed.
+  - `npm run build` passed (known existing sitemap warnings unchanged).
+  - `npx vitest app/ad-application/__tests__/page.test.tsx app/api/payments/webhook/__tests__/route.test.ts` passed.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/planning/cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- app/checkout/page.tsx
+- app/wallet/page.tsx
+- app/advertise/page.tsx
+- app/ad-application/page.tsx
+- app/ad-application/__tests__/page.test.tsx
+- app/api/paystack-webhook/route.ts
+- lib/config/env.ts
+- lib/config/payments.ts
+- lib/utils/paystackInline.ts
+
+**Next Task:**
+Run `parallel_validation`, resolve valid findings if any, then finalize PR summary.
+
+**Notes / Blockers:**
+- Repository-wide baseline `npm run test` remains red from pre-existing suites unrelated to this slice; focused touched suites are green.
+
+---
+
 ## Session 81 — 2026-04-19
 
 **Goal:**
