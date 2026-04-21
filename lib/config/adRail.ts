@@ -1,15 +1,15 @@
 export const AD_RAIL_CONFIG = {
   desktop: {
-    maxHeightClass: "lg:max-h-[300px] xl:max-h-[332px]",
-    gapClass: "gap-1.5",
+    maxHeightClass: "ad-rail-desktop-max-height",
+    gapClass: "ad-rail-desktop-gap",
     autoScroll: {
       stepPx: 112,
       intervalMs: 2400,
     },
   },
   mobile: {
-    gapClass: "gap-1.5",
-    tileWidthClass: "w-28 sm:w-32",
+    gapClass: "ad-rail-mobile-gap",
+    tileWidthClass: "ad-rail-mobile-tile-width",
     autoScroll: {
       stepPx: 132,
       intervalMs: 2600,

@@ -382,6 +382,22 @@
     scrollbar-color: rgb(var(--ds-brand-accent)) transparent;
   }
 
+  .ad-rail-desktop-max-height {
+    @apply lg:max-h-[300px] xl:max-h-[332px];
+  }
+
+  .ad-rail-desktop-gap {
+    @apply gap-1.5;
+  }
+
+  .ad-rail-mobile-gap {
+    @apply gap-1.5;
+  }
+
+  .ad-rail-mobile-tile-width {
+    @apply w-28 sm:w-32;
+  }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
