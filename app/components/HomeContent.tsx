@@ -184,7 +184,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
   // Get deals (products with discount >= 5%)
   const dealsProducts = liveProducts
-    .filter((p) => p.isActive && typeof p.discount === 'number' && p.discount >= 5)
+    .filter((p) => p.isActive && typeof p.discount === "number" && p.discount >= 5)
     .sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0))
     .slice(0, 12);
 
@@ -268,7 +268,9 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
               </div>
             )}
             {activeSidebarBanners.length > 0 && (
-              <aside className={hasHeroBanners ? "min-w-0 lg:col-span-4" : "min-w-0 lg:col-span-12"}>
+              <aside
+                className={hasHeroBanners ? "min-w-0 lg:col-span-4" : "min-w-0 lg:col-span-12"}
+              >
                 <div
                   data-testid="sidebar-banner-rail-mobile"
                   ref={mobileRailAutoScroll.railRef}
@@ -310,11 +312,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 <div
                   data-testid="sidebar-banner-grid"
                   ref={desktopRailAutoScroll.railRef}
-                  className={`hidden w-full min-w-0 ${AD_RAIL_CONFIG.desktop.gapClass} lg:grid ${sidebarGridColumnsClass} ${
-                    hasHeroBanners
-                      ? `${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1`
-                      : "overflow-visible"
-                  }`}
+                  className={`hidden w-full min-w-0 ${AD_RAIL_CONFIG.desktop.gapClass} ${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1 lg:grid ${sidebarGridColumnsClass}`}
                   {...desktopRailAutoScroll.bind}
                 >
                   {activeSidebarBanners.map((banner) => {
