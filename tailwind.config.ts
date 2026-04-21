@@ -11,10 +11,17 @@ const dsColor = (token: string) => `rgb(var(--ds-${token}) / <alpha-value>)`;
 
 const config: Config = {
   darkMode: 'class',
+  safelist: [
+    'ad-rail-desktop-max-height',
+    'ad-rail-desktop-gap',
+    'ad-rail-mobile-gap',
+    'ad-rail-mobile-tile-width',
+  ],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
