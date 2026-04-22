@@ -84,6 +84,63 @@ export async function POST(req: NextRequest) {
 
         const reference = paymentReference;
 
+        const existingTransaction = await prisma.transaction.findUnique({
+            where: { reference },
+            select: {
+                id: true,
+                walletId: true,
+                type: true,
+                amount: true,
+                status: true,
+                reference: true,
+                description: true,
+                balanceBefore: true,
+                balanceAfter: true,
+                metadata: true,
+                orderId: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+
+        if (existingTransaction) {
+            if (existingTransaction.walletId !== wallet.id) {
+                return apiError('Payment reference already exists for another wallet.', 409, {
+                    code: 'PAYMENT_REFERENCE_CONFLICT',
+                    reference,
+                });
+            }
+
+            if (existingTransaction.type !== TransactionType.DEPOSIT) {
+                return apiError('Payment reference already exists for a different transaction type.', 409, {
+                    code: 'PAYMENT_REFERENCE_TYPE_CONFLICT',
+                    reference,
+                    transactionType: existingTransaction.type,
+                });
+            }
+
+            if (existingTransaction.status === TransactionStatus.COMPLETED) {
+                const refreshedWallet = await prisma.wallet.findUnique({ where: { id: wallet.id } });
+                if (!refreshedWallet) return apiError('Wallet not found', 404);
+
+                await cacheInvalidate(userWalletKey(user.userId));
+
+                return apiSuccess({
+                    wallet: refreshedWallet,
+                    transaction: existingTransaction,
+                    verification,
+                    idempotentReplay: true,
+                    message: 'Deposit already processed for this payment reference.',
+                });
+            }
+
+            return apiError('Payment reference is already being processed.', 409, {
+                code: 'PAYMENT_REFERENCE_IN_PROGRESS',
+                reference,
+                transactionStatus: existingTransaction.status,
+            });
+        }
+
         const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             const updated = await tx.wallet.update({
                 where: { id: wallet.id },
@@ -127,6 +184,10 @@ export async function POST(req: NextRequest) {
             } as Prisma.InputJsonValue,
         });
 
-        return apiSuccess(result);
+        return apiSuccess({
+            ...result,
+            verification,
+            message: 'Wallet deposit confirmed and balance updated.',
+        });
     });
 }

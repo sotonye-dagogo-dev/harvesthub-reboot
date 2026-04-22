@@ -7,7 +7,16 @@ import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
 import { Radio, message, Tag } from "antd";
-import { Store, Wallet, CreditCard, Truck, CheckCircle, Info, CalendarClock, Ticket } from "lucide-react";
+import {
+  Store,
+  Wallet,
+  CreditCard,
+  Truck,
+  CheckCircle,
+  Info,
+  CalendarClock,
+  Ticket,
+} from "lucide-react";
 import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
@@ -15,7 +24,11 @@ import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getProductsClient } from "@/lib/data/clientDataFetchers";
-import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
+import {
+  buildPaystackReference,
+  initializePaystackInlinePayment,
+} from "@/lib/utils/paystackInline";
+import { emitWalletSync } from "@/lib/utils/walletSync";
 
 export const dynamic = "force-dynamic";
 
@@ -256,13 +269,17 @@ export default function CheckoutPage() {
       })
     );
 
-    const liveCatalog = fetched.filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    const liveCatalog = fetched.filter(
+      (entry): entry is NonNullable<typeof entry> => entry !== null
+    );
     if (liveCatalog.length === 0) return false;
 
     const summary = reconcileWithCatalog(liveCatalog);
     const changed = summary.removedCount > 0 || summary.adjustedCount > 0;
     if (changed) {
-      message.warning("Your cart changed just now. Please review the updated checkout and continue.");
+      message.warning(
+        "Your cart changed just now. Please review the updated checkout and continue."
+      );
     }
     return changed;
   }, [items, reconcileWithCatalog]);
@@ -297,10 +314,12 @@ export default function CheckoutPage() {
         }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({} as { error?: string }));
+        const err = await res.json().catch(() => ({}) as { error?: string });
         throw new Error((err as { error?: string }).error || "Invalid voucher code");
       }
-      const data = await res.json() as { voucher: { id: string; code: string; discount: number } };
+      const data = (await res.json()) as {
+        voucher: { id: string; code: string; discount: number };
+      };
       setAppliedVoucher({
         id: data.voucher.id,
         code: data.voucher.code,
@@ -340,6 +359,8 @@ export default function CheckoutPage() {
       return;
     }
 
+    let cardVerificationStarted = false;
+    let cardPaymentVerified = false;
     setIsPlacingOrder(true);
     try {
       if (vendorOrderPayload.length === 0) {
@@ -389,6 +410,7 @@ export default function CheckoutPage() {
         setCardPaymentReference(resolvedReference);
 
         setCardPaymentState("VERIFYING");
+        cardVerificationStarted = true;
         const verifyRes = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -418,6 +440,7 @@ export default function CheckoutPage() {
 
         setCardPaymentState("VERIFIED");
         paymentReference = resolvedReference;
+        cardPaymentVerified = true;
       }
 
       const orderRes = await fetch("/api/orders", {
@@ -453,7 +476,13 @@ export default function CheckoutPage() {
       });
       const orderData = await orderRes.json().catch(() => ({}));
       if (!orderRes.ok) {
-        throw new Error(mapCheckoutErrorMessage(orderData));
+        const mappedError = mapCheckoutErrorMessage(orderData);
+        if (paymentMethod === "CARD" && cardPaymentVerified && paymentReference) {
+          throw new Error(
+            `${mappedError} Payment was already verified. Retry checkout to reuse reference ${paymentReference}. If this persists, contact support with this reference.`
+          );
+        }
+        throw new Error(mappedError);
       }
 
       if (orderData?.split && Array.isArray(orderData?.orders)) {
@@ -466,12 +495,19 @@ export default function CheckoutPage() {
       setCardPaymentReference(null);
       setCardPaymentState("IDLE");
       clearCart();
+      if (paymentMethod === "WALLET") {
+        emitWalletSync("order-grouped-action");
+      }
       router.push("/orders");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to place order";
       message.error(errorMessage);
-      if (paymentMethod === "CARD" && cardPaymentState === "VERIFYING") {
-        setCardPaymentState("INITIALIZED");
+      if (paymentMethod === "CARD") {
+        if (cardPaymentVerified) {
+          setCardPaymentState("VERIFIED");
+        } else if (cardVerificationStarted) {
+          setCardPaymentState("INITIALIZED");
+        }
       }
     } finally {
       setIsPlacingOrder(false);

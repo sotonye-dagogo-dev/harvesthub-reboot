@@ -90,7 +90,7 @@ describe("HomeContent banner layout contract", () => {
 
     const mobileRail = screen.getByTestId("sidebar-banner-rail-mobile");
     expect(mobileRail.className).toContain("overflow-x-auto");
-    expect(mobileRail.className).toContain("gap-1.5");
+    expect(mobileRail.className).toContain(AD_RAIL_CONFIG.mobile.gapClass);
 
     const grid = screen.getByTestId("sidebar-banner-grid");
     const expectedDesktopMaxHeightClasses = AD_RAIL_CONFIG.desktop.maxHeightClass.split(" ");
@@ -99,7 +99,7 @@ describe("HomeContent banner layout contract", () => {
     });
     expect(grid.className).toContain("overflow-y-auto");
     expect(grid.className).toContain("grid-cols-2");
-    expect(grid.className).toContain("gap-1.5");
+    expect(grid.className).toContain(AD_RAIL_CONFIG.desktop.gapClass);
 
     const mobileTiles = within(mobileRail).getAllByTestId("sidebar-banner-tile");
     expect(mobileTiles.length).toBe(5);
@@ -128,9 +128,11 @@ describe("HomeContent banner layout contract", () => {
 
     render(<HomeContent banners={banners} products={[]} vendors={[]} />);
 
-    const sidebarButtons = screen.getAllByRole("button", { name: /know more about sidebar promo/i });
-    expect(sidebarButtons.length).toBeGreaterThan(0);
-    fireEvent.click(sidebarButtons[0]);
+    const [sidebarButton] = screen.getAllByRole("button", {
+      name: /know more about sidebar promo/i,
+    });
+    expect(sidebarButton).toBeDefined();
+    fireEvent.click(sidebarButton as HTMLElement);
 
     expect(screen.getByRole("dialog", { name: /sidebar promo – details/i })).toBeInTheDocument();
     expect(screen.getByText("Sidebar Promo")).toBeInTheDocument();

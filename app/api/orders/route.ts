@@ -6,6 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { cacheInvalidate } from '@/lib/cache/redis';
+import { userWalletKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
 import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGateway } from '@/lib/services/payments';
 import { dispatchNotification } from '@/lib/services/notifications';
@@ -159,6 +161,12 @@ export async function POST(req: NextRequest) {
             paymentVerificationReference,
         } = body;
 
+        const normalizedNotes = typeof notes === 'string' ? notes.trim() : '';
+        const normalizedPaymentReference =
+            typeof paymentReference === 'string' && paymentReference.trim().length > 0
+                ? paymentReference.trim()
+                : null;
+
         let normalizedVendorOrders: IncomingVendorOrder[] = [];
         if (Array.isArray(vendorOrders) && vendorOrders.length > 0) {
             normalizedVendorOrders = vendorOrders
@@ -233,7 +241,7 @@ export async function POST(req: NextRequest) {
         let paymentVerifiedAt: string | null = null;
 
         if (requiresGatewayVerification) {
-            if (!paymentGateway || !paymentReference) {
+            if (!paymentGateway || !normalizedPaymentReference) {
                 return NextResponse.json(
                     { error: 'paymentGateway and paymentReference are required for card payments' },
                     { status: 400 }
@@ -245,7 +253,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: 'Unsupported payment gateway' }, { status: 400 });
             }
 
-            const verificationReference = paymentVerificationReference || paymentReference;
+            const verificationReference = paymentVerificationReference || normalizedPaymentReference;
             gatewayVerification = await verifyPayment({
                 gateway,
                 reference: verificationReference,
@@ -266,7 +274,7 @@ export async function POST(req: NextRequest) {
             }
 
             paymentVerifiedAt = new Date().toISOString();
-            paymentAuditNote = `Payment verified via ${gateway} (ref: ${paymentReference}).`;
+            paymentAuditNote = `Payment verified via ${gateway} (ref: ${normalizedPaymentReference}).`;
         } else if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
             paymentAuditNote = 'Wallet payment selected.';
         } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
@@ -280,6 +288,54 @@ export async function POST(req: NextRequest) {
             update: {},
             create: { userId: user.userId },
         });
+
+        if (requiresGatewayVerification && normalizedPaymentReference) {
+            const existingOrders = await prisma.order.findMany({
+                where: {
+                    buyerId: buyer.id,
+                    notes: {
+                        contains: normalizedPaymentReference,
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    items: true,
+                    vendor: { select: { id: true, storeName: true } },
+                },
+                take: 20,
+            });
+
+            if (existingOrders.length > 0) {
+                const groupId = parseOrderGroupIdFromHistory(
+                    existingOrders[0]?.statusHistory as Prisma.JsonValue
+                );
+
+                if (existingOrders.length === 1) {
+                    return NextResponse.json(
+                        {
+                            success: true,
+                            idempotentReplay: true,
+                            message: 'Payment reference already has a completed order. Returning existing order.',
+                            order: existingOrders[0],
+                        },
+                        { status: 200 }
+                    );
+                }
+
+                return NextResponse.json(
+                    {
+                        success: true,
+                        split: true,
+                        idempotentReplay: true,
+                        message:
+                            'Payment reference already has completed split orders. Returning existing orders.',
+                        orderGroupId: groupId,
+                        orders: existingOrders,
+                    },
+                    { status: 200 }
+                );
+            }
+        }
 
         const requestedVendorIds = Array.from(
             new Set(normalizedVendorOrders.map((entry) => entry.vendorId))
@@ -441,6 +497,13 @@ export async function POST(req: NextRequest) {
                 : PaymentStatus.PENDING;
 
         const orderGroupId = `CHK-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        const composedOrderNotes = [
+            normalizedNotes,
+            paymentAuditNote,
+            normalizedPaymentReference ? `Payment ref: ${normalizedPaymentReference}.` : null,
+        ]
+            .filter((entry): entry is string => Boolean(entry && entry.trim().length > 0))
+            .join(' ');
 
         const orders = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             let buyerWalletId: string | null = null;
@@ -478,7 +541,7 @@ export async function POST(req: NextRequest) {
                         note: paymentAuditNote,
                         paymentStatus,
                         paymentMethod,
-                        paymentReference: paymentReference || null,
+                        paymentReference: normalizedPaymentReference,
                         paymentGateway: paymentGateway || null,
                         verificationStatus: gatewayVerification?.status || null,
                         verificationProviderStatus: gatewayVerification?.providerStatus || null,
@@ -502,7 +565,7 @@ export async function POST(req: NextRequest) {
                         deliveryMethod,
                         deliveryAddress: deliveryAddress || null,
                         pickupDetails: pickupDetails || null,
-                        notes: notes || paymentAuditNote,
+                        notes: composedOrderNotes,
                         statusHistory: statusHistory as Prisma.InputJsonValue,
                         items: { create: prepared.orderItems },
                     },
@@ -565,6 +628,10 @@ export async function POST(req: NextRequest) {
 
             return createdOrders;
         });
+
+        if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
+            await cacheInvalidate(userWalletKey(user.userId));
+        }
 
         const orderMetricsById = new Map(
             orders.map((order, index) => {
