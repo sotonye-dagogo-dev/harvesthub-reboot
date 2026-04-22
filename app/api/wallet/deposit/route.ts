@@ -47,41 +47,6 @@ export async function POST(req: NextRequest) {
             reference: paymentVerificationReference || paymentReference,
         });
 
-        if (verification.status === 'GATEWAY_UNAVAILABLE') {
-            const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
-            if (!wallet) return apiError('Wallet not found', 404);
-            if (!wallet.isActive) return apiError('Wallet is disabled', 403);
-
-            const pendingTransaction = await prisma.transaction.create({
-                data: {
-                    walletId: wallet.id,
-                    type: TransactionType.DEPOSIT,
-                    amount,
-                    balanceBefore: wallet.balance,
-                    balanceAfter: wallet.balance,
-                    status: TransactionStatus.PENDING,
-                    reference: paymentReference,
-                    description: description || 'Wallet deposit awaiting payment confirmation',
-                    metadata: {
-                        gateway,
-                        verificationStatus: verification.status,
-                        verificationReference: paymentVerificationReference || paymentReference,
-                        pendingReason: verification.message,
-                        pendingCreatedAt: new Date().toISOString(),
-                    },
-                },
-            });
-
-            return apiSuccess({
-                wallet,
-                transaction: pendingTransaction,
-                verification,
-                pendingConfirmation: true,
-                message:
-                    'Payment was received but confirmation is still pending. Your wallet will update automatically once confirmation completes.',
-            }, 202);
-        }
-
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
         if (!wallet) return apiError('Wallet not found', 404);
         if (!wallet.isActive) return apiError('Wallet is disabled', 403);
