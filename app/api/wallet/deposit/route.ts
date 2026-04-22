@@ -47,37 +47,6 @@ export async function POST(req: NextRequest) {
             reference: paymentVerificationReference || paymentReference,
         });
 
-        if (verification.status === 'GATEWAY_UNAVAILABLE') {
-            return apiError('Payment gateway is unavailable for verification', 503, {
-                verification,
-            });
-        }
-
-        if (verification.status !== 'SUCCESS') {
-            return apiError('Payment verification is not successful', 400, {
-                verification,
-            });
-        }
-
-        const verifiedCurrency = verification.currency.trim().toUpperCase();
-        if (verifiedCurrency !== 'NGN') {
-            return apiError(`Payment currency mismatch. Expected NGN but received ${verifiedCurrency}.`, 400, {
-                code: 'PAYMENT_CURRENCY_MISMATCH',
-                verification,
-            });
-        }
-
-        const expectedAmountSubunit = Math.round(amount * 100);
-        const verifiedAmountSubunit = Math.round(verification.amount * 100);
-        if (verifiedAmountSubunit !== expectedAmountSubunit) {
-            return apiError('Payment amount does not match deposit request.', 400, {
-                code: 'PAYMENT_AMOUNT_MISMATCH',
-                expectedAmount: amount,
-                verifiedAmount: verification.amount,
-                verification,
-            });
-        }
-
         const wallet = await prisma.wallet.findUnique({ where: { userId: user.userId } });
         if (!wallet) return apiError('Wallet not found', 404);
         if (!wallet.isActive) return apiError('Wallet is disabled', 403);
@@ -138,6 +107,62 @@ export async function POST(req: NextRequest) {
                 code: 'PAYMENT_REFERENCE_IN_PROGRESS',
                 reference,
                 transactionStatus: existingTransaction.status,
+            });
+        }
+
+        if (verification.status === 'GATEWAY_UNAVAILABLE') {
+            const pendingTransaction = await prisma.transaction.create({
+                data: {
+                    walletId: wallet.id,
+                    type: TransactionType.DEPOSIT,
+                    amount,
+                    balanceBefore: wallet.balance,
+                    balanceAfter: wallet.balance,
+                    status: TransactionStatus.PENDING,
+                    reference,
+                    description: description || 'Wallet deposit awaiting payment confirmation',
+                    metadata: {
+                        gateway,
+                        verificationStatus: verification.status,
+                        verificationReference: paymentVerificationReference || paymentReference,
+                        pendingReason: verification.message,
+                        pendingCreatedAt: new Date().toISOString(),
+                    },
+                },
+            });
+
+            return apiSuccess({
+                wallet,
+                transaction: pendingTransaction,
+                verification,
+                pendingConfirmation: true,
+                message:
+                    'Payment was received but confirmation is still pending. Your wallet will update automatically once confirmation completes.',
+            }, 202);
+        }
+
+        if (verification.status !== 'SUCCESS') {
+            return apiError('Payment verification is not successful', 400, {
+                verification,
+            });
+        }
+
+        const verifiedCurrency = verification.currency.trim().toUpperCase();
+        if (verifiedCurrency !== 'NGN') {
+            return apiError(`Payment currency mismatch. Expected NGN but received ${verifiedCurrency}.`, 400, {
+                code: 'PAYMENT_CURRENCY_MISMATCH',
+                verification,
+            });
+        }
+
+        const expectedAmountSubunit = Math.round(amount * 100);
+        const verifiedAmountSubunit = Math.round(verification.amount * 100);
+        if (verifiedAmountSubunit !== expectedAmountSubunit) {
+            return apiError('Payment amount does not match deposit request.', 400, {
+                code: 'PAYMENT_AMOUNT_MISMATCH',
+                expectedAmount: amount,
+                verifiedAmount: verification.amount,
+                verification,
             });
         }
 

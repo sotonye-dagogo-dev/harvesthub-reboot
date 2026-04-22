@@ -259,6 +259,50 @@
 
 ---
 
+## Feature Planning Queue (2026-04-22) - Paystack Confirmation Reliability + Payment UX Feedback
+
+> **Section summary:** Planning queue to fix Paystack success-without-platform-update failures and standardize redirect/verification feedback in wallet, checkout, and ad payment flows.
+
+- [ ] Add shared confirmation-state contract for Paystack references.
+  - [ ] Define canonical statuses across payment domains: `SUCCESS`, `FAILED`, `PENDING_CONFIRMATION`, `GATEWAY_UNAVAILABLE`, `NOT_FOUND`.
+  - [ ] Add a shared mapper for provider/network/IP-restriction errors to app-safe status codes and user-facing feedback copy.
+  - [ ] Ensure amount/currency mismatch remains strict and terminal (no pending fallback for mismatches).
+
+- [ ] Standardize client payment feedback UX across all Paystack entry points.
+  - [ ] Wallet: show `Redirecting to secure payment...` toast before opening Paystack and explicit `Verifying payment...` status after callback.
+  - [ ] Checkout: mirror same in-flight toasts and ensure verify/pending/failure messages are always surfaced without relying on devtools.
+  - [ ] Advertise and public ad application: align to same toast lifecycle and fallback copy contract.
+  - [ ] Add duplicate-toast suppression and consistent severity mapping (`info`/`warning`/`error`/`success`).
+
+- [ ] Introduce pending-confirmation server path for IP/transport constrained verification failures.
+  - [ ] `POST /api/wallet/deposit`: when verify is gateway-unavailable but reference exists, return accepted/pending confirmation response and persist idempotent pending state.
+  - [ ] `POST /api/orders`: define pending confirmation behavior for card payments (no false success; deterministic pending receipt + retriable completion path).
+  - [ ] `processAdApplicationSubmission`: support pending payment confirmation state and avoid hard terminal failure on transient verify unavailability.
+
+- [ ] Expand webhook reconciliation from audit-only to domain finalization parity.
+  - [ ] Wallet reconciliation: finalize pending deposit by reference with idempotent balance-credit guard.
+  - [ ] Checkout reconciliation: finalize pending payment lifecycle state for affected order(s) with idempotent transition guard.
+  - [ ] Ad reconciliation: promote pending card/USSD ad applications to approval-ready status on confirmed charge success.
+  - [ ] Keep strict replay protection and no double-credit/double-finalize guarantees.
+
+- [ ] Improve observability and operator diagnostics for payment confirmation lifecycle.
+  - [ ] Emit structured logs for each confirmation transition (`sync-verified`, `pending-queued`, `webhook-finalized`, `terminal-failed`).
+  - [ ] Add minimal operations-facing diagnostics for stale pending references and recommended recovery action.
+  - [ ] Include reference-scoped troubleshooting hints without leaking sensitive provider payload details.
+
+- [ ] Add targeted regression coverage for reliability and UX feedback parity.
+  - [ ] Wallet route tests: success, gateway unavailable -> pending, mismatch failures, webhook finalize idempotency.
+  - [ ] Orders route tests: card success, gateway unavailable pending behavior, duplicate webhook replay handling.
+  - [ ] Ad submission tests: pending fallback and webhook-driven status transition.
+  - [ ] Client tests (wallet/checkout/ad pages): redirecting + verifying + pending + failed toast states.
+
+- [ ] Validation and docs synchronization.
+  - [ ] Run focused validation: touched `vitest`, touched lint, and `tsc --noEmit`.
+  - [ ] Update `.ai-system/agents/system-architecture.md` with payment fallback flow and reconciliation responsibilities.
+  - [ ] Record implementation decisions in `.ai-system/memory/project-decisions.md` and log closure in checkpoints/dev-history.
+
+---
+
 ## Up Next
 
 > **Section summary:** Tasks planned for the next sprint. Not yet started.

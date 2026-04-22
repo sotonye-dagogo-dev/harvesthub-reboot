@@ -12,7 +12,10 @@ import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { emitWalletSync, subscribeWalletSync } from "@/lib/utils/walletSync";
 import type { ReactElement } from "react";
-import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
+import {
+  buildPaystackReference,
+  initializePaystackInlinePayment,
+} from "@/lib/utils/paystackInline";
 
 const NIGERIAN_ACCOUNT_NUMBER_LENGTH = 10;
 
@@ -157,6 +160,7 @@ export default function WalletPage() {
 
     setIsProcessingDeposit(true);
     try {
+      const depositToastKey = "wallet-deposit-paystack-status";
       const paystackPublicKey = paymentConfig?.paystackPublicKey || null;
       if (!paystackPublicKey) {
         throw new Error("Paystack public key is unavailable for inline wallet deposit.");
@@ -164,6 +168,13 @@ export default function WalletPage() {
       if (!user?.email) {
         throw new Error("Account email is required to initialize wallet deposit.");
       }
+
+      message.open({
+        key: depositToastKey,
+        type: "loading",
+        content: "Redirecting to secure payment...",
+        duration: 0,
+      });
 
       const paymentReference: string = await new Promise((resolve, reject) => {
         initializePaystackInlinePayment({
@@ -176,6 +187,13 @@ export default function WalletPage() {
           onSuccess: (result) => resolve(result.reference),
           onClose: () => reject(new Error("Payment popup closed before completion.")),
         }).catch(reject);
+      });
+
+      message.open({
+        key: depositToastKey,
+        type: "loading",
+        content: "Verifying payment...",
+        duration: 0,
       });
 
       const depositRes = await fetch("/api/wallet/deposit", {
@@ -194,14 +212,35 @@ export default function WalletPage() {
         throw new Error(depositData?.error || "Failed to complete wallet deposit");
       }
 
-      message.success(`Deposited ${formatCurrency(amount)} to your wallet`);
+      if (depositData?.pendingConfirmation) {
+        message.open({
+          key: depositToastKey,
+          type: "warning",
+          content:
+            depositData?.message ||
+            "Payment was received and is awaiting confirmation. Your wallet will update automatically.",
+          duration: 5,
+        });
+      } else {
+        message.open({
+          key: depositToastKey,
+          type: "success",
+          content: `Deposited ${formatCurrency(amount)} to your wallet`,
+          duration: 4,
+        });
+      }
       emitWalletSync("wallet-deposit");
       await refresh(true);
       setShowDepositModal(false);
       setDepositAmount("");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unable to process deposit";
-      message.error(errorMessage);
+      message.open({
+        key: "wallet-deposit-paystack-status",
+        type: "error",
+        content: errorMessage,
+        duration: 4,
+      });
     } finally {
       setIsProcessingDeposit(false);
     }

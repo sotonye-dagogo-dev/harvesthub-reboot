@@ -5,7 +5,7 @@ import { env } from '@/lib/config/env';
 import { prisma } from '@/lib/db/prisma';
 import { cacheAcquireIdempotencyKey } from '@/lib/cache/redis';
 import { verifyPayment } from '@/lib/services/payments';
-import { Prisma, TransactionStatus } from '@/prisma/generated/client';
+import { Prisma, AdApplicationStatus, PaymentStatus, TransactionStatus } from '@/prisma/generated/client';
 
 const WEBHOOK_IDEMPOTENCY_TTL_SECONDS = 60 * 60 * 24 * 3;
 const LOCAL_IDEMPOTENCY_CACHE_LIMIT = 5_000;
@@ -25,6 +25,8 @@ type PaystackWebhookPayload = {
 type OrderWebhookAuditRow = {
     id: string;
     orderNumber: string;
+    total: number;
+    paymentStatus: PaymentStatus;
     statusHistory: Prisma.JsonValue;
 };
 
@@ -85,8 +87,10 @@ async function appendOrderWebhookAudit(params: {
     providerEventId: string | null;
     verificationStatus: string;
     verificationProviderStatus: string | null;
+    payloadAmountSubunit: number | null;
+    payloadCurrency: string | null;
 }) {
-    const { reference, eventType, providerEventId, verificationStatus, verificationProviderStatus } = params;
+    const { reference, eventType, providerEventId, verificationStatus, verificationProviderStatus, payloadAmountSubunit, payloadCurrency } = params;
 
     const matchedOrders = await prisma.order.findMany({
         where: {
@@ -97,6 +101,8 @@ async function appendOrderWebhookAudit(params: {
         select: {
             id: true,
             orderNumber: true,
+            total: true,
+            paymentStatus: true,
             statusHistory: true,
         },
     });
@@ -117,6 +123,12 @@ async function appendOrderWebhookAudit(params: {
             continue;
         }
 
+        const payloadMatchesOrder =
+            payloadAmountSubunit === null
+                ? true
+                : Math.round(Number(order.total || 0) * 100) === payloadAmountSubunit;
+        const payloadCurrencyMatches = payloadCurrency === null || payloadCurrency === 'NGN';
+
         history.push({
             status: 'PAYMENT_WEBHOOK_CONFIRMED',
             timestamp: new Date().toISOString(),
@@ -128,9 +140,21 @@ async function appendOrderWebhookAudit(params: {
             verificationProviderStatus,
         });
 
+        const updateData: Prisma.OrderUpdateInput = {
+            statusHistory: history as Prisma.InputJsonValue,
+        };
+
+        if (
+            order.paymentStatus === PaymentStatus.PENDING &&
+            payloadMatchesOrder &&
+            payloadCurrencyMatches
+        ) {
+            updateData.paymentStatus = PaymentStatus.PAID;
+        }
+
         await prisma.order.update({
             where: { id: order.id },
-            data: { statusHistory: history as Prisma.InputJsonValue },
+            data: updateData,
         });
         updatedOrderCount += 1;
     }
@@ -138,6 +162,66 @@ async function appendOrderWebhookAudit(params: {
     return {
         matchedOrderCount: matchedOrders.length,
         updatedOrderCount,
+    };
+}
+
+async function reconcileAdApplicationWebhook(params: {
+    reference: string;
+    payloadAmountSubunit: number | null;
+    payloadCurrency: string | null;
+}) {
+    const { reference, payloadAmountSubunit, payloadCurrency } = params;
+    const pendingMarker = `PAYSTACK_PENDING:${reference}`;
+
+    if (!prisma.adApplication?.findMany) {
+        return {
+            matchedApplicationCount: 0,
+            updatedApplicationCount: 0,
+        };
+    }
+
+    const matchedApplications = await prisma.adApplication.findMany({
+        where: {
+            reviewComment: {
+                contains: pendingMarker,
+            },
+        },
+        select: {
+            id: true,
+            amountPaid: true,
+            status: true,
+            reviewComment: true,
+        },
+    });
+
+    let updatedApplicationCount = 0;
+
+    for (const application of matchedApplications) {
+        const amountMatchesPayload =
+            payloadAmountSubunit === null
+                ? true
+                : Math.round(Number(application.amountPaid || 0) * 100) === payloadAmountSubunit;
+        const currencyMatchesPayload = payloadCurrency === null || payloadCurrency === 'NGN';
+
+        if (
+            application.status !== AdApplicationStatus.PENDING_APPROVAL &&
+            amountMatchesPayload &&
+            currencyMatchesPayload
+        ) {
+            await prisma.adApplication.update({
+                where: { id: application.id },
+                data: {
+                    status: AdApplicationStatus.PENDING_APPROVAL,
+                    reviewComment: `${application.reviewComment || pendingMarker} | webhook-confirmed ${new Date().toISOString()}`,
+                },
+            });
+            updatedApplicationCount += 1;
+        }
+    }
+
+    return {
+        matchedApplicationCount: matchedApplications.length,
+        updatedApplicationCount,
     };
 }
 
@@ -155,10 +239,12 @@ async function reconcilePaystackChargeSuccess(params: {
         reference,
     });
 
-    const verifiedAmountSubunit = Math.round(verification.amount * 100);
+    const verifiedAmountSubunit = verification.status === 'SUCCESS' ? Math.round(verification.amount * 100) : null;
     const verifiedCurrency = normalizeCurrency(verification.currency);
     const amountMatchesPayload =
-        payloadAmountSubunit === null ? null : payloadAmountSubunit === verifiedAmountSubunit;
+        payloadAmountSubunit === null || verifiedAmountSubunit === null
+            ? null
+            : payloadAmountSubunit === verifiedAmountSubunit;
     const currencyMatchesPayload =
         payloadCurrency === null || verifiedCurrency === null
             ? null
@@ -168,13 +254,16 @@ async function reconcilePaystackChargeSuccess(params: {
         where: { reference },
         select: {
             id: true,
+            walletId: true,
             type: true,
+            amount: true,
             status: true,
             metadata: true,
         },
     });
 
     let transactionUpdated = false;
+    let walletCredited = false;
     if (transaction) {
         const baseMetadata =
             transaction.metadata && typeof transaction.metadata === 'object' && !Array.isArray(transaction.metadata)
@@ -197,14 +286,56 @@ async function reconcilePaystackChargeSuccess(params: {
             metadata: nextMetadata as Prisma.InputJsonValue,
         };
 
-        if (transaction.status === TransactionStatus.PENDING && verification.status === 'SUCCESS') {
-            updateData.status = TransactionStatus.COMPLETED;
+        const transactionAmountMatchesPayload =
+            payloadAmountSubunit === null
+                ? true
+                : Math.round(Number(transaction.amount || 0) * 100) === payloadAmountSubunit;
+
+        if (
+            transaction.status === TransactionStatus.PENDING &&
+            transaction.type === 'DEPOSIT' &&
+            transactionAmountMatchesPayload &&
+            (payloadCurrency === null || payloadCurrency === 'NGN')
+        ) {
+            await prisma.$transaction(async (tx) => {
+                const wallet = await tx.wallet.findUnique({
+                    where: { id: transaction.walletId },
+                    select: { id: true, balance: true },
+                });
+
+                const nextBalance = wallet ? wallet.balance + transaction.amount : null;
+
+                if (wallet) {
+                    await tx.wallet.update({
+                        where: { id: wallet.id },
+                        data: {
+                            balance: { increment: transaction.amount },
+                        },
+                    });
+                    walletCredited = true;
+                }
+
+                await tx.transaction.update({
+                    where: { id: transaction.id },
+                    data: {
+                        ...updateData,
+                        status: TransactionStatus.COMPLETED,
+                        balanceBefore: wallet ? wallet.balance : undefined,
+                        balanceAfter: nextBalance ?? undefined,
+                    },
+                });
+            });
+        } else {
+            if (transaction.status === TransactionStatus.PENDING && verification.status === 'SUCCESS') {
+                updateData.status = TransactionStatus.COMPLETED;
+            }
+
+            await prisma.transaction.update({
+                where: { id: transaction.id },
+                data: updateData,
+            });
         }
 
-        await prisma.transaction.update({
-            where: { id: transaction.id },
-            data: updateData,
-        });
         transactionUpdated = true;
     }
 
@@ -214,6 +345,8 @@ async function reconcilePaystackChargeSuccess(params: {
         providerEventId,
         verificationStatus: verification.status,
         verificationProviderStatus: verification.providerStatus || null,
+        payloadAmountSubunit,
+        payloadCurrency,
     });
 
     return {
@@ -222,6 +355,7 @@ async function reconcilePaystackChargeSuccess(params: {
         currencyMatchesPayload,
         transactionMatched: Boolean(transaction),
         transactionUpdated,
+        walletCredited,
         ...orderAudit,
     };
 }
@@ -333,6 +467,12 @@ export async function POST(req: NextRequest) {
             payloadCurrency,
         });
 
+        const adApplicationAudit = await reconcileAdApplicationWebhook({
+            reference,
+            payloadAmountSubunit,
+            payloadCurrency,
+        });
+
         return apiSuccess({
             acknowledged: true,
             eventType,
@@ -345,6 +485,7 @@ export async function POST(req: NextRequest) {
                 acquired: true,
             },
             reconciliation,
+            adApplicationAudit,
             message: 'Webhook signature verified and reconciliation completed.',
         });
     });

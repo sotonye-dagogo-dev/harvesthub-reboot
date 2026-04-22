@@ -54,6 +54,7 @@ function buildIdempotencyPayload(input: CreateAdApplicationPayload) {
     amountPaid: Number(input.amountPaid),
     durationType: input.durationType ?? "DAILY",
     durationValue: input.durationValue ?? 1,
+    paymentReference: input.paymentReference ?? null,
     paymentVerificationReference: input.paymentVerificationReference ?? null,
     requestedStart: input.requestedStart ?? null,
   };
@@ -68,6 +69,7 @@ export async function processAdApplicationSubmission(req: NextRequest) {
   }
 
   const data = parsedBody.data;
+  let paymentConfirmationPending = false;
   const headerIdempotencyKey = readIdempotencyKeyHeader(req.headers);
   const fallbackFingerprint = buildPayloadFingerprint(buildIdempotencyPayload(data));
   const idempotencyKey = headerIdempotencyKey || fallbackFingerprint;
@@ -144,9 +146,11 @@ export async function processAdApplicationSubmission(req: NextRequest) {
       gateway: data.paymentGateway as SupportedPaymentGateway,
       reference: data.paymentVerificationReference,
     });
-    if (verification.status !== "SUCCESS") {
+    if (verification.status !== "SUCCESS" && verification.status !== "GATEWAY_UNAVAILABLE") {
       return apiError("Payment verification is not successful", 400, { verification });
     }
+
+    paymentConfirmationPending = verification.status === "GATEWAY_UNAVAILABLE";
   }
 
   const application = await db.adApplications.create({
@@ -169,7 +173,12 @@ export async function processAdApplicationSubmission(req: NextRequest) {
     proofOfTransferUrl: data.proofOfTransferUrl ?? null,
     durationType: normalizedDuration.durationType,
     durationValue: normalizedDuration.durationValue,
-    reviewComment: null,
+    reviewComment:
+      data.paymentMethod === "BANK_TRANSFER"
+        ? null
+        : data.paymentGateway && data.paymentVerificationReference
+          ? `PAYSTACK_PENDING:${data.paymentVerificationReference}`
+          : null,
     reviewedBy: null,
     activeUntil: null,
   });
@@ -186,8 +195,12 @@ export async function processAdApplicationSubmission(req: NextRequest) {
   return apiSuccess(
     {
       ...replayBody,
+      paymentConfirmationPending,
       idempotency: { replayed: false, key: idempotencyKey, mode: guard.mode },
+      message: paymentConfirmationPending
+        ? "Application submitted and payment confirmation is pending."
+        : undefined,
     },
-    201
+    paymentConfirmationPending ? 202 : 201
   );
 }

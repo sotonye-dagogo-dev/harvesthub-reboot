@@ -239,6 +239,7 @@ export async function POST(req: NextRequest) {
         let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
         let paymentAuditNote = 'Payment pending confirmation.';
         let paymentVerifiedAt: string | null = null;
+        let paymentConfirmationPending = false;
 
         if (requiresGatewayVerification) {
             if (!paymentGateway || !normalizedPaymentReference) {
@@ -259,22 +260,24 @@ export async function POST(req: NextRequest) {
                 reference: verificationReference,
             });
 
-            if (gatewayVerification.status !== 'SUCCESS') {
-                const unavailable = gatewayVerification.status === 'GATEWAY_UNAVAILABLE';
+            if (gatewayVerification.status === 'GATEWAY_UNAVAILABLE') {
+                paymentConfirmationPending = true;
+                paymentAuditNote = `Payment verification pending via ${gateway} (gateway unavailable).`;
+            } else if (gatewayVerification.status !== 'SUCCESS') {
                 return NextResponse.json(
                     {
-                        error: unavailable
-                            ? 'Payment gateway is unavailable for verification'
-                            : 'Payment verification is not successful',
-                        code: unavailable ? 'PAYMENT_GATEWAY_UNAVAILABLE' : 'PAYMENT_VERIFICATION_FAILED',
+                        error: 'Payment verification is not successful',
+                        code: 'PAYMENT_VERIFICATION_FAILED',
                         verification: gatewayVerification,
                     },
-                    { status: unavailable ? 503 : 400 }
+                    { status: 400 }
                 );
             }
 
-            paymentVerifiedAt = new Date().toISOString();
-            paymentAuditNote = `Payment verified via ${gateway} (ref: ${normalizedPaymentReference}).`;
+            if (gatewayVerification.status === 'SUCCESS') {
+                paymentVerifiedAt = new Date().toISOString();
+                paymentAuditNote = `Payment verified via ${gateway} (ref: ${normalizedPaymentReference}).`;
+            }
         } else if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
             paymentAuditNote = 'Wallet payment selected.';
         } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
@@ -490,9 +493,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const paymentStatus =
-            requiresGatewayVerification ||
-                (paymentMethod === PaymentMethod.WALLET && paymentsEnabled)
+        const paymentStatus = requiresGatewayVerification
+            ? gatewayVerification?.status === 'SUCCESS'
+                ? PaymentStatus.PAID
+                : PaymentStatus.PENDING
+            : paymentMethod === PaymentMethod.WALLET && paymentsEnabled
                 ? PaymentStatus.PAID
                 : PaymentStatus.PENDING;
 
@@ -546,6 +551,7 @@ export async function POST(req: NextRequest) {
                         verificationStatus: gatewayVerification?.status || null,
                         verificationProviderStatus: gatewayVerification?.providerStatus || null,
                         paymentVerifiedAt,
+                        paymentConfirmationPending,
                         vendorVerification: prepared.vendorStatus,
                         vendorVerificationAcknowledged: body.vendorVerificationAcknowledged === true,
                         orderGroupId,
@@ -696,21 +702,29 @@ export async function POST(req: NextRequest) {
             : { itemCount: 0, totalQuantity: 0 };
         const buyerMessage =
             firstOrder && orders.length === 1
-                ? `Your order ${firstOrder.orderNumber} (${firstOrderMetrics.itemCount} item${firstOrderMetrics.itemCount === 1 ? '' : 's'}) has been placed successfully.`
-                : `Your checkout has been split into ${orders.length} vendor orders (${aggregateItemCount} item${aggregateItemCount === 1 ? '' : 's'}).`;
+                ? paymentConfirmationPending
+                    ? `Your order ${firstOrder.orderNumber} (${firstOrderMetrics.itemCount} item${firstOrderMetrics.itemCount === 1 ? '' : 's'}) was placed and is awaiting payment confirmation.`
+                    : `Your order ${firstOrder.orderNumber} (${firstOrderMetrics.itemCount} item${firstOrderMetrics.itemCount === 1 ? '' : 's'}) has been placed successfully.`
+                : paymentConfirmationPending
+                    ? `Your checkout has been split into ${orders.length} vendor orders (${aggregateItemCount} item${aggregateItemCount === 1 ? '' : 's'}) and is awaiting payment confirmation.`
+                    : `Your checkout has been split into ${orders.length} vendor orders (${aggregateItemCount} item${aggregateItemCount === 1 ? '' : 's'}).`;
 
         await Promise.allSettled([
             ...vendorNotifications,
             dispatchNotification({
                 userId: user.userId,
                 type: 'ORDER_CONFIRMED',
-                title: 'Order Placed Successfully',
+                title: paymentConfirmationPending ? 'Order Pending Payment Confirmation' : 'Order Placed Successfully',
                 message: buyerMessage,
                 link: '/orders',
                 emailSubject:
                     firstOrder && orders.length === 1
-                        ? `Order ${firstOrder.orderNumber} confirmed`
-                        : `${orders.length} orders confirmed`,
+                        ? paymentConfirmationPending
+                            ? `Order ${firstOrder.orderNumber} pending payment confirmation`
+                            : `Order ${firstOrder.orderNumber} confirmed`
+                        : paymentConfirmationPending
+                            ? `${orders.length} orders pending payment confirmation`
+                            : `${orders.length} orders confirmed`,
                 metadata: {
                     orderId: firstOrder?.id || null,
                     orderNumber: firstOrder?.orderNumber || null,
@@ -736,7 +750,17 @@ export async function POST(req: NextRequest) {
         ]);
 
         if (orders.length === 1) {
-            return NextResponse.json({ success: true, order: orders[0] }, { status: 201 });
+            return NextResponse.json(
+                {
+                    success: true,
+                    order: orders[0],
+                    paymentConfirmationPending,
+                    message: paymentConfirmationPending
+                        ? 'Order placed and payment confirmation is pending.'
+                        : undefined,
+                },
+                { status: paymentConfirmationPending ? 202 : 201 }
+            );
         }
 
         return NextResponse.json(
@@ -745,8 +769,12 @@ export async function POST(req: NextRequest) {
                 split: true,
                 orderGroupId,
                 orders,
+                paymentConfirmationPending,
+                message: paymentConfirmationPending
+                    ? 'Checkout completed and payment confirmation is pending.'
+                    : undefined,
             },
-            { status: 201 }
+            { status: paymentConfirmationPending ? 202 : 201 }
         );
     } catch (error) {
         if (error instanceof Error && error.message === 'WALLET_NOT_AVAILABLE') {
