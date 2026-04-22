@@ -734,7 +734,85 @@ Create a clear, user-facing notification inbox experience that matches email/pus
 
 ---
 
-## Feature Spec - Placement-Aware Upload Validation + Responsive Header Search (Planned 2026-04-15)
+## Feature Spec - Paystack Confirmation Reliability + Cross-Flow Payment Feedback (Planned 2026-04-22)
+
+> **Section summary:** Planning package to resolve Paystack success-without-platform-update failures caused by server-side verify reachability limits, and to standardize in-flight/redirect/error feedback across wallet, checkout, and ad-payment flows.
+
+**Feature Summary:**
+Harden payment completion reliability by introducing a webhook-aware confirmation strategy that survives server-side Paystack verify/IP allowlist failures, while delivering consistent user-visible feedback states (`redirecting`, `verifying`, `pending confirmation`, `failed`) across all Paystack entry points.
+
+**Why This Is Needed:**
+
+- Users can complete payment in Paystack and still see platform-side failure due to verification call constraints (`Your IP address is not allowed to make this call`).
+- Current inline flow removes initialization IP dependence but still hard-blocks on immediate server-side verification for completion.
+- Wallet/checkout/ad surfaces do not consistently show actionable toasts for in-flight redirect/verification failure states.
+- Webhook route currently appends audit metadata and updates pending transaction status, but does not fully cover domain finalization parity for every payment domain.
+
+**Architecture Impact:**
+
+- Client payment surfaces:
+  - `app/wallet/page.tsx`
+  - `app/checkout/page.tsx`
+  - `app/advertise/page.tsx`
+  - `app/ad-application/page.tsx`
+- Payment verification and domain mutation routes:
+  - `app/api/wallet/deposit/route.ts`
+  - `app/api/orders/route.ts`
+  - `lib/services/adApplicationSubmission.ts`
+  - `app/api/payments/verify/route.ts`
+- Provider integration and status mapping:
+  - `lib/services/payments.ts`
+  - `lib/config/payments.ts`
+- Webhook reconciliation path:
+  - `app/api/payments/webhook/route.ts`
+  - `app/api/paystack-webhook/route.ts`
+
+**New Modules or Services Required:**
+
+- `lib/services/paymentConfirmation.ts` (shared confirmation policy for `SUCCESS`, `FAILED`, `PENDING_CONFIRMATION`, `GATEWAY_UNAVAILABLE`).
+- `lib/config/paymentFeedback.ts` (shared user-safe copy map for redirecting/verifying/pending/failure toasts).
+- `lib/services/paymentReconciliation.ts` (domain finalization hooks invoked from webhook for wallet/order/ad domains, idempotent by reference).
+
+**Data Flow (Target):**
+
+1. User starts card payment from wallet/checkout/ad flow.
+2. Client emits immediate in-flight feedback (`Redirecting to secure payment...`) before opening Paystack inline popup.
+3. Paystack callback returns reference to client and client submits to domain API route.
+4. Domain API attempts synchronous verify.
+5. If verify is `SUCCESS`, domain commits immediately.
+6. If verify is transport/IP-gated but gateway event is expected, route persists safe pending confirmation state and returns accepted/pending response (not silent failure).
+7. Webhook `charge.success` reconciles by reference and finalizes domain state idempotently (wallet credit, order payment state transition, ad-application status transition).
+8. Client surfaces deterministic success/failure/pending feedback and provides retry/refresh actions.
+
+**UI/UX Considerations (Design-System Aligned):**
+
+- All Paystack entry points must show a pre-open toast: `Redirecting to secure payment...`.
+- Replace generic popup-close and verification errors with mapped, user-safe copy and explicit next step.
+- When confirmation is pending, show neutral status with retry/refresh CTA instead of terminal failure.
+- Keep toast semantics consistent with DS status intent (`info`, `success`, `warning`, `error`) and avoid duplicate stacked notifications.
+
+**Potential Risks / Edge Cases:**
+
+- Duplicate finalization if webhook and synchronous verify both succeed without idempotent guards.
+- Amount/currency mismatch handling must remain strict even when fallback confirmation is used.
+- Pending confirmations can become stale without timeout/reconciliation policy.
+- Existing references that use legacy callback expectations may require compatibility handling.
+
+**Architecture Doc Updates Needed:**
+
+- Add `Payment Confirmation Fallback Flow (Inline + Webhook Reconciliation)` in `.ai-system/agents/system-architecture.md`.
+- Extend module breakdown to include shared payment confirmation/reconciliation services.
+- Update payment verification flow section to distinguish synchronous success path from webhook-driven fallback path.
+
+**Rollout Order:**
+
+1. Add shared payment confirmation state model and error-copy map.
+2. Add consistent client toasts (`redirecting`, `verifying`, `pending`, `failed`) across wallet/checkout/ad pages.
+3. Implement pending-confirmation acceptance path in wallet/order/ad server routes.
+4. Expand webhook reconciliation to finalize domain outcomes idempotently by reference.
+5. Add observability and admin diagnostics for pending/failed/success confirmation transitions.
+6. Run focused regression suite for wallet, checkout, ads, verify, and webhook idempotency paths.
+7. Sync queue/checkpoints/history/architecture artifacts.
 
 ## Feature Spec - Ads/Wallet UX Reliability + Payment Initialize Hardening + WhatsApp Intent + Metadata Parity (Planned 2026-04-16)
 

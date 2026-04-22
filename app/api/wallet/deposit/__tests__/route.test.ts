@@ -22,6 +22,7 @@ const {
             findUnique: vi.fn(),
         },
         transaction: {
+            create: vi.fn(),
             findUnique: vi.fn(),
         },
         $transaction: vi.fn(),
@@ -73,6 +74,7 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         mockRateLimitByUser.mockResolvedValue({ success: true });
         mockDispatchNotification.mockResolvedValue(undefined);
         mockCacheInvalidate.mockResolvedValue(undefined);
+        mockPrisma.transaction.create.mockResolvedValue({ id: 'txn-pending-1' });
         mockPrisma.transaction.findUnique.mockResolvedValue(null);
         mockPrisma.wallet.findUnique.mockResolvedValue({
             id: 'wallet-1',
@@ -96,7 +98,8 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         const res = await POST(buildRequest({}));
         const json = await res.json();
 
-        expect(res.status).toBe(503);
+        expect(res.status).toBe(202);
+        expect(json.pendingConfirmation).toBe(true);
         expect(json.verification?.status).toBe('GATEWAY_UNAVAILABLE');
         expect(mockVerifyPayment).toHaveBeenCalledTimes(1);
     });
@@ -115,8 +118,8 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         const res = await POST(buildRequest({}));
         const json = await res.json();
 
-        expect(res.status).toBe(503);
-        expect(json.error).toMatch(/unavailable/i);
+        expect(res.status).toBe(202);
+        expect(json.pendingConfirmation).toBe(true);
         expect(json.verification?.status).toBe('GATEWAY_UNAVAILABLE');
     });
 

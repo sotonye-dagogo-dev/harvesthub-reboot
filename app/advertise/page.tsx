@@ -11,7 +11,10 @@ import { clearLocalDraft, loadLocalDraft, saveLocalDraft } from "@/lib/utils/loc
 import { enqueueOfflineItem, replayOfflineQueue } from "@/lib/utils/offlineQueue";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 import { generateRequestKey } from "@/lib/utils/requestKey";
-import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
+import {
+  buildPaystackReference,
+  initializePaystackInlinePayment,
+} from "@/lib/utils/paystackInline";
 
 const { RangePicker } = DatePicker;
 const AD_APPLICATION_DRAFT_KEY = "myharvesthub.ad-application.draft.v1";
@@ -209,17 +212,24 @@ export default function AdvertisePage() {
     setLoading(true);
     try {
       const [requestedStart, requestedEnd] = values.schedule || [];
+      const paymentToastKey = "advertise-paystack-status";
       let paymentReference: string | undefined;
       let paymentVerificationReference: string | undefined;
 
       if (!isBankTransfer) {
+        message.open({
+          key: paymentToastKey,
+          type: "loading",
+          content: "Redirecting to secure payment...",
+          duration: 0,
+        });
         const configRes = await fetch("/api/payments/config", { cache: "no-store" });
         const configData = await configRes.json().catch(() => ({}));
         const paystackPublicKey =
-          (typeof configData?.paystackPublicKey === "string" &&
+          typeof configData?.paystackPublicKey === "string" &&
           configData.paystackPublicKey.trim().length > 0
             ? configData.paystackPublicKey.trim()
-            : null);
+            : null;
         if (!paystackPublicKey) {
           throw new Error("Paystack public key is unavailable for inline payment.");
         }
@@ -240,6 +250,13 @@ export default function AdvertisePage() {
             onSuccess: (result) => resolve(result.reference),
             onClose: () => reject(new Error("Payment popup closed before completion.")),
           }).catch(reject);
+        });
+
+        message.open({
+          key: paymentToastKey,
+          type: "loading",
+          content: "Verifying payment...",
+          duration: 0,
         });
 
         paymentReference = resolvedReference;
@@ -281,13 +298,34 @@ export default function AdvertisePage() {
         return;
       }
 
-      await submitApplication(payload);
+      const applicationResponse = await submitApplication(payload);
       clearLocalDraft(AD_APPLICATION_DRAFT_KEY);
-      message.success("Ad application submitted successfully. Our team will review it shortly.");
+      if (applicationResponse?.paymentConfirmationPending) {
+        message.open({
+          key: paymentToastKey,
+          type: "warning",
+          content:
+            applicationResponse?.message ||
+            "Payment received. Your application is awaiting confirmation and will update automatically.",
+          duration: 5,
+        });
+      } else {
+        message.open({
+          key: paymentToastKey,
+          type: "success",
+          content: "Ad application submitted successfully. Our team will review it shortly.",
+          duration: 4,
+        });
+      }
       router.push("/");
     } catch (err: any) {
       console.error(err);
-      message.error(err.message || "Failed to submit application");
+      message.open({
+        key: "advertise-paystack-status",
+        type: "error",
+        content: err.message || "Failed to submit application",
+        duration: 4,
+      });
     } finally {
       setLoading(false);
     }
@@ -415,7 +453,8 @@ export default function AdvertisePage() {
               <Select.Option value="SIDEBAR">Sidebar</Select.Option>
             </Select>
             <p className="mt-1 text-xs text-ds-text-tertiary">
-              Choose where your ad should appear first; final placement depends on approved inventory.
+              Choose where your ad should appear first; final placement depends on approved
+              inventory.
             </p>
           </Form.Item>
 
@@ -537,12 +576,14 @@ export default function AdvertisePage() {
                 <Input type="hidden" />
               </Form.Item>
               <p className="mt-2 text-xs text-ds-text-tertiary">
-                Upload a clear transfer receipt or payment screenshot showing amount, date, and reference.
+                Upload a clear transfer receipt or payment screenshot showing amount, date, and
+                reference.
               </p>
             </Form.Item>
           ) : (
             <div className="mb-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-3 text-xs text-ds-text-secondary">
-              Proof upload is not required for card/USSD. Payment references are captured automatically.
+              Proof upload is not required for card/USSD. Payment references are captured
+              automatically.
             </div>
           )}
 

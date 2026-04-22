@@ -6,7 +6,10 @@ import { BannerPlacementPreview, BannerImageGuidelines } from "@/components/feat
 import { message } from "antd";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 import { generateRequestKey } from "@/lib/utils/requestKey";
-import { buildPaystackReference, initializePaystackInlinePayment } from "@/lib/utils/paystackInline";
+import {
+  buildPaystackReference,
+  initializePaystackInlinePayment,
+} from "@/lib/utils/paystackInline";
 
 type ApplyFormState = {
   name: string;
@@ -68,18 +71,25 @@ export default function AdApplicationPage() {
     setIsSubmitting(true);
 
     try {
+      const paymentToastKey = "public-ad-payment-status";
       let paymentReference = form.paymentReference;
       let paymentVerificationReference: string | undefined;
       const isBankTransfer = form.paymentMethod === "BANK_TRANSFER";
 
       if (!isBankTransfer) {
+        message.open({
+          key: paymentToastKey,
+          type: "loading",
+          content: "Redirecting to secure payment...",
+          duration: 0,
+        });
         const configRes = await fetch("/api/payments/config", { cache: "no-store" });
         const configData = await configRes.json().catch(() => ({}));
         const paystackPublicKey =
-          (typeof configData?.paystackPublicKey === "string" &&
+          typeof configData?.paystackPublicKey === "string" &&
           configData.paystackPublicKey.trim().length > 0
             ? configData.paystackPublicKey.trim()
-            : null);
+            : null;
         if (!paystackPublicKey) {
           throw new Error("Paystack public key is unavailable for inline payment.");
         }
@@ -100,9 +110,15 @@ export default function AdApplicationPage() {
           }).catch(reject);
         });
 
+        message.open({
+          key: paymentToastKey,
+          type: "loading",
+          content: "Verifying payment...",
+          duration: 0,
+        });
+
         paymentReference = resolvedReference;
         paymentVerificationReference = resolvedReference;
-        message.success("Payment completed successfully.");
       } else if (!form.proofOfTransferUrl) {
         throw new Error("Please upload proof of transfer for bank transfer.");
       }
@@ -122,7 +138,8 @@ export default function AdApplicationPage() {
             form.paymentMethod === "BANK_TRANSFER" || !paymentReference
               ? undefined
               : paymentVerificationReference,
-          proofOfTransferUrl: form.paymentMethod === "BANK_TRANSFER" ? form.proofOfTransferUrl : undefined,
+          proofOfTransferUrl:
+            form.paymentMethod === "BANK_TRANSFER" ? form.proofOfTransferUrl : undefined,
           durationValue: Number(form.durationValue),
           amountPaid: Number(form.amountPaid),
           position: "TOP",
@@ -136,7 +153,30 @@ export default function AdApplicationPage() {
         throw new Error(data.error || "Failed to submit ad application");
       }
 
-      setSuccess("Application submitted successfully. Our team will review it shortly.");
+      if (data?.paymentConfirmationPending) {
+        setSuccess(
+          data?.message ||
+            "Application submitted and payment confirmation is pending. It will update automatically once reconciliation completes."
+        );
+        message.open({
+          key: paymentToastKey,
+          type: "warning",
+          content:
+            data?.message ||
+            "Payment was received and is awaiting confirmation. Your application will update automatically.",
+          duration: 5,
+        });
+      } else {
+        setSuccess("Application submitted successfully. Our team will review it shortly.");
+        if (!isBankTransfer) {
+          message.open({
+            key: paymentToastKey,
+            type: "success",
+            content: "Payment completed successfully.",
+            duration: 4,
+          });
+        }
+      }
       setForm(initialState);
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : "Submission failed";
@@ -155,8 +195,8 @@ export default function AdApplicationPage() {
       </p>
 
       <div className="mt-4 rounded-ds-md border border-ds-border-base bg-ds-surface-muted p-4 text-sm text-ds-text-secondary">
-        Upload your banner image using the managed uploader below.
-        Applications are reviewed in the order they are received.
+        Upload your banner image using the managed uploader below. Applications are reviewed in the
+        order they are received.
       </div>
 
       <BannerImageGuidelines

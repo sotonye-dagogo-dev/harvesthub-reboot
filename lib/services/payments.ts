@@ -136,6 +136,20 @@ function mapPaystackVerificationStatus(status: string | null | undefined): Verif
   return 'PENDING';
 }
 
+function isPaystackGatewayUnavailableMessage(message: string | null | undefined): boolean {
+  if (!message) return false;
+  const normalized = message.trim().toLowerCase();
+
+  return (
+    normalized.includes('ip address is not allowed') ||
+    normalized.includes('temporarily unavailable') ||
+    normalized.includes('service unavailable') ||
+    normalized.includes('gateway timeout') ||
+    normalized.includes('connection timed out') ||
+    normalized.includes('network error')
+  );
+}
+
 async function initializePaystackPayment(input: InitializePaymentInput): Promise<InitializePaymentResult> {
   const paystackSecretKey = env.paystackSecretKey?.trim();
   if (!paystackSecretKey) {
@@ -265,10 +279,25 @@ async function verifyPaystackPayment(reference: string): Promise<VerifyPaymentRe
       payload && typeof payload === 'object' && typeof payload.message === 'string'
         ? payload.message
         : 'Unable to verify payment with Paystack.';
+
+    if (isPaystackGatewayUnavailableMessage(providerMessage)) {
+      return {
+        gateway: 'PAYSTACK',
+        reference,
+        status: 'GATEWAY_UNAVAILABLE',
+        amount: 0,
+        currency: 'NGN',
+        message: providerMessage,
+      };
+    }
+
+    const gatewayUnavailable =
+      response.status >= 500 || isPaystackGatewayUnavailableMessage(providerMessage);
+
     return {
       gateway: 'PAYSTACK',
       reference,
-      status: 'FAILED',
+      status: gatewayUnavailable ? 'GATEWAY_UNAVAILABLE' : 'FAILED',
       amount: 0,
       currency: 'NGN',
       message: providerMessage,

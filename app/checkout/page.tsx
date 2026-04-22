@@ -35,7 +35,7 @@ export const dynamic = "force-dynamic";
 type DeliveryMethod = "PICKUP" | "DELIVERY";
 type PaymentMethod = "WALLET" | "CARD";
 type PickupService = "SUNDAY_FIRST" | "SUNDAY_SECOND" | "MIDWEEK" | "SPECIAL_EVENT";
-type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED";
+type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED" | "PENDING_CONFIRMATION";
 type CheckoutWalletSummary = {
   availableBalance: number | null;
 };
@@ -389,6 +389,14 @@ export default function CheckoutPage() {
         const initializedReference = cardPaymentReference || buildPaystackReference("CHK");
         setCardPaymentState("INITIALIZED");
 
+        const checkoutToastKey = "checkout-paystack-status";
+        message.open({
+          key: checkoutToastKey,
+          type: "loading",
+          content: "Redirecting to secure payment...",
+          duration: 0,
+        });
+
         const resolvedReference: string = await new Promise((resolve, reject) => {
           initializePaystackInlinePayment({
             key: paystackPublicKey,
@@ -407,6 +415,12 @@ export default function CheckoutPage() {
           }).catch(reject);
         });
 
+        message.open({
+          key: checkoutToastKey,
+          type: "loading",
+          content: "Verifying payment...",
+          duration: 0,
+        });
         setCardPaymentReference(resolvedReference);
 
         setCardPaymentState("VERIFYING");
@@ -422,7 +436,10 @@ export default function CheckoutPage() {
         const verifyData = await verifyRes.json().catch(() => ({}));
         const verification = verifyData?.verification;
 
-        if (!verifyRes.ok || verification?.status !== "SUCCESS") {
+        if (
+          !verifyRes.ok ||
+          (verification?.status !== "SUCCESS" && verification?.status !== "GATEWAY_UNAVAILABLE")
+        ) {
           const verificationStatus =
             typeof verification?.status === "string" ? verification.status : undefined;
           setCardPaymentState("INITIALIZED");
@@ -438,9 +455,27 @@ export default function CheckoutPage() {
           );
         }
 
-        setCardPaymentState("VERIFIED");
+        if (verification?.status === "GATEWAY_UNAVAILABLE") {
+          setCardPaymentState("PENDING_CONFIRMATION");
+          message.open({
+            key: checkoutToastKey,
+            type: "warning",
+            content:
+              verifyData?.error ||
+              "Payment was received, but confirmation is still pending. Your order will update automatically.",
+            duration: 5,
+          });
+        } else {
+          setCardPaymentState("VERIFIED");
+          message.open({
+            key: checkoutToastKey,
+            type: "success",
+            content: "Payment verified successfully.",
+            duration: 4,
+          });
+        }
         paymentReference = resolvedReference;
-        cardPaymentVerified = true;
+        cardPaymentVerified = verification?.status === "SUCCESS";
       }
 
       const orderRes = await fetch("/api/orders", {
@@ -485,7 +520,12 @@ export default function CheckoutPage() {
         throw new Error(mappedError);
       }
 
-      if (orderData?.split && Array.isArray(orderData?.orders)) {
+      if (orderData?.paymentConfirmationPending) {
+        message.warning(
+          orderData?.message ||
+            "Your order was placed and payment confirmation is pending. It will update automatically once payment is reconciled."
+        );
+      } else if (orderData?.split && Array.isArray(orderData?.orders)) {
         message.success(
           `Checkout complete. ${orderData.orders.length} orders placed successfully.`
         );
