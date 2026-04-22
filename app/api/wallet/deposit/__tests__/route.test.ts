@@ -21,6 +21,9 @@ const {
         wallet: {
             findUnique: vi.fn(),
         },
+        transaction: {
+            findUnique: vi.fn(),
+        },
         $transaction: vi.fn(),
     },
 }));
@@ -70,6 +73,13 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         mockRateLimitByUser.mockResolvedValue({ success: true });
         mockDispatchNotification.mockResolvedValue(undefined);
         mockCacheInvalidate.mockResolvedValue(undefined);
+        mockPrisma.transaction.findUnique.mockResolvedValue(null);
+        mockPrisma.wallet.findUnique.mockResolvedValue({
+            id: 'wallet-1',
+            userId: 'buyer-1',
+            balance: 1000,
+            isActive: true,
+        });
     });
 
     it('does not hard-block admin wallet deposits before verification', async () => {
@@ -144,5 +154,54 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
 
         expect(res.status).toBe(400);
         expect(json.code).toBe('PAYMENT_CURRENCY_MISMATCH');
+    });
+
+    it('returns idempotent success for replayed completed deposit reference', async () => {
+        mockGetCurrentUser.mockResolvedValue({ userId: 'buyer-1', role: 'BUYER' });
+        mockVerifyPayment.mockResolvedValue({
+            gateway: 'PAYSTACK',
+            reference: 'PAY-123',
+            status: 'SUCCESS',
+            amount: 5000,
+            currency: 'NGN',
+            message: 'Payment verified.',
+        });
+
+        mockPrisma.transaction.findUnique.mockResolvedValue({
+            id: 'txn-1',
+            walletId: 'wallet-1',
+            type: 'DEPOSIT',
+            amount: 5000,
+            status: 'COMPLETED',
+            reference: 'PAY-123',
+            description: 'Wallet deposit',
+            balanceBefore: 1000,
+            balanceAfter: 6000,
+            metadata: null,
+            orderId: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        });
+
+        mockPrisma.wallet.findUnique.mockResolvedValueOnce({
+            id: 'wallet-1',
+            userId: 'buyer-1',
+            balance: 1000,
+            isActive: true,
+        });
+        mockPrisma.wallet.findUnique.mockResolvedValueOnce({
+            id: 'wallet-1',
+            userId: 'buyer-1',
+            balance: 6000,
+            isActive: true,
+        });
+
+        const res = await POST(buildRequest({ amount: 5000 }));
+        const json = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(json.idempotentReplay).toBe(true);
+        expect(json.transaction?.reference).toBe('PAY-123');
+        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
     });
 });

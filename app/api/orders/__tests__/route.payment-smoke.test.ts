@@ -21,6 +21,9 @@ const {
     buyer: {
       upsert: vi.fn(),
     },
+      order: {
+        findMany: vi.fn(),
+      },
     vendor: {
       findMany: vi.fn(),
     },
@@ -84,6 +87,7 @@ describe("POST /api/orders payment smoke paths", () => {
     mockGetCurrentUser.mockResolvedValue({ userId: "buyer-user-1", role: "BUYER" });
     mockRateLimitByUser.mockResolvedValue({ success: true });
     mockDispatchNotification.mockResolvedValue(undefined);
+    mockPrisma.order.findMany.mockResolvedValue([]);
     mockGetCommerceLifecycleConfig.mockResolvedValue({
       autoConfirmEnabled: true,
       autoConfirmHours: 48,
