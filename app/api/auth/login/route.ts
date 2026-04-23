@@ -76,6 +76,14 @@ export async function POST(request: NextRequest) {
         const { accessToken, refreshToken } = await generateTokenPair(user.id, user.email, user.role as UserRole, user.emailVerified);
         await setAuthCookies(accessToken, refreshToken, !!rememberMe);
 
+        const vendorWhatsappNumber =
+            user.role === UserRole.VENDOR
+                ? (await prisma.vendor.findUnique({
+                    where: { userId: user.id },
+                    select: { whatsappNumber: true },
+                }))?.whatsappNumber
+                : null;
+
         return NextResponse.json(
             {
                 message: 'Login successful',
@@ -87,6 +95,10 @@ export async function POST(request: NextRequest) {
                     phoneNumber: user.phoneNumber,
                     role: user.role,
                     profilePicture: user.profilePicture,
+                    whatsappNumber:
+                        user.role === UserRole.VENDOR
+                            ? vendorWhatsappNumber || user.phoneNumber
+                            : undefined,
                     emailVerified: user.emailVerified,
                     isActive: user.isActive,
                 },

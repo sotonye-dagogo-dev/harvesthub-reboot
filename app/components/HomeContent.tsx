@@ -22,6 +22,7 @@ import {
 import { AD_RAIL_CONFIG } from "@/lib/config/adRail";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { useAutoScrollRail } from "@/lib/hooks/useAutoScrollRail";
+import { resolveBannerActions } from "@/lib/utils/bannerActions";
 import {
   getBannersClient,
   getProductsClient,
@@ -108,19 +109,17 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     )
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((b) => ({
+      actions: resolveBannerActions({
+        actions: b.actions,
+        linkUrl: b.linkUrl,
+        defaultLabel: "Open promotion",
+      }),
       id: b.id,
       title: b.title,
       subtitle: b.subtitle ?? undefined,
       image: b.imageUrl,
       link: b.linkUrl ?? undefined,
       description: b.description ?? undefined,
-      actions:
-        b.actions?.map((a) => ({
-          label: a.label,
-          href: a.href,
-          variant: a.variant,
-          openInNewTab: a.openInNewTab,
-        })) ?? undefined,
       theme: b.theme ?? undefined,
       accentColor: b.accentColor ?? undefined,
       details: b.details ?? undefined,
@@ -241,13 +240,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       image: banner.imageUrl,
       link: banner.linkUrl ?? undefined,
       description: banner.description ?? undefined,
-      actions:
-        banner.actions?.map((a) => ({
-          label: a.label,
-          href: a.href,
-          variant: a.variant,
-          openInNewTab: a.openInNewTab,
-        })) ?? undefined,
+      actions: resolveBannerActions({
+        actions: banner.actions,
+        linkUrl: banner.linkUrl,
+        defaultLabel: "Open promotion",
+      }),
       theme: banner.theme ?? undefined,
       accentColor: banner.accentColor ?? undefined,
       details: banner.details ?? undefined,

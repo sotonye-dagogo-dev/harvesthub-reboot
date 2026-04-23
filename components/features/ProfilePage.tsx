@@ -77,6 +77,7 @@ export default function ProfilePage() {
     data: profileResource,
     error: profileLoadError,
     isRefreshing: profileRefreshing,
+    refresh: refreshProfileResource,
   } = useSmartResource(loadProfileResource, {
     key: `profile-resource:${user?.id ?? "guest"}`,
     enabled: Boolean(user?.id),
@@ -137,7 +138,7 @@ export default function ProfilePage() {
       lastName: user.lastName || "",
       email: user.email || "",
       phoneNumber: user.phoneNumber || "",
-      whatsappNumber: user.whatsappNumber || "",
+      whatsappNumber: user.whatsappNumber || user.phoneNumber || "",
     }));
   }, [user]);
 
@@ -162,15 +163,16 @@ export default function ProfilePage() {
     };
 
     setFormData((prev) => ({
-      ...(profile.vendorContext &&
-      Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
-        ? { whatsappNumber: profile.vendorContext.whatsappNumber ?? "" }
-        : { whatsappNumber: prev.whatsappNumber }),
       ...prev,
       firstName: profile.firstName || prev.firstName,
       lastName: profile.lastName || prev.lastName,
       email: profile.email || prev.email,
       phoneNumber: profile.phoneNumber || prev.phoneNumber,
+      whatsappNumber:
+        profile.vendorContext &&
+        Object.prototype.hasOwnProperty.call(profile.vendorContext, "whatsappNumber")
+          ? profile.vendorContext.whatsappNumber || profile.phoneNumber || prev.whatsappNumber
+          : prev.whatsappNumber || profile.phoneNumber || "",
       category: profile.vendorContext?.category || "",
       campus: profile.vendorContext?.campus || "",
       position: profile.vendorContext?.position || "",
@@ -239,6 +241,7 @@ export default function ProfilePage() {
       }
 
       await refreshUser();
+      await refreshProfileResource(true);
       message.success("Profile updated successfully");
       setEditMode(false);
     } catch (error) {
