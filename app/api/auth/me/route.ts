@@ -28,6 +28,11 @@ export async function GET() {
                 isActive: true,
                 createdAt: true,
                 updatedAt: true,
+                vendor: {
+                    select: {
+                        whatsappNumber: true,
+                    },
+                },
             },
         });
 
@@ -50,7 +55,15 @@ export async function GET() {
             });
         }
 
-        return NextResponse.json({ user, roleData }, { status: 200 });
+        const hydratedUser = {
+            ...user,
+            whatsappNumber:
+                user.role === 'VENDOR'
+                    ? user.vendor?.whatsappNumber || user.phoneNumber
+                    : undefined,
+        };
+
+        return NextResponse.json({ user: hydratedUser, roleData }, { status: 200 });
     } catch (error) {
         console.error('Get current user error:', error);
         return NextResponse.json(

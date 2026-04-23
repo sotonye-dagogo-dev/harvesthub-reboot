@@ -100,4 +100,13 @@ describe("TopAdBanner contract", () => {
     expect(screen.queryByRole("button", { name: /next ad/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /go to ad/i })).not.toBeInTheDocument();
   });
+
+  it("does not link top strip to operations ads management path", async () => {
+    vi.mocked(getTopBannersClient).mockResolvedValue([buildBanner({ linkUrl: "/operations/ads" })]);
+
+    render(<TopAdBanner />);
+
+    await screen.findByTestId("top-ad-strip");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
 });

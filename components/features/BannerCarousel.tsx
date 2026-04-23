@@ -26,6 +26,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, ExternalLink, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BANNER_CONFIG } from "@/lib/constants";
+import { resolveBannerActions } from "@/lib/utils/bannerActions";
 
 // ─── Public types ─────────────────────────────────────────────────
 
@@ -185,7 +186,12 @@ interface ActionModalProps {
 
 export function BannerActionModal({ banner, onClose }: ActionModalProps) {
   const tokens = getTheme(banner.theme);
-  const hasActions = banner.actions && banner.actions.length > 0;
+  const resolvedActions = resolveBannerActions({
+    actions: banner.actions,
+    linkUrl: banner.link,
+    defaultLabel: "Open promotion",
+  });
+  const hasActions = resolvedActions.length > 0;
 
   // Close on Escape
   useEffect(() => {
@@ -274,7 +280,7 @@ export function BannerActionModal({ banner, onClose }: ActionModalProps) {
         {/* CTA buttons */}
         {hasActions && (
           <div className="mt-5 flex flex-col gap-2">
-            {banner.actions!.slice(0, 2).map((action, i) => (
+            {resolvedActions.slice(0, 2).map((action, i) => (
               <ActionBtn key={i} action={action} tokens={tokens} size="md" />
             ))}
           </div>
@@ -392,11 +398,11 @@ export function BannerCarousel({
   return (
     <>
       <div className={cn("relative overflow-hidden rounded-ds-lg", className)}>
-      {/*
-       * Height breakdown:
-       *   < md  → compact hero visual
-       *   md+   → wider desktop hero visual
-       */}
+        {/*
+         * Height breakdown:
+         *   < md  → compact hero visual
+         *   md+   → wider desktop hero visual
+         */}
         <div
           data-testid="hero-banner-viewport"
           className="relative h-[184px] overflow-hidden rounded-ds-lg sm:h-[216px] md:h-[268px] lg:h-[300px] xl:h-[332px]"
@@ -413,7 +419,7 @@ export function BannerCarousel({
                 className={cn(
                   "inline-flex items-center justify-center rounded-ds-sm border border-ds-border-base bg-ds-surface-base p-1 text-xs font-medium text-ds-text-secondary transition-colors",
                   "hover:border-ds-border-strong hover:bg-ds-surface-sunken hover:text-ds-text-primary",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40"
                 )}
                 aria-label="Previous banner"
               >
@@ -424,7 +430,7 @@ export function BannerCarousel({
                 className={cn(
                   "inline-flex items-center justify-center rounded-ds-sm border border-ds-border-base bg-ds-surface-base p-1 text-xs font-medium text-ds-text-secondary transition-colors",
                   "hover:border-ds-border-strong hover:bg-ds-surface-sunken hover:text-ds-text-primary",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40"
                 )}
                 aria-label="Next banner"
               >
@@ -470,7 +476,9 @@ export function BannerCarousel({
       </div>
 
       {/* Action Modal (small screens only, triggered by Know More) */}
-      {modalOpen && <BannerActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <BannerActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />
+      )}
     </>
   );
 }

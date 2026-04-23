@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
         if (pendingSettlement) {
             return apiError(
-                'Withdrawal is temporarily unavailable while a recent store settlement payout is pending release.',
+                'Withdrawal is temporarily unavailable while a recent payout is pending settlement.',
                 409,
                 {
                     code: 'WITHDRAWAL_PENDING_SETTLEMENT',

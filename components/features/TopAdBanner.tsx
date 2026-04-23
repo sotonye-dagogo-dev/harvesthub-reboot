@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
 import { getTopBannersClient } from "@/lib/data/clientDataFetchers";
+import { resolvePrimaryBannerAction } from "@/lib/utils/bannerActions";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -115,7 +116,11 @@ export function TopAdBanner() {
   if (!banner) return null;
 
   const themeClasses = getThemeClasses(banner.theme);
-  const hasLink = banner.actions?.[0]?.href ?? banner.linkUrl ?? undefined;
+  const primaryAction = resolvePrimaryBannerAction({
+    actions: banner.actions,
+    linkUrl: banner.linkUrl,
+    defaultLabel: "Open promotion",
+  });
   const hasImage = !!banner.imageUrl;
   const ariaLabel = (banner.title || "").trim() || "Top advertisement banner";
 
@@ -134,14 +139,7 @@ export function TopAdBanner() {
       {/* Background image (when available) */}
       {hasImage && (
         <>
-          <Image
-            src={banner.imageUrl}
-            alt=""
-            fill
-            className="object-fill"
-            sizes="100vw"
-            priority
-          />
+          <Image src={banner.imageUrl} alt="" fill className="object-fill" sizes="100vw" priority />
           <div className="absolute inset-0 bg-black/15" />
         </>
       )}
@@ -150,10 +148,21 @@ export function TopAdBanner() {
 
   return (
     <div className="w-full">
-      {hasLink ? (
-        <Link href={hasLink} className="block transition-opacity hover:opacity-95">
-          {stripContent}
-        </Link>
+      {primaryAction ? (
+        primaryAction.openInNewTab || primaryAction.href.startsWith("http") ? (
+          <a
+            href={primaryAction.href}
+            target={primaryAction.openInNewTab ? "_blank" : undefined}
+            rel={primaryAction.openInNewTab ? "noopener noreferrer" : undefined}
+            className="block transition-opacity hover:opacity-95"
+          >
+            {stripContent}
+          </a>
+        ) : (
+          <Link href={primaryAction.href} className="block transition-opacity hover:opacity-95">
+            {stripContent}
+          </Link>
+        )
       ) : (
         stripContent
       )}

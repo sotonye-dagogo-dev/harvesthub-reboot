@@ -115,7 +115,7 @@ describe("HomeContent banner layout contract", () => {
     });
   });
 
-  it("opens modal details when sidebar ad tiles are clicked instead of navigating immediately", () => {
+  it("opens modal details and exposes CTA link from banner linkUrl", () => {
     const banners = [
       buildBanner("hero-1", "HERO"),
       {
@@ -136,6 +136,7 @@ describe("HomeContent banner layout contract", () => {
 
     expect(screen.getByRole("dialog", { name: /sidebar promo – details/i })).toBeInTheDocument();
     expect(screen.getByText("Sidebar Promo")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /sidebar promo/i })).not.toBeInTheDocument();
+    const ctaLink = screen.getByRole("link", { name: /open promotion/i });
+    expect(ctaLink).toHaveAttribute("href", "/operations/dashboard");
   });
 });

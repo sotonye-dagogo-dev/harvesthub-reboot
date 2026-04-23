@@ -303,6 +303,50 @@
 
 ---
 
+## Feature Planning Queue (2026-04-23) - Profile Update Reliability + Banner CTA Redirect Parity + Signup WhatsApp Default + Withdrawal Policy UX
+
+> **Section summary:** Corrective planning queue to eliminate profile update 500s, align banner click behavior to configured CTA/link contracts, default WhatsApp contact from signup phone when not explicitly provided, and ensure wallet withdrawal policy/messages are role-neutral and user-safe.
+
+- [ ] Stabilize profile update API and remove schema-drift write paths causing internal server errors.
+  - [ ] Reproduce and trace `PUT /api/users/[id]/profile` failures across buyer/vendor payload variants, including optional `whatsappNumber` submissions.
+  - [ ] Split user-table writes and vendor-table writes explicitly so user updates never include vendor-only fields (for example `whatsappNumber`) in `user.update` payloads.
+  - [ ] Add bounded request validation (Zod or equivalent) and reject unknown/invalid fields with 4xx responses instead of 500 fallthrough.
+  - [ ] Standardize response envelope and error mapping on profile/password/user-self routes to match shared API success/error patterns.
+
+- [ ] Harden profile UI feedback, state reconciliation, and refresh behavior after mutations.
+  - [ ] Ensure profile save handlers map structured API errors to user-safe messages and avoid generic “Internal server error” leakage.
+  - [ ] Ensure successful profile updates reconcile local form state, auth context (`refreshUser`), and runtime resource cache in one deterministic flow.
+  - [ ] Add explicit non-blocking refresh indicator and retry path when profile resource background refresh fails.
+
+- [ ] Enforce canonical CTA/link behavior for all banner placements (TOP, HERO, SIDEBAR).
+  - [ ] Define one banner action resolution contract: prefer explicit actions list; fallback to `linkUrl`; if neither exists, remain non-clickable.
+  - [ ] Apply the same resolver across top strip, hero modal actions, and sidebar modal actions so behavior is placement-consistent.
+  - [ ] Remove/guard any implicit legacy operations fallback navigation for banner clicks; banner navigation must only follow configured CTA/link.
+  - [ ] Add banner click-through tests to verify top-banner links never default to operations ads routes unless explicitly configured by data.
+
+- [ ] Ensure signup always seeds WhatsApp number from primary phone when WhatsApp is not explicitly collected.
+  - [ ] Confirm signup payload builder guarantees `whatsappNumber = phoneNumber` fallback for vendor registration requests.
+  - [ ] Ensure backend vendor create/update paths preserve the fallback and do not persist empty WhatsApp values when phone is present.
+  - [ ] Ensure profile initial state hydrates WhatsApp from vendor context and, when absent, uses phone as a user-visible default until explicitly edited.
+
+- [ ] Keep wallet withdrawal functionality role-neutral and clarify withdrawal messaging.
+  - [ ] Audit withdrawal UI and API guards to ensure authenticated users are allowed and no vendor-only assumptions remain.
+  - [ ] Update withdrawal hold/restriction copy to context-specific wording (pending settlement hold) without implying role-based denial.
+  - [ ] Ensure wallet page error handling surfaces precise restriction reason codes/messages and preserves form state for quick retry.
+
+- [ ] Add focused regression coverage for this corrective slice.
+  - [ ] API tests: profile update buyer/vendor payloads, unknown-field validation, and non-500 error mapping.
+  - [ ] Banner tests: top/hero/sidebar click-through contract for actions-vs-link fallback and no implicit operations redirect.
+  - [ ] Signup tests: vendor registration persists WhatsApp fallback from phone when WhatsApp not explicitly provided.
+  - [ ] Wallet tests: withdrawal access parity across roles and pending-settlement message clarity.
+
+- [ ] Validation and documentation sync.
+  - [ ] Run focused validation: touched `vitest`, touched lint, and `tsc --noEmit`.
+  - [ ] Update `.ai-system/agents/system-architecture.md` with unified banner CTA resolver flow, profile mutation boundary, and signup phone->WhatsApp fallback contract.
+  - [ ] Record implementation decisions in `.ai-system/memory/project-decisions.md` and log closure in checkpoints/dev-history/session-log.
+
+---
+
 ## Up Next
 
 > **Section summary:** Tasks planned for the next sprint. Not yet started.

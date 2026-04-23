@@ -7,12 +7,27 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { CAMPUS_LOCATIONS, POSITION_OPTIONS, VENDOR_CATEGORIES, UserRole } from '@/lib/constants';
+import { z } from 'zod';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
-const validCampusValues = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
-const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value));
-const validPositionValues = new Set(POSITION_OPTIONS.map((item) => item.value));
+const validCampusValues: Set<string> = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
+const validCategoryValues: Set<string> = new Set(VENDOR_CATEGORIES.map((item) => item.value));
+const validPositionValues: Set<string> = new Set(POSITION_OPTIONS.map((item) => item.value));
+
+const profileUpdateSchema = z
+    .object({
+        firstName: z.string().trim().min(1).max(120).optional(),
+        lastName: z.string().trim().min(1).max(120).optional(),
+        phoneNumber: z.string().trim().min(7).max(32).optional(),
+        profilePicture: z.string().trim().max(2048).nullable().optional(),
+        whatsappNumber: z.string().trim().max(32).optional(),
+        category: z.string().trim().optional(),
+        campus: z.string().trim().optional(),
+        position: z.string().trim().optional(),
+        businessAddress: z.string().trim().max(255).optional(),
+    })
+    .strict();
 
 /**
  * Safely normalize unknown JSON fields (for example Prisma Json columns) into a record shape.
@@ -120,16 +135,28 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         }
 
         const body = await req.json();
-        const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'profilePicture', 'whatsappNumber'];
-        const data: Record<string, unknown> = {};
-        for (const key of allowedFields) {
-            if (body[key] !== undefined) data[key] = body[key];
+        const parsedBody = profileUpdateSchema.safeParse(body);
+        if (!parsedBody.success) {
+            return NextResponse.json(
+                {
+                    error: 'Invalid profile update payload',
+                    details: parsedBody.error.flatten(),
+                },
+                { status: 400 }
+            );
         }
+
+        const payload = parsedBody.data;
+        const userUpdateData: Record<string, unknown> = {};
+        if (payload.firstName !== undefined) userUpdateData.firstName = payload.firstName;
+        if (payload.lastName !== undefined) userUpdateData.lastName = payload.lastName;
+        if (payload.phoneNumber !== undefined) userUpdateData.phoneNumber = payload.phoneNumber;
+        if (payload.profilePicture !== undefined) userUpdateData.profilePicture = payload.profilePicture;
 
         const updated = await prisma.$transaction(async (tx) => {
             const userUpdated = await tx.user.update({
                 where: { id },
-                data,
+                data: userUpdateData,
                 select: { id: true, firstName: true, lastName: true, email: true, phoneNumber: true, profilePicture: true, role: true },
             });
 
@@ -137,25 +164,29 @@ export async function PUT(req: NextRequest, context: RouteContext) {
                 const vendor = await tx.vendor.findUnique({ where: { userId: user.userId } });
                 if (vendor) {
                     const vendorUpdateData: Record<string, unknown> = {};
-                    if (body.category && validCategoryValues.has(body.category)) {
-                        vendorUpdateData.category = body.category;
+                    if (payload.category && validCategoryValues.has(payload.category)) {
+                        vendorUpdateData.category = payload.category;
                     }
-                    if (body.campus && validCampusValues.has(body.campus)) {
-                        vendorUpdateData.campus = body.campus;
+                    if (payload.campus && validCampusValues.has(payload.campus)) {
+                        vendorUpdateData.campus = payload.campus;
                     }
-                    if (body.position && validPositionValues.has(body.position)) {
-                        vendorUpdateData.position = body.position;
+                    if (payload.position && validPositionValues.has(payload.position)) {
+                        vendorUpdateData.position = payload.position;
                     }
-                    if (body.whatsappNumber !== undefined) {
-                        vendorUpdateData.whatsappNumber =
-                            typeof body.whatsappNumber === 'string' ? body.whatsappNumber.trim() : '';
+                    if (payload.whatsappNumber !== undefined) {
+                        vendorUpdateData.whatsappNumber = payload.whatsappNumber;
+                    } else if (
+                        payload.phoneNumber !== undefined &&
+                        (!vendor.whatsappNumber || vendor.whatsappNumber.trim().length === 0)
+                    ) {
+                        vendorUpdateData.whatsappNumber = payload.phoneNumber;
                     }
 
-                    if (body.businessAddress !== undefined) {
+                    if (payload.businessAddress !== undefined) {
                         const existingVerification = toSafeRecord(vendor.businessVerification);
                         vendorUpdateData.businessVerification = {
                             ...existingVerification,
-                            businessAddress: String(body.businessAddress).trim(),
+                            businessAddress: payload.businessAddress,
                         };
                     }
 
