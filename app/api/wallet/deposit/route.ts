@@ -131,6 +131,14 @@ export async function POST(req: NextRequest) {
                 },
             });
 
+            // Ensure cached wallet data is refreshed so clients see the pending transaction
+            try {
+                await cacheInvalidate(userWalletKey(user.userId));
+            } catch (e) {
+                // Non-fatal: log and continue returning pending response
+                console.error('Failed to invalidate wallet cache after creating pending transaction', e);
+            }
+
             return apiSuccess({
                 wallet,
                 transaction: pendingTransaction,

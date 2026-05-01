@@ -11,6 +11,7 @@ import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 import { MessageCircle } from "lucide-react";
 import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/dynamicMetadata";
 import { buildProductWhatsAppMessage } from "@/lib/utils/whatsappIntent";
+import ProductDetailActions from "@/components/features/ProductDetailActions";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -236,17 +237,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               {vendorName}
             </Link>
           </p>
-            <p className="mt-2 text-sm text-ds-text-secondary">
-              {whatsappGuardHref ? (
-                <Link
-                  href={whatsappGuardHref}
-                  className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat with vendor on WhatsApp
-                </Link>
-              ) : (
-                "Vendor chat is currently unavailable for this listing."
+          <p className="mt-2 text-sm text-ds-text-secondary">
+            {whatsappGuardHref ? (
+              <Link
+                href={whatsappGuardHref}
+                className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Chat with vendor on WhatsApp
+              </Link>
+            ) : (
+              "Vendor chat is currently unavailable for this listing."
             )}
           </p>
 
@@ -265,6 +266,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </span>
             ) : null}
           </div>
+
+          <ProductDetailActions
+            id={product.id}
+            name={productName}
+            price={productPrice}
+            discount={productDiscount}
+            images={product.images ?? undefined}
+            vendorId={productVendorId}
+            vendorName={vendorName}
+            stock={productStock}
+          />
 
           <p className="mt-4 text-ds-text-secondary">
             {product.description || "No description available for this product yet."}
@@ -294,7 +306,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Link href={vendorHref} className="text-lg font-bold text-ds-text-brand hover:underline">
+                  <Link
+                    href={vendorHref}
+                    className="text-lg font-bold text-ds-text-brand hover:underline"
+                  >
                     {vendorName}
                   </Link>
                   {vendorVerified ? (
@@ -304,13 +319,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   )}
                 </div>
                 {product.vendor.category && (
-                  <p className="mt-1 text-sm text-ds-text-secondary">{String(product.vendor.category).replace(/_/g, " ")}</p>
+                  <p className="mt-1 text-sm text-ds-text-secondary">
+                    {String(product.vendor.category).replace(/_/g, " ")}
+                  </p>
                 )}
                 {product.vendor.campus && (
                   <p className="mt-1 text-sm text-ds-text-secondary">📍 {product.vendor.campus}</p>
                 )}
                 {product.vendor.storeDescription && (
-                  <p className="mt-2 text-sm text-ds-text-secondary line-clamp-3">{product.vendor.storeDescription}</p>
+                  <p className="mt-2 text-sm text-ds-text-secondary line-clamp-3">
+                    {product.vendor.storeDescription}
+                  </p>
                 )}
               </div>
               <div className="flex shrink-0 flex-col gap-3 sm:items-end">
@@ -344,7 +363,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <p className="font-semibold text-ds-text-primary">Church Pickup</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
-                  Available at Sunday or Midweek services. Coordinate directly with your vendor after ordering.
+                  Available at Sunday or Midweek services. Coordinate directly with your vendor
+                  after ordering.
                 </p>
               </div>
             </div>
@@ -355,7 +375,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <p className="font-semibold text-ds-text-primary">Home Delivery</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
-                  Delivery is available at checkout with a fee per vendor. Delivery timeframes are coordinated by the vendor.
+                  Delivery is available at checkout with a fee per vendor. Delivery timeframes are
+                  coordinated by the vendor.
                 </p>
               </div>
             </div>
@@ -366,7 +387,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <p className="font-semibold text-ds-text-primary">Returns &amp; Cancellations</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
-                  Contact the vendor directly to discuss returns. Orders can be cancelled before the vendor begins processing.
+                  Contact the vendor directly to discuss returns. Orders can be cancelled before the
+                  vendor begins processing.
                 </p>
               </div>
             </div>
@@ -377,7 +399,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <p className="font-semibold text-ds-text-primary">Buyer Protection</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
-                  All transactions are recorded on MyHarvestHub. Report any issues to our platform support for assistance.
+                  All transactions are recorded on MyHarvestHub. Report any issues to our platform
+                  support for assistance.
                 </p>
               </div>
             </div>
