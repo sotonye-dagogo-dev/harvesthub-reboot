@@ -1,9 +1,8 @@
-import * as React from 'react';
 import { prisma } from '@/lib/db/prisma';
 import { featureFlags } from '@/lib/config/features';
 import {
-  sendEmail,
   sendOrderConfirmationEmail,
+  sendNotificationEmail,
   sendOrderStatusUpdateEmail,
 } from '@/lib/services/email';
 import { sendPushNotification } from '@/lib/services/push';
@@ -84,6 +83,58 @@ function toAbsoluteLink(pathOrUrl: string): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
   const normalizedPath = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
   return `${appUrl}${normalizedPath}`;
+}
+
+function toMetadataString(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim().length > 0) return value.trim();
+  if (typeof value === 'number' && Number.isFinite(value)) return value.toLocaleString('en-NG');
+  return null;
+}
+
+function toMetadataCurrency(value: unknown): string | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return `₦${value.toLocaleString('en-NG')}`;
+  }
+  return null;
+}
+
+function buildNotificationEmailDetails(metadata: Record<string, unknown>) {
+  const rows: { label: string; value: string }[] = [];
+  const explicitDetails = metadata.details;
+
+  if (Array.isArray(explicitDetails)) {
+    for (const detail of explicitDetails) {
+      if (
+        detail &&
+        typeof detail === 'object' &&
+        !Array.isArray(detail) &&
+        typeof (detail as Record<string, unknown>).label === 'string' &&
+        typeof (detail as Record<string, unknown>).value === 'string'
+      ) {
+        rows.push({
+          label: (detail as Record<string, unknown>).label as string,
+          value: (detail as Record<string, unknown>).value as string,
+        });
+      }
+    }
+  }
+
+  const addRow = (label: string, value: string | null) => {
+    if (value) rows.push({ label, value });
+  };
+
+  addRow('Amount', toMetadataCurrency(metadata.amount));
+  addRow('Reference', toMetadataString(metadata.reference));
+  addRow('Gateway', toMetadataString(metadata.gateway));
+  addRow('Order Number', toMetadataString(metadata.orderNumber));
+  addRow('Order', toMetadataString(metadata.orderNumber));
+  addRow('Status', toMetadataString(metadata.status) || toMetadataString(metadata.deliveryStatus));
+  addRow('Vendor', toMetadataString(metadata.vendorName));
+  addRow('Product', toMetadataString(metadata.productName));
+  addRow('Pending reason', toMetadataString(metadata.pendingReason));
+  addRow('Payment status', toMetadataString(metadata.paymentStatus));
+
+  return rows;
 }
 
 function isPushKeyRecord(value: unknown): value is { p256dh: string; auth: string } {
@@ -360,26 +411,16 @@ export async function dispatchNotification(
 
     if (!emailSent) {
       const actionLink = resolvedTemplate.link ? toAbsoluteLink(resolvedTemplate.link) : null;
-      const emailResult = await sendEmail({
-        to: recipient.email,
-        subject: resolvedTemplate.emailSubject,
-        react: React.createElement(
-          'div',
-          { style: { fontFamily: 'Arial, sans-serif', lineHeight: 1.6 } },
-          React.createElement('p', null, `Hello ${recipient.firstName || 'there'},`),
-          React.createElement('p', null, resolvedTemplate.message),
-          actionLink
-            ? React.createElement(
-              'p',
-              null,
-              React.createElement('a', { href: actionLink }, 'Open MyHarvestHub')
-            )
-            : null
-        ),
-        tags: [
-          { name: 'category', value: 'notification' },
-          { name: 'type', value: type },
-        ],
+      const emailResult = await sendNotificationEmail(recipient.email, {
+        firstName: recipient.firstName,
+        title: resolvedTemplate.title,
+        message: resolvedTemplate.message,
+        link: actionLink,
+        linkLabel: typeof resolvedTemplate.metadata.ctaLabel === 'string' ? resolvedTemplate.metadata.ctaLabel : undefined,
+        details: buildNotificationEmailDetails(resolvedTemplate.metadata),
+        note: typeof resolvedTemplate.metadata.note === 'string' ? resolvedTemplate.metadata.note : undefined,
+        emailSubject: resolvedTemplate.emailSubject,
+        type,
       });
 
       emailSent = emailResult.success;

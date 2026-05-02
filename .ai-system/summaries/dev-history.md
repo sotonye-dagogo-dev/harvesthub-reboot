@@ -29,20 +29,13 @@ Completed the remaining UX and payments follow-ups in a single pass. Guest add-t
 
 **Completed:**
 
-- Added a repair helper and CLI script for legacy stuck pending wallet deposits.
-- Added regression coverage for the guest guard, cart-item discount layout, wallet repair helper, and deposit route.
-- Updated session/task tracking docs to reflect the completed work.
 
 **Key Changes:**
 
-- Guest interception is now non-blocking and action-oriented.
-- Wallet deposits no longer depend on unreachable verification in the inline Paystack path.
-- Legacy pending wallet deposits can be cleaned deterministically instead of lingering indefinitely.
 
 **Next Sprint Focus:**
 Run remaining lint/build checks, then ship the repair script guidance and any deployment notes if reviewers want operator-facing instructions.
 
----
 
 ## 2026-04-19 — Paystack Inline Popup + Webhook Alias Hardening
 
@@ -50,15 +43,9 @@ Run remaining lint/build checks, then ship the repair script guidance and any de
 Completed a scope-locked Paystack reliability pass to move payment initialization away from server-side provider calls and into browser inline popup flows. This reduces hosted IP-allowlist friction while preserving existing verification and reconciliation contracts. A compatibility webhook alias endpoint was also added for simpler Paystack dashboard routing.
 
 **Completed:**
-
-- Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md`).
-- Added reusable `lib/utils/paystackInline.ts` utility for script loading, popup initialization, and callback handling.
-- Added env/runtime contract support for public-key fallback (`NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`) and exposed sanitized `paystackPublicKey` via `/api/payments/config`.
 - Migrated checkout/wallet/advertise/ad-application card initialization to inline popup instead of `/api/payments/initialize`.
 - Added `app/api/paystack-webhook/route.ts` alias reusing the existing webhook reconciliation handler.
 - Updated focused ad-application test expectations for inline-popup flow.
-- Validation passed: `npm run lint`, `npm run build` (known sitemap warnings unchanged), focused touched tests for ad-application + payments webhook.
-
 **Key Changes:**
 
 - Paystack initialization now happens client-side for core card flows, reducing server egress/IP restriction failure risk.

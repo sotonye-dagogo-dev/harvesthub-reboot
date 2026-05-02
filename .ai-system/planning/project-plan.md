@@ -63,7 +63,36 @@
 - [ ] Performance profiling and bundle optimization
 - [ ] Error/empty/loading states refined across the app
 - [x] Core-flow design-system modernization across signup, product browsing, cart, checkout, and operations dashboard
+- [ ] Email layout consistency audit and rectification across wallet, auth, vendor, order, and notification senders
 - [ ] Revisit all mock-backend logic for eventual Prisma migration
+
+## Cloud Session Feature Spec - Email Layout Consistency Audit + Rectification (Planned 2026-05-02)
+
+> **Section summary:** Scope-locked email consistency pass to ensure every application email uses the shared branded `EmailLayout` / template components, including the generic notification fallback and any sender-specific table-based content.
+
+**Feature Objective:**
+Audit all outbound email senders and route them through the shared branded email stack so wallet, auth, vendor, notification, and order emails render with consistent structure, typography, buttons, and table styling.
+
+**Why This Is Needed:**
+
+- The wallet deposit notification was still falling back to plain JSX instead of the shared email templates.
+- Some sender entry points bypassed the wrapper helpers even though the underlying components already existed.
+- Table-based emails need to keep their structured content while still inheriting the shared branded shell.
+
+**Acceptance Criteria:**
+
+- All outbound emails render through `lib/emails/*` templates or wrapper helpers.
+- Generic notification emails use the shared layout and support structured detail tables when metadata provides them.
+- Auth reset/verification senders call the shared wrapper methods instead of ad hoc `sendEmail` payloads.
+- No plain JSX email payloads remain in notification dispatch paths.
+
+**Rollout Order:**
+
+1. Route notification fallback through a branded generic email template.
+2. Switch direct auth senders to the shared wrapper helpers.
+3. Add focused regression tests for generic notification rendering and routing.
+4. Update architecture/docs to record the canonical email pipeline.
+5. Run validation (`vitest` touched suites, `lint`, `build`) and close out the queue item.
 
 ---
 

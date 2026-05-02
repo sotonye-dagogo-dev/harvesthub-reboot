@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
     mockPrisma,
-    mockSendEmail,
+    mockSendNotificationEmail,
     mockSendOrderConfirmationEmail,
     mockSendOrderStatusUpdateEmail,
     mockResolveNotificationTemplate,
@@ -14,7 +14,7 @@ const {
         order: { findUnique: vi.fn() },
         pushSubscription: { findMany: vi.fn() },
     },
-    mockSendEmail: vi.fn(),
+    mockSendNotificationEmail: vi.fn(),
     mockSendOrderConfirmationEmail: vi.fn(),
     mockSendOrderStatusUpdateEmail: vi.fn(),
     mockResolveNotificationTemplate: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock('@/lib/config/features', () => ({
 }));
 
 vi.mock('@/lib/services/email', () => ({
-    sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+    sendNotificationEmail: (...args: unknown[]) => mockSendNotificationEmail(...args),
     sendOrderConfirmationEmail: (...args: unknown[]) => mockSendOrderConfirmationEmail(...args),
     sendOrderStatusUpdateEmail: (...args: unknown[]) => mockSendOrderStatusUpdateEmail(...args),
 }));
@@ -74,7 +74,7 @@ describe('dispatchNotification order email routing', () => {
         }));
         mockSendOrderConfirmationEmail.mockResolvedValue({ success: true });
         mockSendOrderStatusUpdateEmail.mockResolvedValue({ success: true });
-        mockSendEmail.mockResolvedValue({ success: true });
+        mockSendNotificationEmail.mockResolvedValue({ success: true });
     });
 
     it('uses OrderConfirmation template for buyer ORDER_CONFIRMED notifications', async () => {
@@ -103,7 +103,7 @@ describe('dispatchNotification order email routing', () => {
 
         expect(result.emailSent).toBe(true);
         expect(mockSendOrderConfirmationEmail).toHaveBeenCalledTimes(1);
-        expect(mockSendEmail).not.toHaveBeenCalled();
+        expect(mockSendNotificationEmail).not.toHaveBeenCalled();
     });
 
     it('uses OrderStatusUpdate template for vendor ORDER_CONFIRMED notifications', async () => {
@@ -138,6 +138,28 @@ describe('dispatchNotification order email routing', () => {
 
         expect(result.emailSent).toBe(true);
         expect(mockSendOrderStatusUpdateEmail).toHaveBeenCalledTimes(1);
-        expect(mockSendEmail).not.toHaveBeenCalled();
+        expect(mockSendNotificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('uses the branded notification template for non-order notifications', async () => {
+        const result = await dispatchNotification({
+            userId: 'user-1',
+            type: 'PAYMENT_SUCCESS',
+            title: 'Wallet Deposit Successful',
+            message: 'Your wallet has been credited with ₦5,000.',
+            link: '/wallet',
+            emailSubject: 'Wallet deposit confirmed',
+            metadata: { amount: 5000, reference: 'PAY-123', gateway: 'paystack' },
+        });
+
+        expect(result.emailSent).toBe(true);
+        expect(mockSendNotificationEmail).toHaveBeenCalledTimes(1);
+        expect(mockSendNotificationEmail.mock.calls[0][1]).toMatchObject({
+            title: 'Wallet Deposit Successful',
+            message: 'Your wallet has been credited with ₦5,000.',
+            link: 'https://harvesthub.ng/wallet',
+            emailSubject: 'Wallet deposit confirmed',
+            type: 'PAYMENT_SUCCESS',
+        });
     });
 });

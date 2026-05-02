@@ -2,12 +2,10 @@
  * POST /api/auth/resend-verification
  * Resend email verification link
  */
-import * as React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { sendEmail } from "@/lib/services/email";
+import { sendVerifyEmail } from "@/lib/services/email";
 import { rateLimitStrict, getRateLimitResponse } from "@/lib/middleware/rate-limit";
-import { VerifyEmail } from "@/lib/emails/VerifyEmail";
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,12 +44,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
-    sendEmail({
-      to: user.email,
-      subject: "Verify Your Email — MyHarvestHub",
-      react: <VerifyEmail firstName={user.firstName} verificationUrl={verificationUrl} />,
-    }).catch((err) => console.error("Failed to send verification email:", err));
+    sendVerifyEmail(user.email, user.firstName, verificationToken).catch((err) =>
+      console.error("Failed to send verification email:", err)
+    );
 
     return NextResponse.json(successResponse);
   } catch (error) {
