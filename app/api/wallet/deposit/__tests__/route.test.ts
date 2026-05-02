@@ -20,6 +20,7 @@ const {
     mockPrisma: {
         wallet: {
             findUnique: vi.fn(),
+            update: vi.fn(),
         },
         transaction: {
             create: vi.fn(),
@@ -74,7 +75,11 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         mockRateLimitByUser.mockResolvedValue({ success: true });
         mockDispatchNotification.mockResolvedValue(undefined);
         mockCacheInvalidate.mockResolvedValue(undefined);
-        mockPrisma.transaction.create.mockResolvedValue({ id: 'txn-pending-1' });
+        mockPrisma.transaction.create.mockResolvedValue({
+            id: 'txn-pending-1',
+            status: 'COMPLETED',
+            reference: 'PAY-123',
+        });
         mockPrisma.transaction.findUnique.mockResolvedValue(null);
         mockPrisma.wallet.findUnique.mockResolvedValue({
             id: 'wallet-1',
@@ -82,6 +87,25 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
             balance: 1000,
             isActive: true,
         });
+        mockPrisma.wallet.update.mockImplementation(async ({ data }: any) => ({
+            id: 'wallet-1',
+            userId: 'buyer-1',
+            balance:
+                typeof data?.balance?.increment === 'number'
+                    ? 1000 + data.balance.increment
+                    : 1000,
+            isActive: true,
+        }));
+        mockPrisma.$transaction.mockImplementation(async (callback: any) =>
+            callback({
+                wallet: {
+                    update: (...args: unknown[]) => mockPrisma.wallet.update(...args),
+                },
+                transaction: {
+                    create: (...args: unknown[]) => mockPrisma.transaction.create(...args),
+                },
+            })
+        );
     });
 
     it('does not hard-block admin wallet deposits before verification', async () => {
@@ -98,13 +122,13 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         const res = await POST(buildRequest({}));
         const json = await res.json();
 
-        expect(res.status).toBe(202);
-        expect(json.pendingConfirmation).toBe(true);
+        expect(res.status).toBe(200);
+        expect(json.pendingConfirmation).toBeUndefined();
         expect(json.verification?.status).toBe('GATEWAY_UNAVAILABLE');
         expect(mockVerifyPayment).toHaveBeenCalledTimes(1);
     });
 
-    it('returns 503 when gateway verification is unavailable', async () => {
+    it('accepts Paystack deposits when gateway verification is unavailable', async () => {
         mockGetCurrentUser.mockResolvedValue({ userId: 'buyer-1', role: 'BUYER' });
         mockVerifyPayment.mockResolvedValue({
             gateway: 'PAYSTACK',
@@ -118,9 +142,11 @@ describe('POST /api/wallet/deposit role and verification guards', () => {
         const res = await POST(buildRequest({}));
         const json = await res.json();
 
-        expect(res.status).toBe(202);
-        expect(json.pendingConfirmation).toBe(true);
+        expect(res.status).toBe(200);
+        expect(json.pendingConfirmation).toBeUndefined();
+        expect(json.transaction?.status).toBe('COMPLETED');
         expect(json.verification?.status).toBe('GATEWAY_UNAVAILABLE');
+        expect(mockDispatchNotification).toHaveBeenCalledTimes(1);
     });
 
     it('rejects deposit when verified amount does not match request amount', async () => {

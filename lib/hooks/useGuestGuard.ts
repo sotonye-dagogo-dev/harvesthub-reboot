@@ -1,7 +1,7 @@
+import * as React from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/contexts/ToastContext";
-import React from "react";
 
 /**
  * Returns a guard function that checks if the user is authenticated.
