@@ -54,17 +54,15 @@ export function CartItemComponent({
       <div className="flex-1">
         <h3 className="font-medium text-ds-text-primary">{name}</h3>
         <p className="text-sm text-ds-text-secondary">{vendorName}</p>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2">
           <p className="text-lg font-semibold text-ds-text-brand">{formatCurrency(price)}</p>
           {typeof originalPrice === "number" && originalPrice > price ? (
-            <>
-              <p className="text-sm text-ds-text-tertiary line-through">{formatCurrency(originalPrice)}</p>
+            <div className="mt-1 flex flex-col items-start gap-1 text-sm text-ds-text-tertiary">
+              <span className="line-through">{formatCurrency(originalPrice)}</span>
               {typeof discountPercent === "number" && discountPercent > 0 ? (
-                <span className="rounded-ds-full bg-ds-status-success-bg px-2 py-0.5 text-xs font-medium text-ds-status-success-text">
-                  -{discountPercent}%
-                </span>
+                <span className="text-xs text-ds-status-success-text">-{discountPercent}%</span>
               ) : null}
-            </>
+            </div>
           ) : null}
         </div>
       </div>
