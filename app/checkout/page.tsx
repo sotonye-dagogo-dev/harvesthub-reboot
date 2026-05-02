@@ -665,9 +665,14 @@ export default function CheckoutPage() {
                       {formatCurrency(item.price * item.quantity)}
                     </p>
                     {typeof item.originalPrice === "number" && item.originalPrice > item.price ? (
-                      <p className="text-xs text-ds-text-tertiary line-through">
-                        {formatCurrency(item.originalPrice * item.quantity)}
-                      </p>
+                      <div className="mt-1 flex flex-col items-end text-xs text-ds-text-tertiary">
+                        <span className="line-through">
+                          {formatCurrency(item.originalPrice * item.quantity)}
+                        </span>
+                        {typeof item.discountPercent === "number" && item.discountPercent > 0 ? (
+                          <span className="mt-0.5">-{item.discountPercent}%</span>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 </div>

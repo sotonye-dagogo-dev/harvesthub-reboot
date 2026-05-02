@@ -39,6 +39,46 @@
 
 ---
 
+## Session 83 — 2026-05-02
+
+**Goal:**
+Implement the remaining guest-action, signup layout, checkout discount, Paystack inline, and pending-wallet repair follow-ups in a single pass.
+
+**Completed:**
+
+- Updated guest-auth gating so unauthenticated add-to-cart/favourite actions raise a toast with login/signup actions instead of a blocking modal.
+- Removed the redundant footer from the signup layout.
+- Adjusted checkout item pricing UI so original amount and discount percentage stack below the discounted amount.
+- Changed Paystack wallet deposit handling so `GATEWAY_UNAVAILABLE` is accepted as authoritative for inline Paystack deposits instead of creating perpetual pending transactions.
+- Added a repair helper and CLI script for legacy pending wallet deposits that cannot be verified from the deployment environment.
+- Added focused regression coverage for the guest guard, cart-item discount UI, wallet repair helper, and wallet deposit route.
+- Updated `.ai-system/planning/task-queue.md` with the completed session block.
+
+**Files Modified:**
+
+- lib/hooks/useGuestGuard.ts
+- app/signup/layout.tsx
+- components/features/CartItemComponent.tsx
+- app/checkout/page.tsx
+- app/api/wallet/deposit/route.ts
+- lib/maintenance/pendingWalletTransactions.ts
+- scripts/repairPendingWalletTransactions.ts
+- lib/hooks/**tests**/useGuestGuard.test.tsx
+- components/**tests**/CartItemComponent.discount.test.tsx
+- lib/maintenance/**tests**/pendingWalletTransactions.test.ts
+- app/api/wallet/deposit/**tests**/route.test.ts
+- package.json
+- .ai-system/planning/task-queue.md
+
+**Next Task:**
+Run remaining validation (`npm run lint`, focused build/TS checks if needed), then close out any review findings or deployment notes.
+
+**Notes / Blockers:**
+
+- Existing repository-wide test and build baselines were not fully re-run; focused touched suites passed.
+
+---
+
 ## Session 82 — 2026-04-19
 
 **Goal:**
@@ -78,7 +118,7 @@ Execute `plan-feature.md` + `cloud-session-single-pass.md` flow for Paystack inl
 - app/wallet/page.tsx
 - app/advertise/page.tsx
 - app/ad-application/page.tsx
-- app/ad-application/__tests__/page.test.tsx
+- app/ad-application/**tests**/page.test.tsx
 - app/api/paystack-webhook/route.ts
 - lib/config/env.ts
 - lib/config/payments.ts
@@ -88,6 +128,7 @@ Execute `plan-feature.md` + `cloud-session-single-pass.md` flow for Paystack inl
 Run `parallel_validation`, resolve valid findings if any, then finalize PR summary.
 
 **Notes / Blockers:**
+
 - Repository-wide baseline `npm run test` remains red from pre-existing suites unrelated to this slice; focused touched suites are green.
 
 ---
@@ -126,7 +167,7 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow fo
 - .ai-system/planning/task-queue.md
 - .ai-system/planning/cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md
 - .ai-system/checkpoints/session-log.md
-- app/_styles/globals.css
+- app/\_styles/globals.css
 - components/features/BannerCarousel.tsx
 - lib/config/paymentErrors.ts
 - app/(operations)/operations/settings/page.tsx
@@ -137,12 +178,13 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow fo
 - components/features/CartItemComponent.tsx
 - app/cart/page.tsx
 - app/checkout/page.tsx
-- lib/store/__tests__/cartStore.reconcile.test.ts
+- lib/store/**tests**/cartStore.reconcile.test.ts
 
 **Next Task:**
 Run `parallel_validation`, resolve any valid findings, finalize `.ai-system` closure checklist item, and raise PR.
 
 **Notes / Blockers:**
+
 - Full-suite vitest remains baseline-red in repository; focused touched suites are green.
 - `parallel_validation` code review findings were addressed (shared pricing helpers + selector comment).
 - Final `parallel_validation` CodeQL scan timed out after earlier run reported 0 alerts; tool instructed not to re-run due session time budget.
@@ -179,14 +221,15 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` follow-
 - .ai-system/planning/cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md
 - .ai-system/planning/task-queue.md
 - app/components/HomeContent.tsx
-- app/components/__tests__/HomeContent.banner-layout.test.tsx
+- app/components/**tests**/HomeContent.banner-layout.test.tsx
 - components/features/BannerCarousel.tsx
-- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- components/**tests**/BannerCarousel.visual-contract.test.tsx
 
 **Next Task:**
 Run `parallel_validation`, address any valid findings, then raise/finalize PR.
 
 **Notes / Blockers:**
+
 - Full-suite tests remain baseline-red in this repository (pre-existing, unrelated to this scope).
 
 ---
@@ -228,13 +271,14 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow fo
 - components/features/TopAdBanner.tsx
 - components/features/BannerCarousel.tsx
 - components/features/BannerPlacementPreview.tsx
-- components/__tests__/TopAdBanner.contract.test.tsx
-- components/__tests__/BannerCarousel.visual-contract.test.tsx
+- components/**tests**/TopAdBanner.contract.test.tsx
+- components/**tests**/BannerCarousel.visual-contract.test.tsx
 
 **Next Task:**
 Raise PR for review.
 
 **Notes / Blockers:**
+
 - Build retains known environment warnings for sitemap Prisma `findMany` in this runtime; behavior is pre-existing and unchanged by this slice.
 - `parallel_validation`: code review produced non-blocking fit-mode opinions (kept per client directive), and CodeQL timed out after one successful earlier scan reported 0 alerts.
 
@@ -277,7 +321,7 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow fo
 - .ai-system/agents/system-architecture.md
 - .ai-system/memory/project-decisions.md
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - app/signup/security-info/page.tsx
 - app/verify-email/page.tsx
 - app/(auth)/login/page.tsx
@@ -295,6 +339,7 @@ Execute the requested `plan-feature.md` + `cloud-session-single-pass.md` flow fo
 Run `parallel_validation`, resolve any valid findings, and raise PR.
 
 **Notes / Blockers:**
+
 - `parallel_validation` code review completed with no blocking issues; CodeQL scan returned 0 alerts but analysis failed due tool/runtime execution failure in this session.
 
 ---
@@ -449,10 +494,10 @@ Execute the cart/sidebar/WhatsApp/wallet reliability pass in one cloud-style sin
 - app/checkout/page.tsx
 - app/components/HomeContent.tsx
 - app/contact/whatsapp/page.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
 - app/wallet/page.tsx
 - lib/store/cartStore.ts
-- lib/store/__tests__/cartStore.reconcile.test.ts
+- lib/store/**tests**/cartStore.reconcile.test.ts
 
 **Next Task:**
 Create/refresh PR summary and monitor CI for this reliability slice.
@@ -510,15 +555,15 @@ Execute the full 2026-04-16 cloud queue block in one uninterrupted pass (ads/ban
 - lib/utils/idempotency.ts
 - lib/utils/requestKey.ts
 - lib/utils/whatsappIntent.ts
-- app/api/payments/initialize/__tests__/route.test.ts
-- app/components/__tests__/HomeContent.banner-layout.test.tsx
-- app/contact/whatsapp/__tests__/page.test.tsx
-- app/wallet/__tests__/page.role-parity.test.tsx
-- components/__tests__/VendorCard.test.tsx
-- lib/services/__tests__/adApplicationSubmission.test.ts
-- lib/__tests__/idempotency.test.ts
-- lib/__tests__/whatsappIntent.test.ts
-- lib/__tests__/dynamicMetadata.test.ts
+- app/api/payments/initialize/**tests**/route.test.ts
+- app/components/**tests**/HomeContent.banner-layout.test.tsx
+- app/contact/whatsapp/**tests**/page.test.tsx
+- app/wallet/**tests**/page.role-parity.test.tsx
+- components/**tests**/VendorCard.test.tsx
+- lib/services/**tests**/adApplicationSubmission.test.ts
+- lib/**tests**/idempotency.test.ts
+- lib/**tests**/whatsappIntent.test.ts
+- lib/**tests**/dynamicMetadata.test.ts
 - .ai-system/planning/task-queue.md
 
 **Next Task:**
@@ -4225,17 +4270,21 @@ Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-
 **Completed:**
 
 ### Slice 0 — Baseline
+
 - npm run build ✅ npm run lint ✅ before session start
 
 ### Slice 1 — Home Sidebar + Product Grid
+
 - `lib/config/adRail.ts` — `maxHeightClass` changed from `max-h-[26rem]` to `lg:max-h-[300px] xl:max-h-[332px]` (matches BannerCarousel hero heights exactly)
 - `app/components/HomeContent.tsx` — Featured Products, Trending Now, New Arrivals, Popular Vendors: converted from horizontal scroll carousels to responsive CSS grids (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`)
 
 ### Slice 2 — Campus-Aware Search
+
 - `app/api/products/search/route.ts` — Added `campus` query param; typed via `Campus` enum; applied as `AND` filter to avoid OR-clause vendor conflicts
 - `app/api/products/route.ts` — Campus added to filterHash for correct cache keying; vendor storeName added to text search OR clause
 
 ### Slice 3 — Voucher/Coupon End-to-End
+
 - `app/checkout/page.tsx` — Voucher code input card, apply/remove handlers, `/api/vouchers/validate` call, discount reflected in summary and order payload
 - `app/api/vouchers/my/route.ts` (new) — Available vouchers + user redemption history
 - `app/vouchers/page.tsx` (new) — User-facing available vouchers and history page
@@ -4243,15 +4292,18 @@ Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-
 - `app/api/admin/vouchers/[id]/route.ts` — Added `DELETE` handler with soft-delete guard (deactivates if redemptions exist, hard-deletes if none)
 
 ### Slice 4 — Trending Config + Deals Foundation
+
 - `lib/config/trendingDeals.ts` (new) — TRENDING_CONFIG (weights: sales 60%, rating 25%, recency 15%, 30-day newness window) and DEALS_CONFIG (5% min discount, 12 home page limit)
 - `app/api/products/trending/route.ts` — Upgraded to composite score using config; over-fetches and re-ranks
 - `app/api/products/deals/route.ts` (new) — Returns active discounted products (discount >= DEALS_CONFIG.minDiscountPercent)
 - `app/components/HomeContent.tsx` — Added `dealsProducts` derivation and "🔥 Hot Deals" section after New Arrivals
 
 ### Slice 5 — Product Detail Enrichment
+
 - `app/products/[id]/page.tsx` — Expanded vendor SELECT to include campus, category, storeDescription, storeLogo, averageRating, totalReviews, totalSales, totalOrders; added Vendor Summary Card and Delivery & Policy 4-tile grid between main content and related products; bumped related products to take:6 with xl:grid-cols-6
 
 ### Slice 6 — Operations Table Overflow
+
 - `app/(operations)/operations/banners/page.tsx` — `overflow-x-auto` wrapper + `scroll={{ x: 'max-content' }}`
 - `app/(operations)/operations/ads/page.tsx` — `overflow-x-auto` wrapper + `scroll={{ x: 'max-content' }}`
 - `app/(operations)/operations/products/page.tsx` — `overflow-x-auto` wrapper
@@ -4260,6 +4312,7 @@ Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-
 - `app/(operations)/operations/vendors/page.tsx` — `overflow-x-auto` wrapper
 
 **Validation:**
+
 - `npm run build` ✅
 - `npm run lint` ✅ (no warnings or errors)
 

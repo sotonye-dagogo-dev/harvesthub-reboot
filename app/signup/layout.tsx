@@ -3,7 +3,7 @@
 import { ReactNode, useMemo } from "react";
 import StageTracker from "./components/StageTracker";
 import { useRouter, usePathname } from "next/navigation";
-import { Footer } from "@/components/layout";
+// Footer intentionally omitted for signup flow to avoid duplicate/ redundant footer
 import Image from "next/image";
 import { useFormData } from "@/app/providers";
 
@@ -122,7 +122,7 @@ export default function SignupLayout({ children }: SignupLayoutProps) {
           </div>
         </section>
       </div>
-      <Footer />
+      {/* no footer on signup flow (redundant) */}
     </div>
   );
 }

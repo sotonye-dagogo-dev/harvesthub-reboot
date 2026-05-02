@@ -4,6 +4,17 @@
 
 ---
 
+## Session 82 — Guest toast, signup footer, discount layout, Paystack inline acceptance (2026-05-02)
+
+> Implemented single-pass fixes to guest action UX, signup layout, checkout discount stacking, and Paystack inline deposit acceptance.
+
+- [x] Show register/login toast for guest add-to-cart/favourite actions (implemented in `lib/hooks/useGuestGuard.ts`)
+- [x] Remove redundant footer from signup layout (`app/signup/layout.tsx`)
+- [x] Refactor checkout summary discount layout — original amount + discount % stacked below discount amount (`app/checkout/page.tsx`, `components/features/CartItemComponent.tsx`)
+- [x] Treat Paystack verification-unavailable as authoritative for inline deposits to avoid perpetual pending transactions (`app/api/wallet/deposit/route.ts`)
+
+Notes: pending follow-ups — migration script to clean existing stuck pending wallet transactions, tests for the changes, and docs update.
+
 ## Current Sprint
 
 > **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.

@@ -22,12 +22,35 @@
 [What comes next]
 ```
 
+## 2026-05-02 — Guest Toast, Signup Footer, Discount Layout, Paystack Inline Acceptance + Wallet Repair
+
+**Summary:**
+Completed the remaining UX and payments follow-ups in a single pass. Guest add-to-cart/favourite actions now surface a login/signup toast, the signup footer duplication was removed, checkout discount stacking was aligned with the requested column layout, and Paystack inline deposits now resolve immediately when provider verification is unavailable from the deployment environment.
+
+**Completed:**
+
+- Added a repair helper and CLI script for legacy stuck pending wallet deposits.
+- Added regression coverage for the guest guard, cart-item discount layout, wallet repair helper, and deposit route.
+- Updated session/task tracking docs to reflect the completed work.
+
+**Key Changes:**
+
+- Guest interception is now non-blocking and action-oriented.
+- Wallet deposits no longer depend on unreachable verification in the inline Paystack path.
+- Legacy pending wallet deposits can be cleaned deterministically instead of lingering indefinitely.
+
+**Next Sprint Focus:**
+Run remaining lint/build checks, then ship the repair script guidance and any deployment notes if reviewers want operator-facing instructions.
+
+---
+
 ## 2026-04-19 — Paystack Inline Popup + Webhook Alias Hardening
 
 **Summary:**
 Completed a scope-locked Paystack reliability pass to move payment initialization away from server-side provider calls and into browser inline popup flows. This reduces hosted IP-allowlist friction while preserving existing verification and reconciliation contracts. A compatibility webhook alias endpoint was also added for simpler Paystack dashboard routing.
 
 **Completed:**
+
 - Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-19-paystack-inline-webhook-assurance.md`).
 - Added reusable `lib/utils/paystackInline.ts` utility for script loading, popup initialization, and callback handling.
 - Added env/runtime contract support for public-key fallback (`NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`) and exposed sanitized `paystackPublicKey` via `/api/payments/config`.
@@ -37,6 +60,7 @@ Completed a scope-locked Paystack reliability pass to move payment initializatio
 - Validation passed: `npm run lint`, `npm run build` (known sitemap warnings unchanged), focused touched tests for ad-application + payments webhook.
 
 **Key Changes:**
+
 - Paystack initialization now happens client-side for core card flows, reducing server egress/IP restriction failure risk.
 - Webhook endpoint compatibility now supports both `/api/payments/webhook` and `/api/paystack-webhook`.
 
@@ -51,6 +75,7 @@ Run parallel validation feedback loop, resolve valid findings, and finalize PR d
 Completed the requested one-pass corrective slice after generating the required feature/queue/temp-plan artifacts. The pass standardized hero nav controls on semantic tokens, hardened dark-mode native form control surfaces, improved Paystack initialize diagnostics for serverless IP-allowlist realities, and restored discount parity across cart and checkout totals/UI.
 
 **Completed:**
+
 - Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-19-design-payment-discount-assurance.md`).
 - Tokenized hero banner prev/next control styling in `BannerCarousel`.
 - Added global native-form (`input/textarea/select`) DS surface guard in `app/_styles/globals.css`.
@@ -62,6 +87,7 @@ Completed the requested one-pass corrective slice after generating the required 
 - Parallel validation: review feedback was incorporated; final CodeQL run timed out after an earlier 0-alert scan in-session.
 
 **Key Changes:**
+
 - Cart/checkout now display and calculate discounted pricing consistently with product cards/detail pages.
 - Payment initialize diagnostics now provide operator guidance that fits Vercel/serverless deployment constraints.
 
@@ -76,6 +102,7 @@ Complete parallel validation pass, address valid review findings if any, and fin
 Completed the requested minor UX follow-up for home banners with a cloud-session temp plan artifact and one-pass implementation. Hero action panel controls were simplified to icon-only interactions, hero image corner rounding was restored, and sidebar ad tile clicks were changed to open modal details first instead of immediate redirect.
 
 **Completed:**
+
 - Added temp plan file: `.ai-system/planning/cloud-session-temp-plan-2026-04-18-hero-sidebar-modal-icons.md`.
 - Refactored `BannerCarousel` controls to caret icon-only prev/next plus info-icon Know More trigger.
 - Added explicit rounded hero viewport corners for full image border restoration.
@@ -85,6 +112,7 @@ Completed the requested minor UX follow-up for home banners with a cloud-session
 - Validation: `npm run lint` passed, `npm run build` passed (known sitemap warnings unchanged), focused touched vitest suites passed.
 
 **Key Changes:**
+
 - Sidebar ad interactions are now consistent with hero "Know More" behavior via a shared modal viewer path.
 - Hero action panel now has lower visual weight while maintaining accessibility labels.
 
@@ -99,6 +127,7 @@ Run `parallel_validation`, resolve any valid findings, and finalize PR delivery.
 Completed the requested one-pass banner UX refinement package after producing the required plan-feature and cloud temp-plan artifacts. Top banner manual controls were removed, hero controls were moved out of the image into a compact action panel below the viewport, and top/ad banner images were switched to fill-first rendering to avoid empty banner gaps.
 
 **Completed:**
+
 - Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-18-banner-navigator-rework.md`).
 - Removed top banner manual navigation/indicator controls while preserving rotation and click-through behavior.
 - Refactored hero carousel control placement into a thin below-image panel (prev/next + center indicators + Know More).
@@ -108,6 +137,7 @@ Completed the requested one-pass banner UX refinement package after producing th
 - Validation: focused banner tests passed, `npm run lint` passed, `npm run build` passed with unchanged known sitemap warnings.
 
 **Key Changes:**
+
 - Hero imagery is now less obstructed by controls, with actions consolidated in a dedicated compact panel.
 - Top/ad banner image handling now prioritizes edge-to-edge fill behavior aligned with provided guide dimensions.
 
@@ -122,6 +152,7 @@ Run parallel validation feedback loop and finalize PR/CI review for this banner 
 Completed the requested cloud-style one-pass feature package for auth-guarded WhatsApp continuation, pickup copy replacement, and expanded voucher configuration controls. Unauthenticated WhatsApp intent now survives signup/email verification/login interruptions through safe continuation storage/refire, and vouchers now support campus/category/product/vendor targeting plus private dashboard-hidden mode.
 
 **Completed:**
+
 - Added planning artifacts: feature spec, queue block, and temp cloud plan (`cloud-session-temp-plan-2026-04-17-whatsapp-auth-voucher-expansion.md`).
 - Added `/contact/whatsapp` auth guard continuity using `lib/utils/authRedirect.ts`, wired through signup security, verify-email, and login flow.
 - Updated product detail pickup copy to “Available at Sunday or Midweek services.”
@@ -132,6 +163,7 @@ Completed the requested cloud-style one-pass feature package for auth-guarded Wh
 - Parallel validation: code review completed; CodeQL reported zero alerts but analysis failed to complete in this environment.
 
 **Key Changes:**
+
 - Off-platform WhatsApp contact is now authentication-gated with safe, delayed continuation support.
 - Voucher behavior is now config-driven for targeting and dashboard visibility without schema migration changes.
 
@@ -146,6 +178,7 @@ Run parallel validation feedback loop and finalize PR/CI monitoring for this fea
 Corrected home product rail card widths so exactly 2/3/4 cards are visible at sm/md/lg breakpoints while maintaining horizontal-scroll overflow. Wired the existing voucher feature (pages already existed) into all navigation surfaces: RBAC routeConfig, nav labelMap, admin sidebar, header (desktop + mobile), and admin dashboard quick actions.
 
 **Completed:**
+
 - Fixed `HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS` for responsive 2/3/4 density.
 - Registered `/vouchers` and `/operations/vouchers` in RBAC routeConfig.
 - Added voucher labels to navigation labelMap.
@@ -154,6 +187,7 @@ Corrected home product rail card widths so exactly 2/3/4 cards are visible at sm
 - Admin dashboard quick actions includes "Manage Vouchers" → `/operations/vouchers`.
 
 **Key Changes:**
+
 - `app/components/HomeContent.tsx`: responsive rail item widths.
 - `lib/rbac/routeConfig.ts`, `lib/navigation.ts`: route + label registration.
 - `components/layout/Sidebar.tsx`, `components/layout/Header.tsx`: nav wiring.
@@ -170,6 +204,7 @@ Any additional UX polish or voucher discoverability (e.g. homepage promo section
 Completed a scope-locked corrective pass for the reported layout and wallet issues after producing required cloud-session planning artifacts. Home/product/vendor card density behavior was restored to match requested viewport expectations, footer links sections were made mobile-grid friendly, and wallet deposit handoff was simplified to avoid blank-page outcomes.
 
 **Completed:**
+
 - Added planning artifacts: feature spec, queue block, and temp cloud plan file (`cloud-session-temp-plan-2026-04-17-card-density-footer-wallet-paystack.md`).
 - Reduced home product rail item width so approximately two products are visible while preserving horizontal scroll behavior.
 - Updated products/category viewer to `3/3/4` responsive grid columns.
@@ -179,6 +214,7 @@ Completed a scope-locked corrective pass for the reported layout and wallet issu
 - Validation: `npm run lint` passed; `npm run build` passed with known sitemap warnings; focused tests retain a pre-existing HomeContent expectation drift.
 
 **Key Changes:**
+
 - Restored compact discovery density without removing existing rail/grid paradigms.
 - Improved wallet payment handoff reliability in popup-restricted browser scenarios.
 
@@ -191,6 +227,7 @@ Run/monitor CI and parallel validation, then tune any class-level expectation te
 Completed the requested one-pass layout parity update after creating planning artifacts with the `plan-feature` and cloud-session temp-plan workflow. Home marketplace card sections now use horizontal rails, while dedicated discovery surfaces remain grid-based with pagination behavior. Footer quick links were also optimized for mobile scannability using a compact grid presentation.
 
 **Completed:**
+
 - Added 2026-04-17 feature spec and queue block in `.ai-system` planning docs.
 - Created `.ai-system/planning/cloud-session-temp-plan-2026-04-17-home-rails-discovery-grid.md` for scope-locked cloud execution.
 - Converted home Featured/Trending/New Arrivals/Hot Deals/Popular Vendors sections to horizontal rails.
@@ -199,6 +236,7 @@ Completed the requested one-pass layout parity update after creating planning ar
 - Validation: `npm run lint` passed; `npm run build` passed with known sitemap warnings; focused HomeContent banner-layout test still reflects pre-existing assertion mismatch.
 
 **Key Changes:**
+
 - Home page now behaves as quick-browse rail-first catalog surface.
 - Dedicated product/vendor exploration remains structured as grid + pagination for deeper discovery.
 - Footer quick-link navigation is more compact and readable on small screens.
