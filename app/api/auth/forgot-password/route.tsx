@@ -2,13 +2,11 @@
  * POST /api/auth/forgot-password
  * Send password reset link
  */
-import * as React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { forgotPasswordSchema } from "@/lib/schemas/auth.schemas";
 import { prisma } from "@/lib/db/prisma";
-import { sendEmail } from "@/lib/services/email";
+import { sendResetPasswordEmail } from "@/lib/services/email";
 import { rateLimitStrict, getRateLimitResponse } from "@/lib/middleware/rate-limit";
-import { ResetPassword as ResetPasswordEmail } from "@/lib/emails/ResetPassword";
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,12 +48,9 @@ export async function POST(req: NextRequest) {
     });
 
     // Send reset email (non-blocking)
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
-    sendEmail({
-      to: user.email,
-      subject: "Reset Your Password — MyHarvestHub",
-      react: <ResetPasswordEmail firstName={user.firstName} resetUrl={resetUrl} />,
-    }).catch((err) => console.error("Failed to send reset email:", err));
+    sendResetPasswordEmail(user.email, user.firstName, resetToken).catch((err) =>
+      console.error("Failed to send reset email:", err)
+    );
 
     return NextResponse.json(successResponse);
   } catch (error) {

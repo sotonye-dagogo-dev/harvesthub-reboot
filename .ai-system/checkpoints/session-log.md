@@ -4,6 +4,44 @@
 
 ---
 
+## Session 84 — 2026-05-02
+
+**Goal:**
+Implement the email layout consistency audit by removing plain fallback notification mail and routing all senders through the shared branded email templates.
+
+**Completed:**
+
+- Added a branded generic notification email template with optional structured detail rows.
+- Routed `dispatchNotification` fallback mail through the shared notification email wrapper instead of plain JSX.
+- Switched forgot-password and resend-verification routes to the shared email wrapper helpers.
+- Added focused regression coverage for the branded notification template and notification routing.
+- Updated task/architecture/decision/history docs to capture the canonical email pipeline.
+
+**Files Modified:**
+
+- lib/emails/NotificationEmail.tsx
+- lib/services/email.ts
+- lib/services/notifications.ts
+- lib/emails/__tests__/NotificationEmail.test.tsx
+- lib/services/__tests__/notifications.order-email-routing.test.ts
+- app/api/auth/forgot-password/route.tsx
+- app/api/auth/resend-verification/route.tsx
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Run lint/build validation for the touched email files and then close out the audit task in the queue.
+
+**Notes / Blockers:**
+
+- Focused vitest suites passed after adjusting the branded notification template assertion.
+
+---
+
 ## How to Use
 
 - Agents write an entry after completing each major task.

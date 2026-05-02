@@ -39,6 +39,8 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 | `lib/config/`                         | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
 | `lib/data/`                           | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
 | `lib/services/notifications`          | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
+| `lib/services/email`                  | Branded email delivery wrapper + sender-specific template helpers  | `lib/services/email.ts`                                  | `lib/emails/`, Resend, delivery logging                  |
+| `lib/emails/`                         | Shared branded email layout and sender-specific React templates    | `EmailLayout.tsx`, `NotificationEmail.tsx`, order/auth templates | `@react-email/components`                      |
 | `lib/utils/offlineQueue`              | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
 | `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                   | `lib/utils/bannerPlacementValidation.ts`                 | `lib/constants/index.ts`, upload consumers              |
 | `lib/schemas/`                        | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
@@ -109,6 +111,16 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. Client page posts token to `/api/auth/verify-email`.
 3. API marks `emailVerified=true` and clears verification token fields.
 4. Client shows success state and redirects user to `/login`.
+```
+
+### Branded Email Delivery Flow
+
+```
+1. Application services call the shared wrapper helpers in `lib/services/email.ts` rather than building ad hoc JSX payloads.
+2. Sender-specific wrappers resolve the appropriate component from `lib/emails/` and render it through the shared `EmailLayout`.
+3. Notification dispatch routes use the branded generic notification template for non-order mail and preserve structured detail tables when metadata provides them.
+4. Order, auth, wallet, vendor, and availability emails keep their own content-specific templates, but all share the same branded shell, typography, and footer contract.
+5. Delivery logging stays centralized in the email service wrapper so retries and provider outcomes remain consistent.
 ```
 
 ### Buyer-to-Vendor Conversion Flow

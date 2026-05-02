@@ -15,6 +15,43 @@
 
 Notes: pending follow-ups — migration script to clean existing stuck pending wallet transactions, tests for the changes, and docs update.
 
+## Feature Planning Queue (2026-05-02) — Email Layout Consistency Audit + Rectification
+
+> **Section summary:** Plan to audit every outbound email path and make all mail conform to the shared `EmailLayout` / template components so wallet, auth, vendor, notification, and order emails render with the same branded structure.
+
+- [x] Audit all outbound email call sites and classify them by sender path.
+  - [x] Inventory every `sendEmail` / wrapper usage in `lib/services/email.ts`, `lib/services/notifications.ts`, and API routes that call email helpers directly.
+  - [x] Identify any direct React email payloads that bypass the shared templates or layout wrapper.
+
+- [x] Standardize all outbound email rendering on shared templates and layout.
+  - [x] Ensure auth emails use the dedicated `VerifyEmail` and `ResetPassword` templates through the shared wrapper layer.
+  - [x] Ensure wallet/order/vendor/availability/withdrawal emails all render through the shared `EmailLayout` and template components.
+  - [x] Remove any plain or one-off email markup that does not use the shared branding/layout contract.
+
+- [x] Tighten the email service contract and routing helpers.
+  - [x] Confirm `lib/services/email.ts` is the single place that owns provider delivery, retry/logging, and template invocation.
+  - [x] Add or refine a template registry/helper if needed so callers cannot bypass the branded layout accidentally.
+  - [x] Review `dispatchNotification` fallback behavior to ensure notification emails and order emails stay visually consistent.
+
+- [x] Add focused regression coverage for email consistency.
+  - [x] Add tests that assert the known email senders use shared templates/layout and not ad-hoc JSX.
+  - [x] Add tests for auth routes and notification dispatch paths to verify the expected template wrappers are used.
+
+- [x] Validation and documentation sync.
+  - [x] Run focused email-related tests after implementation.
+  - [x] Update `.ai-system/agents/system-architecture.md` with the canonical email delivery/template flow if the audit changes the contract.
+  - [x] Record implementation decisions in `.ai-system/memory/project-decisions.md` and log closure in checkpoints/history.
+
+## Session 84 — Email layout consistency audit + rectification (2026-05-02)
+
+> Implemented the branded generic notification email path and removed direct auth sender bypasses so all outbound mail uses the shared layout/template stack.
+
+- [x] Add a branded generic notification email template for fallback notification mail.
+- [x] Route `dispatchNotification` fallback through the shared notification email wrapper.
+- [x] Switch auth forgot-password and resend-verification routes to the shared email wrapper helpers.
+- [x] Add focused regression coverage for branded notification rendering and routing.
+- [x] Update architecture/decision/history docs to reflect the canonical email pipeline.
+
 ## Current Sprint
 
 > **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.

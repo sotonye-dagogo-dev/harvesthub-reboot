@@ -144,6 +144,43 @@ export async function sendResetPasswordEmail(to: string, firstName: string, rese
   });
 }
 
+type NotificationEmailDetail = {
+  label: string;
+  value: string;
+};
+
+export async function sendNotificationEmail(
+  to: string,
+  data: {
+    firstName?: string;
+    title: string;
+    message: string;
+    emailSubject?: string;
+    link?: string | null;
+    linkLabel?: string;
+    details?: NotificationEmailDetail[];
+    note?: string;
+    type?: string;
+  }
+) {
+  const { NotificationEmail } = await import('@/lib/emails/NotificationEmail');
+
+  return sendEmail({
+    to,
+    subject: data.emailSubject || data.title,
+    react: React.createElement(NotificationEmail, {
+      firstName: data.firstName,
+      title: data.title,
+      message: data.message,
+      link: data.link || undefined,
+      linkLabel: data.linkLabel,
+      details: data.details,
+      note: data.note,
+    }),
+    tags: [{ name: 'category', value: 'notification' }, ...(data.type ? [{ name: 'type', value: data.type }] : [])],
+  });
+}
+
 export async function sendWelcomeEmail(to: string, firstName: string, role: 'BUYER' | 'VENDOR') {
   const { WelcomeEmail } = await import('@/lib/emails/WelcomeEmail');
 

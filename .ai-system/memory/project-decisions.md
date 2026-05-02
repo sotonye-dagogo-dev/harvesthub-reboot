@@ -43,6 +43,26 @@ Server-side Paystack initialization can fail in serverless hosting due to provid
 - Existing env naming remains supported, including fallback support for `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`.
 - Integrators can point Paystack webhooks to either `/api/payments/webhook` or `/api/paystack-webhook`.
 
+## All Outbound Emails Must Flow Through Shared Branded Templates
+
+**Decision:** All application emails now route through shared wrapper helpers in `lib/services/email.ts` and branded React templates under `lib/emails/`, including a generic notification template for fallback notification mail.
+**Date:** 2026-05-02
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+The notification fallback still used plain JSX instead of the branded email layout, and some auth senders bypassed wrapper helpers. Centralizing wrapper usage keeps the layout, table styling, footer, and provider logging consistent across wallet, auth, order, vendor, and notification email paths.
+
+**Alternatives Considered:**
+
+- Leave direct route-level `sendEmail` calls in place as long as they used the right component (rejected: harder to audit and easier to bypass the shared contract later).
+- Make a separate service per feature area (rejected: duplicates delivery plumbing and weakens consistency guarantees).
+
+**Implications:**
+
+- `lib/services/email.ts` is the canonical entry point for outbound mail delivery and template selection.
+- `lib/emails/NotificationEmail.tsx` serves as the branded generic fallback for notification mail, with structured detail-table support when metadata provides it.
+- Future email senders should use the shared wrapper helpers instead of building ad hoc React payloads directly.
+
 ## Cart Pricing Persists Effective and Original Amounts for Discount Parity
 
 **Decision:** Cart state stores discount-aware pricing as effective `price` plus optional `originalPrice` and `discountPercent`, and checkout/cart summaries compute product discount from these fields before voucher deduction.
