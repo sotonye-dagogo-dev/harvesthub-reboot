@@ -73,10 +73,18 @@ Active sprint focus: Stabilize core auth flows, checkout/order pipeline, and rol
 
 > **Section summary:** Third-party services and APIs this project connects to.
 
-| Service                      | Purpose                                       | Auth Method    |
-| ---------------------------- | --------------------------------------------- | -------------- |
-| Resend                       | Transactional emails (welcome, order updates) | API key        |
-| Cloudinary                   | Image storage & transformations               | API key/secret |
-| Upstash Redis                | Caching / pubsub (optional)                   | REST token     |
-| Prisma Accelerate / Postgres | Persistent data storage (future)              | DATABASE_URL   |
-| Web Push                     | Push notifications                            | VAPID keys     |
+| Service                      | Purpose                                       | Auth Method                    |
+| ---------------------------- | --------------------------------------------- | ------------------------------ |
+| Resend                       | Transactional emails (welcome, order updates) | API key                        |
+| Cloudinary                   | Image storage & transformations               | API key/secret                 |
+| Upstash Redis                | Caching / pubsub (optional)                   | REST token                     |
+| Prisma Accelerate / Postgres | Persistent data storage (future)              | DATABASE_URL                   |
+| Web Push                     | Push notifications                            | VAPID keys                     |
+| CIS                          | Canonical identity sync/status contract       | client secret + webhook secret |
+
+## CIS Integration Notes
+
+- CIS uses a push model: signed webhooks post to `/api/cis/webhook`.
+- Identity sync remains additive: events are persisted to `CisIdentity` and `CisWebhookEvent` without mutating local user records.
+- CIS routes should remain readable in local development even when env config is incomplete, but production should fail closed when the webhook contract is not configured.
+- Webhook payloads should stay narrow and versioned so new identity fields can be added without breaking existing consumers.

@@ -4,6 +4,37 @@
 
 ---
 
+## Cross-Repo Feature Spec - CIS Federation Rollout (Planned 2026-05-13)
+
+> **Section summary:** Scope-locked rollout to connect MyHarvestHub to the Canonical Identity Service through a narrow signed webhook/status contract and config-driven env plumbing.
+
+**Feature Objective:**
+Add a platform-specific CIS handshake so MyHarvestHub can report readiness, accept signed identity sync events, and expose its own integration contract without forcing a local schema rewrite in the same batch.
+
+**Why This Is Needed:**
+
+- The workspace now includes CIS as the canonical identity layer for multi-repo coordination.
+- MyHarvestHub needs a low-risk bridge that allows discovery and future syncs without coupling to CIS-owned tables right away.
+- A small, explicit webhook/status surface is easier to validate and roll forward than an all-at-once identity migration.
+
+**Acceptance Criteria:**
+
+- `lib/config/env.ts` understands CIS env keys and normalizes them through typed helpers.
+- `GET /api/cis/status` reports app readiness, platform slug, and webhook config status.
+- `POST /api/cis/webhook` verifies signed payloads with the CIS webhook secret and returns a clear acknowledgment envelope.
+- Webhook processing persists identity mappings to `CisIdentity` and event history to `CisWebhookEvent` without mutating local users.
+- The rollout remains additive and backward-compatible with existing auth/order/payment flows.
+
+**Rollout Order:**
+
+1. Add CIS env/schema plumbing.
+2. Add CIS config helper plus status/webhook routes.
+3. Export the CIS config from the shared config barrel.
+4. Update `.ai-system` task/context/architecture docs and env example.
+5. Run validation for the touched files.
+
+---
+
 ## Phase 1 — Foundation (In Progress)
 
 > **Section summary:** Core infrastructure and platform scaffolding that enables all features.

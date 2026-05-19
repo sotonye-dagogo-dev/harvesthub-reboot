@@ -4,6 +4,23 @@
 
 ---
 
+## Workspace-Wide CIS Federation Rollout
+
+> **Section summary:** Add a canonical identity handshake surface so this repo can consume CIS identity syncs without hardcoding integration details.
+
+- [x] Add CIS env/config plumbing plus webhook/status routes for MyHarvestHub.
+- [x] Update `.ai-system` docs with the CIS contract, rollout constraints, and continuation prompt.
+- [x] Mirror the same CIS handshake surface in report-sys.
+- [x] Validate the touched files after the rollout lands.
+
+## CIS Identity Persistence (Phase 1)
+
+> **Section summary:** Persist signed CIS sync events without mutating local users.
+
+- [x] Add `CisIdentity` + `CisWebhookEvent` models to Prisma schema.
+- [x] Persist webhook events and identity mappings in `/api/cis/webhook`.
+- [x] Record push-model decision in `.ai-system` docs.
+
 ## Session 82 — Guest toast, signup footer, discount layout, Paystack inline acceptance (2026-05-02)
 
 > Implemented single-pass fixes to guest action UX, signup layout, checkout discount stacking, and Paystack inline deposit acceptance.

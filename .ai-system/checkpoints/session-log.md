@@ -4,6 +4,71 @@
 
 ---
 
+## Session 85 — 2026-05-13
+
+**Goal:**
+Roll out a narrow CIS federation handshake across the workspace so MyHarvestHub and report-sys can consume signed identity syncs without a schema rewrite.
+
+**Completed:**
+
+- Added CIS env/config plumbing plus status and signed webhook endpoints for MyHarvestHub.
+- Mirrored the same CIS config/helper/routes pattern into report-sys.
+- Updated the workspace-wide `.ai-system` planning and architecture docs to describe the additive CIS handshake.
+- Validated the touched config, route, and documentation files.
+
+**Files Modified:**
+
+- .ai-system/planning/project-plan.md
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/project-context.md
+- .ai-system/agents/system-architecture.md
+- .env.example
+- lib/config/env.ts
+- lib/config/index.ts
+- lib/config/cis.ts
+- app/api/cis/status/route.ts
+- app/api/cis/webhook/route.ts
+
+**Next Task:**
+Start the next workspace integration target or expand the CIS persistence layer once the owning repo is ready for schema work.
+
+**Notes / Blockers:**
+
+- The current CIS rollout is intentionally non-destructive and stops at readiness + signed webhook intake.
+
+---
+
+## Session 86 — 2026-05-13
+
+**Goal:**
+Add CIS identity persistence and document the push model.
+
+**Completed:**
+
+- Added `CisIdentity` and `CisWebhookEvent` models for CIS sync persistence.
+- Persisted webhook events and mappings in `/api/cis/webhook`.
+- Updated CIS documentation and decisions to reflect the push model.
+
+**Files Modified:**
+
+- prisma/schema.prisma
+- lib/data/cisIdentity.ts
+- app/api/cis/webhook/route.ts
+- .ai-system/planning/task-queue.md
+- .ai-system/agents/project-context.md
+- .ai-system/agents/system-architecture.md
+- .ai-system/memory/project-decisions.md
+- .ai-system/checkpoints/session-log.md
+- .ai-system/summaries/dev-history.md
+
+**Next Task:**
+Define the CIS payload contract and decide when to link identities to local users.
+
+**Notes / Blockers:**
+None.
+
+---
+
 ## Session 84 — 2026-05-02
 
 **Goal:**
@@ -22,8 +87,8 @@ Implement the email layout consistency audit by removing plain fallback notifica
 - lib/emails/NotificationEmail.tsx
 - lib/services/email.ts
 - lib/services/notifications.ts
-- lib/emails/__tests__/NotificationEmail.test.tsx
-- lib/services/__tests__/notifications.order-email-routing.test.ts
+- lib/emails/**tests**/NotificationEmail.test.tsx
+- lib/services/**tests**/notifications.order-email-routing.test.ts
 - app/api/auth/forgot-password/route.tsx
 - app/api/auth/resend-verification/route.tsx
 - .ai-system/planning/project-plan.md

@@ -63,6 +63,48 @@ The notification fallback still used plain JSX instead of the branded email layo
 - `lib/emails/NotificationEmail.tsx` serves as the branded generic fallback for notification mail, with structured detail-table support when metadata provides it.
 - Future email senders should use the shared wrapper helpers instead of building ad hoc React payloads directly.
 
+## CIS Federation Handshake Surface
+
+**Decision:** Add a narrow CIS-facing status route and signed webhook route in each platform repo instead of collapsing local schemas into CIS-owned tables.
+**Date:** 2026-05-13
+**Made by:** AI assistant (workspace rollout session)
+
+**Reason:** The marketplace needs a low-risk adoption path that lets CIS drive identity sync and readiness checks without forcing a cross-repo schema rewrite in the same batch.
+
+**Alternatives Considered:**
+
+- Expose only documentation (rejected: docs-only does not exercise the integration surface).
+- Wire CIS directly into the local user tables right away (rejected: direct schema coupling would require a broader migration pass).
+
+**Implications:**
+
+- CIS integration remains additive and platform-specific.
+- Future work can attach a persistence target behind the webhook route when the owning repo is ready for that migration.
+
+## CIS Sync Uses Push Model
+
+**Decision:** CIS posts signed identity events to MyHarvestHub via webhooks.
+**Date:** 2026-05-13
+**Made by:** AI assistant
+
+**Reason:** Push sync avoids polling overhead and keeps identity propagation near-real time.
+
+**Alternatives Considered:** Pull model (periodic polling). Rejected due to latency and operational overhead.
+
+**Implications:** Webhook verification and idempotency remain critical; reconciliation can be added later.
+
+## CIS Identity Persistence (Additive)
+
+**Decision:** Persist CIS sync data in `CisIdentity` and `CisWebhookEvent` without mutating local users.
+**Date:** 2026-05-13
+**Made by:** AI assistant
+
+**Reason:** Provides auditability and a future linking surface without schema coupling.
+
+**Alternatives Considered:** Direct user upserts on webhook. Rejected until the payload contract is final and migration scope is approved.
+
+**Implications:** Identity linking can be layered later; current sync remains non-destructive.
+
 ## Cart Pricing Persists Effective and Original Amounts for Discount Parity
 
 **Decision:** Cart state stores discount-aware pricing as effective `price` plus optional `originalPrice` and `discountPercent`, and checkout/cart summaries compute product discount from these fields before voucher deduction.

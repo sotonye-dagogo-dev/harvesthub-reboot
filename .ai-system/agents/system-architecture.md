@@ -30,23 +30,26 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 
 > **Section summary:** Each module listed here has a single defined responsibility. Agents should not modify a module's scope without updating this document.
 
-| Module                                | Responsibility                                                    | Key Files                                                | Dependencies                                            |
-| ------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| `app/`                                | UI routing and server/client components                           | `app/layout.tsx`, `app/(auth)/*`, `app/(operations)/*`   | `components/`, `lib/`                                   |
-| `app/api/`                            | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*` | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
-| `app/become-vendor`                   | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                             | `app/api/users/me/*`, `lib/constants`                   |
-| `lib/api/`                            | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                        | `next/server`                                           |
-| `lib/config/`                         | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`  | `lib/constants/`, feature components                    |
-| `lib/data/`                           | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                        | `lib/types.ts`, `lib/db/*`                              |
-| `lib/services/notifications`          | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                          | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
-| `lib/services/email`                  | Branded email delivery wrapper + sender-specific template helpers  | `lib/services/email.ts`                                  | `lib/emails/`, Resend, delivery logging                  |
-| `lib/emails/`                         | Shared branded email layout and sender-specific React templates    | `EmailLayout.tsx`, `NotificationEmail.tsx`, order/auth templates | `@react-email/components`                      |
-| `lib/utils/offlineQueue`              | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`   | Browser storage APIs                                    |
-| `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                   | `lib/utils/bannerPlacementValidation.ts`                 | `lib/constants/index.ts`, upload consumers              |
-| `lib/schemas/`                        | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                  | `lib/types.ts`                                          |
-| `lib/store/`                          | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                         | `lib/data/`                                             |
-| `components/`                         | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                            | `lib/utils/`, `lib/constants/`                          |
-| `prisma/`                             | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                               | Prisma client                                           |
+| Module                                | Responsibility                                                    | Key Files                                                        | Dependencies                                            |
+| ------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- |
+| `app/`                                | UI routing and server/client components                           | `app/layout.tsx`, `app/(auth)/*`, `app/(operations)/*`           | `components/`, `lib/`                                   |
+| `app/api/`                            | Backend endpoints for auth, products, orders, wallet, content     | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/*`         | `lib/data/`, `lib/schemas/`, `lib/api/`                 |
+| `app/become-vendor`                   | Buyer-to-vendor conversion UX entrypoint                          | `app/become-vendor/page.tsx`                                     | `app/api/users/me/*`, `lib/constants`                   |
+| `lib/api/`                            | Unified API success/error envelopes and handler wrappers          | `lib/api/http.ts`                                                | `next/server`                                           |
+| `lib/config/`                         | Canonical runtime/discovery/notification copy+template config     | `lib/config/index.ts`, `lib/config/productDiscovery.ts`          | `lib/constants/`, feature components                    |
+| `lib/config/cis.ts`                   | CIS integration settings + webhook signature verification helpers | `lib/config/env.ts`, `app/api/cis/*`                             | `node:crypto`, `zod`                                    |
+| `lib/data/cisIdentity.ts`             | CIS identity persistence + webhook event logging                  | `lib/data/cisIdentity.ts`                                        | `prisma`                                                |
+| `lib/data/`                           | Prisma-backed adapter facade and domain data access               | `database.ts`, `prismaAdapter.ts`                                | `lib/types.ts`, `lib/db/*`                              |
+| `lib/services/notifications`          | Preference-aware notification fan-out + template resolution       | `lib/services/notifications.ts`                                  | `lib/services/email.ts`, `lib/services/push.ts`, Prisma |
+| `lib/services/email`                  | Branded email delivery wrapper + sender-specific template helpers | `lib/services/email.ts`                                          | `lib/emails/`, Resend, delivery logging                 |
+| `lib/emails/`                         | Shared branded email layout and sender-specific React templates   | `EmailLayout.tsx`, `NotificationEmail.tsx`, order/auth templates | `@react-email/components`                               |
+| `lib/utils/offlineQueue`              | Client-side offline queue/replay for network-dependent operations | `lib/utils/offlineQueue.ts`, `lib/utils/localDraft.ts`           | Browser storage APIs                                    |
+| `lib/utils/bannerPlacementValidation` | Placement-aware banner ratio validation helpers                   | `lib/utils/bannerPlacementValidation.ts`                         | `lib/constants/index.ts`, upload consumers              |
+| `lib/schemas/`                        | Validation schemas (Zod)                                          | `auth.schemas.ts`, `product.schemas.ts`                          | `lib/types.ts`                                          |
+| `lib/store/`                          | Client-side state stores (Zustand)                                | `cartStore.ts`, `walletStore.ts`                                 | `lib/data/`                                             |
+| `components/`                         | Reusable UI and feature components                                | `ui/`, `features/`, `layout/`                                    | `lib/utils/`, `lib/constants/`                          |
+| `prisma/`                             | Data model and migration tooling                                  | `schema.prisma`, `seed.ts`                                       | Prisma client                                           |
+| `app/api/cis/*`                       | CIS status and webhook endpoints for signed identity sync         | `app/api/cis/status/route.ts`, `app/api/cis/webhook/route.ts`    | `lib/config/cis.ts`                                     |
 
 ---
 
@@ -111,6 +114,15 @@ PostgreSQL / External APIs (Cloudinary, Resend, Upstash)
 2. Client page posts token to `/api/auth/verify-email`.
 3. API marks `emailVerified=true` and clears verification token fields.
 4. Client shows success state and redirects user to `/login`.
+```
+
+### CIS Status + Webhook Flow
+
+```
+1. External operators or CIS health checks call `GET /api/cis/status` to confirm the platform slug and readiness state.
+2. CIS posts signed webhook payloads to `POST /api/cis/webhook` with a timestamped HMAC signature.
+3. The route verifies the signature with `CIS_WEBHOOK_SECRET`, rejects stale or malformed payloads, and persists events to `CisIdentity` + `CisWebhookEvent`.
+4. Identity persistence is additive and does not mutate local users unless explicitly approved later.
 ```
 
 ### Branded Email Delivery Flow
