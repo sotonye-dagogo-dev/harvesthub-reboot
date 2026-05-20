@@ -19,6 +19,16 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model CisIdentity
+ * 
+ */
+export type CisIdentity = $Result.DefaultSelection<Prisma.$CisIdentityPayload>
+/**
+ * Model CisWebhookEvent
+ * 
+ */
+export type CisWebhookEvent = $Result.DefaultSelection<Prisma.$CisWebhookEventPayload>
+/**
  * Model Buyer
  * 
  */
@@ -936,6 +946,26 @@ export class PrismaClient<
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.cisIdentity`: Exposes CRUD operations for the **CisIdentity** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CisIdentities
+    * const cisIdentities = await prisma.cisIdentity.findMany()
+    * ```
+    */
+  get cisIdentity(): Prisma.CisIdentityDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.cisWebhookEvent`: Exposes CRUD operations for the **CisWebhookEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CisWebhookEvents
+    * const cisWebhookEvents = await prisma.cisWebhookEvent.findMany()
+    * ```
+    */
+  get cisWebhookEvent(): Prisma.CisWebhookEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.buyer`: Exposes CRUD operations for the **Buyer** model.
     * Example usage:
     * ```ts
@@ -1689,6 +1719,8 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    CisIdentity: 'CisIdentity',
+    CisWebhookEvent: 'CisWebhookEvent',
     Buyer: 'Buyer',
     Vendor: 'Vendor',
     Product: 'Product',
@@ -1736,7 +1768,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "commerceLifecycleConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
+      modelProps: "user" | "cisIdentity" | "cisWebhookEvent" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "commerceLifecycleConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1811,6 +1843,154 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      CisIdentity: {
+        payload: Prisma.$CisIdentityPayload<ExtArgs>
+        fields: Prisma.CisIdentityFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CisIdentityFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CisIdentityFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          findFirst: {
+            args: Prisma.CisIdentityFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CisIdentityFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          findMany: {
+            args: Prisma.CisIdentityFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>[]
+          }
+          create: {
+            args: Prisma.CisIdentityCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          createMany: {
+            args: Prisma.CisIdentityCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CisIdentityCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>[]
+          }
+          delete: {
+            args: Prisma.CisIdentityDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          update: {
+            args: Prisma.CisIdentityUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          deleteMany: {
+            args: Prisma.CisIdentityDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CisIdentityUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CisIdentityUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>[]
+          }
+          upsert: {
+            args: Prisma.CisIdentityUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisIdentityPayload>
+          }
+          aggregate: {
+            args: Prisma.CisIdentityAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCisIdentity>
+          }
+          groupBy: {
+            args: Prisma.CisIdentityGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CisIdentityGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CisIdentityCountArgs<ExtArgs>
+            result: $Utils.Optional<CisIdentityCountAggregateOutputType> | number
+          }
+        }
+      }
+      CisWebhookEvent: {
+        payload: Prisma.$CisWebhookEventPayload<ExtArgs>
+        fields: Prisma.CisWebhookEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CisWebhookEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CisWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          findFirst: {
+            args: Prisma.CisWebhookEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CisWebhookEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          findMany: {
+            args: Prisma.CisWebhookEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>[]
+          }
+          create: {
+            args: Prisma.CisWebhookEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          createMany: {
+            args: Prisma.CisWebhookEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CisWebhookEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>[]
+          }
+          delete: {
+            args: Prisma.CisWebhookEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          update: {
+            args: Prisma.CisWebhookEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.CisWebhookEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CisWebhookEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CisWebhookEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.CisWebhookEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CisWebhookEventPayload>
+          }
+          aggregate: {
+            args: Prisma.CisWebhookEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCisWebhookEvent>
+          }
+          groupBy: {
+            args: Prisma.CisWebhookEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CisWebhookEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CisWebhookEventCountArgs<ExtArgs>
+            result: $Utils.Optional<CisWebhookEventCountAggregateOutputType> | number
           }
         }
       }
@@ -4291,6 +4471,8 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    cisIdentity?: CisIdentityOmit
+    cisWebhookEvent?: CisWebhookEventOmit
     buyer?: BuyerOmit
     vendor?: VendorOmit
     product?: ProductOmit
@@ -4413,6 +4595,7 @@ export namespace Prisma {
     reviewedAdApplications: number
     proofOfTransfers: number
     voucherRedemptions: number
+    cisIdentities: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4426,6 +4609,7 @@ export namespace Prisma {
     reviewedAdApplications?: boolean | UserCountOutputTypeCountReviewedAdApplicationsArgs
     proofOfTransfers?: boolean | UserCountOutputTypeCountProofOfTransfersArgs
     voucherRedemptions?: boolean | UserCountOutputTypeCountVoucherRedemptionsArgs
+    cisIdentities?: boolean | UserCountOutputTypeCountCisIdentitiesArgs
   }
 
   // Custom InputTypes
@@ -4507,6 +4691,44 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountVoucherRedemptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VoucherRedemptionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCisIdentitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CisIdentityWhereInput
+  }
+
+
+  /**
+   * Count Type CisIdentityCountOutputType
+   */
+
+  export type CisIdentityCountOutputType = {
+    events: number
+  }
+
+  export type CisIdentityCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    events?: boolean | CisIdentityCountOutputTypeCountEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CisIdentityCountOutputType without action
+   */
+  export type CisIdentityCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentityCountOutputType
+     */
+    select?: CisIdentityCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CisIdentityCountOutputType without action
+   */
+  export type CisIdentityCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CisWebhookEventWhereInput
   }
 
 
@@ -5217,6 +5439,7 @@ export namespace Prisma {
     reviewedAdApplications?: boolean | User$reviewedAdApplicationsArgs<ExtArgs>
     proofOfTransfers?: boolean | User$proofOfTransfersArgs<ExtArgs>
     voucherRedemptions?: boolean | User$voucherRedemptionsArgs<ExtArgs>
+    cisIdentities?: boolean | User$cisIdentitiesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -5299,6 +5522,7 @@ export namespace Prisma {
     reviewedAdApplications?: boolean | User$reviewedAdApplicationsArgs<ExtArgs>
     proofOfTransfers?: boolean | User$proofOfTransfersArgs<ExtArgs>
     voucherRedemptions?: boolean | User$voucherRedemptionsArgs<ExtArgs>
+    cisIdentities?: boolean | User$cisIdentitiesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5321,6 +5545,7 @@ export namespace Prisma {
       reviewedAdApplications: Prisma.$AdApplicationPayload<ExtArgs>[]
       proofOfTransfers: Prisma.$ProofOfTransferPayload<ExtArgs>[]
       voucherRedemptions: Prisma.$VoucherRedemptionPayload<ExtArgs>[]
+      cisIdentities: Prisma.$CisIdentityPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5749,6 +5974,7 @@ export namespace Prisma {
     reviewedAdApplications<T extends User$reviewedAdApplicationsArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewedAdApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     proofOfTransfers<T extends User$proofOfTransfersArgs<ExtArgs> = {}>(args?: Subset<T, User$proofOfTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProofOfTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     voucherRedemptions<T extends User$voucherRedemptionsArgs<ExtArgs> = {}>(args?: Subset<T, User$voucherRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VoucherRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    cisIdentities<T extends User$cisIdentitiesArgs<ExtArgs> = {}>(args?: Subset<T, User$cisIdentitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6505,6 +6731,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.cisIdentities
+   */
+  export type User$cisIdentitiesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    where?: CisIdentityWhereInput
+    orderBy?: CisIdentityOrderByWithRelationInput | CisIdentityOrderByWithRelationInput[]
+    cursor?: CisIdentityWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CisIdentityScalarFieldEnum | CisIdentityScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6520,6 +6770,2361 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CisIdentity
+   */
+
+  export type AggregateCisIdentity = {
+    _count: CisIdentityCountAggregateOutputType | null
+    _min: CisIdentityMinAggregateOutputType | null
+    _max: CisIdentityMaxAggregateOutputType | null
+  }
+
+  export type CisIdentityMinAggregateOutputType = {
+    id: string | null
+    cisSubjectId: string | null
+    sourcePlatform: string | null
+    externalUserId: string | null
+    linkedUserId: string | null
+    email: string | null
+    phone: string | null
+    displayName: string | null
+    role: string | null
+    status: string | null
+    lastEventType: string | null
+    lastEventAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CisIdentityMaxAggregateOutputType = {
+    id: string | null
+    cisSubjectId: string | null
+    sourcePlatform: string | null
+    externalUserId: string | null
+    linkedUserId: string | null
+    email: string | null
+    phone: string | null
+    displayName: string | null
+    role: string | null
+    status: string | null
+    lastEventType: string | null
+    lastEventAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CisIdentityCountAggregateOutputType = {
+    id: number
+    cisSubjectId: number
+    sourcePlatform: number
+    externalUserId: number
+    linkedUserId: number
+    email: number
+    phone: number
+    displayName: number
+    role: number
+    status: number
+    lastEventType: number
+    lastEventAt: number
+    payload: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CisIdentityMinAggregateInputType = {
+    id?: true
+    cisSubjectId?: true
+    sourcePlatform?: true
+    externalUserId?: true
+    linkedUserId?: true
+    email?: true
+    phone?: true
+    displayName?: true
+    role?: true
+    status?: true
+    lastEventType?: true
+    lastEventAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CisIdentityMaxAggregateInputType = {
+    id?: true
+    cisSubjectId?: true
+    sourcePlatform?: true
+    externalUserId?: true
+    linkedUserId?: true
+    email?: true
+    phone?: true
+    displayName?: true
+    role?: true
+    status?: true
+    lastEventType?: true
+    lastEventAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CisIdentityCountAggregateInputType = {
+    id?: true
+    cisSubjectId?: true
+    sourcePlatform?: true
+    externalUserId?: true
+    linkedUserId?: true
+    email?: true
+    phone?: true
+    displayName?: true
+    role?: true
+    status?: true
+    lastEventType?: true
+    lastEventAt?: true
+    payload?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CisIdentityAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CisIdentity to aggregate.
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisIdentities to fetch.
+     */
+    orderBy?: CisIdentityOrderByWithRelationInput | CisIdentityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CisIdentityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisIdentities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisIdentities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CisIdentities
+    **/
+    _count?: true | CisIdentityCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CisIdentityMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CisIdentityMaxAggregateInputType
+  }
+
+  export type GetCisIdentityAggregateType<T extends CisIdentityAggregateArgs> = {
+        [P in keyof T & keyof AggregateCisIdentity]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCisIdentity[P]>
+      : GetScalarType<T[P], AggregateCisIdentity[P]>
+  }
+
+
+
+
+  export type CisIdentityGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CisIdentityWhereInput
+    orderBy?: CisIdentityOrderByWithAggregationInput | CisIdentityOrderByWithAggregationInput[]
+    by: CisIdentityScalarFieldEnum[] | CisIdentityScalarFieldEnum
+    having?: CisIdentityScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CisIdentityCountAggregateInputType | true
+    _min?: CisIdentityMinAggregateInputType
+    _max?: CisIdentityMaxAggregateInputType
+  }
+
+  export type CisIdentityGroupByOutputType = {
+    id: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId: string | null
+    linkedUserId: string | null
+    email: string | null
+    phone: string | null
+    displayName: string | null
+    role: string | null
+    status: string | null
+    lastEventType: string
+    lastEventAt: Date
+    payload: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CisIdentityCountAggregateOutputType | null
+    _min: CisIdentityMinAggregateOutputType | null
+    _max: CisIdentityMaxAggregateOutputType | null
+  }
+
+  type GetCisIdentityGroupByPayload<T extends CisIdentityGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CisIdentityGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CisIdentityGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CisIdentityGroupByOutputType[P]>
+            : GetScalarType<T[P], CisIdentityGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CisIdentitySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cisSubjectId?: boolean
+    sourcePlatform?: boolean
+    externalUserId?: boolean
+    linkedUserId?: boolean
+    email?: boolean
+    phone?: boolean
+    displayName?: boolean
+    role?: boolean
+    status?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+    events?: boolean | CisIdentity$eventsArgs<ExtArgs>
+    _count?: boolean | CisIdentityCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cisIdentity"]>
+
+  export type CisIdentitySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cisSubjectId?: boolean
+    sourcePlatform?: boolean
+    externalUserId?: boolean
+    linkedUserId?: boolean
+    email?: boolean
+    phone?: boolean
+    displayName?: boolean
+    role?: boolean
+    status?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+  }, ExtArgs["result"]["cisIdentity"]>
+
+  export type CisIdentitySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    cisSubjectId?: boolean
+    sourcePlatform?: boolean
+    externalUserId?: boolean
+    linkedUserId?: boolean
+    email?: boolean
+    phone?: boolean
+    displayName?: boolean
+    role?: boolean
+    status?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+  }, ExtArgs["result"]["cisIdentity"]>
+
+  export type CisIdentitySelectScalar = {
+    id?: boolean
+    cisSubjectId?: boolean
+    sourcePlatform?: boolean
+    externalUserId?: boolean
+    linkedUserId?: boolean
+    email?: boolean
+    phone?: boolean
+    displayName?: boolean
+    role?: boolean
+    status?: boolean
+    lastEventType?: boolean
+    lastEventAt?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CisIdentityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "cisSubjectId" | "sourcePlatform" | "externalUserId" | "linkedUserId" | "email" | "phone" | "displayName" | "role" | "status" | "lastEventType" | "lastEventAt" | "payload" | "createdAt" | "updatedAt", ExtArgs["result"]["cisIdentity"]>
+  export type CisIdentityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+    events?: boolean | CisIdentity$eventsArgs<ExtArgs>
+    _count?: boolean | CisIdentityCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CisIdentityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+  }
+  export type CisIdentityIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkedUser?: boolean | CisIdentity$linkedUserArgs<ExtArgs>
+  }
+
+  export type $CisIdentityPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CisIdentity"
+    objects: {
+      linkedUser: Prisma.$UserPayload<ExtArgs> | null
+      events: Prisma.$CisWebhookEventPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      cisSubjectId: string
+      sourcePlatform: string
+      externalUserId: string | null
+      linkedUserId: string | null
+      email: string | null
+      phone: string | null
+      displayName: string | null
+      role: string | null
+      status: string | null
+      lastEventType: string
+      lastEventAt: Date
+      payload: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["cisIdentity"]>
+    composites: {}
+  }
+
+  type CisIdentityGetPayload<S extends boolean | null | undefined | CisIdentityDefaultArgs> = $Result.GetResult<Prisma.$CisIdentityPayload, S>
+
+  type CisIdentityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CisIdentityFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CisIdentityCountAggregateInputType | true
+    }
+
+  export interface CisIdentityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CisIdentity'], meta: { name: 'CisIdentity' } }
+    /**
+     * Find zero or one CisIdentity that matches the filter.
+     * @param {CisIdentityFindUniqueArgs} args - Arguments to find a CisIdentity
+     * @example
+     * // Get one CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CisIdentityFindUniqueArgs>(args: SelectSubset<T, CisIdentityFindUniqueArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CisIdentity that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CisIdentityFindUniqueOrThrowArgs} args - Arguments to find a CisIdentity
+     * @example
+     * // Get one CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CisIdentityFindUniqueOrThrowArgs>(args: SelectSubset<T, CisIdentityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CisIdentity that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityFindFirstArgs} args - Arguments to find a CisIdentity
+     * @example
+     * // Get one CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CisIdentityFindFirstArgs>(args?: SelectSubset<T, CisIdentityFindFirstArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CisIdentity that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityFindFirstOrThrowArgs} args - Arguments to find a CisIdentity
+     * @example
+     * // Get one CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CisIdentityFindFirstOrThrowArgs>(args?: SelectSubset<T, CisIdentityFindFirstOrThrowArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CisIdentities that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CisIdentities
+     * const cisIdentities = await prisma.cisIdentity.findMany()
+     * 
+     * // Get first 10 CisIdentities
+     * const cisIdentities = await prisma.cisIdentity.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cisIdentityWithIdOnly = await prisma.cisIdentity.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CisIdentityFindManyArgs>(args?: SelectSubset<T, CisIdentityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CisIdentity.
+     * @param {CisIdentityCreateArgs} args - Arguments to create a CisIdentity.
+     * @example
+     * // Create one CisIdentity
+     * const CisIdentity = await prisma.cisIdentity.create({
+     *   data: {
+     *     // ... data to create a CisIdentity
+     *   }
+     * })
+     * 
+     */
+    create<T extends CisIdentityCreateArgs>(args: SelectSubset<T, CisIdentityCreateArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CisIdentities.
+     * @param {CisIdentityCreateManyArgs} args - Arguments to create many CisIdentities.
+     * @example
+     * // Create many CisIdentities
+     * const cisIdentity = await prisma.cisIdentity.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CisIdentityCreateManyArgs>(args?: SelectSubset<T, CisIdentityCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CisIdentities and returns the data saved in the database.
+     * @param {CisIdentityCreateManyAndReturnArgs} args - Arguments to create many CisIdentities.
+     * @example
+     * // Create many CisIdentities
+     * const cisIdentity = await prisma.cisIdentity.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CisIdentities and only return the `id`
+     * const cisIdentityWithIdOnly = await prisma.cisIdentity.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CisIdentityCreateManyAndReturnArgs>(args?: SelectSubset<T, CisIdentityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CisIdentity.
+     * @param {CisIdentityDeleteArgs} args - Arguments to delete one CisIdentity.
+     * @example
+     * // Delete one CisIdentity
+     * const CisIdentity = await prisma.cisIdentity.delete({
+     *   where: {
+     *     // ... filter to delete one CisIdentity
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CisIdentityDeleteArgs>(args: SelectSubset<T, CisIdentityDeleteArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CisIdentity.
+     * @param {CisIdentityUpdateArgs} args - Arguments to update one CisIdentity.
+     * @example
+     * // Update one CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CisIdentityUpdateArgs>(args: SelectSubset<T, CisIdentityUpdateArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CisIdentities.
+     * @param {CisIdentityDeleteManyArgs} args - Arguments to filter CisIdentities to delete.
+     * @example
+     * // Delete a few CisIdentities
+     * const { count } = await prisma.cisIdentity.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CisIdentityDeleteManyArgs>(args?: SelectSubset<T, CisIdentityDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CisIdentities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CisIdentities
+     * const cisIdentity = await prisma.cisIdentity.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CisIdentityUpdateManyArgs>(args: SelectSubset<T, CisIdentityUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CisIdentities and returns the data updated in the database.
+     * @param {CisIdentityUpdateManyAndReturnArgs} args - Arguments to update many CisIdentities.
+     * @example
+     * // Update many CisIdentities
+     * const cisIdentity = await prisma.cisIdentity.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CisIdentities and only return the `id`
+     * const cisIdentityWithIdOnly = await prisma.cisIdentity.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CisIdentityUpdateManyAndReturnArgs>(args: SelectSubset<T, CisIdentityUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CisIdentity.
+     * @param {CisIdentityUpsertArgs} args - Arguments to update or create a CisIdentity.
+     * @example
+     * // Update or create a CisIdentity
+     * const cisIdentity = await prisma.cisIdentity.upsert({
+     *   create: {
+     *     // ... data to create a CisIdentity
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CisIdentity we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CisIdentityUpsertArgs>(args: SelectSubset<T, CisIdentityUpsertArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CisIdentities.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityCountArgs} args - Arguments to filter CisIdentities to count.
+     * @example
+     * // Count the number of CisIdentities
+     * const count = await prisma.cisIdentity.count({
+     *   where: {
+     *     // ... the filter for the CisIdentities we want to count
+     *   }
+     * })
+    **/
+    count<T extends CisIdentityCountArgs>(
+      args?: Subset<T, CisIdentityCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CisIdentityCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CisIdentity.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CisIdentityAggregateArgs>(args: Subset<T, CisIdentityAggregateArgs>): Prisma.PrismaPromise<GetCisIdentityAggregateType<T>>
+
+    /**
+     * Group by CisIdentity.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisIdentityGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CisIdentityGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CisIdentityGroupByArgs['orderBy'] }
+        : { orderBy?: CisIdentityGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CisIdentityGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCisIdentityGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CisIdentity model
+   */
+  readonly fields: CisIdentityFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CisIdentity.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CisIdentityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    linkedUser<T extends CisIdentity$linkedUserArgs<ExtArgs> = {}>(args?: Subset<T, CisIdentity$linkedUserArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    events<T extends CisIdentity$eventsArgs<ExtArgs> = {}>(args?: Subset<T, CisIdentity$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CisIdentity model
+   */
+  interface CisIdentityFieldRefs {
+    readonly id: FieldRef<"CisIdentity", 'String'>
+    readonly cisSubjectId: FieldRef<"CisIdentity", 'String'>
+    readonly sourcePlatform: FieldRef<"CisIdentity", 'String'>
+    readonly externalUserId: FieldRef<"CisIdentity", 'String'>
+    readonly linkedUserId: FieldRef<"CisIdentity", 'String'>
+    readonly email: FieldRef<"CisIdentity", 'String'>
+    readonly phone: FieldRef<"CisIdentity", 'String'>
+    readonly displayName: FieldRef<"CisIdentity", 'String'>
+    readonly role: FieldRef<"CisIdentity", 'String'>
+    readonly status: FieldRef<"CisIdentity", 'String'>
+    readonly lastEventType: FieldRef<"CisIdentity", 'String'>
+    readonly lastEventAt: FieldRef<"CisIdentity", 'DateTime'>
+    readonly payload: FieldRef<"CisIdentity", 'Json'>
+    readonly createdAt: FieldRef<"CisIdentity", 'DateTime'>
+    readonly updatedAt: FieldRef<"CisIdentity", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CisIdentity findUnique
+   */
+  export type CisIdentityFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter, which CisIdentity to fetch.
+     */
+    where: CisIdentityWhereUniqueInput
+  }
+
+  /**
+   * CisIdentity findUniqueOrThrow
+   */
+  export type CisIdentityFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter, which CisIdentity to fetch.
+     */
+    where: CisIdentityWhereUniqueInput
+  }
+
+  /**
+   * CisIdentity findFirst
+   */
+  export type CisIdentityFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter, which CisIdentity to fetch.
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisIdentities to fetch.
+     */
+    orderBy?: CisIdentityOrderByWithRelationInput | CisIdentityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CisIdentities.
+     */
+    cursor?: CisIdentityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisIdentities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisIdentities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisIdentities.
+     */
+    distinct?: CisIdentityScalarFieldEnum | CisIdentityScalarFieldEnum[]
+  }
+
+  /**
+   * CisIdentity findFirstOrThrow
+   */
+  export type CisIdentityFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter, which CisIdentity to fetch.
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisIdentities to fetch.
+     */
+    orderBy?: CisIdentityOrderByWithRelationInput | CisIdentityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CisIdentities.
+     */
+    cursor?: CisIdentityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisIdentities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisIdentities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisIdentities.
+     */
+    distinct?: CisIdentityScalarFieldEnum | CisIdentityScalarFieldEnum[]
+  }
+
+  /**
+   * CisIdentity findMany
+   */
+  export type CisIdentityFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter, which CisIdentities to fetch.
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisIdentities to fetch.
+     */
+    orderBy?: CisIdentityOrderByWithRelationInput | CisIdentityOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CisIdentities.
+     */
+    cursor?: CisIdentityWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisIdentities from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisIdentities.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisIdentities.
+     */
+    distinct?: CisIdentityScalarFieldEnum | CisIdentityScalarFieldEnum[]
+  }
+
+  /**
+   * CisIdentity create
+   */
+  export type CisIdentityCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CisIdentity.
+     */
+    data: XOR<CisIdentityCreateInput, CisIdentityUncheckedCreateInput>
+  }
+
+  /**
+   * CisIdentity createMany
+   */
+  export type CisIdentityCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CisIdentities.
+     */
+    data: CisIdentityCreateManyInput | CisIdentityCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CisIdentity createManyAndReturn
+   */
+  export type CisIdentityCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * The data used to create many CisIdentities.
+     */
+    data: CisIdentityCreateManyInput | CisIdentityCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CisIdentity update
+   */
+  export type CisIdentityUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CisIdentity.
+     */
+    data: XOR<CisIdentityUpdateInput, CisIdentityUncheckedUpdateInput>
+    /**
+     * Choose, which CisIdentity to update.
+     */
+    where: CisIdentityWhereUniqueInput
+  }
+
+  /**
+   * CisIdentity updateMany
+   */
+  export type CisIdentityUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CisIdentities.
+     */
+    data: XOR<CisIdentityUpdateManyMutationInput, CisIdentityUncheckedUpdateManyInput>
+    /**
+     * Filter which CisIdentities to update
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * Limit how many CisIdentities to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CisIdentity updateManyAndReturn
+   */
+  export type CisIdentityUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * The data used to update CisIdentities.
+     */
+    data: XOR<CisIdentityUpdateManyMutationInput, CisIdentityUncheckedUpdateManyInput>
+    /**
+     * Filter which CisIdentities to update
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * Limit how many CisIdentities to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CisIdentity upsert
+   */
+  export type CisIdentityUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CisIdentity to update in case it exists.
+     */
+    where: CisIdentityWhereUniqueInput
+    /**
+     * In case the CisIdentity found by the `where` argument doesn't exist, create a new CisIdentity with this data.
+     */
+    create: XOR<CisIdentityCreateInput, CisIdentityUncheckedCreateInput>
+    /**
+     * In case the CisIdentity was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CisIdentityUpdateInput, CisIdentityUncheckedUpdateInput>
+  }
+
+  /**
+   * CisIdentity delete
+   */
+  export type CisIdentityDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    /**
+     * Filter which CisIdentity to delete.
+     */
+    where: CisIdentityWhereUniqueInput
+  }
+
+  /**
+   * CisIdentity deleteMany
+   */
+  export type CisIdentityDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CisIdentities to delete
+     */
+    where?: CisIdentityWhereInput
+    /**
+     * Limit how many CisIdentities to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CisIdentity.linkedUser
+   */
+  export type CisIdentity$linkedUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * CisIdentity.events
+   */
+  export type CisIdentity$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    where?: CisWebhookEventWhereInput
+    orderBy?: CisWebhookEventOrderByWithRelationInput | CisWebhookEventOrderByWithRelationInput[]
+    cursor?: CisWebhookEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CisWebhookEventScalarFieldEnum | CisWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CisIdentity without action
+   */
+  export type CisIdentityDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CisWebhookEvent
+   */
+
+  export type AggregateCisWebhookEvent = {
+    _count: CisWebhookEventCountAggregateOutputType | null
+    _min: CisWebhookEventMinAggregateOutputType | null
+    _max: CisWebhookEventMaxAggregateOutputType | null
+  }
+
+  export type CisWebhookEventMinAggregateOutputType = {
+    id: string | null
+    identityId: string | null
+    eventType: string | null
+    sourcePlatform: string | null
+    subjectId: string | null
+    externalUserId: string | null
+    receivedAt: Date | null
+  }
+
+  export type CisWebhookEventMaxAggregateOutputType = {
+    id: string | null
+    identityId: string | null
+    eventType: string | null
+    sourcePlatform: string | null
+    subjectId: string | null
+    externalUserId: string | null
+    receivedAt: Date | null
+  }
+
+  export type CisWebhookEventCountAggregateOutputType = {
+    id: number
+    identityId: number
+    eventType: number
+    sourcePlatform: number
+    subjectId: number
+    externalUserId: number
+    payload: number
+    receivedAt: number
+    _all: number
+  }
+
+
+  export type CisWebhookEventMinAggregateInputType = {
+    id?: true
+    identityId?: true
+    eventType?: true
+    sourcePlatform?: true
+    subjectId?: true
+    externalUserId?: true
+    receivedAt?: true
+  }
+
+  export type CisWebhookEventMaxAggregateInputType = {
+    id?: true
+    identityId?: true
+    eventType?: true
+    sourcePlatform?: true
+    subjectId?: true
+    externalUserId?: true
+    receivedAt?: true
+  }
+
+  export type CisWebhookEventCountAggregateInputType = {
+    id?: true
+    identityId?: true
+    eventType?: true
+    sourcePlatform?: true
+    subjectId?: true
+    externalUserId?: true
+    payload?: true
+    receivedAt?: true
+    _all?: true
+  }
+
+  export type CisWebhookEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CisWebhookEvent to aggregate.
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisWebhookEvents to fetch.
+     */
+    orderBy?: CisWebhookEventOrderByWithRelationInput | CisWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CisWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CisWebhookEvents
+    **/
+    _count?: true | CisWebhookEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CisWebhookEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CisWebhookEventMaxAggregateInputType
+  }
+
+  export type GetCisWebhookEventAggregateType<T extends CisWebhookEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateCisWebhookEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCisWebhookEvent[P]>
+      : GetScalarType<T[P], AggregateCisWebhookEvent[P]>
+  }
+
+
+
+
+  export type CisWebhookEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CisWebhookEventWhereInput
+    orderBy?: CisWebhookEventOrderByWithAggregationInput | CisWebhookEventOrderByWithAggregationInput[]
+    by: CisWebhookEventScalarFieldEnum[] | CisWebhookEventScalarFieldEnum
+    having?: CisWebhookEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CisWebhookEventCountAggregateInputType | true
+    _min?: CisWebhookEventMinAggregateInputType
+    _max?: CisWebhookEventMaxAggregateInputType
+  }
+
+  export type CisWebhookEventGroupByOutputType = {
+    id: string
+    identityId: string | null
+    eventType: string
+    sourcePlatform: string
+    subjectId: string | null
+    externalUserId: string | null
+    payload: JsonValue | null
+    receivedAt: Date
+    _count: CisWebhookEventCountAggregateOutputType | null
+    _min: CisWebhookEventMinAggregateOutputType | null
+    _max: CisWebhookEventMaxAggregateOutputType | null
+  }
+
+  type GetCisWebhookEventGroupByPayload<T extends CisWebhookEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CisWebhookEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CisWebhookEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CisWebhookEventGroupByOutputType[P]>
+            : GetScalarType<T[P], CisWebhookEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CisWebhookEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    identityId?: boolean
+    eventType?: boolean
+    sourcePlatform?: boolean
+    subjectId?: boolean
+    externalUserId?: boolean
+    payload?: boolean
+    receivedAt?: boolean
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }, ExtArgs["result"]["cisWebhookEvent"]>
+
+  export type CisWebhookEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    identityId?: boolean
+    eventType?: boolean
+    sourcePlatform?: boolean
+    subjectId?: boolean
+    externalUserId?: boolean
+    payload?: boolean
+    receivedAt?: boolean
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }, ExtArgs["result"]["cisWebhookEvent"]>
+
+  export type CisWebhookEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    identityId?: boolean
+    eventType?: boolean
+    sourcePlatform?: boolean
+    subjectId?: boolean
+    externalUserId?: boolean
+    payload?: boolean
+    receivedAt?: boolean
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }, ExtArgs["result"]["cisWebhookEvent"]>
+
+  export type CisWebhookEventSelectScalar = {
+    id?: boolean
+    identityId?: boolean
+    eventType?: boolean
+    sourcePlatform?: boolean
+    subjectId?: boolean
+    externalUserId?: boolean
+    payload?: boolean
+    receivedAt?: boolean
+  }
+
+  export type CisWebhookEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "identityId" | "eventType" | "sourcePlatform" | "subjectId" | "externalUserId" | "payload" | "receivedAt", ExtArgs["result"]["cisWebhookEvent"]>
+  export type CisWebhookEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }
+  export type CisWebhookEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }
+  export type CisWebhookEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    identity?: boolean | CisWebhookEvent$identityArgs<ExtArgs>
+  }
+
+  export type $CisWebhookEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CisWebhookEvent"
+    objects: {
+      identity: Prisma.$CisIdentityPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      identityId: string | null
+      eventType: string
+      sourcePlatform: string
+      subjectId: string | null
+      externalUserId: string | null
+      payload: Prisma.JsonValue | null
+      receivedAt: Date
+    }, ExtArgs["result"]["cisWebhookEvent"]>
+    composites: {}
+  }
+
+  type CisWebhookEventGetPayload<S extends boolean | null | undefined | CisWebhookEventDefaultArgs> = $Result.GetResult<Prisma.$CisWebhookEventPayload, S>
+
+  type CisWebhookEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CisWebhookEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CisWebhookEventCountAggregateInputType | true
+    }
+
+  export interface CisWebhookEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CisWebhookEvent'], meta: { name: 'CisWebhookEvent' } }
+    /**
+     * Find zero or one CisWebhookEvent that matches the filter.
+     * @param {CisWebhookEventFindUniqueArgs} args - Arguments to find a CisWebhookEvent
+     * @example
+     * // Get one CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CisWebhookEventFindUniqueArgs>(args: SelectSubset<T, CisWebhookEventFindUniqueArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CisWebhookEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CisWebhookEventFindUniqueOrThrowArgs} args - Arguments to find a CisWebhookEvent
+     * @example
+     * // Get one CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CisWebhookEventFindUniqueOrThrowArgs>(args: SelectSubset<T, CisWebhookEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CisWebhookEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventFindFirstArgs} args - Arguments to find a CisWebhookEvent
+     * @example
+     * // Get one CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CisWebhookEventFindFirstArgs>(args?: SelectSubset<T, CisWebhookEventFindFirstArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CisWebhookEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventFindFirstOrThrowArgs} args - Arguments to find a CisWebhookEvent
+     * @example
+     * // Get one CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CisWebhookEventFindFirstOrThrowArgs>(args?: SelectSubset<T, CisWebhookEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CisWebhookEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CisWebhookEvents
+     * const cisWebhookEvents = await prisma.cisWebhookEvent.findMany()
+     * 
+     * // Get first 10 CisWebhookEvents
+     * const cisWebhookEvents = await prisma.cisWebhookEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cisWebhookEventWithIdOnly = await prisma.cisWebhookEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CisWebhookEventFindManyArgs>(args?: SelectSubset<T, CisWebhookEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CisWebhookEvent.
+     * @param {CisWebhookEventCreateArgs} args - Arguments to create a CisWebhookEvent.
+     * @example
+     * // Create one CisWebhookEvent
+     * const CisWebhookEvent = await prisma.cisWebhookEvent.create({
+     *   data: {
+     *     // ... data to create a CisWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends CisWebhookEventCreateArgs>(args: SelectSubset<T, CisWebhookEventCreateArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CisWebhookEvents.
+     * @param {CisWebhookEventCreateManyArgs} args - Arguments to create many CisWebhookEvents.
+     * @example
+     * // Create many CisWebhookEvents
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CisWebhookEventCreateManyArgs>(args?: SelectSubset<T, CisWebhookEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CisWebhookEvents and returns the data saved in the database.
+     * @param {CisWebhookEventCreateManyAndReturnArgs} args - Arguments to create many CisWebhookEvents.
+     * @example
+     * // Create many CisWebhookEvents
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CisWebhookEvents and only return the `id`
+     * const cisWebhookEventWithIdOnly = await prisma.cisWebhookEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CisWebhookEventCreateManyAndReturnArgs>(args?: SelectSubset<T, CisWebhookEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CisWebhookEvent.
+     * @param {CisWebhookEventDeleteArgs} args - Arguments to delete one CisWebhookEvent.
+     * @example
+     * // Delete one CisWebhookEvent
+     * const CisWebhookEvent = await prisma.cisWebhookEvent.delete({
+     *   where: {
+     *     // ... filter to delete one CisWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CisWebhookEventDeleteArgs>(args: SelectSubset<T, CisWebhookEventDeleteArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CisWebhookEvent.
+     * @param {CisWebhookEventUpdateArgs} args - Arguments to update one CisWebhookEvent.
+     * @example
+     * // Update one CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CisWebhookEventUpdateArgs>(args: SelectSubset<T, CisWebhookEventUpdateArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CisWebhookEvents.
+     * @param {CisWebhookEventDeleteManyArgs} args - Arguments to filter CisWebhookEvents to delete.
+     * @example
+     * // Delete a few CisWebhookEvents
+     * const { count } = await prisma.cisWebhookEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CisWebhookEventDeleteManyArgs>(args?: SelectSubset<T, CisWebhookEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CisWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CisWebhookEvents
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CisWebhookEventUpdateManyArgs>(args: SelectSubset<T, CisWebhookEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CisWebhookEvents and returns the data updated in the database.
+     * @param {CisWebhookEventUpdateManyAndReturnArgs} args - Arguments to update many CisWebhookEvents.
+     * @example
+     * // Update many CisWebhookEvents
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CisWebhookEvents and only return the `id`
+     * const cisWebhookEventWithIdOnly = await prisma.cisWebhookEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CisWebhookEventUpdateManyAndReturnArgs>(args: SelectSubset<T, CisWebhookEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CisWebhookEvent.
+     * @param {CisWebhookEventUpsertArgs} args - Arguments to update or create a CisWebhookEvent.
+     * @example
+     * // Update or create a CisWebhookEvent
+     * const cisWebhookEvent = await prisma.cisWebhookEvent.upsert({
+     *   create: {
+     *     // ... data to create a CisWebhookEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CisWebhookEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CisWebhookEventUpsertArgs>(args: SelectSubset<T, CisWebhookEventUpsertArgs<ExtArgs>>): Prisma__CisWebhookEventClient<$Result.GetResult<Prisma.$CisWebhookEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CisWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventCountArgs} args - Arguments to filter CisWebhookEvents to count.
+     * @example
+     * // Count the number of CisWebhookEvents
+     * const count = await prisma.cisWebhookEvent.count({
+     *   where: {
+     *     // ... the filter for the CisWebhookEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends CisWebhookEventCountArgs>(
+      args?: Subset<T, CisWebhookEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CisWebhookEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CisWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CisWebhookEventAggregateArgs>(args: Subset<T, CisWebhookEventAggregateArgs>): Prisma.PrismaPromise<GetCisWebhookEventAggregateType<T>>
+
+    /**
+     * Group by CisWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CisWebhookEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CisWebhookEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CisWebhookEventGroupByArgs['orderBy'] }
+        : { orderBy?: CisWebhookEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CisWebhookEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCisWebhookEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CisWebhookEvent model
+   */
+  readonly fields: CisWebhookEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CisWebhookEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CisWebhookEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    identity<T extends CisWebhookEvent$identityArgs<ExtArgs> = {}>(args?: Subset<T, CisWebhookEvent$identityArgs<ExtArgs>>): Prisma__CisIdentityClient<$Result.GetResult<Prisma.$CisIdentityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CisWebhookEvent model
+   */
+  interface CisWebhookEventFieldRefs {
+    readonly id: FieldRef<"CisWebhookEvent", 'String'>
+    readonly identityId: FieldRef<"CisWebhookEvent", 'String'>
+    readonly eventType: FieldRef<"CisWebhookEvent", 'String'>
+    readonly sourcePlatform: FieldRef<"CisWebhookEvent", 'String'>
+    readonly subjectId: FieldRef<"CisWebhookEvent", 'String'>
+    readonly externalUserId: FieldRef<"CisWebhookEvent", 'String'>
+    readonly payload: FieldRef<"CisWebhookEvent", 'Json'>
+    readonly receivedAt: FieldRef<"CisWebhookEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CisWebhookEvent findUnique
+   */
+  export type CisWebhookEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CisWebhookEvent to fetch.
+     */
+    where: CisWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CisWebhookEvent findUniqueOrThrow
+   */
+  export type CisWebhookEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CisWebhookEvent to fetch.
+     */
+    where: CisWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CisWebhookEvent findFirst
+   */
+  export type CisWebhookEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CisWebhookEvent to fetch.
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisWebhookEvents to fetch.
+     */
+    orderBy?: CisWebhookEventOrderByWithRelationInput | CisWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CisWebhookEvents.
+     */
+    cursor?: CisWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisWebhookEvents.
+     */
+    distinct?: CisWebhookEventScalarFieldEnum | CisWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CisWebhookEvent findFirstOrThrow
+   */
+  export type CisWebhookEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CisWebhookEvent to fetch.
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisWebhookEvents to fetch.
+     */
+    orderBy?: CisWebhookEventOrderByWithRelationInput | CisWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CisWebhookEvents.
+     */
+    cursor?: CisWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisWebhookEvents.
+     */
+    distinct?: CisWebhookEventScalarFieldEnum | CisWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CisWebhookEvent findMany
+   */
+  export type CisWebhookEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter, which CisWebhookEvents to fetch.
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CisWebhookEvents to fetch.
+     */
+    orderBy?: CisWebhookEventOrderByWithRelationInput | CisWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CisWebhookEvents.
+     */
+    cursor?: CisWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CisWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CisWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CisWebhookEvents.
+     */
+    distinct?: CisWebhookEventScalarFieldEnum | CisWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * CisWebhookEvent create
+   */
+  export type CisWebhookEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CisWebhookEvent.
+     */
+    data: XOR<CisWebhookEventCreateInput, CisWebhookEventUncheckedCreateInput>
+  }
+
+  /**
+   * CisWebhookEvent createMany
+   */
+  export type CisWebhookEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CisWebhookEvents.
+     */
+    data: CisWebhookEventCreateManyInput | CisWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CisWebhookEvent createManyAndReturn
+   */
+  export type CisWebhookEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many CisWebhookEvents.
+     */
+    data: CisWebhookEventCreateManyInput | CisWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CisWebhookEvent update
+   */
+  export type CisWebhookEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CisWebhookEvent.
+     */
+    data: XOR<CisWebhookEventUpdateInput, CisWebhookEventUncheckedUpdateInput>
+    /**
+     * Choose, which CisWebhookEvent to update.
+     */
+    where: CisWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CisWebhookEvent updateMany
+   */
+  export type CisWebhookEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CisWebhookEvents.
+     */
+    data: XOR<CisWebhookEventUpdateManyMutationInput, CisWebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CisWebhookEvents to update
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * Limit how many CisWebhookEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CisWebhookEvent updateManyAndReturn
+   */
+  export type CisWebhookEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to update CisWebhookEvents.
+     */
+    data: XOR<CisWebhookEventUpdateManyMutationInput, CisWebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which CisWebhookEvents to update
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * Limit how many CisWebhookEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CisWebhookEvent upsert
+   */
+  export type CisWebhookEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CisWebhookEvent to update in case it exists.
+     */
+    where: CisWebhookEventWhereUniqueInput
+    /**
+     * In case the CisWebhookEvent found by the `where` argument doesn't exist, create a new CisWebhookEvent with this data.
+     */
+    create: XOR<CisWebhookEventCreateInput, CisWebhookEventUncheckedCreateInput>
+    /**
+     * In case the CisWebhookEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CisWebhookEventUpdateInput, CisWebhookEventUncheckedUpdateInput>
+  }
+
+  /**
+   * CisWebhookEvent delete
+   */
+  export type CisWebhookEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
+    /**
+     * Filter which CisWebhookEvent to delete.
+     */
+    where: CisWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * CisWebhookEvent deleteMany
+   */
+  export type CisWebhookEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CisWebhookEvents to delete
+     */
+    where?: CisWebhookEventWhereInput
+    /**
+     * Limit how many CisWebhookEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CisWebhookEvent.identity
+   */
+  export type CisWebhookEvent$identityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisIdentity
+     */
+    select?: CisIdentitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisIdentity
+     */
+    omit?: CisIdentityOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisIdentityInclude<ExtArgs> | null
+    where?: CisIdentityWhereInput
+  }
+
+  /**
+   * CisWebhookEvent without action
+   */
+  export type CisWebhookEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CisWebhookEvent
+     */
+    select?: CisWebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CisWebhookEvent
+     */
+    omit?: CisWebhookEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CisWebhookEventInclude<ExtArgs> | null
   }
 
 
@@ -44633,6 +47238,41 @@ export namespace Prisma {
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const CisIdentityScalarFieldEnum: {
+    id: 'id',
+    cisSubjectId: 'cisSubjectId',
+    sourcePlatform: 'sourcePlatform',
+    externalUserId: 'externalUserId',
+    linkedUserId: 'linkedUserId',
+    email: 'email',
+    phone: 'phone',
+    displayName: 'displayName',
+    role: 'role',
+    status: 'status',
+    lastEventType: 'lastEventType',
+    lastEventAt: 'lastEventAt',
+    payload: 'payload',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CisIdentityScalarFieldEnum = (typeof CisIdentityScalarFieldEnum)[keyof typeof CisIdentityScalarFieldEnum]
+
+
+  export const CisWebhookEventScalarFieldEnum: {
+    id: 'id',
+    identityId: 'identityId',
+    eventType: 'eventType',
+    sourcePlatform: 'sourcePlatform',
+    subjectId: 'subjectId',
+    externalUserId: 'externalUserId',
+    payload: 'payload',
+    receivedAt: 'receivedAt'
+  };
+
+  export type CisWebhookEventScalarFieldEnum = (typeof CisWebhookEventScalarFieldEnum)[keyof typeof CisWebhookEventScalarFieldEnum]
+
+
   export const BuyerScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -45337,20 +47977,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Gender'
-   */
-  export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
-    
-
-
-  /**
-   * Reference to a field of type 'Gender[]'
-   */
-  export type ListEnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -45361,6 +47987,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'Gender'
+   */
+  export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
+    
+
+
+  /**
+   * Reference to a field of type 'Gender[]'
+   */
+  export type ListEnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender[]'>
     
 
 
@@ -45823,6 +48463,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationListRelationFilter
     proofOfTransfers?: ProofOfTransferListRelationFilter
     voucherRedemptions?: VoucherRedemptionListRelationFilter
+    cisIdentities?: CisIdentityListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -45858,6 +48499,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationOrderByRelationAggregateInput
     proofOfTransfers?: ProofOfTransferOrderByRelationAggregateInput
     voucherRedemptions?: VoucherRedemptionOrderByRelationAggregateInput
+    cisIdentities?: CisIdentityOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -45896,6 +48538,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationListRelationFilter
     proofOfTransfers?: ProofOfTransferListRelationFilter
     voucherRedemptions?: VoucherRedemptionListRelationFilter
+    cisIdentities?: CisIdentityListRelationFilter
   }, "id" | "email" | "resetToken" | "emailVerificationToken">
 
   export type UserOrderByWithAggregationInput = {
@@ -45946,6 +48589,185 @@ export namespace Prisma {
     registrationSequence?: IntNullableWithAggregatesFilter<"User"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type CisIdentityWhereInput = {
+    AND?: CisIdentityWhereInput | CisIdentityWhereInput[]
+    OR?: CisIdentityWhereInput[]
+    NOT?: CisIdentityWhereInput | CisIdentityWhereInput[]
+    id?: StringFilter<"CisIdentity"> | string
+    cisSubjectId?: StringFilter<"CisIdentity"> | string
+    sourcePlatform?: StringFilter<"CisIdentity"> | string
+    externalUserId?: StringNullableFilter<"CisIdentity"> | string | null
+    linkedUserId?: StringNullableFilter<"CisIdentity"> | string | null
+    email?: StringNullableFilter<"CisIdentity"> | string | null
+    phone?: StringNullableFilter<"CisIdentity"> | string | null
+    displayName?: StringNullableFilter<"CisIdentity"> | string | null
+    role?: StringNullableFilter<"CisIdentity"> | string | null
+    status?: StringNullableFilter<"CisIdentity"> | string | null
+    lastEventType?: StringFilter<"CisIdentity"> | string
+    lastEventAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    payload?: JsonNullableFilter<"CisIdentity">
+    createdAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    updatedAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    linkedUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    events?: CisWebhookEventListRelationFilter
+  }
+
+  export type CisIdentityOrderByWithRelationInput = {
+    id?: SortOrder
+    cisSubjectId?: SortOrder
+    sourcePlatform?: SortOrder
+    externalUserId?: SortOrderInput | SortOrder
+    linkedUserId?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    displayName?: SortOrderInput | SortOrder
+    role?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    payload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    linkedUser?: UserOrderByWithRelationInput
+    events?: CisWebhookEventOrderByRelationAggregateInput
+  }
+
+  export type CisIdentityWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    externalUserId?: string
+    cisSubjectId_sourcePlatform?: CisIdentityCisSubjectIdSourcePlatformCompoundUniqueInput
+    AND?: CisIdentityWhereInput | CisIdentityWhereInput[]
+    OR?: CisIdentityWhereInput[]
+    NOT?: CisIdentityWhereInput | CisIdentityWhereInput[]
+    cisSubjectId?: StringFilter<"CisIdentity"> | string
+    sourcePlatform?: StringFilter<"CisIdentity"> | string
+    linkedUserId?: StringNullableFilter<"CisIdentity"> | string | null
+    email?: StringNullableFilter<"CisIdentity"> | string | null
+    phone?: StringNullableFilter<"CisIdentity"> | string | null
+    displayName?: StringNullableFilter<"CisIdentity"> | string | null
+    role?: StringNullableFilter<"CisIdentity"> | string | null
+    status?: StringNullableFilter<"CisIdentity"> | string | null
+    lastEventType?: StringFilter<"CisIdentity"> | string
+    lastEventAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    payload?: JsonNullableFilter<"CisIdentity">
+    createdAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    updatedAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    linkedUser?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    events?: CisWebhookEventListRelationFilter
+  }, "id" | "cisSubjectId_sourcePlatform" | "externalUserId">
+
+  export type CisIdentityOrderByWithAggregationInput = {
+    id?: SortOrder
+    cisSubjectId?: SortOrder
+    sourcePlatform?: SortOrder
+    externalUserId?: SortOrderInput | SortOrder
+    linkedUserId?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    displayName?: SortOrderInput | SortOrder
+    role?: SortOrderInput | SortOrder
+    status?: SortOrderInput | SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    payload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CisIdentityCountOrderByAggregateInput
+    _max?: CisIdentityMaxOrderByAggregateInput
+    _min?: CisIdentityMinOrderByAggregateInput
+  }
+
+  export type CisIdentityScalarWhereWithAggregatesInput = {
+    AND?: CisIdentityScalarWhereWithAggregatesInput | CisIdentityScalarWhereWithAggregatesInput[]
+    OR?: CisIdentityScalarWhereWithAggregatesInput[]
+    NOT?: CisIdentityScalarWhereWithAggregatesInput | CisIdentityScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CisIdentity"> | string
+    cisSubjectId?: StringWithAggregatesFilter<"CisIdentity"> | string
+    sourcePlatform?: StringWithAggregatesFilter<"CisIdentity"> | string
+    externalUserId?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    linkedUserId?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    email?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    displayName?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    role?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    status?: StringNullableWithAggregatesFilter<"CisIdentity"> | string | null
+    lastEventType?: StringWithAggregatesFilter<"CisIdentity"> | string
+    lastEventAt?: DateTimeWithAggregatesFilter<"CisIdentity"> | Date | string
+    payload?: JsonNullableWithAggregatesFilter<"CisIdentity">
+    createdAt?: DateTimeWithAggregatesFilter<"CisIdentity"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CisIdentity"> | Date | string
+  }
+
+  export type CisWebhookEventWhereInput = {
+    AND?: CisWebhookEventWhereInput | CisWebhookEventWhereInput[]
+    OR?: CisWebhookEventWhereInput[]
+    NOT?: CisWebhookEventWhereInput | CisWebhookEventWhereInput[]
+    id?: StringFilter<"CisWebhookEvent"> | string
+    identityId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    eventType?: StringFilter<"CisWebhookEvent"> | string
+    sourcePlatform?: StringFilter<"CisWebhookEvent"> | string
+    subjectId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    externalUserId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    payload?: JsonNullableFilter<"CisWebhookEvent">
+    receivedAt?: DateTimeFilter<"CisWebhookEvent"> | Date | string
+    identity?: XOR<CisIdentityNullableScalarRelationFilter, CisIdentityWhereInput> | null
+  }
+
+  export type CisWebhookEventOrderByWithRelationInput = {
+    id?: SortOrder
+    identityId?: SortOrderInput | SortOrder
+    eventType?: SortOrder
+    sourcePlatform?: SortOrder
+    subjectId?: SortOrderInput | SortOrder
+    externalUserId?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    receivedAt?: SortOrder
+    identity?: CisIdentityOrderByWithRelationInput
+  }
+
+  export type CisWebhookEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CisWebhookEventWhereInput | CisWebhookEventWhereInput[]
+    OR?: CisWebhookEventWhereInput[]
+    NOT?: CisWebhookEventWhereInput | CisWebhookEventWhereInput[]
+    identityId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    eventType?: StringFilter<"CisWebhookEvent"> | string
+    sourcePlatform?: StringFilter<"CisWebhookEvent"> | string
+    subjectId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    externalUserId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    payload?: JsonNullableFilter<"CisWebhookEvent">
+    receivedAt?: DateTimeFilter<"CisWebhookEvent"> | Date | string
+    identity?: XOR<CisIdentityNullableScalarRelationFilter, CisIdentityWhereInput> | null
+  }, "id">
+
+  export type CisWebhookEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    identityId?: SortOrderInput | SortOrder
+    eventType?: SortOrder
+    sourcePlatform?: SortOrder
+    subjectId?: SortOrderInput | SortOrder
+    externalUserId?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    receivedAt?: SortOrder
+    _count?: CisWebhookEventCountOrderByAggregateInput
+    _max?: CisWebhookEventMaxOrderByAggregateInput
+    _min?: CisWebhookEventMinOrderByAggregateInput
+  }
+
+  export type CisWebhookEventScalarWhereWithAggregatesInput = {
+    AND?: CisWebhookEventScalarWhereWithAggregatesInput | CisWebhookEventScalarWhereWithAggregatesInput[]
+    OR?: CisWebhookEventScalarWhereWithAggregatesInput[]
+    NOT?: CisWebhookEventScalarWhereWithAggregatesInput | CisWebhookEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CisWebhookEvent"> | string
+    identityId?: StringNullableWithAggregatesFilter<"CisWebhookEvent"> | string | null
+    eventType?: StringWithAggregatesFilter<"CisWebhookEvent"> | string
+    sourcePlatform?: StringWithAggregatesFilter<"CisWebhookEvent"> | string
+    subjectId?: StringNullableWithAggregatesFilter<"CisWebhookEvent"> | string | null
+    externalUserId?: StringNullableWithAggregatesFilter<"CisWebhookEvent"> | string | null
+    payload?: JsonNullableWithAggregatesFilter<"CisWebhookEvent">
+    receivedAt?: DateTimeWithAggregatesFilter<"CisWebhookEvent"> | Date | string
   }
 
   export type BuyerWhereInput = {
@@ -48969,6 +51791,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -49004,6 +51827,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUpdateInput = {
@@ -49039,6 +51863,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -49074,6 +51899,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -49137,6 +51963,211 @@ export namespace Prisma {
     registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisIdentityCreateInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    linkedUser?: UserCreateNestedOneWithoutCisIdentitiesInput
+    events?: CisWebhookEventCreateNestedManyWithoutIdentityInput
+  }
+
+  export type CisIdentityUncheckedCreateInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    linkedUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: CisWebhookEventUncheckedCreateNestedManyWithoutIdentityInput
+  }
+
+  export type CisIdentityUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    linkedUser?: UserUpdateOneWithoutCisIdentitiesNestedInput
+    events?: CisWebhookEventUpdateManyWithoutIdentityNestedInput
+  }
+
+  export type CisIdentityUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: CisWebhookEventUncheckedUpdateManyWithoutIdentityNestedInput
+  }
+
+  export type CisIdentityCreateManyInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    linkedUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CisIdentityUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisIdentityUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventCreateInput = {
+    id?: string
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+    identity?: CisIdentityCreateNestedOneWithoutEventsInput
+  }
+
+  export type CisWebhookEventUncheckedCreateInput = {
+    id?: string
+    identityId?: string | null
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+  }
+
+  export type CisWebhookEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identity?: CisIdentityUpdateOneWithoutEventsNestedInput
+  }
+
+  export type CisWebhookEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    identityId?: NullableStringFieldUpdateOperationsInput | string | null
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventCreateManyInput = {
+    id?: string
+    identityId?: string | null
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+  }
+
+  export type CisWebhookEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    identityId?: NullableStringFieldUpdateOperationsInput | string | null
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BuyerCreateInput = {
@@ -52686,6 +55717,12 @@ export namespace Prisma {
     none?: VoucherRedemptionWhereInput
   }
 
+  export type CisIdentityListRelationFilter = {
+    every?: CisIdentityWhereInput
+    some?: CisIdentityWhereInput
+    none?: CisIdentityWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -52724,6 +55761,10 @@ export namespace Prisma {
   }
 
   export type VoucherRedemptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CisIdentityOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -52905,13 +55946,6 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
-
-  export type EnumGenderNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumGenderNullableFilter<$PrismaModel> | $Enums.Gender | null
-  }
   export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -52934,6 +55968,147 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
+  export type CisWebhookEventListRelationFilter = {
+    every?: CisWebhookEventWhereInput
+    some?: CisWebhookEventWhereInput
+    none?: CisWebhookEventWhereInput
+  }
+
+  export type CisWebhookEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CisIdentityCisSubjectIdSourcePlatformCompoundUniqueInput = {
+    cisSubjectId: string
+    sourcePlatform: string
+  }
+
+  export type CisIdentityCountOrderByAggregateInput = {
+    id?: SortOrder
+    cisSubjectId?: SortOrder
+    sourcePlatform?: SortOrder
+    externalUserId?: SortOrder
+    linkedUserId?: SortOrder
+    email?: SortOrder
+    phone?: SortOrder
+    displayName?: SortOrder
+    role?: SortOrder
+    status?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    payload?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CisIdentityMaxOrderByAggregateInput = {
+    id?: SortOrder
+    cisSubjectId?: SortOrder
+    sourcePlatform?: SortOrder
+    externalUserId?: SortOrder
+    linkedUserId?: SortOrder
+    email?: SortOrder
+    phone?: SortOrder
+    displayName?: SortOrder
+    role?: SortOrder
+    status?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CisIdentityMinOrderByAggregateInput = {
+    id?: SortOrder
+    cisSubjectId?: SortOrder
+    sourcePlatform?: SortOrder
+    externalUserId?: SortOrder
+    linkedUserId?: SortOrder
+    email?: SortOrder
+    phone?: SortOrder
+    displayName?: SortOrder
+    role?: SortOrder
+    status?: SortOrder
+    lastEventType?: SortOrder
+    lastEventAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type CisIdentityNullableScalarRelationFilter = {
+    is?: CisIdentityWhereInput | null
+    isNot?: CisIdentityWhereInput | null
+  }
+
+  export type CisWebhookEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    identityId?: SortOrder
+    eventType?: SortOrder
+    sourcePlatform?: SortOrder
+    subjectId?: SortOrder
+    externalUserId?: SortOrder
+    payload?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type CisWebhookEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    identityId?: SortOrder
+    eventType?: SortOrder
+    sourcePlatform?: SortOrder
+    subjectId?: SortOrder
+    externalUserId?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type CisWebhookEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    identityId?: SortOrder
+    eventType?: SortOrder
+    sourcePlatform?: SortOrder
+    subjectId?: SortOrder
+    externalUserId?: SortOrder
+    receivedAt?: SortOrder
+  }
+
+  export type EnumGenderNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumGenderNullableFilter<$PrismaModel> | $Enums.Gender | null
   }
 
   export type UserScalarRelationFilter = {
@@ -53022,32 +56197,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumGenderNullableFilter<$PrismaModel>
     _max?: NestedEnumGenderNullableFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type EnumVendorCategoryFilter<$PrismaModel = never> = {
@@ -54266,11 +57415,6 @@ export namespace Prisma {
     in?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
     notIn?: $Enums.AdDurationType[] | ListEnumAdDurationTypeFieldRefInput<$PrismaModel> | null
     not?: NestedEnumAdDurationTypeNullableFilter<$PrismaModel> | $Enums.AdDurationType | null
-  }
-
-  export type UserNullableScalarRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
   }
 
   export type AdApplicationCountOrderByAggregateInput = {
@@ -55548,6 +58692,13 @@ export namespace Prisma {
     connect?: VoucherRedemptionWhereUniqueInput | VoucherRedemptionWhereUniqueInput[]
   }
 
+  export type CisIdentityCreateNestedManyWithoutLinkedUserInput = {
+    create?: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput> | CisIdentityCreateWithoutLinkedUserInput[] | CisIdentityUncheckedCreateWithoutLinkedUserInput[]
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutLinkedUserInput | CisIdentityCreateOrConnectWithoutLinkedUserInput[]
+    createMany?: CisIdentityCreateManyLinkedUserInputEnvelope
+    connect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+  }
+
   export type BuyerUncheckedCreateNestedOneWithoutUserInput = {
     create?: XOR<BuyerCreateWithoutUserInput, BuyerUncheckedCreateWithoutUserInput>
     connectOrCreate?: BuyerCreateOrConnectWithoutUserInput
@@ -55640,6 +58791,13 @@ export namespace Prisma {
     connectOrCreate?: VoucherRedemptionCreateOrConnectWithoutUserInput | VoucherRedemptionCreateOrConnectWithoutUserInput[]
     createMany?: VoucherRedemptionCreateManyUserInputEnvelope
     connect?: VoucherRedemptionWhereUniqueInput | VoucherRedemptionWhereUniqueInput[]
+  }
+
+  export type CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput = {
+    create?: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput> | CisIdentityCreateWithoutLinkedUserInput[] | CisIdentityUncheckedCreateWithoutLinkedUserInput[]
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutLinkedUserInput | CisIdentityCreateOrConnectWithoutLinkedUserInput[]
+    createMany?: CisIdentityCreateManyLinkedUserInputEnvelope
+    connect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -55858,6 +59016,20 @@ export namespace Prisma {
     deleteMany?: VoucherRedemptionScalarWhereInput | VoucherRedemptionScalarWhereInput[]
   }
 
+  export type CisIdentityUpdateManyWithoutLinkedUserNestedInput = {
+    create?: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput> | CisIdentityCreateWithoutLinkedUserInput[] | CisIdentityUncheckedCreateWithoutLinkedUserInput[]
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutLinkedUserInput | CisIdentityCreateOrConnectWithoutLinkedUserInput[]
+    upsert?: CisIdentityUpsertWithWhereUniqueWithoutLinkedUserInput | CisIdentityUpsertWithWhereUniqueWithoutLinkedUserInput[]
+    createMany?: CisIdentityCreateManyLinkedUserInputEnvelope
+    set?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    disconnect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    delete?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    connect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    update?: CisIdentityUpdateWithWhereUniqueWithoutLinkedUserInput | CisIdentityUpdateWithWhereUniqueWithoutLinkedUserInput[]
+    updateMany?: CisIdentityUpdateManyWithWhereWithoutLinkedUserInput | CisIdentityUpdateManyWithWhereWithoutLinkedUserInput[]
+    deleteMany?: CisIdentityScalarWhereInput | CisIdentityScalarWhereInput[]
+  }
+
   export type BuyerUncheckedUpdateOneWithoutUserNestedInput = {
     create?: XOR<BuyerCreateWithoutUserInput, BuyerUncheckedCreateWithoutUserInput>
     connectOrCreate?: BuyerCreateOrConnectWithoutUserInput
@@ -56036,6 +59208,94 @@ export namespace Prisma {
     update?: VoucherRedemptionUpdateWithWhereUniqueWithoutUserInput | VoucherRedemptionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: VoucherRedemptionUpdateManyWithWhereWithoutUserInput | VoucherRedemptionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: VoucherRedemptionScalarWhereInput | VoucherRedemptionScalarWhereInput[]
+  }
+
+  export type CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput = {
+    create?: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput> | CisIdentityCreateWithoutLinkedUserInput[] | CisIdentityUncheckedCreateWithoutLinkedUserInput[]
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutLinkedUserInput | CisIdentityCreateOrConnectWithoutLinkedUserInput[]
+    upsert?: CisIdentityUpsertWithWhereUniqueWithoutLinkedUserInput | CisIdentityUpsertWithWhereUniqueWithoutLinkedUserInput[]
+    createMany?: CisIdentityCreateManyLinkedUserInputEnvelope
+    set?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    disconnect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    delete?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    connect?: CisIdentityWhereUniqueInput | CisIdentityWhereUniqueInput[]
+    update?: CisIdentityUpdateWithWhereUniqueWithoutLinkedUserInput | CisIdentityUpdateWithWhereUniqueWithoutLinkedUserInput[]
+    updateMany?: CisIdentityUpdateManyWithWhereWithoutLinkedUserInput | CisIdentityUpdateManyWithWhereWithoutLinkedUserInput[]
+    deleteMany?: CisIdentityScalarWhereInput | CisIdentityScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutCisIdentitiesInput = {
+    create?: XOR<UserCreateWithoutCisIdentitiesInput, UserUncheckedCreateWithoutCisIdentitiesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCisIdentitiesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CisWebhookEventCreateNestedManyWithoutIdentityInput = {
+    create?: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput> | CisWebhookEventCreateWithoutIdentityInput[] | CisWebhookEventUncheckedCreateWithoutIdentityInput[]
+    connectOrCreate?: CisWebhookEventCreateOrConnectWithoutIdentityInput | CisWebhookEventCreateOrConnectWithoutIdentityInput[]
+    createMany?: CisWebhookEventCreateManyIdentityInputEnvelope
+    connect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+  }
+
+  export type CisWebhookEventUncheckedCreateNestedManyWithoutIdentityInput = {
+    create?: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput> | CisWebhookEventCreateWithoutIdentityInput[] | CisWebhookEventUncheckedCreateWithoutIdentityInput[]
+    connectOrCreate?: CisWebhookEventCreateOrConnectWithoutIdentityInput | CisWebhookEventCreateOrConnectWithoutIdentityInput[]
+    createMany?: CisWebhookEventCreateManyIdentityInputEnvelope
+    connect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneWithoutCisIdentitiesNestedInput = {
+    create?: XOR<UserCreateWithoutCisIdentitiesInput, UserUncheckedCreateWithoutCisIdentitiesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCisIdentitiesInput
+    upsert?: UserUpsertWithoutCisIdentitiesInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCisIdentitiesInput, UserUpdateWithoutCisIdentitiesInput>, UserUncheckedUpdateWithoutCisIdentitiesInput>
+  }
+
+  export type CisWebhookEventUpdateManyWithoutIdentityNestedInput = {
+    create?: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput> | CisWebhookEventCreateWithoutIdentityInput[] | CisWebhookEventUncheckedCreateWithoutIdentityInput[]
+    connectOrCreate?: CisWebhookEventCreateOrConnectWithoutIdentityInput | CisWebhookEventCreateOrConnectWithoutIdentityInput[]
+    upsert?: CisWebhookEventUpsertWithWhereUniqueWithoutIdentityInput | CisWebhookEventUpsertWithWhereUniqueWithoutIdentityInput[]
+    createMany?: CisWebhookEventCreateManyIdentityInputEnvelope
+    set?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    disconnect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    delete?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    connect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    update?: CisWebhookEventUpdateWithWhereUniqueWithoutIdentityInput | CisWebhookEventUpdateWithWhereUniqueWithoutIdentityInput[]
+    updateMany?: CisWebhookEventUpdateManyWithWhereWithoutIdentityInput | CisWebhookEventUpdateManyWithWhereWithoutIdentityInput[]
+    deleteMany?: CisWebhookEventScalarWhereInput | CisWebhookEventScalarWhereInput[]
+  }
+
+  export type CisWebhookEventUncheckedUpdateManyWithoutIdentityNestedInput = {
+    create?: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput> | CisWebhookEventCreateWithoutIdentityInput[] | CisWebhookEventUncheckedCreateWithoutIdentityInput[]
+    connectOrCreate?: CisWebhookEventCreateOrConnectWithoutIdentityInput | CisWebhookEventCreateOrConnectWithoutIdentityInput[]
+    upsert?: CisWebhookEventUpsertWithWhereUniqueWithoutIdentityInput | CisWebhookEventUpsertWithWhereUniqueWithoutIdentityInput[]
+    createMany?: CisWebhookEventCreateManyIdentityInputEnvelope
+    set?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    disconnect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    delete?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    connect?: CisWebhookEventWhereUniqueInput | CisWebhookEventWhereUniqueInput[]
+    update?: CisWebhookEventUpdateWithWhereUniqueWithoutIdentityInput | CisWebhookEventUpdateWithWhereUniqueWithoutIdentityInput[]
+    updateMany?: CisWebhookEventUpdateManyWithWhereWithoutIdentityInput | CisWebhookEventUpdateManyWithWhereWithoutIdentityInput[]
+    deleteMany?: CisWebhookEventScalarWhereInput | CisWebhookEventScalarWhereInput[]
+  }
+
+  export type CisIdentityCreateNestedOneWithoutEventsInput = {
+    create?: XOR<CisIdentityCreateWithoutEventsInput, CisIdentityUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutEventsInput
+    connect?: CisIdentityWhereUniqueInput
+  }
+
+  export type CisIdentityUpdateOneWithoutEventsNestedInput = {
+    create?: XOR<CisIdentityCreateWithoutEventsInput, CisIdentityUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: CisIdentityCreateOrConnectWithoutEventsInput
+    upsert?: CisIdentityUpsertWithoutEventsInput
+    disconnect?: CisIdentityWhereInput | boolean
+    delete?: CisIdentityWhereInput | boolean
+    connect?: CisIdentityWhereUniqueInput
+    update?: XOR<XOR<CisIdentityUpdateToOneWithWhereWithoutEventsInput, CisIdentityUpdateWithoutEventsInput>, CisIdentityUncheckedUpdateWithoutEventsInput>
   }
 
   export type UserCreateNestedOneWithoutBuyerInput = {
@@ -57855,23 +61115,6 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
-
-  export type NestedEnumGenderNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumGenderNullableFilter<$PrismaModel> | $Enums.Gender | null
-  }
-
-  export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel> | $Enums.Gender | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumGenderNullableFilter<$PrismaModel>
-    _max?: NestedEnumGenderNullableFilter<$PrismaModel>
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -57894,6 +61137,23 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumGenderNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumGenderNullableFilter<$PrismaModel> | $Enums.Gender | null
+  }
+
+  export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Gender[] | ListEnumGenderFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel> | $Enums.Gender | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumGenderNullableFilter<$PrismaModel>
+    _max?: NestedEnumGenderNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumVendorCategoryFilter<$PrismaModel = never> = {
@@ -59068,6 +62328,52 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CisIdentityCreateWithoutLinkedUserInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: CisWebhookEventCreateNestedManyWithoutIdentityInput
+  }
+
+  export type CisIdentityUncheckedCreateWithoutLinkedUserInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: CisWebhookEventUncheckedCreateNestedManyWithoutIdentityInput
+  }
+
+  export type CisIdentityCreateOrConnectWithoutLinkedUserInput = {
+    where: CisIdentityWhereUniqueInput
+    create: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput>
+  }
+
+  export type CisIdentityCreateManyLinkedUserInputEnvelope = {
+    data: CisIdentityCreateManyLinkedUserInput | CisIdentityCreateManyLinkedUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BuyerUpsertWithoutUserInput = {
     update: XOR<BuyerUpdateWithoutUserInput, BuyerUncheckedUpdateWithoutUserInput>
     create: XOR<BuyerCreateWithoutUserInput, BuyerUncheckedCreateWithoutUserInput>
@@ -59576,6 +62882,347 @@ export namespace Prisma {
     redeemedAt?: DateTimeFilter<"VoucherRedemption"> | Date | string
   }
 
+  export type CisIdentityUpsertWithWhereUniqueWithoutLinkedUserInput = {
+    where: CisIdentityWhereUniqueInput
+    update: XOR<CisIdentityUpdateWithoutLinkedUserInput, CisIdentityUncheckedUpdateWithoutLinkedUserInput>
+    create: XOR<CisIdentityCreateWithoutLinkedUserInput, CisIdentityUncheckedCreateWithoutLinkedUserInput>
+  }
+
+  export type CisIdentityUpdateWithWhereUniqueWithoutLinkedUserInput = {
+    where: CisIdentityWhereUniqueInput
+    data: XOR<CisIdentityUpdateWithoutLinkedUserInput, CisIdentityUncheckedUpdateWithoutLinkedUserInput>
+  }
+
+  export type CisIdentityUpdateManyWithWhereWithoutLinkedUserInput = {
+    where: CisIdentityScalarWhereInput
+    data: XOR<CisIdentityUpdateManyMutationInput, CisIdentityUncheckedUpdateManyWithoutLinkedUserInput>
+  }
+
+  export type CisIdentityScalarWhereInput = {
+    AND?: CisIdentityScalarWhereInput | CisIdentityScalarWhereInput[]
+    OR?: CisIdentityScalarWhereInput[]
+    NOT?: CisIdentityScalarWhereInput | CisIdentityScalarWhereInput[]
+    id?: StringFilter<"CisIdentity"> | string
+    cisSubjectId?: StringFilter<"CisIdentity"> | string
+    sourcePlatform?: StringFilter<"CisIdentity"> | string
+    externalUserId?: StringNullableFilter<"CisIdentity"> | string | null
+    linkedUserId?: StringNullableFilter<"CisIdentity"> | string | null
+    email?: StringNullableFilter<"CisIdentity"> | string | null
+    phone?: StringNullableFilter<"CisIdentity"> | string | null
+    displayName?: StringNullableFilter<"CisIdentity"> | string | null
+    role?: StringNullableFilter<"CisIdentity"> | string | null
+    status?: StringNullableFilter<"CisIdentity"> | string | null
+    lastEventType?: StringFilter<"CisIdentity"> | string
+    lastEventAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    payload?: JsonNullableFilter<"CisIdentity">
+    createdAt?: DateTimeFilter<"CisIdentity"> | Date | string
+    updatedAt?: DateTimeFilter<"CisIdentity"> | Date | string
+  }
+
+  export type UserCreateWithoutCisIdentitiesInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerCreateNestedOneWithoutUserInput
+    vendor?: VendorCreateNestedOneWithoutUserInput
+    addresses?: AddressCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    wallet?: WalletCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
+    proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCisIdentitiesInput = {
+    id?: string
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role?: $Enums.UserRole
+    profilePicture?: string | null
+    emailVerified?: boolean
+    isActive?: boolean
+    status?: $Enums.UserStatus
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    emailVerificationToken?: string | null
+    emailVerificationExpiry?: Date | string | null
+    registrationSequence?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    buyer?: BuyerUncheckedCreateNestedOneWithoutUserInput
+    vendor?: VendorUncheckedCreateNestedOneWithoutUserInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    wallet?: WalletUncheckedCreateNestedOneWithoutUserInput
+    bannersCreated?: BannerUncheckedCreateNestedManyWithoutCreatorInput
+    pushSubscriptions?: PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+    notificationPreference?: NotificationPreferenceUncheckedCreateNestedOneWithoutUserInput
+    milestones?: UserMilestoneUncheckedCreateNestedManyWithoutUserInput
+    advertisements?: AdvertisementUncheckedCreateNestedManyWithoutAdvertiserInput
+    adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
+    reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
+    proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
+    voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCisIdentitiesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCisIdentitiesInput, UserUncheckedCreateWithoutCisIdentitiesInput>
+  }
+
+  export type CisWebhookEventCreateWithoutIdentityInput = {
+    id?: string
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+  }
+
+  export type CisWebhookEventUncheckedCreateWithoutIdentityInput = {
+    id?: string
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+  }
+
+  export type CisWebhookEventCreateOrConnectWithoutIdentityInput = {
+    where: CisWebhookEventWhereUniqueInput
+    create: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput>
+  }
+
+  export type CisWebhookEventCreateManyIdentityInputEnvelope = {
+    data: CisWebhookEventCreateManyIdentityInput | CisWebhookEventCreateManyIdentityInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutCisIdentitiesInput = {
+    update: XOR<UserUpdateWithoutCisIdentitiesInput, UserUncheckedUpdateWithoutCisIdentitiesInput>
+    create: XOR<UserCreateWithoutCisIdentitiesInput, UserUncheckedCreateWithoutCisIdentitiesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCisIdentitiesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCisIdentitiesInput, UserUncheckedUpdateWithoutCisIdentitiesInput>
+  }
+
+  export type UserUpdateWithoutCisIdentitiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUpdateOneWithoutUserNestedInput
+    vendor?: VendorUpdateOneWithoutUserNestedInput
+    addresses?: AddressUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    wallet?: WalletUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
+    proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCisIdentitiesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    profilePicture?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerificationExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    registrationSequence?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    buyer?: BuyerUncheckedUpdateOneWithoutUserNestedInput
+    vendor?: VendorUncheckedUpdateOneWithoutUserNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    wallet?: WalletUncheckedUpdateOneWithoutUserNestedInput
+    bannersCreated?: BannerUncheckedUpdateManyWithoutCreatorNestedInput
+    pushSubscriptions?: PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+    notificationPreference?: NotificationPreferenceUncheckedUpdateOneWithoutUserNestedInput
+    milestones?: UserMilestoneUncheckedUpdateManyWithoutUserNestedInput
+    advertisements?: AdvertisementUncheckedUpdateManyWithoutAdvertiserNestedInput
+    adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
+    reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
+    proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
+    voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CisWebhookEventUpsertWithWhereUniqueWithoutIdentityInput = {
+    where: CisWebhookEventWhereUniqueInput
+    update: XOR<CisWebhookEventUpdateWithoutIdentityInput, CisWebhookEventUncheckedUpdateWithoutIdentityInput>
+    create: XOR<CisWebhookEventCreateWithoutIdentityInput, CisWebhookEventUncheckedCreateWithoutIdentityInput>
+  }
+
+  export type CisWebhookEventUpdateWithWhereUniqueWithoutIdentityInput = {
+    where: CisWebhookEventWhereUniqueInput
+    data: XOR<CisWebhookEventUpdateWithoutIdentityInput, CisWebhookEventUncheckedUpdateWithoutIdentityInput>
+  }
+
+  export type CisWebhookEventUpdateManyWithWhereWithoutIdentityInput = {
+    where: CisWebhookEventScalarWhereInput
+    data: XOR<CisWebhookEventUpdateManyMutationInput, CisWebhookEventUncheckedUpdateManyWithoutIdentityInput>
+  }
+
+  export type CisWebhookEventScalarWhereInput = {
+    AND?: CisWebhookEventScalarWhereInput | CisWebhookEventScalarWhereInput[]
+    OR?: CisWebhookEventScalarWhereInput[]
+    NOT?: CisWebhookEventScalarWhereInput | CisWebhookEventScalarWhereInput[]
+    id?: StringFilter<"CisWebhookEvent"> | string
+    identityId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    eventType?: StringFilter<"CisWebhookEvent"> | string
+    sourcePlatform?: StringFilter<"CisWebhookEvent"> | string
+    subjectId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    externalUserId?: StringNullableFilter<"CisWebhookEvent"> | string | null
+    payload?: JsonNullableFilter<"CisWebhookEvent">
+    receivedAt?: DateTimeFilter<"CisWebhookEvent"> | Date | string
+  }
+
+  export type CisIdentityCreateWithoutEventsInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    linkedUser?: UserCreateNestedOneWithoutCisIdentitiesInput
+  }
+
+  export type CisIdentityUncheckedCreateWithoutEventsInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    linkedUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CisIdentityCreateOrConnectWithoutEventsInput = {
+    where: CisIdentityWhereUniqueInput
+    create: XOR<CisIdentityCreateWithoutEventsInput, CisIdentityUncheckedCreateWithoutEventsInput>
+  }
+
+  export type CisIdentityUpsertWithoutEventsInput = {
+    update: XOR<CisIdentityUpdateWithoutEventsInput, CisIdentityUncheckedUpdateWithoutEventsInput>
+    create: XOR<CisIdentityCreateWithoutEventsInput, CisIdentityUncheckedCreateWithoutEventsInput>
+    where?: CisIdentityWhereInput
+  }
+
+  export type CisIdentityUpdateToOneWithWhereWithoutEventsInput = {
+    where?: CisIdentityWhereInput
+    data: XOR<CisIdentityUpdateWithoutEventsInput, CisIdentityUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type CisIdentityUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    linkedUser?: UserUpdateOneWithoutCisIdentitiesNestedInput
+  }
+
+  export type CisIdentityUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type UserCreateWithoutBuyerInput = {
     id?: string
     email: string
@@ -59608,6 +63255,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutBuyerInput = {
@@ -59642,6 +63290,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutBuyerInput = {
@@ -59889,6 +63538,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBuyerInput = {
@@ -59923,6 +63573,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type CartUpsertWithoutBuyerInput = {
@@ -60128,6 +63779,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutVendorInput = {
@@ -60162,6 +63814,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutVendorInput = {
@@ -60454,6 +64107,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVendorInput = {
@@ -60488,6 +64142,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type ProductUpsertWithWhereUniqueWithoutVendorInput = {
@@ -61953,6 +65608,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutAddressesInput = {
@@ -61987,6 +65643,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutAddressesInput = {
@@ -62037,6 +65694,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAddressesInput = {
@@ -62071,6 +65729,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutWalletInput = {
@@ -62105,6 +65764,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletInput = {
@@ -62139,6 +65799,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletInput = {
@@ -62229,6 +65890,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletInput = {
@@ -62263,6 +65925,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -62732,6 +66395,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutBannersCreatedInput = {
@@ -62766,6 +66430,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutBannersCreatedInput = {
@@ -62816,6 +66481,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBannersCreatedInput = {
@@ -62850,6 +66516,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutAdApplicationsInput = {
@@ -62884,6 +66551,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutAdApplicationsInput = {
@@ -62918,6 +66586,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutAdApplicationsInput = {
@@ -62957,6 +66626,7 @@ export namespace Prisma {
     adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutReviewedAdApplicationsInput = {
@@ -62991,6 +66661,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutReviewedAdApplicationsInput = {
@@ -63041,6 +66712,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAdApplicationsInput = {
@@ -63075,6 +66747,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUpsertWithoutReviewedAdApplicationsInput = {
@@ -63120,6 +66793,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewedAdApplicationsInput = {
@@ -63154,6 +66828,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutNotificationsInput = {
@@ -63188,6 +66863,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -63222,6 +66898,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -63272,6 +66949,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -63306,6 +66984,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutPushSubscriptionsInput = {
@@ -63340,6 +67019,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
@@ -63374,6 +67054,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutPushSubscriptionsInput = {
@@ -63424,6 +67105,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
@@ -63458,6 +67140,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutNotificationPreferenceInput = {
@@ -63492,6 +67175,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutNotificationPreferenceInput = {
@@ -63526,6 +67210,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutNotificationPreferenceInput = {
@@ -63576,6 +67261,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutNotificationPreferenceInput = {
@@ -63610,6 +67296,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type BuyerCreateWithoutAvailabilityRequestsInput = {
@@ -63852,6 +67539,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutAdvertisementsInput = {
@@ -63886,6 +67574,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutAdvertisementsInput = {
@@ -63970,6 +67659,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAdvertisementsInput = {
@@ -64004,6 +67694,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type AdvertiserPaymentUpsertWithWhereUniqueWithoutAdvertisementInput = {
@@ -64170,6 +67861,7 @@ export namespace Prisma {
     adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutProofOfTransfersInput = {
@@ -64204,6 +67896,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutProofOfTransfersInput = {
@@ -64305,6 +67998,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProofOfTransfersInput = {
@@ -64339,6 +68033,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type OrderUpsertWithoutProofOfTransfersInput = {
@@ -64517,6 +68212,7 @@ export namespace Prisma {
     adApplications?: AdApplicationCreateNestedManyWithoutApplicantInput
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutVoucherRedemptionsInput = {
@@ -64551,6 +68247,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedCreateNestedManyWithoutApplicantInput
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutVoucherRedemptionsInput = {
@@ -64652,6 +68349,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUpdateManyWithoutApplicantNestedInput
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutVoucherRedemptionsInput = {
@@ -64686,6 +68384,7 @@ export namespace Prisma {
     adApplications?: AdApplicationUncheckedUpdateManyWithoutApplicantNestedInput
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserCreateWithoutMilestonesInput = {
@@ -64720,6 +68419,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserUncheckedCreateWithoutMilestonesInput = {
@@ -64754,6 +68454,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedCreateNestedManyWithoutReviewerInput
     proofOfTransfers?: ProofOfTransferUncheckedCreateNestedManyWithoutUserInput
     voucherRedemptions?: VoucherRedemptionUncheckedCreateNestedManyWithoutUserInput
+    cisIdentities?: CisIdentityUncheckedCreateNestedManyWithoutLinkedUserInput
   }
 
   export type UserCreateOrConnectWithoutMilestonesInput = {
@@ -64804,6 +68505,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMilestonesInput = {
@@ -64838,6 +68540,7 @@ export namespace Prisma {
     reviewedAdApplications?: AdApplicationUncheckedUpdateManyWithoutReviewerNestedInput
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
+    cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
   }
 
   export type ProductCreateWithoutBookingsInput = {
@@ -65571,6 +69274,23 @@ export namespace Prisma {
     redeemedAt?: Date | string
   }
 
+  export type CisIdentityCreateManyLinkedUserInput = {
+    id?: string
+    cisSubjectId: string
+    sourcePlatform: string
+    externalUserId?: string | null
+    email?: string | null
+    phone?: string | null
+    displayName?: string | null
+    role?: string | null
+    status?: string | null
+    lastEventType: string
+    lastEventAt?: Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type AddressUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     label?: StringFieldUpdateOperationsInput | string
@@ -66060,6 +69780,99 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     discountApplied?: FloatFieldUpdateOperationsInput | number
     redeemedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisIdentityUpdateWithoutLinkedUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: CisWebhookEventUpdateManyWithoutIdentityNestedInput
+  }
+
+  export type CisIdentityUncheckedUpdateWithoutLinkedUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: CisWebhookEventUncheckedUpdateManyWithoutIdentityNestedInput
+  }
+
+  export type CisIdentityUncheckedUpdateManyWithoutLinkedUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    cisSubjectId?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    lastEventType?: StringFieldUpdateOperationsInput | string
+    lastEventAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventCreateManyIdentityInput = {
+    id?: string
+    eventType: string
+    sourcePlatform: string
+    subjectId?: string | null
+    externalUserId?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: Date | string
+  }
+
+  export type CisWebhookEventUpdateWithoutIdentityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventUncheckedUpdateWithoutIdentityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CisWebhookEventUncheckedUpdateManyWithoutIdentityInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    sourcePlatform?: StringFieldUpdateOperationsInput | string
+    subjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderCreateManyBuyerInput = {

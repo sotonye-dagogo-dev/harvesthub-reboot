@@ -57,7 +57,7 @@ export function verifyCisWebhookSignature(params: {
         return false;
     }
 
-    const expectedSignature = buildCisWebhookSignature(params.timestamp, params.payload);
+    const expectedSignature = params.timestamp ? buildCisWebhookSignature(params.timestamp, params.payload) : "";
     const expectedBuffer = Buffer.from(expectedSignature, 'hex');
     const providedBuffer = Buffer.from(normalizedSignature, 'hex');
 
