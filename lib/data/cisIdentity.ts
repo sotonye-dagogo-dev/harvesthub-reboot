@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { InputJsonValue } from '@prisma/client/runtime/client.js';
 
 import { prisma } from '@/lib/db/prisma';
 
@@ -75,12 +75,12 @@ function extractProfile(payload?: Record<string, unknown>) {
     };
 }
 
-function toJsonValue(payload?: Record<string, unknown>): Prisma.InputJsonValue | null {
+function toJsonValue(payload?: Record<string, unknown>): InputJsonValue | null {
     if (!payload) {
         return null;
     }
 
-    return payload as Prisma.InputJsonValue;
+    return payload as InputJsonValue;
 }
 
 async function resolveLinkedUserId(externalUserId: string | null, email: string | null): Promise<string | null> {
