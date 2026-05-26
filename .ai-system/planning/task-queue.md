@@ -474,6 +474,17 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
+## Cross-Platform Account Detection (2026-05-26)
+
+> **Section summary:** Pre-signup email check against CIS backend to detect existing accounts on other platforms.
+
+- [x] Add `lib/services/cisCheck.ts` — service calling `GET /api/v1/users/check-email/:email`
+- [x] Add `components/ui/CrossPlatformAccountPrompt.tsx` — UI prompt for detected cross-platform accounts
+- [x] Wire email blur check in `app/signup/components/UserInfo.tsx` — triggers CIS check on email field blur
+- [x] Block signup submission until cross-platform prompt is dismissed or no match found
+- [x] Export `CrossPlatformAccountPrompt` from `components/ui/index.ts`
+- [x] Update `.ai-system` docs with feature decisions
+
 ## Backlog
 
 > **Section summary:** Known work that needs to be done but hasn't been scheduled yet.

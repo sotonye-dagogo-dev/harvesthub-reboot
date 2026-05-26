@@ -53,3 +53,6 @@ export { EntityAvatar, VendorAvatar } from "./EntityAvatar";
 
 export { openActionConfirm, ActionConfirmBuilder, ActionConfirmPresets } from "./actionConfirm";
 export type { ActionConfirmConfig } from "./actionConfirm";
+
+export { CrossPlatformAccountPrompt } from "./CrossPlatformAccountPrompt";
+export type { CrossPlatformAccountInfo } from "./CrossPlatformAccountPrompt";

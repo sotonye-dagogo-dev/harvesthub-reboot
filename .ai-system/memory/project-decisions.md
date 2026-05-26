@@ -1868,3 +1868,24 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 - Cloud execution must validate and close role/domain parity gaps using a matrix-driven checklist rather than ad-hoc page edits.
 - Orders must have explicit scope semantics (buyer-history vs vendor/admin operations) with compatible redirects for legacy role-prefixed paths.
 - Navigation, route policy, middleware redirects, and API scope checks must be updated together and regression-tested as one unit.
+
+## Cross-Platform Account Detection via Pre-Signup Email Check
+
+**Decision:** When a user enters their email on the signup form, check the CIS backend's `GET /api/v1/users/check-email/:email` endpoint to detect existing accounts on other platforms. If matches are found, display a prompt offering "Sign In Instead" or "Continue with Signup".
+**Date:** 2026-05-26
+**Made by:** AI implementation session
+
+**Reason:**
+Users could silently create duplicate, unlinked identities across platforms because signup only checked local email uniqueness. CIS already tracks platform-user mappings but had no pre-signup query surface.
+
+**Alternatives Considered:**
+- Only check on form submission (rejected: slower feedback, would need to abort submission which is poor UX)
+- Always allow signup and link accounts post-hoc via webhook reconciliation (rejected: creates orphan identities that need later cleanup)
+- Embed the check in the register API route (rejected: ties CIS availability to registration success/failure and creates coupling)
+
+**Implications:**
+- Check fires on email blur with 800ms debounce in UserInfo component
+- CrossPlatformAccountPrompt component displays inline in the signup form
+- Signup submission is blocked while cross-platform prompt is visible
+- When CIS is not configured, check silently returns null and signup proceeds normally
+- The "Sign In Instead" button navigates to /login

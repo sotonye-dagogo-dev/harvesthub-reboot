@@ -4,6 +4,23 @@
 
 ---
 
+## Cross-Platform Account Detection (2026-05-26)
+
+> **Section summary:** Pre-signup email check against CIS backend to detect existing accounts across Harvesters platforms, with a "Sign In Instead" prompt UI.
+
+**Feature Objective:**
+When a user enters their email during signup, check CIS to see if that email already has accounts on other platforms (Reporting System, Faith Hub, DMHicc, etc.). If matches are found, display a prompt informing the user and offering to sign in with existing credentials instead.
+
+**Why This Is Needed:**
+- Users can silently create duplicate, unlinked identities across platforms
+- No existing signup flow checks for cross-platform accounts
+- CIS already tracks `PlatformUserMapping` but has no pre-signup query surface
+
+**Implementation:**
+- cis_backend: `GET /api/v1/users/check-email/:email` returns `{ exists, canonicalUser, platforms[] }`
+- harvesthub-reboot: `lib/services/cisCheck.ts` + `components/ui/CrossPlatformAccountPrompt.tsx`
+- Check fires on email blur (800ms debounce); blocks form submission until dismissed
+
 ## Cross-Repo Feature Spec - CIS Federation Rollout (Planned 2026-05-13)
 
 > **Section summary:** Scope-locked rollout to connect MyHarvestHub to the Canonical Identity Service through a narrow signed webhook/status contract and config-driven env plumbing.
