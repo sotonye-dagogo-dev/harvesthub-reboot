@@ -4,6 +4,54 @@
 
 ---
 
+## Cross-Platform Account Detection (2026-05-26)
+
+> **Section summary:** Pre-signup email check against CIS backend to detect existing accounts across Harvesters platforms, with a "Sign In Instead" prompt UI.
+
+**Feature Objective:**
+When a user enters their email during signup, check CIS to see if that email already has accounts on other platforms (Reporting System, Faith Hub, DMHicc, etc.). If matches are found, display a prompt informing the user and offering to sign in with existing credentials instead.
+
+**Why This Is Needed:**
+- Users can silently create duplicate, unlinked identities across platforms
+- No existing signup flow checks for cross-platform accounts
+- CIS already tracks `PlatformUserMapping` but has no pre-signup query surface
+
+**Implementation:**
+- cis_backend: `GET /api/v1/users/check-email/:email` returns `{ exists, canonicalUser, platforms[] }`
+- harvesthub-reboot: `lib/services/cisCheck.ts` + `components/ui/CrossPlatformAccountPrompt.tsx`
+- Check fires on email blur (800ms debounce); blocks form submission until dismissed
+
+## Cross-Repo Feature Spec - CIS Federation Rollout (Planned 2026-05-13)
+
+> **Section summary:** Scope-locked rollout to connect MyHarvestHub to the Canonical Identity Service through a narrow signed webhook/status contract and config-driven env plumbing.
+
+**Feature Objective:**
+Add a platform-specific CIS handshake so MyHarvestHub can report readiness, accept signed identity sync events, and expose its own integration contract without forcing a local schema rewrite in the same batch.
+
+**Why This Is Needed:**
+
+- The workspace now includes CIS as the canonical identity layer for multi-repo coordination.
+- MyHarvestHub needs a low-risk bridge that allows discovery and future syncs without coupling to CIS-owned tables right away.
+- A small, explicit webhook/status surface is easier to validate and roll forward than an all-at-once identity migration.
+
+**Acceptance Criteria:**
+
+- `lib/config/env.ts` understands CIS env keys and normalizes them through typed helpers.
+- `GET /api/cis/status` reports app readiness, platform slug, and webhook config status.
+- `POST /api/cis/webhook` verifies signed payloads with the CIS webhook secret and returns a clear acknowledgment envelope.
+- Webhook processing persists identity mappings to `CisIdentity` and event history to `CisWebhookEvent` without mutating local users.
+- The rollout remains additive and backward-compatible with existing auth/order/payment flows.
+
+**Rollout Order:**
+
+1. Add CIS env/schema plumbing.
+2. Add CIS config helper plus status/webhook routes.
+3. Export the CIS config from the shared config barrel.
+4. Update `.ai-system` task/context/architecture docs and env example.
+5. Run validation for the touched files.
+
+---
+
 ## Phase 1 — Foundation (In Progress)
 
 > **Section summary:** Core infrastructure and platform scaffolding that enables all features.

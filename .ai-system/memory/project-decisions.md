@@ -63,6 +63,48 @@ The notification fallback still used plain JSX instead of the branded email layo
 - `lib/emails/NotificationEmail.tsx` serves as the branded generic fallback for notification mail, with structured detail-table support when metadata provides it.
 - Future email senders should use the shared wrapper helpers instead of building ad hoc React payloads directly.
 
+## CIS Federation Handshake Surface
+
+**Decision:** Add a narrow CIS-facing status route and signed webhook route in each platform repo instead of collapsing local schemas into CIS-owned tables.
+**Date:** 2026-05-13
+**Made by:** AI assistant (workspace rollout session)
+
+**Reason:** The marketplace needs a low-risk adoption path that lets CIS drive identity sync and readiness checks without forcing a cross-repo schema rewrite in the same batch.
+
+**Alternatives Considered:**
+
+- Expose only documentation (rejected: docs-only does not exercise the integration surface).
+- Wire CIS directly into the local user tables right away (rejected: direct schema coupling would require a broader migration pass).
+
+**Implications:**
+
+- CIS integration remains additive and platform-specific.
+- Future work can attach a persistence target behind the webhook route when the owning repo is ready for that migration.
+
+## CIS Sync Uses Push Model
+
+**Decision:** CIS posts signed identity events to MyHarvestHub via webhooks.
+**Date:** 2026-05-13
+**Made by:** AI assistant
+
+**Reason:** Push sync avoids polling overhead and keeps identity propagation near-real time.
+
+**Alternatives Considered:** Pull model (periodic polling). Rejected due to latency and operational overhead.
+
+**Implications:** Webhook verification and idempotency remain critical; reconciliation can be added later.
+
+## CIS Identity Persistence (Additive)
+
+**Decision:** Persist CIS sync data in `CisIdentity` and `CisWebhookEvent` without mutating local users.
+**Date:** 2026-05-13
+**Made by:** AI assistant
+
+**Reason:** Provides auditability and a future linking surface without schema coupling.
+
+**Alternatives Considered:** Direct user upserts on webhook. Rejected until the payload contract is final and migration scope is approved.
+
+**Implications:** Identity linking can be layered later; current sync remains non-destructive.
+
 ## Cart Pricing Persists Effective and Original Amounts for Discount Parity
 
 **Decision:** Cart state stores discount-aware pricing as effective `price` plus optional `originalPrice` and `discountPercent`, and checkout/cart summaries compute product discount from these fields before voucher deduction.
@@ -1826,3 +1868,24 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 - Cloud execution must validate and close role/domain parity gaps using a matrix-driven checklist rather than ad-hoc page edits.
 - Orders must have explicit scope semantics (buyer-history vs vendor/admin operations) with compatible redirects for legacy role-prefixed paths.
 - Navigation, route policy, middleware redirects, and API scope checks must be updated together and regression-tested as one unit.
+
+## Cross-Platform Account Detection via Pre-Signup Email Check
+
+**Decision:** When a user enters their email on the signup form, check the CIS backend's `GET /api/v1/users/check-email/:email` endpoint to detect existing accounts on other platforms. If matches are found, display a prompt offering "Sign In Instead" or "Continue with Signup".
+**Date:** 2026-05-26
+**Made by:** AI implementation session
+
+**Reason:**
+Users could silently create duplicate, unlinked identities across platforms because signup only checked local email uniqueness. CIS already tracks platform-user mappings but had no pre-signup query surface.
+
+**Alternatives Considered:**
+- Only check on form submission (rejected: slower feedback, would need to abort submission which is poor UX)
+- Always allow signup and link accounts post-hoc via webhook reconciliation (rejected: creates orphan identities that need later cleanup)
+- Embed the check in the register API route (rejected: ties CIS availability to registration success/failure and creates coupling)
+
+**Implications:**
+- Check fires on email blur with 800ms debounce in UserInfo component
+- CrossPlatformAccountPrompt component displays inline in the signup form
+- Signup submission is blocked while cross-platform prompt is visible
+- When CIS is not configured, check silently returns null and signup proceeds normally
+- The "Sign In Instead" button navigates to /login

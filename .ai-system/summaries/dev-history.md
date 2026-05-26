@@ -22,6 +22,63 @@
 [What comes next]
 ```
 
+## 2026-05-19 — CIS Prisma Migrations + Environment Configuration
+
+**Summary:**
+Completed the CIS federation rollout by creating Prisma migrations for the CisIdentity and CisWebhookEvent models and populating environment variables with CIS configuration.
+
+**Completed:**
+
+- Created additive Prisma migration `20260519151500_cis_identity_persistence` for harvesthub-reboot.
+- Fixed Prisma relation validation error by adding back-relation from User model to CisIdentity.
+- Updated `.env.local` with CIS variables: `CIS_API_URL`, `CIS_PLATFORM_SLUG`, `CIS_CLIENT_ID`, `CIS_CLIENT_SECRET`, `CIS_WEBHOOK_SECRET`, `CIS_WEBHOOK_PATH`, `CIS_WEBHOOK_ALLOWED_SKEW_SECONDS`.
+
+**Key Changes:**
+
+- CIS persistence layer now has database migrations ready for deployment via `prisma migrate deploy`.
+- Environment configuration is complete for local development and deployment validation.
+
+**Next Sprint Focus:**
+Apply migrations to development database and validate the webhook endpoint behavior end-to-end.
+
+## 2026-05-19 — CIS Migration Deployment + TypeScript Fixes
+
+**Summary:**
+Successfully deployed Prisma migrations for all three CIS repositories and fixed TypeScript compilation errors in the CIS configuration and data layers.
+
+**Completed:**
+
+- Applied `20260519151635_cis_identity_persistence` migration to harvesthub-reboot database.
+- Fixed TypeScript error in `lib/config/cis.ts` where `timestamp` could be null.
+- Regenerated Prisma client to include new CisIdentity and CisWebhookEvent models.
+- Verified `npx tsc --noEmit` passes.
+
+**Key Changes:**
+
+- CIS persistence layer is now fully deployed and operational.
+- TypeScript strict mode now passes for CIS integration code.
+
+**Next Sprint Focus:**
+Validate the webhook endpoint behavior end-to-end with actual signed payloads.
+
+## 2026-05-13 — CIS Identity Persistence
+
+**Summary:**
+Extended the CIS federation surface to persist identity mappings and webhook history while keeping local user data untouched.
+
+**Completed:**
+
+- Added `CisIdentity` and `CisWebhookEvent` models.
+- Persisted webhook events in `/api/cis/webhook`.
+- Updated CIS docs to reflect the push model.
+
+**Key Changes:**
+
+- CIS sync events now have a durable audit trail without mutating core user records.
+
+**Next Sprint Focus:**
+Finalize the CIS payload contract and decide if/when to attach user-link logic.
+
 ## 2026-05-02 — Guest Toast, Signup Footer, Discount Layout, Paystack Inline Acceptance + Wallet Repair
 
 **Summary:**
@@ -29,13 +86,10 @@ Completed the remaining UX and payments follow-ups in a single pass. Guest add-t
 
 **Completed:**
 
-
 **Key Changes:**
-
 
 **Next Sprint Focus:**
 Run remaining lint/build checks, then ship the repair script guidance and any deployment notes if reviewers want operator-facing instructions.
-
 
 ## 2026-04-19 — Paystack Inline Popup + Webhook Alias Hardening
 
@@ -43,10 +97,11 @@ Run remaining lint/build checks, then ship the repair script guidance and any de
 Completed a scope-locked Paystack reliability pass to move payment initialization away from server-side provider calls and into browser inline popup flows. This reduces hosted IP-allowlist friction while preserving existing verification and reconciliation contracts. A compatibility webhook alias endpoint was also added for simpler Paystack dashboard routing.
 
 **Completed:**
+
 - Migrated checkout/wallet/advertise/ad-application card initialization to inline popup instead of `/api/payments/initialize`.
 - Added `app/api/paystack-webhook/route.ts` alias reusing the existing webhook reconciliation handler.
 - Updated focused ad-application test expectations for inline-popup flow.
-**Key Changes:**
+  **Key Changes:**
 
 - Paystack initialization now happens client-side for core card flows, reducing server egress/IP restriction failure risk.
 - Webhook endpoint compatibility now supports both `/api/payments/webhook` and `/api/paystack-webhook`.
@@ -1965,6 +2020,26 @@ Implemented the client-requested reliability and account experience improvements
 
 **Next Sprint Focus:**
 Add targeted regression coverage for conversion, auth verification redirect, profile/store persistence, and dark-mode contrast.
+
+## [DATE] — Project Initialization
+
+## 2026-05-13 — Workspace-Wide CIS Federation Rollout
+
+**Summary:**
+Added a narrow CIS federation handshake to MyHarvestHub and the reporting system so both repos can report readiness and accept signed identity syncs without a schema rewrite.
+
+**Completed:**
+
+- Added CIS env/config plumbing plus status and webhook endpoints in both repos.
+- Updated the workspace `.ai-system` planning, context, architecture, and env notes to capture the additive CIS contract.
+- Logged the CIS federation decision so future work can attach persistence only when the owning repo is ready.
+
+**Key Changes:**
+
+- CIS integration is now additive and route-scoped, with public readiness discovery and signature-verified webhook intake.
+
+**Next Sprint Focus:**
+Continue workspace-wide CIS adoption with the next repo that has an established API surface and AI-system coverage.
 
 ## [DATE] — Project Initialization
 

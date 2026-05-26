@@ -4,6 +4,23 @@
 
 ---
 
+## Workspace-Wide CIS Federation Rollout
+
+> **Section summary:** Add a canonical identity handshake surface so this repo can consume CIS identity syncs without hardcoding integration details.
+
+- [x] Add CIS env/config plumbing plus webhook/status routes for MyHarvestHub.
+- [x] Update `.ai-system` docs with the CIS contract, rollout constraints, and continuation prompt.
+- [x] Mirror the same CIS handshake surface in report-sys.
+- [x] Validate the touched files after the rollout lands.
+
+## CIS Identity Persistence (Phase 1)
+
+> **Section summary:** Persist signed CIS sync events without mutating local users.
+
+- [x] Add `CisIdentity` + `CisWebhookEvent` models to Prisma schema.
+- [x] Persist webhook events and identity mappings in `/api/cis/webhook`.
+- [x] Record push-model decision in `.ai-system` docs.
+
 ## Session 82 — Guest toast, signup footer, discount layout, Paystack inline acceptance (2026-05-02)
 
 > Implemented single-pass fixes to guest action UX, signup layout, checkout discount stacking, and Paystack inline deposit acceptance.
@@ -456,6 +473,17 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [x] Verify dashboard route links in `Header`, `Sidebar`, and `middleware` for all roles to avoid broken or unauthorized navigation
 
 ---
+
+## Cross-Platform Account Detection (2026-05-26)
+
+> **Section summary:** Pre-signup email check against CIS backend to detect existing accounts on other platforms.
+
+- [x] Add `lib/services/cisCheck.ts` — service calling `GET /api/v1/users/check-email/:email`
+- [x] Add `components/ui/CrossPlatformAccountPrompt.tsx` — UI prompt for detected cross-platform accounts
+- [x] Wire email blur check in `app/signup/components/UserInfo.tsx` — triggers CIS check on email field blur
+- [x] Block signup submission until cross-platform prompt is dismissed or no match found
+- [x] Export `CrossPlatformAccountPrompt` from `components/ui/index.ts`
+- [x] Update `.ai-system` docs with feature decisions
 
 ## Backlog
 

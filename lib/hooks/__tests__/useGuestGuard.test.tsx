@@ -46,7 +46,7 @@ describe("useGuestGuard", () => {
     await user.click(screen.getByRole("button", { name: "Trigger" }));
 
     expect(notifyMock).toHaveBeenCalledTimes(1);
-    const payload = notifyMock.mock.calls[0][0];
+    const payload = notifyMock.mock.calls[0]![0]!;
     expect(payload.type).toBe("info");
     expect(payload.message).toBe("Sign in required");
     expect(payload.description).toContain("add items to your cart");

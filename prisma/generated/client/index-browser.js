@@ -141,6 +141,35 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CisIdentityScalarFieldEnum = {
+  id: 'id',
+  cisSubjectId: 'cisSubjectId',
+  sourcePlatform: 'sourcePlatform',
+  externalUserId: 'externalUserId',
+  linkedUserId: 'linkedUserId',
+  email: 'email',
+  phone: 'phone',
+  displayName: 'displayName',
+  role: 'role',
+  status: 'status',
+  lastEventType: 'lastEventType',
+  lastEventAt: 'lastEventAt',
+  payload: 'payload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CisWebhookEventScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  eventType: 'eventType',
+  sourcePlatform: 'sourcePlatform',
+  subjectId: 'subjectId',
+  externalUserId: 'externalUserId',
+  payload: 'payload',
+  receivedAt: 'receivedAt'
+};
+
 exports.Prisma.BuyerScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -980,6 +1009,8 @@ exports.VendorContentStatus = exports.$Enums.VendorContentStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  CisIdentity: 'CisIdentity',
+  CisWebhookEvent: 'CisWebhookEvent',
   Buyer: 'Buyer',
   Vendor: 'Vendor',
   Product: 'Product',

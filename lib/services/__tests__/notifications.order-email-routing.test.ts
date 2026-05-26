@@ -154,7 +154,7 @@ describe('dispatchNotification order email routing', () => {
 
         expect(result.emailSent).toBe(true);
         expect(mockSendNotificationEmail).toHaveBeenCalledTimes(1);
-        expect(mockSendNotificationEmail.mock.calls[0][1]).toMatchObject({
+        expect(mockSendNotificationEmail.mock.calls[0]![1]).toMatchObject({
             title: 'Wallet Deposit Successful',
             message: 'Your wallet has been credited with ₦5,000.',
             link: 'https://harvesthub.ng/wallet',
