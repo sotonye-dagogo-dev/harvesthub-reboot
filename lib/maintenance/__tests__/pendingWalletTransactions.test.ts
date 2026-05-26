@@ -81,7 +81,7 @@ describe('pending wallet transaction repair helpers', () => {
             references: ['PAY-1'],
         });
         expect(updateMock).toHaveBeenCalledTimes(1);
-        expect(updateMock.mock.calls[0][0]).toMatchObject({
+        expect(updateMock.mock.calls[0]![0]).toMatchObject({
             where: { id: 'txn-1' },
             data: expect.objectContaining({
                 status: 'FAILED',
