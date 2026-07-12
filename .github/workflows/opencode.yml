@@ -6,11 +6,6 @@ on:
   pull_request_review_comment:
     types: [created]
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
-
 jobs:
   # Routes to the design pipeline. Note this still contains /oc or
   # /opencode — required unconditionally by anomalyco/opencode/github's
