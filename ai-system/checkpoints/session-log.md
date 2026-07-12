@@ -4421,3 +4421,29 @@ Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-
 
 **Next Task:**
 No blockers. 2026-04-17 queue block complete. Future sessions can pick up from task-queue.md.
+
+## Session 2026-07-12 — Vendor Bank Details on Checkout + Build Fix
+
+**Goal:**
+Close the gap where vendor bank account details (collected during signup) were not displayed on the checkout page for off-platform bank transfer payments. Also fix the pre-existing build error.
+
+**Completed:**
+
+- Created `app/api/vendors/[id]/bank-details/route.ts` — returns vendor bank name, account name, account number from `businessVerification.bankDetails`
+- Updated `app/checkout/page.tsx` to fetch and display vendor bank details when `BANK_TRANSFER_PROOF` is selected
+- Extended `app/api/vendors/me/store-settings/route.ts` GET/PUT to include bankName, accountName, accountNumber
+- Updated `components/features/StoreSettingsPage.tsx` with a Bank Details card for vendors to manage their banking info
+- Fixed pre-existing build error: `size="small"` → `size="sm"` in `app/orders/[id]/page.tsx`
+
+**Files Modified:**
+- `app/api/vendors/[id]/bank-details/route.ts` (new)
+- `app/checkout/page.tsx`
+- `app/api/vendors/me/store-settings/route.ts`
+- `components/features/StoreSettingsPage.tsx`
+- `app/orders/[id]/page.tsx`
+- `ai-system/summaries/dev-history.md`
+- `ai-system/index/repo-map.md`
+- `ai-system/repair-system.md`
+
+**Validation:**
+- `npx next build --no-lint` ✅

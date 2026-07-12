@@ -30,6 +30,9 @@ type StoreSettingsPayload = {
     returnPolicy?: string;
     shippingPolicy?: string;
     businessAddress?: string;
+    bankName?: string;
+    accountName?: string;
+    accountNumber?: string;
 };
 
 export async function GET() {
@@ -62,6 +65,8 @@ export async function GET() {
 
         const settings = asRecord(vendor.storeSettings);
         const policies = asRecord(settings.policies);
+        const verification = asRecord(vendor.businessVerification);
+        const bankDetails = asRecord(verification.bankDetails);
 
         return NextResponse.json({
             success: true,
@@ -84,7 +89,10 @@ export async function GET() {
                 processingTime: (settings.processingTime as string) || '1-2 days',
                 returnPolicy: (policies.returnPolicy as string) || '',
                 shippingPolicy: (policies.shippingPolicy as string) || '',
-                businessAddress: (asRecord(vendor.businessVerification).businessAddress as string) || '',
+                businessAddress: (verification.businessAddress as string) || '',
+                bankName: (bankDetails.bankName as string) || '',
+                accountName: (bankDetails.accountName as string) || '',
+                accountNumber: (bankDetails.accountNumber as string) || '',
             },
         });
     } catch (error) {
@@ -115,6 +123,9 @@ export async function PUT(req: NextRequest) {
         const phone = body.phone?.trim() || '';
         const whatsapp = body.whatsapp?.trim() || '';
         const businessAddress = body.businessAddress?.trim() || '';
+        const bankName = body.bankName?.trim() || '';
+        const accountName = body.accountName?.trim() || '';
+        const accountNumber = body.accountNumber?.trim() || '';
 
         if (!storeName || !category || !campus || !whatsapp || !businessAddress) {
             return NextResponse.json(
@@ -142,6 +153,7 @@ export async function PUT(req: NextRequest) {
         const existingSettings = asRecord(existingVendor.storeSettings);
         const existingPolicies = asRecord(existingSettings.policies);
         const existingVerification = asRecord(existingVendor.businessVerification);
+        const existingBankDetails = asRecord(existingVerification.bankDetails);
 
         const mergedSettings = {
             ...existingSettings,
@@ -171,6 +183,20 @@ export async function PUT(req: NextRequest) {
                     businessVerification: {
                         ...existingVerification,
                         businessAddress,
+                        bankDetails: {
+                            ...existingBankDetails,
+                            ...(bankName || accountName || accountNumber
+                                ? {
+                                      bankName: bankName || existingBankDetails.bankName || undefined,
+                                      accountName:
+                                          accountName || existingBankDetails.accountName || undefined,
+                                      accountNumber:
+                                          accountNumber ||
+                                          existingBankDetails.accountNumber ||
+                                          undefined,
+                                  }
+                                : undefined),
+                        },
                     },
                     storeSettings: mergedSettings,
                 },
@@ -190,6 +216,8 @@ export async function PUT(req: NextRequest) {
 
         const settings = asRecord(updated.storeSettings);
         const policies = asRecord(settings.policies);
+        const updatedVerification = asRecord(updated.businessVerification);
+        const updatedBankDetails = asRecord(updatedVerification.bankDetails);
 
         return NextResponse.json({
             success: true,
@@ -212,6 +240,9 @@ export async function PUT(req: NextRequest) {
                 returnPolicy: (policies.returnPolicy as string) || '',
                 shippingPolicy: (policies.shippingPolicy as string) || '',
                 businessAddress,
+                bankName: (updatedBankDetails.bankName as string) || '',
+                accountName: (updatedBankDetails.accountName as string) || '',
+                accountNumber: (updatedBankDetails.accountNumber as string) || '',
             },
         });
     } catch (error) {

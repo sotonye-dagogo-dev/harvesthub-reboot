@@ -745,14 +745,14 @@ export default function OrderDetailPage() {
                         {canAcknowledgeProof && proof.status === "PENDING" ? (
                           <div className="flex gap-1">
                             <Button
-                              size="small"
+                              size="sm"
                               onClick={() => void handleAcknowledgeProof(proof.id, "VERIFIED")}
                               disabled={isMutating}
                             >
                               Verify
                             </Button>
                             <Button
-                              size="small"
+                              size="sm"
                               variant="outline"
                               onClick={() => void handleAcknowledgeProof(proof.id, "REJECTED")}
                               disabled={isMutating}

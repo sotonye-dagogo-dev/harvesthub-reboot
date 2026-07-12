@@ -2,7 +2,7 @@
 
 > **Metadata**
 >
-> - last-updated-by: bootstrap-project
+> - last-updated-by: update-ai-system.md (2026-07-12)
 > - last-verified-against-code: 2026-07-12
 > - staleness-policy: re-verify if sync procedure changes
 
