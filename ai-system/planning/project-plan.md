@@ -1,5 +1,6 @@
 # Project Plan
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** A phased roadmap for MyHarvestHub that guides work from foundational infrastructure through core product functionality to launch readiness. Update as progress is made.
 
 ---
@@ -1294,3 +1295,4 @@ Align marketplace browsing layouts by making home card sections horizontally scr
 - [x] Integrate Ant Design and Tailwind with purple-first theme
 - [x] Create initial mock data and in-memory database layer
 - [x] Establish basic auth (login, register, logout) APIs
+- [x] Implement off-platform payment alternative with proof upload and vendor acknowledgment (2026-07-12)

@@ -1,5 +1,6 @@
 # Lessons Learned
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -44,6 +45,17 @@ Audit tooling can drift silently when UI config shape evolves. Route audits shou
 
 **Apply When:**
 Refactoring sidebar/header route definitions, link arrays, or navigation config schemas.
+
+## Bank Transfer Fallback Must Coordinate Three Toggles
+
+**Context:**
+Implemented off-platform payment with proof upload as a togglable option. Required coordinating `PAYMENT_FALLBACK_BANK_TRANSFER` (env var), `paymentsEnabled` (DB toggle in `CommerceLifecycleConfig`), and `gatewayReady` (automatic Paystack key check). The option appears only when the env var is true AND either `paymentsEnabled` is false or `gatewayReady` is false.
+
+**What We Learned:**
+A three-layer toggle system (env → DB → runtime health) can be hard to debug. All three conditions must be clearly surfaced in both the payment config API and the UI. The checkout page needs auto-switching logic so the user isn't left on a disabled payment method.
+
+**Apply When:**
+Adding conditional payment methods that depend on multiple configuration sources.
 
 ## Governed Upload Fields Need End-to-End Language Consistency
 
