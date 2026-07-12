@@ -1,5 +1,6 @@
 # Repository Map
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
 
 ---
@@ -64,7 +65,7 @@ harvesthub-reboot/
 | Directory     | Purpose                                                              | Key Files                                                                        |
 | ------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `app/`        | Main App Router surface for public, auth, and operations experiences | `app/layout.tsx`, `app/page.tsx`, `app/(operations)/operations/layout.tsx`       |
-| `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/route.ts`                  |
+| `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/orders/[id]/proof-of-payment/*`, `app/api/upload/route.ts`                  |
 | `components/` | Reusable app-wide UI and feature composition                         | `components/layout/Header.tsx`, `components/layout/Sidebar.tsx`                  |
 | `lib/`        | Core shared runtime utilities and business logic                     | `lib/api/http.ts`, `lib/rbac/routeConfig.ts`, `lib/data/database.ts`             |
 | `prisma/`     | ORM schema/migrations/client generation                              | `prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`                  |

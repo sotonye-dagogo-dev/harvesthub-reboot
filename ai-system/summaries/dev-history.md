@@ -1,5 +1,6 @@
 # Development History
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -2152,6 +2153,27 @@ Implemented the first execution slice of the modernization plan with focused, pr
 **Next Sprint Focus:**
 
 - Add targeted tests for config + RBAC policies and finish remaining modernization tasks (UI refresh breadth, cache invalidation tests, push delivery trigger paths).
+
+## 2026-07-12 — Off-Platform Payment Alternative with Proof Upload and Vendor Acknowledgment
+
+**Summary:**
+Implemented a fallback payment mechanism where customers pay off-platform via bank transfer and upload proof of payment for vendor verification. This is togglable via `PAYMENT_FALLBACK_BANK_TRANSFER` env var and shown when main payment methods (Paystack, wallet) are disabled or unavailable.
+
+**Completed:**
+- Added `bankTransferFallbackEnabled` to payment config API response (`lib/config/payments.ts`)
+- Added `BANK_TRANSFER_PROOF` payment method radio option to checkout page, shown conditionally when `!paymentsEnabled || !gatewayReady` and fallback is enabled
+- Added `POST /api/orders/[id]/proof-of-payment` endpoint for customers to upload payment receipts with amount and bank reference
+- Added `POST /api/orders/[id]/proof-of-payment/acknowledge` endpoint for vendors/admins to verify or reject proof submissions, auto-updating order payment status to PAID on verification
+- Included `proofOfTransfers` in order detail GET response
+- Added proof upload UI to order detail page for buyers with pending `BANK_TRANSFER_PROOF` orders
+- Added vendor acknowledgment UI with receipt preview modal, verify/reject actions, and optional notes
+
+**Key Changes:**
+- New files: `app/api/orders/[id]/proof-of-payment/route.ts`, `app/api/orders/[id]/proof-of-payment/acknowledge/route.ts`
+- Modified: `app/checkout/page.tsx`, `app/orders/[id]/page.tsx`, `app/api/orders/[id]/route.ts`, `lib/config/payments.ts`
+
+**Next Sprint Focus:**
+- Run Prisma migration for `ProofOfTransfer` model and migrate from in-memory store to persisted DB records
 
 ## 2026-04-04 — Cloud Continuation: Signup/Auth/Settings/Operations Hardening
 

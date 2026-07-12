@@ -49,5 +49,6 @@ export async function getPaymentProcessingRuntimeConfig() {
     inlinePopupEnabled: Boolean(env.paystackPublicKey),
     minOrderAmount,
     maxBookingAdvanceDays,
+    bankTransferFallbackEnabled: env.paymentFallbackBankTransfer,
   };
 }

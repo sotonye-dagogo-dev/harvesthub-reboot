@@ -1,5 +1,6 @@
 # Dependency Graph
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
@@ -45,6 +46,21 @@ app/api/upload/route.ts
   -> lib/services/asset.ts
   -> lib/middleware/rate-limit.ts
   -> lib/api/http.ts
+
+app/api/orders/[id]/proof-of-payment/route.ts
+  -> lib/db/prisma.ts
+  -> lib/utils/auth.ts
+  -> lib/middleware/rate-limit.ts
+
+app/api/orders/[id]/proof-of-payment/acknowledge/route.ts
+  -> lib/db/prisma.ts
+  -> lib/utils/auth.ts
+  -> lib/middleware/rate-limit.ts
+  -> prisma/generated/client (ProofOfTransferStatus, PaymentStatus)
+
+app/orders/[id]/page.tsx
+  -> components/ui/ImageUpload.tsx
+  -> app/api/orders/[id]/proof-of-payment/*
 
 app/advertise/page.tsx + app/ad-application/page.tsx
   -> components/ui/ImageUpload.tsx
@@ -98,6 +114,7 @@ lib/services/notifications.ts
 - Historical docs referenced `(buyer)/(vendor)/(admin)` route groups, but canonical management routes now live under `app/(operations)/operations/*`.
 - Avoid reintroducing raw media URL entry for upload-governed fields; upload APIs enforce managed URLs for governed flows.
 - `scripts/auditSidebarRoutes.ts` must stay synchronized with `components/layout/Sidebar.tsx` data-shape changes to avoid false route-audit failures.
+- Off-platform payment with proof upload: `BANK_TRANSFER_PROOF` payment method gated by `bankTransferFallbackEnabled` env var and `paymentsEnabled` DB toggle. The proof-of-payment lifecycle spans `app/api/orders/[id]/proof-of-payment/*` for upload and vendor acknowledgment, and `app/orders/[id]/page.tsx` for buyer upload UI and vendor verify/reject UI.
 
 ---
 

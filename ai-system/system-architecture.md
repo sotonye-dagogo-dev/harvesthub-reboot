@@ -1,5 +1,6 @@
 # System Architecture
 
+> **last-updated-by:** update-ai-system.md (2026-07-12)
 > **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a mock data layer to simulate a backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable.
 
 ---
@@ -33,6 +34,8 @@
 - **Zod schemas** validate incoming request bodies in `app/api/*` and server actions.
 - **UI components** are located under `components/` with a split between `ui/` (generic) and `features/` (domain-specific).
 - **Routing protection** is implemented via role-based checks in layouts and server-side guards.
+
+- **Payment Fallback Architecture:** A config-driven off-platform payment path exists when main payment methods (Paystack, wallet) are disabled or gateway unavailable. Customers select `BANK_TRANSFER_PROOF` at checkout, pay via bank transfer off-platform, then upload proof of payment on the order detail page. Vendors/admins verify or reject the proof via the same page, which auto-updates order payment status to PAID.
 
 ---
 
