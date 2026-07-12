@@ -6,17 +6,16 @@
 
 ## Last Run
 
-**Date:** 2026-03-25
-**Run by:** GitHub Copilot (Raptor mini)
+**Date:** 2026-07-12
+**Run by:** opencode-agent
 
 **Results:**
 | Suite | Passed | Failed | Skipped |
 |-------|--------|--------|---------|
-| Unit | n/a | n/a | n/a |
-| Integration | n/a | n/a | n/a |
-| E2E | n/a | n/a | n/a |
+| Build | ✅ (next build --no-lint) | 0 | 0 |
+| Lint | ✅ (next lint) | 0 | 0 |
 
-**Overall Status:** Partial
+**Overall Status:** Build + Lint passing
 
 ## Active Failures
 

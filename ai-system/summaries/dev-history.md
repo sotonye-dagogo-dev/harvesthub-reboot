@@ -1,6 +1,7 @@
 # Development History
 
 > **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-at:** 2026-07-12T16:30:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -2199,3 +2200,24 @@ Completed a major cloud continuation slice to stabilize interrupted refactor wor
 **Notes:**
 
 - Remaining queue closure includes full API wrapper standardization and expanded high-risk regression matrix beyond targeted suites.
+
+## 2026-07-12 — Vendor Bank Details on Checkout + Bank Detail Management + Build Fix
+
+**Summary:**
+Completed the off-platform payment gap by exposing vendor bank details (collected during signup and stored in `businessVerification.bankDetails`) on the checkout page when Bank Transfer (Upload Proof) is selected. Added a new API endpoint for fetching bank details, wired it into the checkout UI, and added bank detail management fields to the store settings page so vendors can update their banking info post-signup. Fixed a pre-existing TypeScript build error (`size="small"` → `size="sm"`) in the order detail page.
+
+**Completed:**
+- Created `app/api/vendors/[id]/bank-details/route.ts` — lightweight public endpoint returning vendor bank name, account name, and account number from `businessVerification.bankDetails`
+- Updated `app/checkout/page.tsx` to fetch and display vendor bank details when `BANK_TRANSFER_PROOF` payment method is selected
+- Extended `app/api/vendors/me/store-settings/route.ts` GET/PUT to include bankName, accountName, accountNumber
+- Updated `components/features/StoreSettingsPage.tsx` with Bank Details card (Bank Name, Account Name, Account Number fields)
+- Fixed pre-existing build error in `app/orders/[id]/page.tsx` — changed `size="small"` to `size="sm"` for Button components
+- Build verified: `npx next build --no-lint` passes
+
+**Key Changes:**
+- New file: `app/api/vendors/[id]/bank-details/route.ts`
+- Modified: `app/checkout/page.tsx`, `app/api/vendors/me/store-settings/route.ts`, `components/features/StoreSettingsPage.tsx`, `app/orders/[id]/page.tsx`
+
+**Next Sprint Focus:**
+- Consider adding a dedicated `bankDetails` field on the Vendor model (instead of nested in `businessVerification` JSON)
+- Add notification to vendors when proof of payment is uploaded by a customer

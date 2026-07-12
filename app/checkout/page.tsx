@@ -40,6 +40,14 @@ type CheckoutWalletSummary = {
   availableBalance: number | null;
 };
 
+type VendorBankInfo = {
+  vendorId: string;
+  vendorName: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+};
+
 export default function CheckoutPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -52,6 +60,8 @@ export default function CheckoutPage() {
   const [vendorVerificationAcknowledged, setVendorVerificationAcknowledged] = useState(false);
   const [cardPaymentReference, setCardPaymentReference] = useState<string | null>(null);
   const [cardPaymentState, setCardPaymentState] = useState<CardPaymentState>("IDLE");
+  const [vendorBankInfo, setVendorBankInfo] = useState<VendorBankInfo[]>([]);
+  const [loadingBankInfo, setLoadingBankInfo] = useState(false);
 
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<{
@@ -251,6 +261,42 @@ export default function CheckoutPage() {
       );
     }
   }, [runtimeProducts, items, reconcileWithCatalog]);
+
+  const loadBankInfo = useCallback(async () => {
+    if (vendorIds.length === 0) return;
+    setLoadingBankInfo(true);
+    try {
+      const results = await Promise.all(
+        vendorIds.map(async (vendorId) => {
+          try {
+            const res = await fetch(`/api/vendors/${vendorId}/bank-details`);
+            const data = await res.json().catch(() => ({}));
+            if (data?.success && data?.bankDetails) {
+              return {
+                vendorId,
+                vendorName: data.vendorName ?? "Vendor",
+                bankName: data.bankDetails.bankName,
+                accountName: data.bankDetails.accountName,
+                accountNumber: data.bankDetails.accountNumber,
+              } as VendorBankInfo;
+            }
+            return null;
+          } catch {
+            return null;
+          }
+        })
+      );
+      setVendorBankInfo(results.filter((r): r is VendorBankInfo => r !== null));
+    } finally {
+      setLoadingBankInfo(false);
+    }
+  }, [vendorIds]);
+
+  useEffect(() => {
+    if (bankTransferAvailable && vendorIds.length > 0) {
+      void loadBankInfo();
+    }
+  }, [bankTransferAvailable, vendorIds, loadBankInfo]);
 
   const pickupOptions = [
     { value: "SUNDAY_FIRST", label: "Sunday Service (First)", time: "7:00 AM - 9:30 AM" },
@@ -853,6 +899,46 @@ export default function CheckoutPage() {
                 >
                   Reinitialize card payment
                 </button>
+              </div>
+            ) : null}
+            {paymentMethod === "BANK_TRANSFER_PROOF" && vendorBankInfo.length > 0 ? (
+              <div className="mt-4 space-y-3">
+                <p className="text-sm font-semibold text-ds-text-primary">
+                  Transfer to the following account(s):
+                </p>
+                {vendorBankInfo.map((info) => (
+                  <div
+                    key={info.vendorId}
+                    className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-3"
+                  >
+                    <p className="text-sm font-medium text-ds-text-primary">{info.vendorName}</p>
+                    <div className="mt-1.5 space-y-1 text-sm text-ds-text-secondary">
+                      <p>
+                        <span className="font-medium text-ds-text-primary">Bank:</span>{" "}
+                        {info.bankName}
+                      </p>
+                      <p>
+                        <span className="font-medium text-ds-text-primary">Account Name:</span>{" "}
+                        {info.accountName}
+                      </p>
+                      <p>
+                        <span className="font-medium text-ds-text-primary">Account Number:</span>{" "}
+                        <span className="font-mono text-ds-text-primary">{info.accountNumber}</span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {paymentMethod === "BANK_TRANSFER_PROOF" && !loadingBankInfo && vendorBankInfo.length === 0 ? (
+              <div className="mt-4 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg p-3 text-xs text-ds-status-warning-text">
+                Vendor bank details are not available. Please contact the vendor for payment
+                instructions.
+              </div>
+            ) : null}
+            {paymentMethod === "BANK_TRANSFER_PROOF" && loadingBankInfo ? (
+              <div className="mt-4 text-xs text-ds-text-tertiary">
+                Loading vendor bank details...
               </div>
             ) : null}
           </Card>

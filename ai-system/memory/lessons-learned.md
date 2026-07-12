@@ -1,6 +1,7 @@
 # Lessons Learned
 
 > **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-at:** 2026-07-12T16:30:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -56,6 +57,17 @@ A three-layer toggle system (env → DB → runtime health) can be hard to debug
 
 **Apply When:**
 Adding conditional payment methods that depend on multiple configuration sources.
+
+## Vendor Bank Details Must Be Exposed at Checkout
+
+**Context:**
+Vendor bank details were collected during signup and stored in `businessVerification.bankDetails`, but the checkout page did not display them. Customers selecting "Bank Transfer (Upload Proof)" had no way of knowing where to transfer the money.
+
+**What We Learned:**
+Any payment-related data collected at registration must be surfaced at the point of payment. When implementing off-platform payment flows, ensure the transfer destination details (bank name, account name, account number) are fetched and displayed for each vendor in the cart during checkout.
+
+**Apply When:**
+Implementing or reviewing off-platform payment methods that require the customer to manually transfer funds to the vendor.
 
 ## Governed Upload Fields Need End-to-End Language Consistency
 
