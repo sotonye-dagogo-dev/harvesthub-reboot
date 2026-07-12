@@ -33,7 +33,7 @@ import { emitWalletSync } from "@/lib/utils/walletSync";
 export const dynamic = "force-dynamic";
 
 type DeliveryMethod = "PICKUP" | "DELIVERY";
-type PaymentMethod = "WALLET" | "CARD";
+type PaymentMethod = "WALLET" | "CARD" | "BANK_TRANSFER_PROOF";
 type PickupService = "SUNDAY_FIRST" | "SUNDAY_SECOND" | "MIDWEEK" | "SPECIAL_EVENT";
 type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED" | "PENDING_CONFIRMATION";
 type CheckoutWalletSummary = {
@@ -143,6 +143,7 @@ export default function CheckoutPage() {
     paymentsEnabled: boolean;
     gatewayReady: boolean;
     paystackPublicKey: string | null;
+    bankTransferFallbackEnabled: boolean;
   }> => {
     const res = await fetch("/api/payments/config", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -156,6 +157,7 @@ export default function CheckoutPage() {
         typeof data?.paystackPublicKey === "string" && data.paystackPublicKey.trim().length > 0
           ? data.paystackPublicKey.trim()
           : null,
+      bankTransferFallbackEnabled: Boolean(data?.bankTransferFallbackEnabled),
     };
   }, []);
 
@@ -204,6 +206,7 @@ export default function CheckoutPage() {
   const paymentsEnabled = paymentConfig?.paymentsEnabled ?? PLATFORM_DEFAULTS.PAYMENTS_ENABLED;
   const gatewayReady = paymentConfig?.gatewayReady ?? false;
   const cardPaymentsAvailable = paymentsEnabled && gatewayReady;
+  const bankTransferFallbackEnabled = paymentConfig?.bankTransferFallbackEnabled ?? false;
   const availableWalletBalance = walletSummary?.availableBalance ?? null;
   const hasSufficientWalletBalance =
     typeof availableWalletBalance === "number" ? availableWalletBalance >= total : true;
@@ -224,6 +227,14 @@ export default function CheckoutPage() {
       setPaymentMethod("WALLET");
     }
   }, [cardPaymentsAvailable, paymentMethod]);
+
+  const shouldShowBankTransfer = bankTransferFallbackEnabled && (!paymentsEnabled || !gatewayReady);
+
+  useEffect(() => {
+    if (shouldShowBankTransfer && paymentMethod === "WALLET" && !hasSufficientWalletBalance) {
+      setPaymentMethod("BANK_TRANSFER_PROOF");
+    }
+  }, [shouldShowBankTransfer, paymentMethod, hasSufficientWalletBalance]);
 
   useEffect(() => {
     if (!Array.isArray(runtimeProducts) || runtimeProducts.length === 0 || items.length === 0) {
@@ -789,6 +800,22 @@ export default function CheckoutPage() {
                   ) : null}
                 </div>
               </Radio>
+              {shouldShowBankTransfer ? (
+                <Radio
+                  value="BANK_TRANSFER_PROOF"
+                  className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 font-medium text-ds-text-primary">
+                      <Info className="h-5 w-5" />
+                      Bank Transfer (Upload Proof)
+                    </div>
+                    <div className="mt-1 text-sm text-ds-text-secondary">
+                      Pay off-platform and upload your payment receipt
+                    </div>
+                  </div>
+                </Radio>
+              ) : null}
               <Radio
                 value="CARD"
                 disabled={!cardPaymentsAvailable}
@@ -930,15 +957,23 @@ export default function CheckoutPage() {
                 ? cardPaymentReference
                   ? "Verify Card Payment & Place Order"
                   : "Initialize Card Payment"
+                : paymentMethod === "BANK_TRANSFER_PROOF"
+                  ? "Place Order (Upload Proof Later)"
                 : paymentsEnabled
                   ? "Place Order"
                   : "Place Order (Pay Later)"}
             </Button>
 
-            {!paymentsEnabled && (
+            {!paymentsEnabled && paymentMethod !== "BANK_TRANSFER_PROOF" && (
               <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
                 Your order will be placed with payment pending. You&apos;ll be notified when payment
                 processing is available.
+              </p>
+            )}
+            {paymentMethod === "BANK_TRANSFER_PROOF" && (
+              <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
+                After placing your order, you can upload proof of payment from the order details
+                page. The vendor will verify your payment.
               </p>
             )}
           </Card>

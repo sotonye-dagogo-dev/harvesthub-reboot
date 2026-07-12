@@ -1,6 +1,7 @@
 import { env } from "@/lib/config/env";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import { isGatewayReady } from "@/lib/services/payments";
+import { featureFlags } from "@/lib/config/features";
 
 type PaymentProcessingConfigInput = {
   paystackPublicKey?: string | null;
@@ -47,6 +48,7 @@ export async function getPaymentProcessingRuntimeConfig() {
     gatewayReady: isGatewayReady("PAYSTACK"),
     paystackPublicKey: env.paystackPublicKey || null,
     inlinePopupEnabled: Boolean(env.paystackPublicKey),
+    bankTransferFallbackEnabled: featureFlags.enableBankTransferFallback,
     minOrderAmount,
     maxBookingAdvanceDays,
   };
