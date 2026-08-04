@@ -37,6 +37,7 @@ export const routeConfig: RouteConfig[] = [
     { path: '/operations/vendor-content', labelKey: 'adminVendorContent', featureKey: 'operations-vendor-content', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/marketing-content', labelKey: 'vendorMarketingContent', featureKey: 'operations-marketing-content', public: false, roles: [UserRole.VENDOR, UserRole.ADMIN] },
     { path: '/advertise', labelKey: 'advertise', featureKey: 'advertise', public: true },
+    { path: '/advertise/apply', labelKey: 'advertiseApply', featureKey: 'advertise-apply', public: true },
     { path: '/ad-application', labelKey: 'advertise', featureKey: 'ad-application', public: true },
     { path: '/profile', labelKey: 'profile', featureKey: 'profile', public: false, roles: [UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN] },
     { path: '/become-vendor', labelKey: 'becomeVendor', featureKey: 'become-vendor', public: false, roles: [UserRole.BUYER, UserRole.ADMIN] },

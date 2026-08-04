@@ -81,6 +81,12 @@ const pagePresets: PagePreset[] = [
     suggestedTitle: "Frequently Asked Questions",
     helper: "Support-focused frequently asked questions.",
   },
+  {
+    slug: "advertise",
+    label: "Advertise & Sponsorship",
+    suggestedTitle: "Advertise & Sponsor With MyHarvestHub",
+    helper: "Landing-page narrative shown on the public advertise page.",
+  },
 ];
 
 function createSection(type: SectionType = "TEXT"): ContentSection {
