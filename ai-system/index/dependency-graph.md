@@ -1,6 +1,6 @@
 # Dependency Graph
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-by:** update-ai-system.md (2026-08-04)
 > **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
@@ -62,7 +62,20 @@ app/orders/[id]/page.tsx
   -> components/ui/ImageUpload.tsx
   -> app/api/orders/[id]/proof-of-payment/*
 
-app/advertise/page.tsx + app/ad-application/page.tsx
+app/advertise/page.tsx (landing page, async server component)
+  -> lib/config/siteContent.ts (advertisingConfig copy)
+  -> lib/data/publicContent.ts (getPublicContentBySlug("advertise"))
+  -> lib/rbac/routeConfig.ts (public route policy)
+
+app/advertise/apply/page.tsx (full sponsored-application form)
+  -> components/ui/ImageUpload.tsx
+  -> lib/utils/localDraft.ts
+  -> lib/utils/offlineQueue.ts
+  -> lib/utils/paystackInline.ts
+  -> app/api/upload/route.ts
+  -> app/api/ad-applications|ads/apply
+
+app/ad-application/page.tsx (simple public application form)
   -> components/ui/ImageUpload.tsx
   -> lib/utils/localDraft.ts
   -> lib/utils/offlineQueue.ts

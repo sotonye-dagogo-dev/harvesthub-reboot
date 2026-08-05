@@ -1,7 +1,7 @@
 # Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
-> **last-updated-at:** 2026-07-12T16:30:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T00:00:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -79,3 +79,14 @@ Upload governance is not only API validation. Field labels, helper text, hidden 
 
 **Apply When:**
 Implementing or reviewing forms that include media/screenshot/payment-proof fields.
+
+## Public Marketing Pages Need Config + Admin-Content Fallback Hierarchy
+
+**Context:**
+Building the `/advertise` landing page required copy-driven layout (hero, placements, steps, policies, FAQ) that is config-driven (`advertisingConfig`) while also supporting admin-authored narrative through the existing `PublicContent` system.
+
+**What We Learned:**
+When a public page must be both informative and admin-editable, keep structural copy in typed config (deterministic layout/tests) and layer admin HTML on top with a clean `PUBLISHED`-check fallback. Route migration (moving the form to `/advertise/apply`) must preserve existing management routes and their nav/sidebar entries.
+
+**Apply When:**
+Adding public marketing/landing pages or relocating feature forms while preserving operational route surfaces.

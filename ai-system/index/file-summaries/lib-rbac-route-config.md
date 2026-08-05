@@ -9,6 +9,7 @@ Route-policy source of truth for role/public access across app pages.
 - Define allowed roles per route and scope behavior.
 - Support canonical path enforcement for operations routes.
 - Guard parity between navigation discoverability and access rules.
+- Declare public advertising routes (`/advertise`, `/advertise/apply`, `/ad-application`).
 
 ## Inputs
 

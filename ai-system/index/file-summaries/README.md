@@ -10,6 +10,7 @@ This directory tracks concise summaries for high-impact files touched during ref
 - `app-api-users-me-change-email-route.md`
 - `lib-rbac-route-config.md`
 - `components-layout-navigation.md`
+- `app-advertise-pages.md`
 
 ## Maintenance Rule
 

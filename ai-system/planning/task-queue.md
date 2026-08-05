@@ -69,6 +69,24 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [x] Add focused regression coverage for branded notification rendering and routing.
 - [x] Update architecture/decision/history docs to reflect the canonical email pipeline.
 
+## Sponsors & Ads Landing Page (2026-08-04)
+
+> **Section summary:** Public-facing marketing landing page at `/advertise` so interested parties learn about sponsored banner placements before proceeding to the actual application/procurement flows. Config-driven and admin-editable via the existing `PublicContent` system, with footer link retargeted to the landing page while operations banner-management routes stay unchanged.
+
+- [x] Add `advertisingConfig` to `lib/config/siteContent.ts` (metadata, routes, hero copy, placement cards, process steps, policies, FAQ, CTA labels).
+- [x] Move the full ad-application form from `app/advertise/page.tsx` -> `app/advertise/apply/page.tsx` (`/advertise/apply`) and rebuild `app/advertise/page.tsx` as the landing page.
+- [x] Add `advertise` preset to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`.
+- [x] Landing page reads `getPublicContentBySlug("advertise")` and renders admin `body` HTML when `PUBLISHED`, otherwise config fallback.
+- [x] Register `/advertise` and `/advertise/apply` as public routes in `lib/rbac/routeConfig.ts` and add `advertiseApply` label key to `lib/navigation.ts`.
+- [x] Retarget footer quick-link from `Apply to Advertise` (/ad-application) to `Advertise With Us` (`/advertise`).
+- [x] Keep `/operations/banners`, `/operations/ads`, and `/ad-application` routes/nav/sidebar unchanged.
+- [x] Add landing page to static sitemap entries.
+- [x] Add tests: `app/advertise/__tests__/page.test.tsx` (hero, CTA target, admin body render, fallback) and update `components/__tests__/Footer.test.tsx`.
+- [x] Validation: `npx tsc --noEmit`, `next lint` touched files, focused vitest, `npm run build`.
+- [x] Sync `ai-system` closure docs (`task-queue`, `session-log`, `system-architecture`, `project-decisions`).
+
+---
+
 ## Current Sprint
 
 > **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.
