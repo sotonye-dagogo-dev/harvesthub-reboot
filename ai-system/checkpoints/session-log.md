@@ -4,6 +4,44 @@
 
 ---
 
+## Session 87 — 2026-08-04
+
+**Goal:**
+Deliver a public, well-designed sponsors/ads landing page so interested parties can learn about advertising before proceeding to the submission pages. Content is config-driven and admin-editable, and the public/footer ad link now points to the landing page while navbar/sidebar banner-management routes stay intact.
+
+**Completed:**
+
+- Built the `/advertise` landing page (hero, admin narrative block, placement cards, how-it-works steps, policies, FAQ accordion, closing CTA band) using design tokens + lucide icons.
+- Moved the full submission form to `/advertise/apply`; kept `/ad-application` as the quick-apply intake.
+- Added config-driven `advertisingConfig` (metadata, routes, hero, placements, steps, policies, FAQ, CTA) in `lib/config/siteContent.ts`.
+- Added the `advertise` preset to `PagePreset[]` so admins can edit the landing narrative via the `PublicContent` system; the page renders the PUBLISHED body with a config fallback.
+- Wired routes: `/advertise/apply` added to `routeConfig.ts`, `advertiseApply` label in `lib/navigation.ts`, footer quick link changed to "Advertise With Us" -> `/advertise`.
+- Added `app/advertise/__tests__/page.test.tsx` (hero + CTA target, placement cards, config fallback, admin body render, closing CTA) and updated the Footer test.
+- Superseded the `/ad-application` canonical-intake decision in `project-decisions.md`.
+
+**Files Modified:**
+
+- app/advertise/page.tsx
+- app/advertise/apply/page.tsx
+- app/advertise/__tests__/page.test.tsx
+- components/__tests__/Footer.test.tsx
+- components/features/PublicContentAdminPanel.tsx
+- lib/config/siteContent.ts
+- lib/navigation.ts
+- lib/rbac/routeConfig.ts
+- ai-system/planning/task-queue.md
+- ai-system/checkpoints/session-log.md
+- ai-system/system-architecture.md
+- ai-system/memory/project-decisions.md
+
+**Next Task:**
+Run `update-ai-system.md` and the QA gate (`tsc --noEmit`, lint, focused vitest) to close out the feature.
+
+**Notes / Blockers:**
+None.
+
+---
+
 ## Session 85 — 2026-05-13
 
 **Goal:**

@@ -1,7 +1,7 @@
 # Development History
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
-> **last-updated-at:** 2026-07-12T16:30:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T16:30:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -23,6 +23,28 @@
 **Next Sprint Focus:**
 [What comes next]
 ```
+
+## 2026-08-04 — Sponsors & Ads Landing Page
+
+**Summary:**
+Delivered a public-facing, config-driven sponsors/ads landing page at `/advertise` so interested parties can learn about placements, pricing process, and policies before submitting an application. The full submission form moved to `/advertise/apply`, the quick-apply intake at `/ad-application` was kept, and the footer/public "Advertise With Us" link now points to the landing page while `/operations/banners` and `/operations/ads` management routes remain unchanged.
+
+**Completed:**
+
+- Built the `/advertise` landing page (hero, admin narrative, placement cards, steps, policies, FAQ, closing CTA).
+- Moved the full submission form to `/advertise/apply`.
+- Added `advertisingConfig` in `lib/config/siteContent.ts` (metadata, routes, placements, steps, policies, FAQ, CTA).
+- Added the `advertise` `PublicContent` preset for admin-editable narrative with config fallback.
+- Wired routes/labels (`routeConfig.ts`, `lib/navigation.ts`) and updated the footer quick link.
+- Added landing-page and footer regression tests.
+
+**Key Changes:**
+
+- `/advertise` is now the canonical public entry point; the `/ad-application` canonical-intake decision was superseded.
+- Both `/advertise/apply` and `/ad-application` remain public intakes posting to `/api/ads/apply`.
+
+**Next Sprint Focus:**
+Close the QA gate and run `update-ai-system.md` for the final repo-map/dependency-graph/dev-history sync.
 
 ## 2026-05-19 — CIS Prisma Migrations + Environment Configuration
 

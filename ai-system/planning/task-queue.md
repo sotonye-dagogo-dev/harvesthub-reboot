@@ -4,6 +4,18 @@
 
 ---
 
+## Feature Queue (2026-08-04) — Sponsors & Ads Landing Page
+
+> **Section summary:** Public-facing marketing landing page for the sponsors/ads feature. Interested parties land here to learn about placements, process, and policies before proceeding to the submission pages. Config-driven and admin-editable; public/footer links point to the landing page while operations banner/ad management routes are preserved.
+
+- [x] Route strategy — landing page at `/advertise`, full submission form moved to `/advertise/apply`, `/ad-application` kept as quick-apply intake; `/operations/banners` and `/operations/ads` unchanged.
+- [x] Config-driven content — `advertisingConfig` in `lib/config/siteContent.ts` (metadata, routes, hero, placement cards, process steps, policies, FAQ, CTA labels).
+- [x] Admin-editable content — `advertise` preset added to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`; landing page reads `getPublicContentBySlug("advertise")` and renders PUBLISHED admin `body` in the narrative block with config fallback.
+- [x] Landing page design — hero, admin narrative block, placement cards, how-it-works steps, policies, FAQ accordion, closing CTA band (`app/advertise/page.tsx`).
+- [x] Route/link wiring — `/advertise/apply` added to `routeConfig.ts`; `advertiseApply` label key in `lib/navigation.ts`; footer quick link "Advertise With Us" -> `/advertise`.
+- [x] Tests — `app/advertise/__tests__/page.test.tsx` (hero, CTA target, admin body render, fallback, closing CTA) and updated `components/__tests__/Footer.test.tsx`.
+- [x] Docs closure — task-queue, session-log, system-architecture, project-decisions (`/ad-application` canonical-intake decision superseded) updated; `update-ai-system.md` run.
+
 ## Workspace-Wide CIS Federation Rollout
 
 > **Section summary:** Add a canonical identity handshake surface so this repo can consume CIS identity syncs without hardcoding integration details.

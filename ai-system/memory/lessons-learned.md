@@ -1,7 +1,7 @@
 # Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
-> **last-updated-at:** 2026-07-12T16:30:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T16:30:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -79,3 +79,14 @@ Upload governance is not only API validation. Field labels, helper text, hidden 
 
 **Apply When:**
 Implementing or reviewing forms that include media/screenshot/payment-proof fields.
+
+## Marketing Landing Pages Belong in Front of Auth-Gated/Submission Routes
+
+**Context:**
+The sponsors/ads feature had `/advertise` and `/ad-application` as raw submission forms, forcing interested parties to fill out procurement forms before understanding placements, pricing, or policies.
+
+**What We Learned:**
+A config-driven landing page (`advertisingConfig` in `lib/config/siteContent.ts`) with an admin-editable narrative block (via the `PublicContent` `advertise` preset) cleanly separates marketing from intake. Moving the full form to `/advertise/apply` while keeping `/ad-application` as quick-apply preserves conversion paths without duplicating form logic. Public entry (footer) points to the landing page while operations routes (`/operations/banners`, `/operations/ads`) stay untouched, so marketing and management concerns do not couple.
+
+**Apply When:**
+Building public-facing features that sit in front of submission/procurement flows, or adding landing surfaces for domains with existing operations-management pages.

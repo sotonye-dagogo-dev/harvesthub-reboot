@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   Megaphone,
   LayoutPanelTop,
-  ScanningLine,
+  ScanLine,
   Square,
   FileText,
   CreditCard,
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 const placementIcons: Record<string, typeof LayoutPanelTop> = {
   TOP: LayoutPanelTop,
-  HERO: ScanningLine,
+  HERO: ScanLine,
   SIDEBAR: Square,
 };
 
@@ -32,9 +32,8 @@ const stepIcons = [FileText, CreditCard, CheckCircle2, Rocket];
 
 export default async function AdvertiseLandingPage() {
   const publicContent = await getPublicContentBySlug("advertise");
-  const hasAdminContent = Boolean(
-    publicContent && publicContent.status === "PUBLISHED" && publicContent.body
-  );
+  const hasAdminContent =
+    publicContent?.status === "PUBLISHED" && Boolean(publicContent.body);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -69,7 +68,7 @@ export default async function AdvertiseLandingPage() {
 
       {/* Narrative (admin-editable) */}
       <section className="mx-auto mt-16 max-w-4xl">
-        {hasAdminContent ? (
+        {hasAdminContent && publicContent ? (
           <>
             <h2 className="mb-4 text-2xl font-semibold text-ds-text-primary">
               {publicContent.title}

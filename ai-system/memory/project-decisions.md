@@ -1711,7 +1711,7 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 - Checkout and wallet UI now exercise backend payment endpoints in normal flow.
 - Remaining work should enforce verified status in order and wallet persistence layers instead of treating stub success as informational.
 
-## Public Ad Intake Uses Dedicated Unauthenticated Route
+## [Superseded] Public Ad Intake Uses Dedicated Unauthenticated Route
 
 **Decision:** Use `/ad-application` as the canonical public ad-intake path and keep it explicitly public in RBAC route policy.
 **Date:** 2026-04-01
@@ -1725,6 +1725,24 @@ The cloud adjustment queue required elimination of role drift (`Worker` as signu
 
 - Footer and policy references should point to `/ad-application` as canonical entry.
 - Public submit endpoints must enforce validation and rate-limiting to offset unauthenticated access.
+- **Superseded 2026-08-04:** Footer/policy entry now points to the `/advertise` landing page (see "Advertise Landing Page Is the Public Entry Point" below). `/ad-application` remains the simple quick-apply intake linked from that landing page.
+
+## Advertise Landing Page Is the Public Entry Point
+
+**Decision:** Introduce `/advertise` as the public marketing landing page for sponsors/ads, move the full submission form to `/advertise/apply`, and keep `/ad-application` as the quick-apply intake. Public/footer links point to `/advertise`; navbar/sidebar banner-management routes (`/operations/banners`, `/operations/ads`) are preserved unchanged.
+**Date:** 2026-08-04
+**Made by:** AI coding session (opencode)
+
+**Reason:** Interested parties need an informative, well-designed landing page describing placements, process, and policies before proceeding to procurement/submission pages. Content is config-driven (`advertisingConfig` in `lib/config/siteContent.ts`) and admin-editable via the `advertise` `PublicContent` preset rendered in the narrative block.
+
+**Alternatives Considered:** Drop-in full form on `/advertise` (previous state, lacked pre-submission education and marketing funnel), or add a separate marketing site (fragmentation and content duplication).
+
+**Implications:**
+
+- `routeConfig.ts` marks `/advertise`, `/advertise/apply`, and `/ad-application` as public; label keys added to `lib/navigation.ts`.
+- Footer quick link "Advertise With Us" points to `/advertise`.
+- Landing page reads `getPublicContentBySlug("advertise")` and renders the PUBLISHED admin `body` in the narrative block, falling back to config copy when unpublished.
+- Both public intake routes (`/advertise/apply`, `/ad-application`) submit to `/api/ads/apply` and must keep unauthenticated validation and rate-limiting.
 
 ## Vendor Analytics Must Be Store-Scoped
 

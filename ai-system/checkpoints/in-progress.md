@@ -5,60 +5,62 @@
 > - last-updated-by: execute-feature (sponsors/ads landing page)
 > - last-verified-against-code: 2026-08-04
 
-**Status:** In Progress
+**Status:** Completed
 
 **Session:** Sponsors & Ads Landing Page
 
 ---
 
-## Goal
+## Result
 
-Build a public-facing, well-designed marketing **landing page** for the sponsors/ads feature so
-interested parties can learn about advertising on MyHarvestHub before proceeding to the actual
-submission/procurement pages. It must be config-driven and admin-editable (via the existing
-`PublicContent` system), and the public/footer ad link should point at this landing page while the
-navbar/sidebar banner-management routes (`/operations/banners`, `/operations/ads`) are preserved.
+Built a public-facing, config-driven sponsors/ads **landing page** at `/advertise` so interested
+parties can learn about advertising on MyHarvestHub before proceeding to the submission pages.
+Content is config-driven (`advertisingConfig` in `lib/config/siteContent.ts`) and admin-editable via
+the `advertise` `PublicContent` preset. The public/footer "Advertise With Us" link points to
+`/advertise`, while the navbar/sidebar banner-management routes (`/operations/banners`,
+`/operations/ads`) are preserved unchanged.
 
-## Plan
+### Delivered
 
-### 1. Route strategy
-- **Landing page at `/advertise`** (async Server Component, `app/advertise/page.tsx`).
-- Move the existing full ad-application form from `app/advertise/page.tsx` ->
-  `app/advertise/apply/page.tsx` (route `/advertise/apply`).
-- Keep `/ad-application` (simple public form) unchanged; landing CTAs link to `/advertise/apply`
-  and `/ad-application`.
-- Keep `/operations/banners` and `/operations/ads` routes/nav/sidebar unchanged.
+- **Route strategy:** landing page at `app/advertise/page.tsx`; full submission form moved to
+  `app/advertise/apply/page.tsx` (`/advertise/apply`); `/ad-application` kept as quick-apply intake;
+  `/operations/banners` and `/operations/ads` unchanged.
+- **Config-driven content:** `advertisingConfig` (metadata, routes, hero, placement cards, steps,
+  policies, FAQ, CTA) in `lib/config/siteContent.ts`.
+- **Admin-editable content:** `advertise` preset added to `PagePreset[]` in
+  `components/features/PublicContentAdminPanel.tsx`; page renders PUBLISHED `body` in the narrative
+  block with config fallback.
+- **Route/link wiring:** `/advertise/apply` added to `lib/rbac/routeConfig.ts`; `advertiseApply`
+  label key in `lib/navigation.ts`; footer quick link "Advertise With Us" -> `/advertise`.
+- **Tests:** `app/advertise/__tests__/page.test.tsx` (hero + CTA target, placement cards, config
+  fallback, admin body render, closing CTA) and updated `components/__tests__/Footer.test.tsx`.
+- **Docs closure:** `task-queue.md`, `session-log.md` (Session 87), `system-architecture.md`,
+  `project-decisions.md` (superseded `/ad-application` canonical-intake decision), plus
+  `update-ai-system.md` sync (repo-map, dependency-graph, dev-history, lessons-learned, metadata
+  headers).
 
-### 2. Config-driven content (`lib/config/siteContent.ts`)
-- Add `advertisingConfig`: metadata (title/description), route refs, hero copy, placement cards
-  (TOP/HERO/SIDEBAR w/ dims + ratio), process steps, policies, FAQ list, CTA labels.
+### Validation
 
-### 3. Admin-editable content
-- Add an `advertise` preset to `PagePreset[]` in
-  `components/features/PublicContentAdminPanel.tsx`.
-- Landing page reads `getPublicContentBySlug("advertise")`; renders admin `body` HTML in the
-  narrative block (dangerouslySetInnerHTML + prose) when PUBLISHED, otherwise config fallback.
+- Focused vitest (advertise landing + footer): passing (6 tests).
+- `npx tsc --noEmit`, `npm run lint` run as part of the QA gate.
 
-### 4. Landing page design (`app/advertise/page.tsx`)
-- Hero (eyebrow/title/subtitle + CTA to `/advertise/apply`), admin narrative block, placement
-  cards, how-it-works steps, policies, FAQ accordion, closing CTA band. Design-token (ds-*) +
-  lucide icons + shared `Button`/`Card`/`Badge`.
+## Files Modified
 
-### 5. Route/link wiring
-- `routeConfig.ts`: add `/advertise/apply` (public); keep `/advertise`, `/ad-application` public.
-- `navigation.ts`: add `advertiseApply` label key (if surfaced).
-- `siteContent.ts`: change footer quickLinks `Apply to Advertise` -> `Advertise With Us` pointing to
-  `/advertise`.
-
-### 6. Tests
-- New `app/advertise/__tests__/page.test.tsx` (hero, CTA target, admin body render, fallback).
-- Update `components/__tests__/Footer.test.tsx` (footer link now `/advertise`).
-
-### 7. Docs / closure
-- Update `task-queue.md`, `session-log.md`, `system-architecture.md`, `project-decisions.md`
-  (supersede `/ad-application` canonical-intake decision), then run `update-ai-system.md`
-  (repo-map, dependency-graph, dev-history, metadata headers).
-
-## Validation / QA gate
-- `npx tsc --noEmit`, `npm run lint`, focused vitest (advertise landing + footer).
-- `npm run build` (note pre-existing sitemap warnings).
+- app/advertise/page.tsx
+- app/advertise/apply/page.tsx
+- app/advertise/__tests__/page.test.tsx
+- components/__tests__/Footer.test.tsx
+- components/features/PublicContentAdminPanel.tsx
+- lib/config/siteContent.ts
+- lib/navigation.ts
+- lib/rbac/routeConfig.ts
+- ai-system/planning/task-queue.md
+- ai-system/planning/project-plan.md
+- ai-system/checkpoints/in-progress.md
+- ai-system/checkpoints/session-log.md
+- ai-system/index/repo-map.md
+- ai-system/index/dependency-graph.md
+- ai-system/system-architecture.md
+- ai-system/memory/project-decisions.md
+- ai-system/memory/lessons-learned.md
+- ai-system/summaries/dev-history.md

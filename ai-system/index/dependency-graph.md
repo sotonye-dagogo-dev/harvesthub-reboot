@@ -1,6 +1,6 @@
 # Dependency Graph
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-by:** update-ai-system.md (2026-08-04)
 > **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
@@ -62,12 +62,37 @@ app/orders/[id]/page.tsx
   -> components/ui/ImageUpload.tsx
   -> app/api/orders/[id]/proof-of-payment/*
 
-app/advertise/page.tsx + app/ad-application/page.tsx
+app/advertise/page.tsx (landing, async server component)
+  -> lib/config/siteContent.ts (advertisingConfig)
+  -> lib/data/publicContent.ts (getPublicContentBySlug("advertise"))
+  -> lib/cache/contentCache.ts
+  -> lib/db/prisma.ts
+
+app/advertise/apply/page.tsx (full submission form)
+  -> components/ui/ImageUpload.tsx
+  -> components/features (BannerPlacementPreview, BannerImageGuidelines)
+  -> lib/utils/bannerPlacementValidation.ts
+  -> lib/utils/paystackInline.ts
+  -> app/api/payments/config, app/api/ads/apply
+  -> app/api/upload/route.ts
+
+app/ad-application/page.tsx (quick-apply intake)
   -> components/ui/ImageUpload.tsx
   -> lib/utils/localDraft.ts
   -> lib/utils/offlineQueue.ts
   -> app/api/upload/route.ts
-  -> app/api/ad-applications|ads/apply
+  -> app/api/ads/apply
+
+components/layout/Footer.tsx
+  -> lib/config/siteContent.ts (footerConfig quickLinks -> /advertise)
+
+components/features/PublicContentAdminPanel.tsx
+  -> PagePreset[] including slug "advertise"
+  -> lib/data/publicContent.ts
+
+app/advertise/__tests__/page.test.tsx
+  -> app/advertise/page.tsx
+  -> lib/config/siteContent.ts (mocked lib/data/publicContent)
 
 lib/services/notifications.ts
   -> lib/services/email.ts
