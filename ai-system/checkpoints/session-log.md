@@ -4,6 +4,49 @@
 
 ---
 
+## Session 87 — 2026-08-04
+
+**Goal:**
+Add a public-facing, config-driven and admin-editable marketing landing page for the sponsors/ads feature so interested parties can learn about advertising on MyHarvestHub before proceeding to the actual submission/procurement pages.
+
+**Completed:**
+
+- Added `advertisingConfig` to `lib/config/siteContent.ts` (metadata, routes, hero copy, placement cards with dims/ratio, process steps, policies, FAQ list, CTA labels).
+- Moved the full ad-application form from `app/advertise/page.tsx` -> `app/advertise/apply/page.tsx` (route `/advertise/apply`) and rebuilt `app/advertise/page.tsx` as the landing page (hero, admin narrative block, placement cards, how-it-works steps, policies, FAQ accordion, closing CTA).
+- Added an `advertise` preset to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`; landing page renders admin `body` HTML via `getPublicContentBySlug("advertise")` when `PUBLISHED`, otherwise config fallback.
+- Registered `/advertise` and `/advertise/apply` as public routes in `lib/rbac/routeConfig.ts`; added `advertiseApply` label key in `lib/navigation.ts`.
+- Retargeted the footer quick-link from "Apply to Advertise" (/ad-application) to "Advertise With Us" (`/advertise`); preserved `/operations/banners`, `/operations/ads`, and `/ad-application` routes/nav/sidebar.
+- Added `/advertise` to the static sitemap.
+- Added tests: `app/advertise/__tests__/page.test.tsx` (hero + CTA target, config fallback, admin body render, sections, quick-application CTA) and updated `components/__tests__/Footer.test.tsx`.
+- Validation: `npx tsc --noEmit` passed, `next lint` touched files passed, focused vitest suites passed, `npm run build` passed.
+
+**Files Modified:**
+
+- ai-system/checkpoints/in-progress.md
+- ai-system/planning/task-queue.md
+- ai-system/checkpoints/session-log.md
+- ai-system/system-architecture.md
+- ai-system/memory/project-decisions.md
+- lib/config/siteContent.ts
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- components/features/PublicContentAdminPanel.tsx
+- components/__tests__/Footer.test.tsx
+- app/advertise/page.tsx
+- app/advertise/apply/page.tsx
+- app/advertise/__tests__/page.test.tsx
+- app/sitemap.ts
+
+**Next Task:**
+Run the `update-ai-system.md` deep sync (repo-map, dependency-graph, dev-history, metadata headers) and raise the PR.
+
+**Notes / Blockers:**
+
+- `/advertise` is the public landing page; `/advertise/apply` hosts the full sponsored-application form. `/ad-application` (simple public form) remains unchanged and is linked as "Quick application".
+- `/operations/banners` and `/operations/ads` admin management routes are untouched.
+
+---
+
 ## Session 85 — 2026-05-13
 
 **Goal:**

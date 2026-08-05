@@ -23,6 +23,27 @@
 [What this decision affects going forward]
 ```
 
+## Public Advertising Uses a Landing Page at /advertise with Split Application Routes
+
+**Decision:** Public advertising is fronted by a config-driven, admin-editable landing page at `/advertise` (`app/advertise/page.tsx`). The full sponsored-application form moved to `/advertise/apply`, while the simple public form stays at `/ad-application`. The footer quick-link now points to `/advertise`; admin banner-management routes (`/operations/banners`, `/operations/ads`) and their navbar/sidebar entries are preserved.
+**Date:** 2026-08-04
+**Made by:** AI implementation session (GitHub Copilot)
+
+**Reason:**
+Interested parties need an informative, well-designed entry point describing placements, pricing/process, and policies before committing to a submission. A dedicated landing page improves conversion clarity and mirrors common advertising marketplace patterns, while keeping the operational banner-management surfaces intact for admins.
+
+**Alternatives Considered:**
+
+- Point the footer link directly at the existing full form (`/advertise/apply` or `/ad-application`) (rejected: forces users straight into procurement without context and weakens the marketing entry point).
+- Build the landing page as fully static copy only (rejected: does not satisfy config-driven, admin-editable content standards used across the rest of the application).
+
+**Implications:**
+
+- `/advertise` is the canonical public marketing entry; `/advertise/apply` hosts the full sponsored-application form and `/ad-application` remains the simple public form (landing "Quick application" CTA).
+- Landing page content is sourced from `advertisingConfig` (`lib/config/siteContent.ts`) with an `advertise` `PublicContent` preset for admin-authored narrative when `PUBLISHED`.
+- Footer quick-link label changed to "Advertise With Us" -> `/advertise`; supersedes prior footer placement of the direct application link.
+- Admin banner-management routes, nav/sidebar entries, and `/ad-application` behavior remain unchanged.
+
 ## Paystack Initialization Uses Client Inline Popup with Webhook Alias Compatibility
 
 **Decision:** Paystack initialization for checkout, wallet deposit, and ad payment surfaces now runs client-side via inline popup (`js.paystack.co`), while backend webhook reconciliation remains canonical and is reachable via both `/api/payments/webhook` and `/api/paystack-webhook`.

@@ -1,6 +1,6 @@
 # System Architecture
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-by:** update-ai-system.md (2026-08-04)
 > **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a mock data layer to simulate a backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable.
 
 ---
@@ -36,6 +36,8 @@
 - **Routing protection** is implemented via role-based checks in layouts and server-side guards.
 
 - **Payment Fallback Architecture:** A config-driven off-platform payment path exists when main payment methods (Paystack, wallet) are disabled or gateway unavailable. Customers select `BANK_TRANSFER_PROOF` at checkout, pay via bank transfer off-platform, then upload proof of payment on the order detail page. Vendors/admins verify or reject the proof via the same page, which auto-updates order payment status to PAID.
+
+- **Sponsors & Ads Public Flow:** Public-facing marketing landing page at `/advertise` (`app/advertise/page.tsx`) explains sponsored placements, process, and policies before interested parties proceed. Content is config-driven via `advertisingConfig` in `lib/config/siteContent.ts` and admin-editable through the existing `PublicContent` system (`getPublicContentBySlug("advertise")`, `PUBLISHED` body rendered with prose styles, config fallback otherwise; managed from `components/features/PublicContentAdminPanel.tsx`). The full sponsored-application form lives at `/advertise/apply` (`app/advertise/apply/page.tsx`); the simple public form stays at `/ad-application`. Footer quick-link "Advertise With Us" points to `/advertise`. Admin banner-management routes `/operations/banners` and `/operations/ads` and their navbar/sidebar entries are preserved unchanged.
 
 ---
 

@@ -1,7 +1,7 @@
 # Development History
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
-> **last-updated-at:** 2026-07-12T16:30:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T00:00:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -23,6 +23,28 @@
 **Next Sprint Focus:**
 [What comes next]
 ```
+
+## 2026-08-04 — Sponsors & Ads Landing Page
+
+**Summary:**
+Added a public-facing, config-driven and admin-editable landing page at `/advertise` so interested parties can learn about sponsored banner placements, the application process, and policies before submitting. The full ad-application form moved to `/advertise/apply`, while the simple public form (`/ad-application`) and the admin banner-management routes (`/operations/banners`, `/operations/ads`) remain unchanged.
+
+**Completed:**
+
+- Added `advertisingConfig` (metadata, routes, hero copy, placement cards, process steps, policies, FAQ, CTA labels) to `lib/config/siteContent.ts`.
+- Rebuilt `app/advertise/page.tsx` as the landing page and moved the form to `app/advertise/apply/page.tsx`.
+- Added an `advertise` `PublicContent` preset in `components/features/PublicContentAdminPanel.tsx`; the landing page renders admin `PUBLISHED` body as prose with config fallback.
+- Registered `/advertise` + `/advertise/apply` as public routes; added `advertiseApply` label key; added `/advertise` to the static sitemap.
+- Retargeted the footer quick-link to "Advertise With Us" -> `/advertise`.
+- Added focused tests (`app/advertise/__tests__/page.test.tsx`, updated `components/__tests__/Footer.test.tsx`).
+
+**Key Changes:**
+
+- `/advertise` is now the canonical public advertising entry point; procurement happens on `/advertise/apply` (full form) or `/ad-application` (simple form).
+- Landing content is config-driven and admin-editable via the existing `PublicContent` system, consistent with the rest of the application.
+
+**Next Sprint Focus:**
+Monitor CI for the landing-page slice and apply any review findings.
 
 ## 2026-05-19 — CIS Prisma Migrations + Environment Configuration
 
