@@ -14,6 +14,7 @@ import type { BannerItem } from "@/components/features";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { isVendorVerified } from "@/lib/utils/vendor";
 import { useToast } from "@/lib/contexts/ToastContext";
+import { HomeBlogSection } from "@/components/features/blog/HomeBlogSection";
 import {
   DEFAULT_PRODUCT_SORT,
   PRODUCT_DISCOVERY_CATEGORIES,
@@ -607,6 +608,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
           </section>
         )}
       </div>
+
+      <HomeBlogSection />
 
       {activeSidebarModalBanner ? (
         <BannerActionModal

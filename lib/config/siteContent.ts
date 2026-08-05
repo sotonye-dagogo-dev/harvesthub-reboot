@@ -24,6 +24,7 @@ export const footerConfig = {
     { href: "/signup", label: "Become a Vendor" },
     { href: "/about", label: "About Us" },
     { href: "/advertise", label: "Advertise With Us" },
+    { href: "/blog", label: "Blog" },
   ] as LinkItem[],
   supportLinks: [
     { href: "/help", label: "Help Center" },

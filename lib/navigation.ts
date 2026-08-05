@@ -45,6 +45,8 @@ const labelMap: Record<string, string> = {
     vendorMarketingContent: 'Marketing Content',
     vouchers: 'My Vouchers',
     adminVouchers: 'Vouchers',
+    blog: 'Blog',
+    adminBlog: 'Blog',
 };
 
 export function buildNav(role?: UserRole) {

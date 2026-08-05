@@ -221,6 +221,13 @@ export default async function AdvertiseLandingPage() {
             Quick application
           </Link>
         </div>
+        <p className="mt-4 text-sm text-ds-text-secondary">
+          Curious how advertising works?{" "}
+          <Link href="/blog" className="font-medium text-ds-text-brand hover:underline">
+            Read our blog
+          </Link>
+          .
+        </p>
       </section>
     </div>
   );

@@ -647,6 +647,52 @@ exports.Prisma.VendorContentScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BlogPostScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  excerpt: 'excerpt',
+  body: 'body',
+  coverImage: 'coverImage',
+  coverImagePublicId: 'coverImagePublicId',
+  authorName: 'authorName',
+  authorRole: 'authorRole',
+  category: 'category',
+  tags: 'tags',
+  status: 'status',
+  featured: 'featured',
+  publishedAt: 'publishedAt',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  seoKeywords: 'seoKeywords',
+  metadata: 'metadata',
+  viewCount: 'viewCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BlogConfigScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  title: 'title',
+  description: 'description',
+  heroHeading: 'heroHeading',
+  heroSubtitle: 'heroSubtitle',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  seoKeywords: 'seoKeywords',
+  postsPerPage: 'postsPerPage',
+  showAuthor: 'showAuthor',
+  showReadTime: 'showReadTime',
+  showShareButtons: 'showShareButtons',
+  showFeaturedPost: 'showFeaturedPost',
+  defaultAuthorName: 'defaultAuthorName',
+  defaultCoverImage: 'defaultCoverImage',
+  suggestedCategories: 'suggestedCategories',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1007,6 +1053,12 @@ exports.VendorContentStatus = exports.$Enums.VendorContentStatus = {
   EXPIRED: 'EXPIRED'
 };
 
+exports.BlogStatus = exports.$Enums.BlogStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   CisIdentity: 'CisIdentity',
@@ -1042,7 +1094,9 @@ exports.Prisma.ModelName = {
   ReviewVote: 'ReviewVote',
   BugReport: 'BugReport',
   PublicContent: 'PublicContent',
-  VendorContent: 'VendorContent'
+  VendorContent: 'VendorContent',
+  BlogPost: 'BlogPost',
+  BlogConfig: 'BlogConfig'
 };
 
 /**

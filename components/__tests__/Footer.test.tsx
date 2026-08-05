@@ -19,4 +19,12 @@ describe('Footer', () => {
     expect(advertiseLink).toBeInTheDocument();
     expect(advertiseLink).toHaveAttribute('href', '/advertise');
   });
+
+  it('links to the public blog', () => {
+    render(<Footer />);
+
+    const blogLink = screen.getByRole('link', { name: /Blog/i });
+    expect(blogLink).toBeInTheDocument();
+    expect(blogLink).toHaveAttribute('href', '/blog');
+  });
 });

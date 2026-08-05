@@ -612,11 +612,141 @@ async function main() {
         ],
     });
 
+    // ========== BLOG ==========
+    await prisma.blogConfig.upsert({
+        where: { key: 'default' },
+        update: {},
+        create: {
+            key: 'default',
+            title: 'The HarvestHub Blog',
+            description:
+                'News, tips, and stories from MyHarvestHub — the faith-based marketplace connecting buyers and vendors across Christian communities.',
+            heroHeading: 'Stories, tips & updates from the HarvestHub community',
+            heroSubtitle:
+                'Guides for vendors and buyers, platform news, and stories that celebrate community commerce.',
+            seoTitle: 'Blog | MyHarvestHub',
+            seoDescription:
+                'Read the latest stories, vendor tips, buyer guides, and platform news from MyHarvestHub — the faith-based e-marketplace.',
+            seoKeywords:
+                'myharvesthub blog, vendor tips, buyer guide, marketplace news, faith-based e-commerce',
+            postsPerPage: 9,
+            showAuthor: true,
+            showReadTime: true,
+            showShareButtons: true,
+            showFeaturedPost: true,
+            defaultAuthorName: 'MyHarvestHub Team',
+            defaultCoverImage: '/placeholder-product.jpg',
+            suggestedCategories: [
+                'Vendor Tips',
+                'Buyer Guide',
+                'Platform News',
+                'Community Stories',
+                'Faith & Business',
+            ],
+        },
+    });
+
+    await prisma.blogPost.deleteMany();
+    await prisma.blogPost.createMany({
+        data: [
+            {
+                slug: 'welcome-to-myharvesthub',
+                title: 'Welcome to MyHarvestHub: Community Commerce That Puts Trust First',
+                excerpt:
+                    'Discover how MyHarvestHub connects church members with trusted vendors in their communities — and why shared faith makes every transaction better.',
+                body: [
+                    '<p>Welcome to MyHarvestHub — a marketplace built on a simple idea: commerce works best when the people buying and selling already trust one another.</p>',
+                    '<h2>A marketplace rooted in community</h2>',
+                    '<p>By connecting members of Christian worship centers with vendors within their communities, we create an environment where shared faith fosters trust, collaboration, and affordable commerce.</p>',
+                    '<h2>What makes us different</h2>',
+                    '<ul><li><strong>Low commissions</strong> so vendors keep more of what they earn.</li><li><strong>Flexible pickup</strong> at church services and campuses near you.</li><li><strong>Innovative incentives</strong> like coupon vouchers and rewards.</li></ul>',
+                    '<p>Whether you are a buyer looking for quality products or a vendor ready to grow your storefront, MyHarvestHub is here to help you thrive.</p>',
+                ].join(''),
+                coverImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&fit=crop',
+                authorName: 'MyHarvestHub Team',
+                authorRole: 'Platform Editors',
+                category: 'Platform News',
+                tags: ['welcome', 'community', 'marketplace'],
+                status: 'PUBLISHED',
+                featured: true,
+                publishedAt: new Date(),
+                seoTitle: 'Welcome to MyHarvestHub | The HarvestHub Blog',
+                seoDescription:
+                    'Welcome to MyHarvestHub — a faith-based e-marketplace connecting church members with trusted vendors in their communities.',
+                seoKeywords: 'myharvesthub welcome, community commerce, faith-based marketplace',
+                metadata: {},
+            },
+            {
+                slug: '5-vendor-tips-to-grow-your-storefront',
+                title: '5 Practical Tips to Grow Your Storefront on MyHarvestHub',
+                excerpt:
+                    'From great product photos to fast responses, these five habits help vendors turn first-time buyers into loyal customers.',
+                body: [
+                    '<p>Growing a storefront takes more than great products. Here are five habits that successful vendors on MyHarvestHub share.</p>',
+                    '<h2>1. Invest in clear photos</h2>',
+                    '<p>Photos sell. Use bright, well-lit images that show the product clearly from multiple angles.</p>',
+                    '<h2>2. Keep your inventory accurate</h2>',
+                    '<p>Nothing frustrates buyers more than out-of-stock surprises. Update your stock levels regularly.</p>',
+                    '<h2>3. Respond quickly</h2>',
+                    '<p>Fast answers build confidence. Aim to reply to availability requests and messages within a few hours.</p>',
+                    '<h2>4. Encourage reviews</h2>',
+                    '<p>Genuine reviews are social proof. Gently ask happy customers to leave feedback after delivery.</p>',
+                    '<h2>5. Promote beyond the platform</h2>',
+                    '<p>Share your store link with your church community and on social media to drive visits.</p>',
+                ].join(''),
+                coverImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&fit=crop',
+                authorName: 'MyHarvestHub Team',
+                authorRole: 'Vendor Success',
+                category: 'Vendor Tips',
+                tags: ['vendors', 'tips', 'growth'],
+                status: 'PUBLISHED',
+                featured: false,
+                publishedAt: new Date(),
+                seoTitle: '5 Practical Tips to Grow Your Storefront | MyHarvestHub Blog',
+                seoDescription:
+                    'Five practical habits that help MyHarvestHub vendors turn first-time buyers into loyal customers.',
+                seoKeywords: 'vendor tips, storefront growth, myharvesthub sellers',
+                metadata: {},
+            },
+            {
+                slug: 'buying-with-confidence-guide',
+                title: 'Buying with Confidence: A Buyer Guide to MyHarvestHub',
+                excerpt:
+                    'Learn how pickup, delivery, vouchers, and verified vendors combine to make buying on MyHarvestHub safe and simple.',
+                body: [
+                    '<p>Buying from people you already trust makes shopping simpler. Here is what new buyers should know.</p>',
+                    '<h2>Verified vendors</h2>',
+                    '<p>Every storefront on MyHarvestHub is reviewed and approved before it can sell. Check the verified badge on each store.</p>',
+                    '<h2>Flexible delivery & pickup</h2>',
+                    '<p>Choose home delivery or convenient pickup at church services and campuses near you.</p>',
+                    '<h2>Vouchers & rewards</h2>',
+                    '<p>Redeem coupon vouchers at checkout to save on your favourite products.</p>',
+                    '<h2>Pay with confidence</h2>',
+                    '<p>Use your wallet balance or pay directly with the vendor, with clear order tracking every step of the way.</p>',
+                ].join(''),
+                coverImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&fit=crop',
+                authorName: 'MyHarvestHub Team',
+                authorRole: 'Customer Experience',
+                category: 'Buyer Guide',
+                tags: ['buyers', 'guide', 'trust'],
+                status: 'PUBLISHED',
+                featured: false,
+                publishedAt: new Date(),
+                seoTitle: 'Buying with Confidence: A Buyer Guide | MyHarvestHub Blog',
+                seoDescription:
+                    'How pickup, delivery, vouchers, and verified vendors make buying on MyHarvestHub safe and simple.',
+                seoKeywords: 'buyer guide, safe shopping, myharvesthub checkout',
+                metadata: {},
+            },
+        ],
+    });
+
     console.log('✅ Seed completed');
     console.log(`   👤 Admin: admin@harvesthub.com`);
     console.log(`   🏪 Vendors: ${vendors.length}`);
     console.log(`   🛒 Buyers: ${buyers.length}`);
     console.log(`   📦 Products: ${products.length}`);
+    console.log(`   📰 Blog posts: 3`);
     console.log(`   🔑 All passwords: Password123!`);
 }
 
