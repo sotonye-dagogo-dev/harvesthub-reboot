@@ -11,6 +11,7 @@ This directory tracks concise summaries for high-impact files touched during ref
 - `lib-rbac-route-config.md`
 - `components-layout-navigation.md`
 - `app-advertise-pages.md`
+- `banner-performance-tracking.md`
 
 ## Maintenance Rule
 

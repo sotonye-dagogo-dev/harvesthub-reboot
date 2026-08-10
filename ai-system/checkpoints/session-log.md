@@ -4,6 +4,49 @@
 
 ---
 
+## Session 88 — 2026-08-10
+
+**Goal:**
+Track ads/banners performance end-to-end (impressions, clicks, conversions) with authenticated vs
+anonymous and unique counts, and surface it in the operations dashboards.
+
+**Completed:**
+
+- Added `BannerEventType` enum + `BannerEvent` model and `conversionCount` on `Banner`; migration
+  `20260810090000_add_banner_events`; regenerated Prisma client.
+- `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+- Extended `PATCH /api/banners/[id]` into a public, IP-rate-limited event-tracking endpoint
+  (`{ type, visitorId, source, metadata }`) with a `POST` alias for `navigator.sendBeacon`;
+  best-effort `BannerEvent` insert + denormalized counter increment.
+- New admin-only `GET /api/admin/analytics/banners` (`days`/`bannerId` filters).
+- `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, beacon/keepalive fire-and-forget
+  events, per-session impression dedupe; wired into `TopAdBanner`, `BannerCarousel` (hero + modal),
+  and `HomeContent` (sidebar rail).
+- Admin dashboard metric cards + "Ad & Banner Analytics" quick action in
+  `app/api/operations/dashboard/route.ts`; "Banner & Ad Performance" section in
+  `AnalyticsFeature.tsx` fed by `getBannerAnalyticsClient`.
+
+**Files Modified:**
+- `prisma/schema.prisma`, `prisma/migrations/20260810090000_add_banner_events/`, generated client
+- `lib/analytics/bannerAnalytics.ts` (new)
+- `app/api/banners/[id]/route.ts`
+- `app/api/admin/analytics/banners/route.ts` (new)
+- `lib/tracking/bannerTracking.ts` (new)
+- `components/features/TopAdBanner.tsx`, `components/features/BannerCarousel.tsx`,
+  `components/features/AnalyticsFeature.tsx`, `app/components/HomeContent.tsx`
+- `app/api/operations/dashboard/route.ts`, `app/api/ad-applications/[id]/route.ts`
+- `lib/data/clientDataFetchers.ts`, `lib/data/mockDataset.ts`, `lib/types.ts`
+- Tests: `bannerAnalytics.test.ts`, `tracking.route.test.ts`, `admin/analytics/banners/route.test.ts`,
+  `bannerTracking.test.ts`, `TopAdBanner.tracking.test.tsx`, `BannerCarousel.tracking.test.tsx`
+
+**Validation:**
+- `npx tsc --noEmit` ✅
+- `npm run lint -- --max-warnings 0` ✅ (only pre-existing warnings in untouched files)
+- Focused vitest suites (44 new tests) ✅
+- `npm run build` ✅
+- Full-suite failure set is unchanged from baseline (17 files / 67 tests, all pre-existing:
+  live-server API integration tests, Next.js headers-context, and parallel flake).
+
 ## Session 87 — 2026-08-04
 
 **Goal:**

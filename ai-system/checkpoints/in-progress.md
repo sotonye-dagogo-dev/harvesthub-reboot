@@ -2,66 +2,71 @@
 
 > **Metadata**
 >
-> - last-updated-by: execute-feature (sponsors/ads landing page)
-> - last-verified-against-code: 2026-08-04
+> - last-updated-by: execute-feature (ads/banners performance tracking + analytics)
+> - last-verified-against-code: 2026-08-10
 
-**Status:** Complete
+**Status:** Complete — delivered in Session 2026-08-10 (see `session-log.md`).
 
-**Session:** Sponsors & Ads Landing Page
+**Session:** Ad/Banner Performance Tracking & Analytics
 
 ---
 
 ## Goal
 
-Build a public-facing, well-designed marketing **landing page** for the sponsors/ads feature so
-interested parties can learn about advertising on MyHarvestHub before proceeding to the actual
-submission/procurement pages. It must be config-driven and admin-editable (via the existing
-`PublicContent` system), and the public/footer ad link should point at this landing page while the
-navbar/sidebar banner-management routes (`/operations/banners`, `/operations/ads`) are preserved.
+Ensure the performance of ads/banners (views, clicks, conversions) is tracked end-to-end —
+accounting for authenticated vs unauthenticated and unique counts — and surfaced in the existing
+dashboards/analytics surfaces. Follow existing optimal implementations (denormalized counters on
+`Banner`, Redis/IP rate limiting, admin-gated analytics, client fetchers via API routes, focused
+vitest suites).
 
-## Outcome
+## Plan
 
-### 1. Route strategy
-- Landing page at `/advertise` (`app/advertise/page.tsx`, async server component).
-- Full ad-application form moved from `app/advertise/page.tsx` -> `app/advertise/apply/page.tsx`
-  (route `/advertise/apply`).
-- `/ad-application` (simple public form) unchanged; landing CTAs link to `/advertise/apply` and
-  `/ad-application`.
-- `/operations/banners` and `/operations/ads` routes/nav/sidebar unchanged.
+### 1. Schema (Prisma)
+- Add `BannerEventType` enum (`IMPRESSION | CLICK | CONVERSION`).
+- Add `BannerEvent` model (bannerId, type, userId?, visitorId?, source?, metadata?, occurredAt,
+  indexed by [bannerId,type,occurredAt], [bannerId,type,visitorId], [bannerId,type,userId]).
+- Add `conversionCount` denormalized counter to `Banner` + `events BannerEvent[]` relation.
+- Create migration `20260810090000_add_banner_events` + regenerate Prisma client.
 
-### 2. Config-driven content (`lib/config/siteContent.ts`)
-- Added `advertisingConfig`: metadata, route refs, hero copy, placement cards (TOP/HERO/SIDEBAR w/
-  dims + ratio), process steps, policies, FAQ list, CTA labels.
+### 2. Aggregation helper
+- `lib/analytics/bannerAnalytics.ts`: pure, testable aggregation of raw events into per-banner and
+  summary metrics (total/unique/auth/anon for impressions, clicks, conversions + CTR/CR).
 
-### 3. Admin-editable content
-- Added `advertise` preset to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`.
-- Landing page reads `getPublicContentBySlug("advertise")`; renders admin `body` HTML (prose) when
-  `PUBLISHED`, otherwise config fallback.
+### 3. Tracking API
+- Extend `PATCH /api/banners/[id]` (currently the orphaned click-increment endpoint) into a generic
+  event-tracking endpoint: accepts `{ type, visitorId, source, metadata }`, resolves authenticated
+  user via `getCurrentUser()` (optional), writes a `BannerEvent`, and increments the matching
+  denormalized counter. IP-rate-limited, public (unauthenticated allowed).
 
-### 4. Landing page design (`app/advertise/page.tsx`)
-- Hero (eyebrow/title/subtitle + CTA to `/advertise/apply`), admin narrative block, placement
-  cards, how-it-works steps, policies, FAQ accordion, closing CTA band. Design-token (ds-*) + lucide
-  icons + shared `Button`/`Card`/`Badge` patterns.
+### 4. Analytics API
+- New `GET /api/admin/analytics/banners` (admin-only): `days`/`bannerId` filters, returns summary +
+  per-banner breakdown incl. unique + authenticated/anonymous splits.
 
-### 5. Route/link wiring
-- `routeConfig.ts`: added `/advertise` and `/advertise/apply` (public); `/advertise` and
-  `/ad-application` remain public.
-- `navigation.ts`: added `advertiseApply` label key.
-- `siteContent.ts`: footer quickLinks changed to `Advertise With Us` -> `/advertise`.
-- `sitemap.ts`: added `/advertise` static entry.
+### 5. Client tracking
+- `lib/tracking/bannerTracking.ts`: stable `visitorId` (localStorage UUID, capability-guarded),
+  fire-and-forget beacon/fetch with `sendBeacon`/`keepalive`, per-session impression dedupe.
+- Wire into `TopAdBanner`, `BannerCarousel` (hero + modal), `HomeContent` (sidebar rail).
 
-### 6. Tests
-- Added `app/advertise/__tests__/page.test.tsx` (hero, CTA target, admin body render, fallback,
-  sections, quick-application CTA).
-- Updated `components/__tests__/Footer.test.tsx` (footer link now `/advertise`).
+### 6. Dashboards / analytics surfaces
+- `app/api/operations/dashboard/route.ts`: admin metric cards for banner impressions/clicks +
+  "Ad & Banner Analytics" quick action.
+- `AnalyticsFeature.tsx`: admin-only "Banner & Ad Performance" section fed by the new endpoint.
+- `lib/data/clientDataFetchers.ts`: `getBannerAnalyticsClient`.
 
-### 7. Docs / closure
-- Updated `task-queue.md`, `session-log.md`, `system-architecture.md`, `project-decisions.md`
-  (landing-page decision; `/advertise` is now the public entry point while `/ad-application`
-  remains the simple form), then ran `update-ai-system.md`.
+### 7. Tests
+- `lib/analytics/__tests__/bannerAnalytics.test.ts`
+- `app/api/banners/[id]/__tests__/tracking.route.test.ts`
+- `app/api/admin/analytics/banners/__tests__/route.test.ts`
+- `lib/tracking/__tests__/bannerTracking.test.ts`
+- Component tracking tests (`TopAdBanner.tracking.test.tsx`, `BannerCarousel.tracking.test.tsx`)
 
-## Validation / QA gate
-- `npx tsc --noEmit` passed.
-- `next lint` touched files passed.
-- Focused vitest (advertise landing + footer) passed.
-- `npm run build` passed (note pre-existing sitemap warnings).
+### 8. Docs / closure
+- Update `task-queue.md`, `session-log.md`, `dev-history.md`, `system-architecture.md`,
+  `project-decisions.md`, then run `update-ai-system.md`.
+
+---
+
+## Status Log
+
+- **2026-08-10** — All slices implemented, QA gate green, docs updated. Session complete.
+

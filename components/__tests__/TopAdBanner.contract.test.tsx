@@ -31,6 +31,7 @@ function buildBanner(overrides: Partial<Banner> = {}): Banner {
     targetAudience: null,
     clickCount: 0,
     impressionCount: 0,
+    conversionCount: 0,
     createdAt: now,
     updatedAt: now,
     createdBy: "admin-user",

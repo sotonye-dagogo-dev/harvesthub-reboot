@@ -82,6 +82,27 @@ app/ad-application/page.tsx (simple public application form)
   -> app/api/upload/route.ts
   -> app/api/ad-applications|ads/apply
 
+# --- Banner/Ad Performance Tracking & Analytics ---
+
+components/features/TopAdBanner.tsx | BannerCarousel.tsx | app/components/HomeContent.tsx
+  -> lib/tracking/bannerTracking.ts (beacon/keepalive event emission)
+  -> app/api/banners/[id] (PATCH|POST public tracking endpoint)
+
+app/api/banners/[id]/route.ts
+  -> lib/analytics/bannerAnalytics.ts (event type guard)
+  -> lib/db/prisma.ts (BannerEvent insert + Banner counter increment)
+  -> lib/utils/auth.ts (getCurrentUser, optional)
+  -> lib/middleware/rate-limit.ts (IP rate limit)
+
+app/api/admin/analytics/banners/route.ts
+  -> lib/analytics/bannerAnalytics.ts (aggregateBannerAnalytics)
+  -> lib/db/prisma.ts (Banner + BannerEvent reads)
+  -> lib/utils/auth.ts (admin gate)
+
+components/features/AnalyticsFeature.tsx | app/api/operations/dashboard/route.ts
+  -> lib/data/clientDataFetchers.ts (getBannerAnalyticsClient)
+  -> app/api/admin/analytics/banners (admin analytics read)
+
 lib/services/notifications.ts
   -> lib/services/email.ts
   -> lib/services/push.ts

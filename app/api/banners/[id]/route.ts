@@ -1,16 +1,18 @@
 ﻿/**
  * GET    /api/banners/[id] � Banner detail
  * PUT    /api/banners/[id] � Update banner (admin)
- * PATCH  /api/banners/[id] � Track click (public)
+ * PATCH  /api/banners/[id] � Track banner event (public) - IMPRESSION / CLICK / CONVERSION
  * DELETE /api/banners/[id] � Delete banner (admin)
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { Prisma } from '@/prisma/generated/client';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheInvalidate } from '@/lib/cache/redis';
 import { bannerKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
+import { isBannerEventType, type BannerEventKind } from '@/lib/analytics/bannerAnalytics';
 import {
     acquireIdempotencyGuard,
     buildPayloadFingerprint,
@@ -141,17 +143,90 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
+    return handleTrackEvent(req, context);
+}
+
+/** POST alias of the tracking endpoint so `navigator.sendBeacon` (POST-only) works at navigation time. */
+export async function POST(req: NextRequest, context: RouteContext) {
+    return handleTrackEvent(req, context);
+}
+
+async function handleTrackEvent(req: NextRequest, context: RouteContext) {
     try {
         const rl = await rateLimitByIP(req);
         if (!rl.success) return getRateLimitResponse(rl);
 
         const { id } = await context.params;
-        const updated = await prisma.banner.update({
-            where: { id },
-            data: { clickCount: { increment: 1 } },
+        const banner = await prisma.banner.findUnique({ where: { id } });
+        if (!banner) return NextResponse.json({ error: 'Banner not found' }, { status: 404 });
+
+        let body: {
+            type?: string;
+            visitorId?: string;
+            source?: string;
+            metadata?: unknown;
+        } = {};
+        try {
+            const parsed = await req.json();
+            if (parsed && typeof parsed === 'object') body = parsed;
+        } catch (e) {
+            // Empty/invalid body defaults to a CLICK event for backward compatibility.
+        }
+
+        const eventType: BannerEventKind = isBannerEventType(body.type) ? body.type : 'CLICK';
+        const visitorId =
+            typeof body.visitorId === 'string' && body.visitorId.trim().length > 0
+                ? body.visitorId.trim().slice(0, 200)
+                : null;
+        const source =
+            typeof body.source === 'string' && body.source.trim().length > 0
+                ? body.source.trim().slice(0, 50)
+                : null;
+        const metadata =
+            body.metadata && typeof body.metadata === 'object' && body.metadata !== null
+                ? (body.metadata as Prisma.InputJsonValue)
+                : null;
+
+        const user = await getCurrentUser();
+
+        // Granular event log (best-effort; a failed insert must not break tracking).
+        const eventPromise = prisma.bannerEvent.create({
+            data: {
+                bannerId: id,
+                type: eventType,
+                userId: user?.userId ?? null,
+                visitorId,
+                source,
+                ...(metadata !== null ? { metadata } : {}),
+            },
         });
 
-        return NextResponse.json({ success: true, clicks: updated.clickCount });
+        // Denormalized counter increment for fast dashboard reads.
+        const counter: Record<string, { increment: number }> =
+            eventType === 'IMPRESSION'
+                ? { impressionCount: { increment: 1 } }
+                : eventType === 'CONVERSION'
+                    ? { conversionCount: { increment: 1 } }
+                    : { clickCount: { increment: 1 } };
+
+        const [eventResult, updated] = await Promise.allSettled([
+            eventPromise,
+            prisma.banner.update({ where: { id }, data: counter }),
+        ]);
+
+        if (updated.status === 'rejected') {
+            throw updated.reason;
+        }
+        if (eventResult.status === 'rejected') {
+            console.warn('PATCH /api/banners/[id] event log insert failed:', eventResult.reason);
+        }
+
+        return NextResponse.json({
+            success: true,
+            clicks: updated.value.clickCount,
+            impressions: updated.value.impressionCount,
+            conversions: updated.value.conversionCount,
+        });
     } catch (error) {
         console.error('PATCH /api/banners/[id] error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

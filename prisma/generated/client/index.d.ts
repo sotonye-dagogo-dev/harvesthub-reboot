@@ -89,6 +89,11 @@ export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
  */
 export type Banner = $Result.DefaultSelection<Prisma.$BannerPayload>
 /**
+ * Model BannerEvent
+ * 
+ */
+export type BannerEvent = $Result.DefaultSelection<Prisma.$BannerEventPayload>
+/**
  * Model AdApplication
  * 
  */
@@ -472,6 +477,15 @@ export const BannerTheme: {
 export type BannerTheme = (typeof BannerTheme)[keyof typeof BannerTheme]
 
 
+export const BannerEventType: {
+  IMPRESSION: 'IMPRESSION',
+  CLICK: 'CLICK',
+  CONVERSION: 'CONVERSION'
+};
+
+export type BannerEventType = (typeof BannerEventType)[keyof typeof BannerEventType]
+
+
 export const ReviewStatus: {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
@@ -756,6 +770,10 @@ export const BannerPosition: typeof $Enums.BannerPosition
 export type BannerTheme = $Enums.BannerTheme
 
 export const BannerTheme: typeof $Enums.BannerTheme
+
+export type BannerEventType = $Enums.BannerEventType
+
+export const BannerEventType: typeof $Enums.BannerEventType
 
 export type ReviewStatus = $Enums.ReviewStatus
 
@@ -1107,6 +1125,16 @@ export class PrismaClient<
     * ```
     */
   get banner(): Prisma.BannerDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.bannerEvent`: Exposes CRUD operations for the **BannerEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BannerEvents
+    * const bannerEvents = await prisma.bannerEvent.findMany()
+    * ```
+    */
+  get bannerEvent(): Prisma.BannerEventDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.adApplication`: Exposes CRUD operations for the **AdApplication** model.
@@ -1776,6 +1804,7 @@ export namespace Prisma {
     Transaction: 'Transaction',
     Review: 'Review',
     Banner: 'Banner',
+    BannerEvent: 'BannerEvent',
     AdApplication: 'AdApplication',
     AdRateConfig: 'AdRateConfig',
     CommissionConfig: 'CommissionConfig',
@@ -1813,7 +1842,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "cisIdentity" | "cisWebhookEvent" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "adApplication" | "adRateConfig" | "commissionConfig" | "commerceLifecycleConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent" | "blogPost" | "blogConfig"
+      modelProps: "user" | "cisIdentity" | "cisWebhookEvent" | "buyer" | "vendor" | "product" | "cart" | "cartItem" | "order" | "orderItem" | "address" | "wallet" | "transaction" | "review" | "banner" | "bannerEvent" | "adApplication" | "adRateConfig" | "commissionConfig" | "commerceLifecycleConfig" | "notification" | "pushSubscription" | "notificationPreference" | "emailDeliveryLog" | "productAvailabilityRequest" | "advertisement" | "advertiserPayment" | "proofOfTransfer" | "voucher" | "voucherRedemption" | "userMilestone" | "booking" | "reviewVote" | "bugReport" | "publicContent" | "vendorContent" | "blogPost" | "blogConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2924,6 +2953,80 @@ export namespace Prisma {
           count: {
             args: Prisma.BannerCountArgs<ExtArgs>
             result: $Utils.Optional<BannerCountAggregateOutputType> | number
+          }
+        }
+      }
+      BannerEvent: {
+        payload: Prisma.$BannerEventPayload<ExtArgs>
+        fields: Prisma.BannerEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BannerEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BannerEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          findFirst: {
+            args: Prisma.BannerEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BannerEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          findMany: {
+            args: Prisma.BannerEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>[]
+          }
+          create: {
+            args: Prisma.BannerEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          createMany: {
+            args: Prisma.BannerEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BannerEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>[]
+          }
+          delete: {
+            args: Prisma.BannerEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          update: {
+            args: Prisma.BannerEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.BannerEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BannerEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BannerEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.BannerEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BannerEventPayload>
+          }
+          aggregate: {
+            args: Prisma.BannerEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBannerEvent>
+          }
+          groupBy: {
+            args: Prisma.BannerEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BannerEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BannerEventCountArgs<ExtArgs>
+            result: $Utils.Optional<BannerEventCountAggregateOutputType> | number
           }
         }
       }
@@ -4678,6 +4781,7 @@ export namespace Prisma {
     transaction?: TransactionOmit
     review?: ReviewOmit
     banner?: BannerOmit
+    bannerEvent?: BannerEventOmit
     adApplication?: AdApplicationOmit
     adRateConfig?: AdRateConfigOmit
     commissionConfig?: CommissionConfigOmit
@@ -5249,6 +5353,37 @@ export namespace Prisma {
    */
   export type ReviewCountOutputTypeCountVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ReviewVoteWhereInput
+  }
+
+
+  /**
+   * Count Type BannerCountOutputType
+   */
+
+  export type BannerCountOutputType = {
+    events: number
+  }
+
+  export type BannerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    events?: boolean | BannerCountOutputTypeCountEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * BannerCountOutputType without action
+   */
+  export type BannerCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerCountOutputType
+     */
+    select?: BannerCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * BannerCountOutputType without action
+   */
+  export type BannerCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BannerEventWhereInput
   }
 
 
@@ -23146,12 +23281,14 @@ export namespace Prisma {
     displayOrder: number | null
     clickCount: number | null
     impressionCount: number | null
+    conversionCount: number | null
   }
 
   export type BannerSumAggregateOutputType = {
     displayOrder: number | null
     clickCount: number | null
     impressionCount: number | null
+    conversionCount: number | null
   }
 
   export type BannerMinAggregateOutputType = {
@@ -23172,6 +23309,7 @@ export namespace Prisma {
     displayOrder: number | null
     clickCount: number | null
     impressionCount: number | null
+    conversionCount: number | null
     createdBy: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -23195,6 +23333,7 @@ export namespace Prisma {
     displayOrder: number | null
     clickCount: number | null
     impressionCount: number | null
+    conversionCount: number | null
     createdBy: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -23220,6 +23359,7 @@ export namespace Prisma {
     targetAudience: number
     clickCount: number
     impressionCount: number
+    conversionCount: number
     createdBy: number
     createdAt: number
     updatedAt: number
@@ -23231,12 +23371,14 @@ export namespace Prisma {
     displayOrder?: true
     clickCount?: true
     impressionCount?: true
+    conversionCount?: true
   }
 
   export type BannerSumAggregateInputType = {
     displayOrder?: true
     clickCount?: true
     impressionCount?: true
+    conversionCount?: true
   }
 
   export type BannerMinAggregateInputType = {
@@ -23257,6 +23399,7 @@ export namespace Prisma {
     displayOrder?: true
     clickCount?: true
     impressionCount?: true
+    conversionCount?: true
     createdBy?: true
     createdAt?: true
     updatedAt?: true
@@ -23280,6 +23423,7 @@ export namespace Prisma {
     displayOrder?: true
     clickCount?: true
     impressionCount?: true
+    conversionCount?: true
     createdBy?: true
     createdAt?: true
     updatedAt?: true
@@ -23305,6 +23449,7 @@ export namespace Prisma {
     targetAudience?: true
     clickCount?: true
     impressionCount?: true
+    conversionCount?: true
     createdBy?: true
     createdAt?: true
     updatedAt?: true
@@ -23417,6 +23562,7 @@ export namespace Prisma {
     targetAudience: $Enums.UserRole[]
     clickCount: number
     impressionCount: number
+    conversionCount: number
     createdBy: string
     createdAt: Date
     updatedAt: Date
@@ -23461,10 +23607,13 @@ export namespace Prisma {
     targetAudience?: boolean
     clickCount?: boolean
     impressionCount?: boolean
+    conversionCount?: boolean
     createdBy?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     creator?: boolean | UserDefaultArgs<ExtArgs>
+    events?: boolean | Banner$eventsArgs<ExtArgs>
+    _count?: boolean | BannerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["banner"]>
 
   export type BannerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -23487,6 +23636,7 @@ export namespace Prisma {
     targetAudience?: boolean
     clickCount?: boolean
     impressionCount?: boolean
+    conversionCount?: boolean
     createdBy?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -23513,6 +23663,7 @@ export namespace Prisma {
     targetAudience?: boolean
     clickCount?: boolean
     impressionCount?: boolean
+    conversionCount?: boolean
     createdBy?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -23539,14 +23690,17 @@ export namespace Prisma {
     targetAudience?: boolean
     clickCount?: boolean
     impressionCount?: boolean
+    conversionCount?: boolean
     createdBy?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type BannerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "subtitle" | "description" | "imageUrl" | "linkUrl" | "actions" | "position" | "theme" | "accentColor" | "details" | "knowMoreLabel" | "isActive" | "startDate" | "endDate" | "displayOrder" | "targetAudience" | "clickCount" | "impressionCount" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["banner"]>
+  export type BannerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "subtitle" | "description" | "imageUrl" | "linkUrl" | "actions" | "position" | "theme" | "accentColor" | "details" | "knowMoreLabel" | "isActive" | "startDate" | "endDate" | "displayOrder" | "targetAudience" | "clickCount" | "impressionCount" | "conversionCount" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["banner"]>
   export type BannerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     creator?: boolean | UserDefaultArgs<ExtArgs>
+    events?: boolean | Banner$eventsArgs<ExtArgs>
+    _count?: boolean | BannerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BannerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     creator?: boolean | UserDefaultArgs<ExtArgs>
@@ -23559,6 +23713,7 @@ export namespace Prisma {
     name: "Banner"
     objects: {
       creator: Prisma.$UserPayload<ExtArgs>
+      events: Prisma.$BannerEventPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -23580,6 +23735,7 @@ export namespace Prisma {
       targetAudience: $Enums.UserRole[]
       clickCount: number
       impressionCount: number
+      conversionCount: number
       createdBy: string
       createdAt: Date
       updatedAt: Date
@@ -23978,6 +24134,7 @@ export namespace Prisma {
   export interface Prisma__BannerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     creator<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    events<T extends Banner$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Banner$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -24026,6 +24183,7 @@ export namespace Prisma {
     readonly targetAudience: FieldRef<"Banner", 'UserRole[]'>
     readonly clickCount: FieldRef<"Banner", 'Int'>
     readonly impressionCount: FieldRef<"Banner", 'Int'>
+    readonly conversionCount: FieldRef<"Banner", 'Int'>
     readonly createdBy: FieldRef<"Banner", 'String'>
     readonly createdAt: FieldRef<"Banner", 'DateTime'>
     readonly updatedAt: FieldRef<"Banner", 'DateTime'>
@@ -24430,6 +24588,30 @@ export namespace Prisma {
   }
 
   /**
+   * Banner.events
+   */
+  export type Banner$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    where?: BannerEventWhereInput
+    orderBy?: BannerEventOrderByWithRelationInput | BannerEventOrderByWithRelationInput[]
+    cursor?: BannerEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BannerEventScalarFieldEnum | BannerEventScalarFieldEnum[]
+  }
+
+  /**
    * Banner without action
    */
   export type BannerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -24445,6 +24627,1104 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: BannerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BannerEvent
+   */
+
+  export type AggregateBannerEvent = {
+    _count: BannerEventCountAggregateOutputType | null
+    _min: BannerEventMinAggregateOutputType | null
+    _max: BannerEventMaxAggregateOutputType | null
+  }
+
+  export type BannerEventMinAggregateOutputType = {
+    id: string | null
+    bannerId: string | null
+    type: $Enums.BannerEventType | null
+    userId: string | null
+    visitorId: string | null
+    source: string | null
+    occurredAt: Date | null
+  }
+
+  export type BannerEventMaxAggregateOutputType = {
+    id: string | null
+    bannerId: string | null
+    type: $Enums.BannerEventType | null
+    userId: string | null
+    visitorId: string | null
+    source: string | null
+    occurredAt: Date | null
+  }
+
+  export type BannerEventCountAggregateOutputType = {
+    id: number
+    bannerId: number
+    type: number
+    userId: number
+    visitorId: number
+    source: number
+    metadata: number
+    occurredAt: number
+    _all: number
+  }
+
+
+  export type BannerEventMinAggregateInputType = {
+    id?: true
+    bannerId?: true
+    type?: true
+    userId?: true
+    visitorId?: true
+    source?: true
+    occurredAt?: true
+  }
+
+  export type BannerEventMaxAggregateInputType = {
+    id?: true
+    bannerId?: true
+    type?: true
+    userId?: true
+    visitorId?: true
+    source?: true
+    occurredAt?: true
+  }
+
+  export type BannerEventCountAggregateInputType = {
+    id?: true
+    bannerId?: true
+    type?: true
+    userId?: true
+    visitorId?: true
+    source?: true
+    metadata?: true
+    occurredAt?: true
+    _all?: true
+  }
+
+  export type BannerEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BannerEvent to aggregate.
+     */
+    where?: BannerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BannerEvents to fetch.
+     */
+    orderBy?: BannerEventOrderByWithRelationInput | BannerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BannerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BannerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BannerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BannerEvents
+    **/
+    _count?: true | BannerEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BannerEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BannerEventMaxAggregateInputType
+  }
+
+  export type GetBannerEventAggregateType<T extends BannerEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateBannerEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBannerEvent[P]>
+      : GetScalarType<T[P], AggregateBannerEvent[P]>
+  }
+
+
+
+
+  export type BannerEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BannerEventWhereInput
+    orderBy?: BannerEventOrderByWithAggregationInput | BannerEventOrderByWithAggregationInput[]
+    by: BannerEventScalarFieldEnum[] | BannerEventScalarFieldEnum
+    having?: BannerEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BannerEventCountAggregateInputType | true
+    _min?: BannerEventMinAggregateInputType
+    _max?: BannerEventMaxAggregateInputType
+  }
+
+  export type BannerEventGroupByOutputType = {
+    id: string
+    bannerId: string
+    type: $Enums.BannerEventType
+    userId: string | null
+    visitorId: string | null
+    source: string | null
+    metadata: JsonValue | null
+    occurredAt: Date
+    _count: BannerEventCountAggregateOutputType | null
+    _min: BannerEventMinAggregateOutputType | null
+    _max: BannerEventMaxAggregateOutputType | null
+  }
+
+  type GetBannerEventGroupByPayload<T extends BannerEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BannerEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BannerEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BannerEventGroupByOutputType[P]>
+            : GetScalarType<T[P], BannerEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BannerEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bannerId?: boolean
+    type?: boolean
+    userId?: boolean
+    visitorId?: boolean
+    source?: boolean
+    metadata?: boolean
+    occurredAt?: boolean
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bannerEvent"]>
+
+  export type BannerEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bannerId?: boolean
+    type?: boolean
+    userId?: boolean
+    visitorId?: boolean
+    source?: boolean
+    metadata?: boolean
+    occurredAt?: boolean
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bannerEvent"]>
+
+  export type BannerEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bannerId?: boolean
+    type?: boolean
+    userId?: boolean
+    visitorId?: boolean
+    source?: boolean
+    metadata?: boolean
+    occurredAt?: boolean
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bannerEvent"]>
+
+  export type BannerEventSelectScalar = {
+    id?: boolean
+    bannerId?: boolean
+    type?: boolean
+    userId?: boolean
+    visitorId?: boolean
+    source?: boolean
+    metadata?: boolean
+    occurredAt?: boolean
+  }
+
+  export type BannerEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bannerId" | "type" | "userId" | "visitorId" | "source" | "metadata" | "occurredAt", ExtArgs["result"]["bannerEvent"]>
+  export type BannerEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }
+  export type BannerEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }
+  export type BannerEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    banner?: boolean | BannerDefaultArgs<ExtArgs>
+  }
+
+  export type $BannerEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BannerEvent"
+    objects: {
+      banner: Prisma.$BannerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      bannerId: string
+      type: $Enums.BannerEventType
+      userId: string | null
+      visitorId: string | null
+      source: string | null
+      metadata: Prisma.JsonValue | null
+      occurredAt: Date
+    }, ExtArgs["result"]["bannerEvent"]>
+    composites: {}
+  }
+
+  type BannerEventGetPayload<S extends boolean | null | undefined | BannerEventDefaultArgs> = $Result.GetResult<Prisma.$BannerEventPayload, S>
+
+  type BannerEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BannerEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BannerEventCountAggregateInputType | true
+    }
+
+  export interface BannerEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BannerEvent'], meta: { name: 'BannerEvent' } }
+    /**
+     * Find zero or one BannerEvent that matches the filter.
+     * @param {BannerEventFindUniqueArgs} args - Arguments to find a BannerEvent
+     * @example
+     * // Get one BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BannerEventFindUniqueArgs>(args: SelectSubset<T, BannerEventFindUniqueArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BannerEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BannerEventFindUniqueOrThrowArgs} args - Arguments to find a BannerEvent
+     * @example
+     * // Get one BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BannerEventFindUniqueOrThrowArgs>(args: SelectSubset<T, BannerEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BannerEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventFindFirstArgs} args - Arguments to find a BannerEvent
+     * @example
+     * // Get one BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BannerEventFindFirstArgs>(args?: SelectSubset<T, BannerEventFindFirstArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BannerEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventFindFirstOrThrowArgs} args - Arguments to find a BannerEvent
+     * @example
+     * // Get one BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BannerEventFindFirstOrThrowArgs>(args?: SelectSubset<T, BannerEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BannerEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BannerEvents
+     * const bannerEvents = await prisma.bannerEvent.findMany()
+     * 
+     * // Get first 10 BannerEvents
+     * const bannerEvents = await prisma.bannerEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const bannerEventWithIdOnly = await prisma.bannerEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BannerEventFindManyArgs>(args?: SelectSubset<T, BannerEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BannerEvent.
+     * @param {BannerEventCreateArgs} args - Arguments to create a BannerEvent.
+     * @example
+     * // Create one BannerEvent
+     * const BannerEvent = await prisma.bannerEvent.create({
+     *   data: {
+     *     // ... data to create a BannerEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends BannerEventCreateArgs>(args: SelectSubset<T, BannerEventCreateArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BannerEvents.
+     * @param {BannerEventCreateManyArgs} args - Arguments to create many BannerEvents.
+     * @example
+     * // Create many BannerEvents
+     * const bannerEvent = await prisma.bannerEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BannerEventCreateManyArgs>(args?: SelectSubset<T, BannerEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BannerEvents and returns the data saved in the database.
+     * @param {BannerEventCreateManyAndReturnArgs} args - Arguments to create many BannerEvents.
+     * @example
+     * // Create many BannerEvents
+     * const bannerEvent = await prisma.bannerEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BannerEvents and only return the `id`
+     * const bannerEventWithIdOnly = await prisma.bannerEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BannerEventCreateManyAndReturnArgs>(args?: SelectSubset<T, BannerEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BannerEvent.
+     * @param {BannerEventDeleteArgs} args - Arguments to delete one BannerEvent.
+     * @example
+     * // Delete one BannerEvent
+     * const BannerEvent = await prisma.bannerEvent.delete({
+     *   where: {
+     *     // ... filter to delete one BannerEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BannerEventDeleteArgs>(args: SelectSubset<T, BannerEventDeleteArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BannerEvent.
+     * @param {BannerEventUpdateArgs} args - Arguments to update one BannerEvent.
+     * @example
+     * // Update one BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BannerEventUpdateArgs>(args: SelectSubset<T, BannerEventUpdateArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BannerEvents.
+     * @param {BannerEventDeleteManyArgs} args - Arguments to filter BannerEvents to delete.
+     * @example
+     * // Delete a few BannerEvents
+     * const { count } = await prisma.bannerEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BannerEventDeleteManyArgs>(args?: SelectSubset<T, BannerEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BannerEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BannerEvents
+     * const bannerEvent = await prisma.bannerEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BannerEventUpdateManyArgs>(args: SelectSubset<T, BannerEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BannerEvents and returns the data updated in the database.
+     * @param {BannerEventUpdateManyAndReturnArgs} args - Arguments to update many BannerEvents.
+     * @example
+     * // Update many BannerEvents
+     * const bannerEvent = await prisma.bannerEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BannerEvents and only return the `id`
+     * const bannerEventWithIdOnly = await prisma.bannerEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BannerEventUpdateManyAndReturnArgs>(args: SelectSubset<T, BannerEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BannerEvent.
+     * @param {BannerEventUpsertArgs} args - Arguments to update or create a BannerEvent.
+     * @example
+     * // Update or create a BannerEvent
+     * const bannerEvent = await prisma.bannerEvent.upsert({
+     *   create: {
+     *     // ... data to create a BannerEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BannerEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BannerEventUpsertArgs>(args: SelectSubset<T, BannerEventUpsertArgs<ExtArgs>>): Prisma__BannerEventClient<$Result.GetResult<Prisma.$BannerEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BannerEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventCountArgs} args - Arguments to filter BannerEvents to count.
+     * @example
+     * // Count the number of BannerEvents
+     * const count = await prisma.bannerEvent.count({
+     *   where: {
+     *     // ... the filter for the BannerEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends BannerEventCountArgs>(
+      args?: Subset<T, BannerEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BannerEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BannerEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BannerEventAggregateArgs>(args: Subset<T, BannerEventAggregateArgs>): Prisma.PrismaPromise<GetBannerEventAggregateType<T>>
+
+    /**
+     * Group by BannerEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BannerEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BannerEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BannerEventGroupByArgs['orderBy'] }
+        : { orderBy?: BannerEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BannerEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBannerEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BannerEvent model
+   */
+  readonly fields: BannerEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BannerEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BannerEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    banner<T extends BannerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BannerDefaultArgs<ExtArgs>>): Prisma__BannerClient<$Result.GetResult<Prisma.$BannerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BannerEvent model
+   */
+  interface BannerEventFieldRefs {
+    readonly id: FieldRef<"BannerEvent", 'String'>
+    readonly bannerId: FieldRef<"BannerEvent", 'String'>
+    readonly type: FieldRef<"BannerEvent", 'BannerEventType'>
+    readonly userId: FieldRef<"BannerEvent", 'String'>
+    readonly visitorId: FieldRef<"BannerEvent", 'String'>
+    readonly source: FieldRef<"BannerEvent", 'String'>
+    readonly metadata: FieldRef<"BannerEvent", 'Json'>
+    readonly occurredAt: FieldRef<"BannerEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BannerEvent findUnique
+   */
+  export type BannerEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter, which BannerEvent to fetch.
+     */
+    where: BannerEventWhereUniqueInput
+  }
+
+  /**
+   * BannerEvent findUniqueOrThrow
+   */
+  export type BannerEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter, which BannerEvent to fetch.
+     */
+    where: BannerEventWhereUniqueInput
+  }
+
+  /**
+   * BannerEvent findFirst
+   */
+  export type BannerEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter, which BannerEvent to fetch.
+     */
+    where?: BannerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BannerEvents to fetch.
+     */
+    orderBy?: BannerEventOrderByWithRelationInput | BannerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BannerEvents.
+     */
+    cursor?: BannerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BannerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BannerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BannerEvents.
+     */
+    distinct?: BannerEventScalarFieldEnum | BannerEventScalarFieldEnum[]
+  }
+
+  /**
+   * BannerEvent findFirstOrThrow
+   */
+  export type BannerEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter, which BannerEvent to fetch.
+     */
+    where?: BannerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BannerEvents to fetch.
+     */
+    orderBy?: BannerEventOrderByWithRelationInput | BannerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BannerEvents.
+     */
+    cursor?: BannerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BannerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BannerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BannerEvents.
+     */
+    distinct?: BannerEventScalarFieldEnum | BannerEventScalarFieldEnum[]
+  }
+
+  /**
+   * BannerEvent findMany
+   */
+  export type BannerEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter, which BannerEvents to fetch.
+     */
+    where?: BannerEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BannerEvents to fetch.
+     */
+    orderBy?: BannerEventOrderByWithRelationInput | BannerEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BannerEvents.
+     */
+    cursor?: BannerEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BannerEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BannerEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BannerEvents.
+     */
+    distinct?: BannerEventScalarFieldEnum | BannerEventScalarFieldEnum[]
+  }
+
+  /**
+   * BannerEvent create
+   */
+  export type BannerEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BannerEvent.
+     */
+    data: XOR<BannerEventCreateInput, BannerEventUncheckedCreateInput>
+  }
+
+  /**
+   * BannerEvent createMany
+   */
+  export type BannerEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BannerEvents.
+     */
+    data: BannerEventCreateManyInput | BannerEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BannerEvent createManyAndReturn
+   */
+  export type BannerEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many BannerEvents.
+     */
+    data: BannerEventCreateManyInput | BannerEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BannerEvent update
+   */
+  export type BannerEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BannerEvent.
+     */
+    data: XOR<BannerEventUpdateInput, BannerEventUncheckedUpdateInput>
+    /**
+     * Choose, which BannerEvent to update.
+     */
+    where: BannerEventWhereUniqueInput
+  }
+
+  /**
+   * BannerEvent updateMany
+   */
+  export type BannerEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BannerEvents.
+     */
+    data: XOR<BannerEventUpdateManyMutationInput, BannerEventUncheckedUpdateManyInput>
+    /**
+     * Filter which BannerEvents to update
+     */
+    where?: BannerEventWhereInput
+    /**
+     * Limit how many BannerEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BannerEvent updateManyAndReturn
+   */
+  export type BannerEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * The data used to update BannerEvents.
+     */
+    data: XOR<BannerEventUpdateManyMutationInput, BannerEventUncheckedUpdateManyInput>
+    /**
+     * Filter which BannerEvents to update
+     */
+    where?: BannerEventWhereInput
+    /**
+     * Limit how many BannerEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BannerEvent upsert
+   */
+  export type BannerEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BannerEvent to update in case it exists.
+     */
+    where: BannerEventWhereUniqueInput
+    /**
+     * In case the BannerEvent found by the `where` argument doesn't exist, create a new BannerEvent with this data.
+     */
+    create: XOR<BannerEventCreateInput, BannerEventUncheckedCreateInput>
+    /**
+     * In case the BannerEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BannerEventUpdateInput, BannerEventUncheckedUpdateInput>
+  }
+
+  /**
+   * BannerEvent delete
+   */
+  export type BannerEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
+    /**
+     * Filter which BannerEvent to delete.
+     */
+    where: BannerEventWhereUniqueInput
+  }
+
+  /**
+   * BannerEvent deleteMany
+   */
+  export type BannerEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BannerEvents to delete
+     */
+    where?: BannerEventWhereInput
+    /**
+     * Limit how many BannerEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BannerEvent without action
+   */
+  export type BannerEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BannerEvent
+     */
+    select?: BannerEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BannerEvent
+     */
+    omit?: BannerEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BannerEventInclude<ExtArgs> | null
   }
 
 
@@ -50143,12 +51423,27 @@ export namespace Prisma {
     targetAudience: 'targetAudience',
     clickCount: 'clickCount',
     impressionCount: 'impressionCount',
+    conversionCount: 'conversionCount',
     createdBy: 'createdBy',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type BannerScalarFieldEnum = (typeof BannerScalarFieldEnum)[keyof typeof BannerScalarFieldEnum]
+
+
+  export const BannerEventScalarFieldEnum: {
+    id: 'id',
+    bannerId: 'bannerId',
+    type: 'type',
+    userId: 'userId',
+    visitorId: 'visitorId',
+    source: 'source',
+    metadata: 'metadata',
+    occurredAt: 'occurredAt'
+  };
+
+  export type BannerEventScalarFieldEnum = (typeof BannerEventScalarFieldEnum)[keyof typeof BannerEventScalarFieldEnum]
 
 
   export const AdApplicationScalarFieldEnum: {
@@ -50918,6 +52213,20 @@ export namespace Prisma {
    * Reference to a field of type 'BannerTheme[]'
    */
   export type ListEnumBannerThemeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BannerTheme[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BannerEventType'
+   */
+  export type EnumBannerEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BannerEventType'>
+    
+
+
+  /**
+   * Reference to a field of type 'BannerEventType[]'
+   */
+  export type ListEnumBannerEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BannerEventType[]'>
     
 
 
@@ -52640,10 +53949,12 @@ export namespace Prisma {
     targetAudience?: EnumUserRoleNullableListFilter<"Banner">
     clickCount?: IntFilter<"Banner"> | number
     impressionCount?: IntFilter<"Banner"> | number
+    conversionCount?: IntFilter<"Banner"> | number
     createdBy?: StringFilter<"Banner"> | string
     createdAt?: DateTimeFilter<"Banner"> | Date | string
     updatedAt?: DateTimeFilter<"Banner"> | Date | string
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    events?: BannerEventListRelationFilter
   }
 
   export type BannerOrderByWithRelationInput = {
@@ -52666,10 +53977,12 @@ export namespace Prisma {
     targetAudience?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     creator?: UserOrderByWithRelationInput
+    events?: BannerEventOrderByRelationAggregateInput
   }
 
   export type BannerWhereUniqueInput = Prisma.AtLeast<{
@@ -52695,10 +54008,12 @@ export namespace Prisma {
     targetAudience?: EnumUserRoleNullableListFilter<"Banner">
     clickCount?: IntFilter<"Banner"> | number
     impressionCount?: IntFilter<"Banner"> | number
+    conversionCount?: IntFilter<"Banner"> | number
     createdBy?: StringFilter<"Banner"> | string
     createdAt?: DateTimeFilter<"Banner"> | Date | string
     updatedAt?: DateTimeFilter<"Banner"> | Date | string
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    events?: BannerEventListRelationFilter
   }, "id">
 
   export type BannerOrderByWithAggregationInput = {
@@ -52721,6 +54036,7 @@ export namespace Prisma {
     targetAudience?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -52754,9 +54070,80 @@ export namespace Prisma {
     targetAudience?: EnumUserRoleNullableListFilter<"Banner">
     clickCount?: IntWithAggregatesFilter<"Banner"> | number
     impressionCount?: IntWithAggregatesFilter<"Banner"> | number
+    conversionCount?: IntWithAggregatesFilter<"Banner"> | number
     createdBy?: StringWithAggregatesFilter<"Banner"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Banner"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Banner"> | Date | string
+  }
+
+  export type BannerEventWhereInput = {
+    AND?: BannerEventWhereInput | BannerEventWhereInput[]
+    OR?: BannerEventWhereInput[]
+    NOT?: BannerEventWhereInput | BannerEventWhereInput[]
+    id?: StringFilter<"BannerEvent"> | string
+    bannerId?: StringFilter<"BannerEvent"> | string
+    type?: EnumBannerEventTypeFilter<"BannerEvent"> | $Enums.BannerEventType
+    userId?: StringNullableFilter<"BannerEvent"> | string | null
+    visitorId?: StringNullableFilter<"BannerEvent"> | string | null
+    source?: StringNullableFilter<"BannerEvent"> | string | null
+    metadata?: JsonNullableFilter<"BannerEvent">
+    occurredAt?: DateTimeFilter<"BannerEvent"> | Date | string
+    banner?: XOR<BannerScalarRelationFilter, BannerWhereInput>
+  }
+
+  export type BannerEventOrderByWithRelationInput = {
+    id?: SortOrder
+    bannerId?: SortOrder
+    type?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    visitorId?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    occurredAt?: SortOrder
+    banner?: BannerOrderByWithRelationInput
+  }
+
+  export type BannerEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: BannerEventWhereInput | BannerEventWhereInput[]
+    OR?: BannerEventWhereInput[]
+    NOT?: BannerEventWhereInput | BannerEventWhereInput[]
+    bannerId?: StringFilter<"BannerEvent"> | string
+    type?: EnumBannerEventTypeFilter<"BannerEvent"> | $Enums.BannerEventType
+    userId?: StringNullableFilter<"BannerEvent"> | string | null
+    visitorId?: StringNullableFilter<"BannerEvent"> | string | null
+    source?: StringNullableFilter<"BannerEvent"> | string | null
+    metadata?: JsonNullableFilter<"BannerEvent">
+    occurredAt?: DateTimeFilter<"BannerEvent"> | Date | string
+    banner?: XOR<BannerScalarRelationFilter, BannerWhereInput>
+  }, "id">
+
+  export type BannerEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    bannerId?: SortOrder
+    type?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    visitorId?: SortOrderInput | SortOrder
+    source?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    occurredAt?: SortOrder
+    _count?: BannerEventCountOrderByAggregateInput
+    _max?: BannerEventMaxOrderByAggregateInput
+    _min?: BannerEventMinOrderByAggregateInput
+  }
+
+  export type BannerEventScalarWhereWithAggregatesInput = {
+    AND?: BannerEventScalarWhereWithAggregatesInput | BannerEventScalarWhereWithAggregatesInput[]
+    OR?: BannerEventScalarWhereWithAggregatesInput[]
+    NOT?: BannerEventScalarWhereWithAggregatesInput | BannerEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BannerEvent"> | string
+    bannerId?: StringWithAggregatesFilter<"BannerEvent"> | string
+    type?: EnumBannerEventTypeWithAggregatesFilter<"BannerEvent"> | $Enums.BannerEventType
+    userId?: StringNullableWithAggregatesFilter<"BannerEvent"> | string | null
+    visitorId?: StringNullableWithAggregatesFilter<"BannerEvent"> | string | null
+    source?: StringNullableWithAggregatesFilter<"BannerEvent"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"BannerEvent">
+    occurredAt?: DateTimeWithAggregatesFilter<"BannerEvent"> | Date | string
   }
 
   export type AdApplicationWhereInput = {
@@ -56451,9 +57838,11 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     creator: UserCreateNestedOneWithoutBannersCreatedInput
+    events?: BannerEventCreateNestedManyWithoutBannerInput
   }
 
   export type BannerUncheckedCreateInput = {
@@ -56476,9 +57865,11 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdBy: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    events?: BannerEventUncheckedCreateNestedManyWithoutBannerInput
   }
 
   export type BannerUpdateInput = {
@@ -56501,9 +57892,11 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     creator?: UserUpdateOneRequiredWithoutBannersCreatedNestedInput
+    events?: BannerEventUpdateManyWithoutBannerNestedInput
   }
 
   export type BannerUncheckedUpdateInput = {
@@ -56526,9 +57919,11 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: BannerEventUncheckedUpdateManyWithoutBannerNestedInput
   }
 
   export type BannerCreateManyInput = {
@@ -56551,6 +57946,7 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdBy: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -56576,6 +57972,7 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -56600,9 +57997,86 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventCreateInput = {
+    id?: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+    banner: BannerCreateNestedOneWithoutEventsInput
+  }
+
+  export type BannerEventUncheckedCreateInput = {
+    id?: string
+    bannerId: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+  }
+
+  export type BannerEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    banner?: BannerUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type BannerEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bannerId?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventCreateManyInput = {
+    id?: string
+    bannerId: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+  }
+
+  export type BannerEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bannerId?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AdApplicationCreateInput = {
@@ -60580,6 +62054,16 @@ export namespace Prisma {
     isEmpty?: boolean
   }
 
+  export type BannerEventListRelationFilter = {
+    every?: BannerEventWhereInput
+    some?: BannerEventWhereInput
+    none?: BannerEventWhereInput
+  }
+
+  export type BannerEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type BannerCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
@@ -60600,6 +62084,7 @@ export namespace Prisma {
     targetAudience?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -60609,6 +62094,7 @@ export namespace Prisma {
     displayOrder?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
   }
 
   export type BannerMaxOrderByAggregateInput = {
@@ -60629,6 +62115,7 @@ export namespace Prisma {
     displayOrder?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -60652,6 +62139,7 @@ export namespace Prisma {
     displayOrder?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -60661,6 +62149,7 @@ export namespace Prisma {
     displayOrder?: SortOrder
     clickCount?: SortOrder
     impressionCount?: SortOrder
+    conversionCount?: SortOrder
   }
 
   export type EnumBannerPositionWithAggregatesFilter<$PrismaModel = never> = {
@@ -60681,6 +62170,59 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBannerThemeFilter<$PrismaModel>
     _max?: NestedEnumBannerThemeFilter<$PrismaModel>
+  }
+
+  export type EnumBannerEventTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BannerEventType | EnumBannerEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBannerEventTypeFilter<$PrismaModel> | $Enums.BannerEventType
+  }
+
+  export type BannerScalarRelationFilter = {
+    is?: BannerWhereInput
+    isNot?: BannerWhereInput
+  }
+
+  export type BannerEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    bannerId?: SortOrder
+    type?: SortOrder
+    userId?: SortOrder
+    visitorId?: SortOrder
+    source?: SortOrder
+    metadata?: SortOrder
+    occurredAt?: SortOrder
+  }
+
+  export type BannerEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    bannerId?: SortOrder
+    type?: SortOrder
+    userId?: SortOrder
+    visitorId?: SortOrder
+    source?: SortOrder
+    occurredAt?: SortOrder
+  }
+
+  export type BannerEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    bannerId?: SortOrder
+    type?: SortOrder
+    userId?: SortOrder
+    visitorId?: SortOrder
+    source?: SortOrder
+    occurredAt?: SortOrder
+  }
+
+  export type EnumBannerEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BannerEventType | EnumBannerEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBannerEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.BannerEventType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBannerEventTypeFilter<$PrismaModel>
+    _max?: NestedEnumBannerEventTypeFilter<$PrismaModel>
   }
 
   export type EnumAdApplicationStatusFilter<$PrismaModel = never> = {
@@ -63927,6 +65469,20 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type BannerEventCreateNestedManyWithoutBannerInput = {
+    create?: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput> | BannerEventCreateWithoutBannerInput[] | BannerEventUncheckedCreateWithoutBannerInput[]
+    connectOrCreate?: BannerEventCreateOrConnectWithoutBannerInput | BannerEventCreateOrConnectWithoutBannerInput[]
+    createMany?: BannerEventCreateManyBannerInputEnvelope
+    connect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+  }
+
+  export type BannerEventUncheckedCreateNestedManyWithoutBannerInput = {
+    create?: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput> | BannerEventCreateWithoutBannerInput[] | BannerEventUncheckedCreateWithoutBannerInput[]
+    connectOrCreate?: BannerEventCreateOrConnectWithoutBannerInput | BannerEventCreateOrConnectWithoutBannerInput[]
+    createMany?: BannerEventCreateManyBannerInputEnvelope
+    connect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+  }
+
   export type EnumBannerPositionFieldUpdateOperationsInput = {
     set?: $Enums.BannerPosition
   }
@@ -63946,6 +65502,52 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutBannersCreatedInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBannersCreatedInput, UserUpdateWithoutBannersCreatedInput>, UserUncheckedUpdateWithoutBannersCreatedInput>
+  }
+
+  export type BannerEventUpdateManyWithoutBannerNestedInput = {
+    create?: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput> | BannerEventCreateWithoutBannerInput[] | BannerEventUncheckedCreateWithoutBannerInput[]
+    connectOrCreate?: BannerEventCreateOrConnectWithoutBannerInput | BannerEventCreateOrConnectWithoutBannerInput[]
+    upsert?: BannerEventUpsertWithWhereUniqueWithoutBannerInput | BannerEventUpsertWithWhereUniqueWithoutBannerInput[]
+    createMany?: BannerEventCreateManyBannerInputEnvelope
+    set?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    disconnect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    delete?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    connect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    update?: BannerEventUpdateWithWhereUniqueWithoutBannerInput | BannerEventUpdateWithWhereUniqueWithoutBannerInput[]
+    updateMany?: BannerEventUpdateManyWithWhereWithoutBannerInput | BannerEventUpdateManyWithWhereWithoutBannerInput[]
+    deleteMany?: BannerEventScalarWhereInput | BannerEventScalarWhereInput[]
+  }
+
+  export type BannerEventUncheckedUpdateManyWithoutBannerNestedInput = {
+    create?: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput> | BannerEventCreateWithoutBannerInput[] | BannerEventUncheckedCreateWithoutBannerInput[]
+    connectOrCreate?: BannerEventCreateOrConnectWithoutBannerInput | BannerEventCreateOrConnectWithoutBannerInput[]
+    upsert?: BannerEventUpsertWithWhereUniqueWithoutBannerInput | BannerEventUpsertWithWhereUniqueWithoutBannerInput[]
+    createMany?: BannerEventCreateManyBannerInputEnvelope
+    set?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    disconnect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    delete?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    connect?: BannerEventWhereUniqueInput | BannerEventWhereUniqueInput[]
+    update?: BannerEventUpdateWithWhereUniqueWithoutBannerInput | BannerEventUpdateWithWhereUniqueWithoutBannerInput[]
+    updateMany?: BannerEventUpdateManyWithWhereWithoutBannerInput | BannerEventUpdateManyWithWhereWithoutBannerInput[]
+    deleteMany?: BannerEventScalarWhereInput | BannerEventScalarWhereInput[]
+  }
+
+  export type BannerCreateNestedOneWithoutEventsInput = {
+    create?: XOR<BannerCreateWithoutEventsInput, BannerUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: BannerCreateOrConnectWithoutEventsInput
+    connect?: BannerWhereUniqueInput
+  }
+
+  export type EnumBannerEventTypeFieldUpdateOperationsInput = {
+    set?: $Enums.BannerEventType
+  }
+
+  export type BannerUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<BannerCreateWithoutEventsInput, BannerUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: BannerCreateOrConnectWithoutEventsInput
+    upsert?: BannerUpsertWithoutEventsInput
+    connect?: BannerWhereUniqueInput
+    update?: XOR<XOR<BannerUpdateToOneWithWhereWithoutEventsInput, BannerUpdateWithoutEventsInput>, BannerUncheckedUpdateWithoutEventsInput>
   }
 
   export type UserCreateNestedOneWithoutAdApplicationsInput = {
@@ -64984,6 +66586,23 @@ export namespace Prisma {
     _max?: NestedEnumBannerThemeFilter<$PrismaModel>
   }
 
+  export type NestedEnumBannerEventTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BannerEventType | EnumBannerEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBannerEventTypeFilter<$PrismaModel> | $Enums.BannerEventType
+  }
+
+  export type NestedEnumBannerEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BannerEventType | EnumBannerEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BannerEventType[] | ListEnumBannerEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBannerEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.BannerEventType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBannerEventTypeFilter<$PrismaModel>
+    _max?: NestedEnumBannerEventTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumAdApplicationStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.AdApplicationStatus | EnumAdApplicationStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AdApplicationStatus[] | ListEnumAdApplicationStatusFieldRefInput<$PrismaModel>
@@ -65458,8 +67077,10 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    events?: BannerEventCreateNestedManyWithoutBannerInput
   }
 
   export type BannerUncheckedCreateWithoutCreatorInput = {
@@ -65482,8 +67103,10 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    events?: BannerEventUncheckedCreateNestedManyWithoutBannerInput
   }
 
   export type BannerCreateOrConnectWithoutCreatorInput = {
@@ -66113,6 +67736,7 @@ export namespace Prisma {
     targetAudience?: EnumUserRoleNullableListFilter<"Banner">
     clickCount?: IntFilter<"Banner"> | number
     impressionCount?: IntFilter<"Banner"> | number
+    conversionCount?: IntFilter<"Banner"> | number
     createdBy?: StringFilter<"Banner"> | string
     createdAt?: DateTimeFilter<"Banner"> | Date | string
     updatedAt?: DateTimeFilter<"Banner"> | Date | string
@@ -69929,6 +71553,36 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutBannersCreatedInput, UserUncheckedCreateWithoutBannersCreatedInput>
   }
 
+  export type BannerEventCreateWithoutBannerInput = {
+    id?: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+  }
+
+  export type BannerEventUncheckedCreateWithoutBannerInput = {
+    id?: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+  }
+
+  export type BannerEventCreateOrConnectWithoutBannerInput = {
+    where: BannerEventWhereUniqueInput
+    create: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput>
+  }
+
+  export type BannerEventCreateManyBannerInputEnvelope = {
+    data: BannerEventCreateManyBannerInput | BannerEventCreateManyBannerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutBannersCreatedInput = {
     update: XOR<UserUpdateWithoutBannersCreatedInput, UserUncheckedUpdateWithoutBannersCreatedInput>
     create: XOR<UserCreateWithoutBannersCreatedInput, UserUncheckedCreateWithoutBannersCreatedInput>
@@ -70008,6 +71662,156 @@ export namespace Prisma {
     proofOfTransfers?: ProofOfTransferUncheckedUpdateManyWithoutUserNestedInput
     voucherRedemptions?: VoucherRedemptionUncheckedUpdateManyWithoutUserNestedInput
     cisIdentities?: CisIdentityUncheckedUpdateManyWithoutLinkedUserNestedInput
+  }
+
+  export type BannerEventUpsertWithWhereUniqueWithoutBannerInput = {
+    where: BannerEventWhereUniqueInput
+    update: XOR<BannerEventUpdateWithoutBannerInput, BannerEventUncheckedUpdateWithoutBannerInput>
+    create: XOR<BannerEventCreateWithoutBannerInput, BannerEventUncheckedCreateWithoutBannerInput>
+  }
+
+  export type BannerEventUpdateWithWhereUniqueWithoutBannerInput = {
+    where: BannerEventWhereUniqueInput
+    data: XOR<BannerEventUpdateWithoutBannerInput, BannerEventUncheckedUpdateWithoutBannerInput>
+  }
+
+  export type BannerEventUpdateManyWithWhereWithoutBannerInput = {
+    where: BannerEventScalarWhereInput
+    data: XOR<BannerEventUpdateManyMutationInput, BannerEventUncheckedUpdateManyWithoutBannerInput>
+  }
+
+  export type BannerEventScalarWhereInput = {
+    AND?: BannerEventScalarWhereInput | BannerEventScalarWhereInput[]
+    OR?: BannerEventScalarWhereInput[]
+    NOT?: BannerEventScalarWhereInput | BannerEventScalarWhereInput[]
+    id?: StringFilter<"BannerEvent"> | string
+    bannerId?: StringFilter<"BannerEvent"> | string
+    type?: EnumBannerEventTypeFilter<"BannerEvent"> | $Enums.BannerEventType
+    userId?: StringNullableFilter<"BannerEvent"> | string | null
+    visitorId?: StringNullableFilter<"BannerEvent"> | string | null
+    source?: StringNullableFilter<"BannerEvent"> | string | null
+    metadata?: JsonNullableFilter<"BannerEvent">
+    occurredAt?: DateTimeFilter<"BannerEvent"> | Date | string
+  }
+
+  export type BannerCreateWithoutEventsInput = {
+    id?: string
+    title: string
+    subtitle?: string | null
+    description?: string | null
+    imageUrl: string
+    linkUrl?: string | null
+    actions?: NullableJsonNullValueInput | InputJsonValue
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    accentColor?: string | null
+    details?: string | null
+    knowMoreLabel?: string | null
+    isActive?: boolean
+    startDate?: Date | string
+    endDate?: Date | string | null
+    displayOrder?: number
+    targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
+    clickCount?: number
+    impressionCount?: number
+    conversionCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    creator: UserCreateNestedOneWithoutBannersCreatedInput
+  }
+
+  export type BannerUncheckedCreateWithoutEventsInput = {
+    id?: string
+    title: string
+    subtitle?: string | null
+    description?: string | null
+    imageUrl: string
+    linkUrl?: string | null
+    actions?: NullableJsonNullValueInput | InputJsonValue
+    position?: $Enums.BannerPosition
+    theme?: $Enums.BannerTheme
+    accentColor?: string | null
+    details?: string | null
+    knowMoreLabel?: string | null
+    isActive?: boolean
+    startDate?: Date | string
+    endDate?: Date | string | null
+    displayOrder?: number
+    targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
+    clickCount?: number
+    impressionCount?: number
+    conversionCount?: number
+    createdBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BannerCreateOrConnectWithoutEventsInput = {
+    where: BannerWhereUniqueInput
+    create: XOR<BannerCreateWithoutEventsInput, BannerUncheckedCreateWithoutEventsInput>
+  }
+
+  export type BannerUpsertWithoutEventsInput = {
+    update: XOR<BannerUpdateWithoutEventsInput, BannerUncheckedUpdateWithoutEventsInput>
+    create: XOR<BannerCreateWithoutEventsInput, BannerUncheckedCreateWithoutEventsInput>
+    where?: BannerWhereInput
+  }
+
+  export type BannerUpdateToOneWithWhereWithoutEventsInput = {
+    where?: BannerWhereInput
+    data: XOR<BannerUpdateWithoutEventsInput, BannerUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type BannerUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    subtitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    actions?: NullableJsonNullValueInput | InputJsonValue
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    knowMoreLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    displayOrder?: IntFieldUpdateOperationsInput | number
+    targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
+    clickCount?: IntFieldUpdateOperationsInput | number
+    impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneRequiredWithoutBannersCreatedNestedInput
+  }
+
+  export type BannerUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    subtitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    linkUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    actions?: NullableJsonNullValueInput | InputJsonValue
+    position?: EnumBannerPositionFieldUpdateOperationsInput | $Enums.BannerPosition
+    theme?: EnumBannerThemeFieldUpdateOperationsInput | $Enums.BannerTheme
+    accentColor?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    knowMoreLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    displayOrder?: IntFieldUpdateOperationsInput | number
+    targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
+    clickCount?: IntFieldUpdateOperationsInput | number
+    impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateWithoutAdApplicationsInput = {
@@ -72650,6 +74454,7 @@ export namespace Prisma {
     targetAudience?: BannerCreatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: number
     impressionCount?: number
+    conversionCount?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -72886,8 +74691,10 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: BannerEventUpdateManyWithoutBannerNestedInput
   }
 
   export type BannerUncheckedUpdateWithoutCreatorInput = {
@@ -72910,8 +74717,10 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: BannerEventUncheckedUpdateManyWithoutBannerNestedInput
   }
 
   export type BannerUncheckedUpdateManyWithoutCreatorInput = {
@@ -72934,6 +74743,7 @@ export namespace Prisma {
     targetAudience?: BannerUpdatetargetAudienceInput | $Enums.UserRole[]
     clickCount?: IntFieldUpdateOperationsInput | number
     impressionCount?: IntFieldUpdateOperationsInput | number
+    conversionCount?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -74500,6 +76310,46 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     helpful?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventCreateManyBannerInput = {
+    id?: string
+    type: $Enums.BannerEventType
+    userId?: string | null
+    visitorId?: string | null
+    source?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: Date | string
+  }
+
+  export type BannerEventUpdateWithoutBannerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventUncheckedUpdateWithoutBannerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BannerEventUncheckedUpdateManyWithoutBannerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumBannerEventTypeFieldUpdateOperationsInput | $Enums.BannerEventType
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    visitorId?: NullableStringFieldUpdateOperationsInput | string | null
+    source?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AdvertiserPaymentCreateManyAdvertisementInput = {

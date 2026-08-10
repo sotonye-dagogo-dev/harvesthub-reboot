@@ -16,6 +16,8 @@ harvesthub-reboot/
 │   ├── advertise/                     → Public sponsors & ads landing page (/advertise) + full application form (/advertise/apply)
 │   ├── ad-application/                → Simple public ad application form
 │   ├── api/                           → Route handlers by domain (auth, products, orders, upload, etc.)
+│   │   ├── admin/analytics/banners/   → Admin-only banner performance analytics endpoint
+│   │   └── banners/[id]/              → Banner CRUD + public event-tracking endpoint
 │   ├── components/                    → App-local shared components
 │   ├── _styles/                       → Global CSS and tokenized style overrides
 │   ├── fonts/                         → Local font assets
@@ -30,6 +32,7 @@ harvesthub-reboot/
 │   └── __tests__/
 │
 ├── lib/                               → Core runtime logic, adapters, services, and utilities
+│   ├── analytics/                     → Banner event aggregation/metrics helpers
 │   ├── api/                           → Shared API response/handler wrappers
 │   ├── config/                        → Typed env + feature configuration
 │   ├── data/                          → Data facade/adapters and fetch helpers
@@ -38,6 +41,7 @@ harvesthub-reboot/
 │   ├── schemas/                       → Zod schemas
 │   ├── services/                      → Email, notification, upload, payment, and related services
 │   ├── store/                         → Client state stores
+│   ├── tracking/                      → Client-side banner event tracking (beacon/fetch)
 │   ├── utils/                         → Shared utilities (drafts, offline queue, formatters, etc.)
 │   └── __tests__/
 │

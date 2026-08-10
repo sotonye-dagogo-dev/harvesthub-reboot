@@ -251,6 +251,12 @@ enum BannerTheme {
   PROMOTION
 }
 
+enum BannerEventType {
+  IMPRESSION
+  CLICK
+  CONVERSION
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -821,17 +827,38 @@ model Banner {
   targetAudience  UserRole[]     @default([])
   clickCount      Int            @default(0)
   impressionCount Int            @default(0)
+  conversionCount Int            @default(0)
   createdBy       String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  creator User @relation(fields: [createdBy], references: [id])
+  creator User          @relation(fields: [createdBy], references: [id])
+  events  BannerEvent[]
 
   @@index([isActive, startDate, endDate])
   @@index([position])
   @@map("banners")
+}
+
+model BannerEvent {
+  id         String          @id @default(cuid())
+  bannerId   String
+  type       BannerEventType
+  userId     String?
+  visitorId  String?
+  source     String?
+  metadata   Json?
+  occurredAt DateTime        @default(now())
+
+  banner Banner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+
+  @@index([bannerId, type, occurredAt])
+  @@index([bannerId, type, visitorId])
+  @@index([bannerId, type, userId])
+  @@index([occurredAt])
+  @@map("banner_events")
 }
 
 model AdApplication {
