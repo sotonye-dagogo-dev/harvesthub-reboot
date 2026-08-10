@@ -18,6 +18,7 @@ import {
   Settings,
   Store,
   Users,
+  Newspaper,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -41,6 +42,7 @@ const ADMIN_LINK_ORDER = [
   "/operations/ads",
   "/operations/banners",
   "/operations/vendor-content",
+  "/operations/blog",
   "/operations/bug-reports",
   "/operations/public-content",
   "/operations/settings",
@@ -91,6 +93,7 @@ export function Sidebar({ type }: SidebarProps) {
     "/operations/public-content": FileText,
     "/operations/orders": ShoppingBag,
     "/operations/vendor-content": FileText,
+    "/operations/blog": Newspaper,
     "/operations/bug-reports": Bug,
     "/operations/settings": Settings,
     "/operations/marketing-content": Megaphone,

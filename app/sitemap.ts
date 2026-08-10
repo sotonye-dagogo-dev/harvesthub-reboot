@@ -33,6 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.6,
         },
         {
+            url: `${BASE_URL}/blog`,
+            lastModified: new Date(),
+            changeFrequency: "daily",
+            priority: 0.8,
+        },
+        {
+            url: `${BASE_URL}/about`,
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.5,
+        },
+        {
             url: `${BASE_URL}/login`,
             lastModified: new Date(),
             changeFrequency: "monthly",
@@ -94,5 +106,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         vendorPages = [];
     }
 
-    return [...staticPages, ...productPages, ...vendorPages];
+    // Dynamic blog pages (published only) — guarded
+    let blogPages: MetadataRoute.Sitemap = [];
+    try {
+        const publishedPosts = await prisma.blogPost.findMany({
+            where: { status: 'PUBLISHED', publishedAt: { not: null } },
+            select: { slug: true, updatedAt: true, publishedAt: true },
+        });
+        blogPages = publishedPosts.map((post: { slug: string; updatedAt: Date | null; publishedAt: Date | null }) => ({
+            url: `${BASE_URL}/blog/${post.slug}`,
+            lastModified: post.updatedAt ?? post.publishedAt ?? new Date(),
+            changeFrequency: "monthly" as const,
+            priority: 0.7,
+        }));
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Sitemap: failed to load blog posts for sitemap:', err);
+        blogPages = [];
+    }
+
+    return [...staticPages, ...productPages, ...vendorPages, ...blogPages];
 }

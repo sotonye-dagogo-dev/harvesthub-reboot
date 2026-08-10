@@ -35,3 +35,15 @@ export function publicContentKey(slug: string): string {
 export function publicContentListKey(): string {
   return 'cache:public-content:list';
 }
+
+export function blogPostKey(slug: string): string {
+  return `cache:blog:post:${slug}`;
+}
+
+export function blogPostListKey(filterHash: string): string {
+  return `cache:blog:posts:list:${filterHash}`;
+}
+
+export function blogConfigKey(): string {
+  return 'cache:blog:config';
+}
