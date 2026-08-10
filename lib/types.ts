@@ -469,6 +469,7 @@ export interface Banner {
     targetAudience?: UserRole[] | null;
     clickCount: number;
     impressionCount: number;
+    conversionCount: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
     createdBy: ID;

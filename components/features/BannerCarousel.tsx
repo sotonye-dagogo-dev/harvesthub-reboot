@@ -27,6 +27,11 @@ import { ChevronLeft, ChevronRight, X, ExternalLink, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BANNER_CONFIG } from "@/lib/constants";
 import { resolveBannerActions } from "@/lib/utils/bannerActions";
+import {
+  trackBannerImpression,
+  trackBannerClick,
+  type BannerTrackingSource,
+} from "@/lib/tracking/bannerTracking";
 
 // ─── Public types ─────────────────────────────────────────────────
 
@@ -141,9 +146,10 @@ interface ActionBtnProps {
   action: BannerActionItem;
   tokens: ThemeTokens;
   size?: "sm" | "md";
+  onClick?: () => void;
 }
 
-function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
+function ActionBtn({ action, tokens, size = "md", onClick }: ActionBtnProps) {
   const isSecondary = action.variant === "secondary" || action.variant === "outline";
   const base =
     "inline-flex items-center justify-center gap-1.5 rounded-ds-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2";
@@ -163,6 +169,7 @@ function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
         href={action.href}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={onClick}
         className={cn(base, sizeClass, colorClass)}
       >
         {inner}
@@ -171,7 +178,7 @@ function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
   }
 
   return (
-    <Link href={action.href} className={cn(base, sizeClass, colorClass)}>
+    <Link href={action.href} onClick={onClick} className={cn(base, sizeClass, colorClass)}>
       {inner}
     </Link>
   );
@@ -182,9 +189,10 @@ function ActionBtn({ action, tokens, size = "md" }: ActionBtnProps) {
 interface ActionModalProps {
   banner: BannerItem;
   onClose: () => void;
+  trackingSource?: BannerTrackingSource;
 }
 
-export function BannerActionModal({ banner, onClose }: ActionModalProps) {
+export function BannerActionModal({ banner, onClose, trackingSource = "hero-modal" }: ActionModalProps) {
   const tokens = getTheme(banner.theme);
   const resolvedActions = resolveBannerActions({
     actions: banner.actions,
@@ -192,6 +200,10 @@ export function BannerActionModal({ banner, onClose }: ActionModalProps) {
     defaultLabel: "Open promotion",
   });
   const hasActions = resolvedActions.length > 0;
+
+  const handleCtaClick = () => {
+    trackBannerClick(banner.id, trackingSource, { conversion: true });
+  };
 
   // Close on Escape
   useEffect(() => {
@@ -281,7 +293,7 @@ export function BannerActionModal({ banner, onClose }: ActionModalProps) {
         {hasActions && (
           <div className="mt-5 flex flex-col gap-2">
             {resolvedActions.slice(0, 2).map((action, i) => (
-              <ActionBtn key={i} action={action} tokens={tokens} size="md" />
+              <ActionBtn key={i} action={action} tokens={tokens} size="md" onClick={handleCtaClick} />
             ))}
           </div>
         )}
@@ -388,12 +400,20 @@ export function BannerCarousel({
     [currentIndex, banners.length, goTo]
   );
 
-  if (banners.length === 0) return null;
-
   const currentBanner = banners[currentIndex];
+  const currentTokens = getTheme(currentBanner?.theme);
+  const knowMoreLabel = currentBanner?.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
+
+  // Track the currently displayed hero banner as an impression.
+  useEffect(() => {
+    if (currentBanner) {
+      trackBannerImpression(currentBanner.id, "hero");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, banners.length]);
+
+  if (banners.length === 0) return null;
   if (!currentBanner) return null;
-  const currentTokens = getTheme(currentBanner.theme);
-  const knowMoreLabel = currentBanner.knowMoreLabel ?? BANNER_CONFIG.KNOW_MORE_LABEL;
 
   return (
     <>
@@ -462,7 +482,10 @@ export function BannerCarousel({
           )}
 
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              trackBannerClick(currentBanner.id, "hero");
+              setModalOpen(true);
+            }}
             className={cn(
               "inline-flex items-center justify-center rounded-ds-sm p-1 text-xs font-semibold transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-focus-ring/40",
@@ -477,7 +500,11 @@ export function BannerCarousel({
 
       {/* Action Modal (small screens only, triggered by Know More) */}
       {modalOpen && (
-        <BannerActionModal banner={currentBanner} onClose={() => setModalOpen(false)} />
+        <BannerActionModal
+          banner={currentBanner}
+          onClose={() => setModalOpen(false)}
+          trackingSource="hero-modal"
+        />
       )}
     </>
   );

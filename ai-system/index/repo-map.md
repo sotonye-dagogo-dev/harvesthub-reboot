@@ -1,5 +1,7 @@
 # Repository Map
 
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T00:00:00Z
 > **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
 
 ---
@@ -11,7 +13,11 @@ harvesthub-reboot/
 ├── app/                               → Next.js App Router pages, route groups, and API surface
 │   ├── (auth)/                        → Auth pages (login, forgot/reset password)
 │   ├── (operations)/operations/       → Canonical admin/vendor operations workspace routes
+│   ├── advertise/                     → Public sponsors & ads landing page (/advertise) + full application form (/advertise/apply)
+│   ├── ad-application/                → Simple public ad application form
 │   ├── api/                           → Route handlers by domain (auth, products, orders, upload, etc.)
+│   │   ├── admin/analytics/banners/   → Admin-only banner performance analytics endpoint
+│   │   └── banners/[id]/              → Banner CRUD + public event-tracking endpoint
 │   ├── components/                    → App-local shared components
 │   ├── _styles/                       → Global CSS and tokenized style overrides
 │   ├── fonts/                         → Local font assets
@@ -26,6 +32,7 @@ harvesthub-reboot/
 │   └── __tests__/
 │
 ├── lib/                               → Core runtime logic, adapters, services, and utilities
+│   ├── analytics/                     → Banner event aggregation/metrics helpers
 │   ├── api/                           → Shared API response/handler wrappers
 │   ├── config/                        → Typed env + feature configuration
 │   ├── data/                          → Data facade/adapters and fetch helpers
@@ -34,6 +41,7 @@ harvesthub-reboot/
 │   ├── schemas/                       → Zod schemas
 │   ├── services/                      → Email, notification, upload, payment, and related services
 │   ├── store/                         → Client state stores
+│   ├── tracking/                      → Client-side banner event tracking (beacon/fetch)
 │   ├── utils/                         → Shared utilities (drafts, offline queue, formatters, etc.)
 │   └── __tests__/
 │
@@ -63,8 +71,8 @@ harvesthub-reboot/
 
 | Directory     | Purpose                                                              | Key Files                                                                        |
 | ------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `app/`        | Main App Router surface for public, auth, and operations experiences | `app/layout.tsx`, `app/page.tsx`, `app/(operations)/operations/layout.tsx`       |
-| `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/upload/route.ts`                  |
+| `app/`        | Main App Router surface for public, auth, and operations experiences | `app/layout.tsx`, `app/page.tsx`, `app/advertise/page.tsx`, `app/(operations)/operations/layout.tsx`       |
+| `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/orders/[id]/proof-of-payment/*`, `app/api/vendors/[id]/bank-details/route.ts`, `app/api/upload/route.ts`                  |
 | `components/` | Reusable app-wide UI and feature composition                         | `components/layout/Header.tsx`, `components/layout/Sidebar.tsx`                  |
 | `lib/`        | Core shared runtime utilities and business logic                     | `lib/api/http.ts`, `lib/rbac/routeConfig.ts`, `lib/data/database.ts`             |
 | `prisma/`     | ORM schema/migrations/client generation                              | `prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`                  |

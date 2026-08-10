@@ -69,6 +69,24 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [x] Add focused regression coverage for branded notification rendering and routing.
 - [x] Update architecture/decision/history docs to reflect the canonical email pipeline.
 
+## Sponsors & Ads Landing Page (2026-08-04)
+
+> **Section summary:** Public-facing marketing landing page at `/advertise` so interested parties learn about sponsored banner placements before proceeding to the actual application/procurement flows. Config-driven and admin-editable via the existing `PublicContent` system, with footer link retargeted to the landing page while operations banner-management routes stay unchanged.
+
+- [x] Add `advertisingConfig` to `lib/config/siteContent.ts` (metadata, routes, hero copy, placement cards, process steps, policies, FAQ, CTA labels).
+- [x] Move the full ad-application form from `app/advertise/page.tsx` -> `app/advertise/apply/page.tsx` (`/advertise/apply`) and rebuild `app/advertise/page.tsx` as the landing page.
+- [x] Add `advertise` preset to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`.
+- [x] Landing page reads `getPublicContentBySlug("advertise")` and renders admin `body` HTML when `PUBLISHED`, otherwise config fallback.
+- [x] Register `/advertise` and `/advertise/apply` as public routes in `lib/rbac/routeConfig.ts` and add `advertiseApply` label key to `lib/navigation.ts`.
+- [x] Retarget footer quick-link from `Apply to Advertise` (/ad-application) to `Advertise With Us` (`/advertise`).
+- [x] Keep `/operations/banners`, `/operations/ads`, and `/ad-application` routes/nav/sidebar unchanged.
+- [x] Add landing page to static sitemap entries.
+- [x] Add tests: `app/advertise/__tests__/page.test.tsx` (hero, CTA target, admin body render, fallback) and update `components/__tests__/Footer.test.tsx`.
+- [x] Validation: `npx tsc --noEmit`, `next lint` touched files, focused vitest, `npm run build`.
+- [x] Sync `ai-system` closure docs (`task-queue`, `session-log`, `system-architecture`, `project-decisions`).
+
+---
+
 ## Current Sprint
 
 > **Section summary:** High-priority refactor tasks that align the codebase to a modular, config-driven, role-aware architecture.
@@ -1318,3 +1336,37 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Run validation gate (`npm run lint`, `npm run build`, focused/touched tests as practical).
   - [x] Update `ai-system/planning/task-queue.md` with completion status.
   - [x] Update `ai-system/checkpoints/session-log.md` and `ai-system/summaries/dev-history.md`.
+
+---
+
+## Cloud Session Execution Queue (2026-08-10) — Ad/Banner Performance Tracking & Analytics
+
+> **Section summary:** End-to-end ads/banners performance tracking (impressions, clicks, conversions) with authenticated vs anonymous and unique counts, surfaced in the operations dashboards.
+
+- [x] Slice 1 — Schema + analytics core.
+  - [x] Add `BannerEventType` enum (`IMPRESSION | CLICK | CONVERSION`) and `BannerEvent` model (bannerId, type, userId?, visitorId?, source?, metadata?, occurredAt) with composite indexes.
+  - [x] Add `conversionCount` denormalized counter to `Banner` plus `events` relation.
+  - [x] Create migration `20260810090000_add_banner_events` and regenerate the Prisma client.
+  - [x] Add `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+
+- [x] Slice 2 — Tracking API.
+  - [x] Extend `PATCH /api/banners/[id]` into a generic event-tracking endpoint (`{ type, visitorId, source, metadata }`) with `POST` alias for `sendBeacon`; IP rate-limited; best-effort event insert + denormalized counter increment.
+  - [x] `app/api/ad-applications/[id]/route.ts` creates approved banners with `conversionCount: 0`.
+
+- [x] Slice 3 — Analytics API.
+  - [x] New admin-only `GET /api/admin/analytics/banners` with `days`/`bannerId` filters returning summary + per-banner metrics.
+
+- [x] Slice 4 — Client tracking + wiring.
+  - [x] Add `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, `sendBeacon`/keepalive-fetch fire-and-forget events, per-session impression dedupe.
+  - [x] Wire into `TopAdBanner`, `BannerCarousel` (hero + modal), and `HomeContent` (sidebar rail).
+
+- [x] Slice 5 — Dashboard surfaces.
+  - [x] `app/api/operations/dashboard/route.ts` admin metric cards for banner impressions/clicks + "Ad & Banner Analytics" quick action.
+  - [x] `AnalyticsFeature.tsx` admin-only "Banner & Ad Performance" section fed by `getBannerAnalyticsClient` (`lib/data/clientDataFetchers.ts`).
+
+- [x] Slice 6 — Tests.
+  - [x] `lib/analytics/__tests__/bannerAnalytics.test.ts`, `app/api/banners/[id]/__tests__/tracking.route.test.ts`, `app/api/admin/analytics/banners/__tests__/route.test.ts`, `lib/tracking/__tests__/bannerTracking.test.ts`, `TopAdBanner.tracking.test.tsx`, `BannerCarousel.tracking.test.tsx`.
+
+- [x] Slice 7 — QA + docs closure.
+  - [x] Validation gate: `npx tsc --noEmit`, `npm run lint -- --max-warnings 0` (only pre-existing warnings in untouched files), focused vitest suites (44 new tests pass), `npm run build`.
+  - [x] Update `ai-system/checkpoints/session-log.md`, `ai-system/summaries/dev-history.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/checkpoints/in-progress.md`.

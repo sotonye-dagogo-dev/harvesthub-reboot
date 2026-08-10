@@ -12,11 +12,19 @@ vi.mock('next/link', () => ({
 }));
 
 describe('Footer', () => {
-  it('shows a public Apply to Advertise CTA link', () => {
+  it('shows a public Advertise With Us link pointing to the landing page', () => {
     render(<Footer />);
 
-    const applyLink = screen.getByRole('link', { name: /Apply to Advertise/i });
-    expect(applyLink).toBeInTheDocument();
-    expect(applyLink).toHaveAttribute('href', '/ad-application');
+    const advertiseLink = screen.getByRole('link', { name: /Advertise With Us/i });
+    expect(advertiseLink).toBeInTheDocument();
+    expect(advertiseLink).toHaveAttribute('href', '/advertise');
+  });
+
+  it('links to the public blog', () => {
+    render(<Footer />);
+
+    const blogLink = screen.getByRole('link', { name: /Blog/i });
+    expect(blogLink).toBeInTheDocument();
+    expect(blogLink).toHaveAttribute('href', '/blog');
   });
 });

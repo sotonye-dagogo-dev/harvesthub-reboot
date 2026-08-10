@@ -4,6 +4,92 @@
 
 ---
 
+## Session 88 — 2026-08-10
+
+**Goal:**
+Track ads/banners performance end-to-end (impressions, clicks, conversions) with authenticated vs
+anonymous and unique counts, and surface it in the operations dashboards.
+
+**Completed:**
+
+- Added `BannerEventType` enum + `BannerEvent` model and `conversionCount` on `Banner`; migration
+  `20260810090000_add_banner_events`; regenerated Prisma client.
+- `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+- Extended `PATCH /api/banners/[id]` into a public, IP-rate-limited event-tracking endpoint
+  (`{ type, visitorId, source, metadata }`) with a `POST` alias for `navigator.sendBeacon`;
+  best-effort `BannerEvent` insert + denormalized counter increment.
+- New admin-only `GET /api/admin/analytics/banners` (`days`/`bannerId` filters).
+- `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, beacon/keepalive fire-and-forget
+  events, per-session impression dedupe; wired into `TopAdBanner`, `BannerCarousel` (hero + modal),
+  and `HomeContent` (sidebar rail).
+- Admin dashboard metric cards + "Ad & Banner Analytics" quick action in
+  `app/api/operations/dashboard/route.ts`; "Banner & Ad Performance" section in
+  `AnalyticsFeature.tsx` fed by `getBannerAnalyticsClient`.
+
+**Files Modified:**
+- `prisma/schema.prisma`, `prisma/migrations/20260810090000_add_banner_events/`, generated client
+- `lib/analytics/bannerAnalytics.ts` (new)
+- `app/api/banners/[id]/route.ts`
+- `app/api/admin/analytics/banners/route.ts` (new)
+- `lib/tracking/bannerTracking.ts` (new)
+- `components/features/TopAdBanner.tsx`, `components/features/BannerCarousel.tsx`,
+  `components/features/AnalyticsFeature.tsx`, `app/components/HomeContent.tsx`
+- `app/api/operations/dashboard/route.ts`, `app/api/ad-applications/[id]/route.ts`
+- `lib/data/clientDataFetchers.ts`, `lib/data/mockDataset.ts`, `lib/types.ts`
+- Tests: `bannerAnalytics.test.ts`, `tracking.route.test.ts`, `admin/analytics/banners/route.test.ts`,
+  `bannerTracking.test.ts`, `TopAdBanner.tracking.test.tsx`, `BannerCarousel.tracking.test.tsx`
+
+**Validation:**
+- `npx tsc --noEmit` ✅
+- `npm run lint -- --max-warnings 0` ✅ (only pre-existing warnings in untouched files)
+- Focused vitest suites (44 new tests) ✅
+- `npm run build` ✅
+- Full-suite failure set is unchanged from baseline (17 files / 67 tests, all pre-existing:
+  live-server API integration tests, Next.js headers-context, and parallel flake).
+
+## Session 87 — 2026-08-04
+
+**Goal:**
+Add a public-facing, config-driven and admin-editable marketing landing page for the sponsors/ads feature so interested parties can learn about advertising on MyHarvestHub before proceeding to the actual submission/procurement pages.
+
+**Completed:**
+
+- Added `advertisingConfig` to `lib/config/siteContent.ts` (metadata, routes, hero copy, placement cards with dims/ratio, process steps, policies, FAQ list, CTA labels).
+- Moved the full ad-application form from `app/advertise/page.tsx` -> `app/advertise/apply/page.tsx` (route `/advertise/apply`) and rebuilt `app/advertise/page.tsx` as the landing page (hero, admin narrative block, placement cards, how-it-works steps, policies, FAQ accordion, closing CTA).
+- Added an `advertise` preset to `PagePreset[]` in `components/features/PublicContentAdminPanel.tsx`; landing page renders admin `body` HTML via `getPublicContentBySlug("advertise")` when `PUBLISHED`, otherwise config fallback.
+- Registered `/advertise` and `/advertise/apply` as public routes in `lib/rbac/routeConfig.ts`; added `advertiseApply` label key in `lib/navigation.ts`.
+- Retargeted the footer quick-link from "Apply to Advertise" (/ad-application) to "Advertise With Us" (`/advertise`); preserved `/operations/banners`, `/operations/ads`, and `/ad-application` routes/nav/sidebar.
+- Added `/advertise` to the static sitemap.
+- Added tests: `app/advertise/__tests__/page.test.tsx` (hero + CTA target, config fallback, admin body render, sections, quick-application CTA) and updated `components/__tests__/Footer.test.tsx`.
+- Validation: `npx tsc --noEmit` passed, `next lint` touched files passed, focused vitest suites passed, `npm run build` passed.
+
+**Files Modified:**
+
+- ai-system/checkpoints/in-progress.md
+- ai-system/planning/task-queue.md
+- ai-system/checkpoints/session-log.md
+- ai-system/system-architecture.md
+- ai-system/memory/project-decisions.md
+- lib/config/siteContent.ts
+- lib/rbac/routeConfig.ts
+- lib/navigation.ts
+- components/features/PublicContentAdminPanel.tsx
+- components/__tests__/Footer.test.tsx
+- app/advertise/page.tsx
+- app/advertise/apply/page.tsx
+- app/advertise/__tests__/page.test.tsx
+- app/sitemap.ts
+
+**Next Task:**
+Run the `update-ai-system.md` deep sync (repo-map, dependency-graph, dev-history, metadata headers) and raise the PR.
+
+**Notes / Blockers:**
+
+- `/advertise` is the public landing page; `/advertise/apply` hosts the full sponsored-application form. `/ad-application` (simple public form) remains unchanged and is linked as "Quick application".
+- `/operations/banners` and `/operations/ads` admin management routes are untouched.
+
+---
+
 ## Session 85 — 2026-05-13
 
 **Goal:**
@@ -4421,3 +4507,29 @@ Execute all slices from cloud-session-temp-plan-2026-04-17-home-search-vouchers-
 
 **Next Task:**
 No blockers. 2026-04-17 queue block complete. Future sessions can pick up from task-queue.md.
+
+## Session 2026-07-12 — Vendor Bank Details on Checkout + Build Fix
+
+**Goal:**
+Close the gap where vendor bank account details (collected during signup) were not displayed on the checkout page for off-platform bank transfer payments. Also fix the pre-existing build error.
+
+**Completed:**
+
+- Created `app/api/vendors/[id]/bank-details/route.ts` — returns vendor bank name, account name, account number from `businessVerification.bankDetails`
+- Updated `app/checkout/page.tsx` to fetch and display vendor bank details when `BANK_TRANSFER_PROOF` is selected
+- Extended `app/api/vendors/me/store-settings/route.ts` GET/PUT to include bankName, accountName, accountNumber
+- Updated `components/features/StoreSettingsPage.tsx` with a Bank Details card for vendors to manage their banking info
+- Fixed pre-existing build error: `size="small"` → `size="sm"` in `app/orders/[id]/page.tsx`
+
+**Files Modified:**
+- `app/api/vendors/[id]/bank-details/route.ts` (new)
+- `app/checkout/page.tsx`
+- `app/api/vendors/me/store-settings/route.ts`
+- `components/features/StoreSettingsPage.tsx`
+- `app/orders/[id]/page.tsx`
+- `ai-system/summaries/dev-history.md`
+- `ai-system/index/repo-map.md`
+- `ai-system/repair-system.md`
+
+**Validation:**
+- `npx next build --no-lint` ✅

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState } from "@/components/ui";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { Input } from "antd";
+import { Input, message, Modal } from "antd";
 import { emitWalletSync } from "@/lib/utils/walletSync";
 
 type OrderStatusHistoryEntry = {
@@ -35,18 +36,35 @@ type OrderItem = {
   subtotal: number;
 };
 
+type ProofOfTransferRecord = {
+  id: string;
+  orderId?: string | null;
+  userId: string;
+  imageUrl: string;
+  imagePublicId?: string | null;
+  bankReference?: string | null;
+  amount: number;
+  status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  notes?: string | null;
+  createdAt: string;
+};
+
 type OrderDetail = {
   id: string;
   orderNumber: string;
   orderGroupId?: string | null;
   status: string;
   paymentStatus: string;
+  paymentMethod?: string;
   deliveryMethod: string;
   total: number;
   createdAt: string;
   statusHistory?: unknown;
   items?: OrderItem[];
   transactions?: OrderTransaction[];
+  proofOfTransfers?: ProofOfTransferRecord[];
 };
 
 type GroupedOrderSummary = {
@@ -85,6 +103,12 @@ export default function OrderDetailPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [groupedOrders, setGroupedOrders] = useState<GroupedOrderSummary[]>([]);
   const [groupedLoading, setGroupedLoading] = useState(false);
+  const [proofAmount, setProofAmount] = useState("");
+  const [proofBankRef, setProofBankRef] = useState("");
+  const [proofImageUrl, setProofImageUrl] = useState<string | null>(null);
+  const [proofImagePublicId, setProofImagePublicId] = useState<string | null>(null);
+  const [viewingProof, setViewingProof] = useState<ProofOfTransferRecord | null>(null);
+  const [acknowledgeNotes, setAcknowledgeNotes] = useState("");
 
   const loadOrder = useCallback(async () => {
     if (!orderId) {
@@ -314,6 +338,78 @@ export default function OrderDetailPage() {
     [groupedOrders, loadOrder, order?.orderGroupId]
   );
 
+  const handleProofUpload = useCallback(async () => {
+    if (!orderId || !proofImageUrl) {
+      message.error("Please upload a proof of payment image");
+      return;
+    }
+    const amount = parseFloat(proofAmount);
+    if (Number.isNaN(amount) || amount <= 0) {
+      message.error("Please enter a valid amount");
+      return;
+    }
+    setIsMutating(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch(`/api/orders/${orderId}/proof-of-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageUrl: proofImageUrl,
+          imagePublicId: proofImagePublicId,
+          bankReference: proofBankRef.trim() || undefined,
+          amount,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to upload proof of payment");
+      }
+      message.success("Proof of payment uploaded successfully");
+      setProofImageUrl(null);
+      setProofImagePublicId(null);
+      setProofAmount("");
+      setProofBankRef("");
+      await loadOrder();
+    } catch (uploadError) {
+      message.error(uploadError instanceof Error ? uploadError.message : "Failed to upload proof");
+    } finally {
+      setIsMutating(false);
+    }
+  }, [orderId, proofImageUrl, proofImagePublicId, proofBankRef, proofAmount, loadOrder]);
+
+  const handleAcknowledgeProof = useCallback(
+    async (proofId: string, action: "VERIFIED" | "REJECTED") => {
+      if (!orderId) return;
+      setIsMutating(true);
+      setActionMessage(null);
+      try {
+        const res = await fetch(`/api/orders/${orderId}/proof-of-payment/acknowledge`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proofId,
+            action,
+            notes: acknowledgeNotes.trim() || undefined,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.error || `Unable to ${action.toLowerCase()} proof of payment`);
+        }
+        message.success(`Proof of payment ${action.toLowerCase()} successfully`);
+        setAcknowledgeNotes("");
+        setViewingProof(null);
+        await loadOrder();
+      } catch (ackError) {
+        message.error(ackError instanceof Error ? ackError.message : `Unable to ${action.toLowerCase()} proof`);
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [orderId, acknowledgeNotes, loadOrder]
+  );
+
   const statusHistory = useMemo(
     () => parseStatusHistory(order?.statusHistory),
     [order?.statusHistory]
@@ -336,6 +432,17 @@ export default function OrderDetailPage() {
     Boolean(order?.orderGroupId) &&
     groupedOrders.length > 1 &&
     (user?.role === "BUYER" || user?.role === "ADMIN");
+  const isBankTransferPayment = order?.paymentMethod === "BANK_TRANSFER_PROOF" || order?.paymentMethod === "BANK_TRANSFER";
+  const canUploadProof = user?.role === "BUYER" && isBankTransferPayment && order?.paymentStatus === "PENDING";
+  const proofOfTransfers = useMemo(
+    () => (Array.isArray(order?.proofOfTransfers) ? order.proofOfTransfers : []),
+    [order?.proofOfTransfers]
+  );
+  const pendingProofs = useMemo(
+    () => proofOfTransfers.filter((p) => p.status === "PENDING"),
+    [proofOfTransfers]
+  );
+  const canAcknowledgeProof = (user?.role === "VENDOR" || user?.role === "ADMIN") && pendingProofs.length > 0;
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8">Loading order details...</div>;
@@ -544,6 +651,179 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </Card>
+
+      {canUploadProof || canAcknowledgeProof ? (
+        <Card>
+          <h2 className="text-lg font-semibold text-ds-text-primary">Proof of Payment</h2>
+          <div className="mt-4 space-y-4">
+            {canUploadProof && proofOfTransfers.length === 0 ? (
+              <div className="space-y-3 rounded-ds-md border border-ds-border-base p-4">
+                <p className="text-sm text-ds-text-secondary">
+                  Upload your bank transfer receipt to confirm your payment. The vendor will verify it
+                  and update your order.
+                </p>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Upload Payment Receipt
+                  </label>
+                  <ImageUpload
+                    folderType="payment-proof"
+                    onUploaded={(result) => {
+                      setProofImageUrl(result.url);
+                      setProofImagePublicId(result.publicId);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Amount Paid (NGN)
+                  </label>
+                  <Input
+                    type="number"
+                    value={proofAmount}
+                    onChange={(e) => setProofAmount(e.target.value)}
+                    placeholder="Enter amount you transferred"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Bank Reference (optional)
+                  </label>
+                  <Input
+                    value={proofBankRef}
+                    onChange={(e) => setProofBankRef(e.target.value)}
+                    placeholder="Enter bank transaction reference"
+                  />
+                </div>
+                <Button
+                  onClick={() => void handleProofUpload()}
+                  disabled={isMutating || !proofImageUrl}
+                  loading={isMutating}
+                >
+                  Submit Proof of Payment
+                </Button>
+              </div>
+            ) : null}
+            {proofOfTransfers.length > 0 ? (
+              <div className="space-y-3">
+                {proofOfTransfers.map((proof) => (
+                  <div
+                    key={proof.id}
+                    className="rounded-ds-md border border-ds-border-base p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-ds-text-primary">
+                          Amount: {formatCurrency(proof.amount)}
+                        </p>
+                        <p className="text-xs text-ds-text-secondary">
+                          Status: <span className={
+                            proof.status === "VERIFIED"
+                              ? "text-ds-status-success"
+                              : proof.status === "REJECTED"
+                                ? "text-ds-status-error"
+                                : "text-ds-status-warning"
+                          }>{formatStatusLabel(proof.status)}</span>
+                        </p>
+                        {proof.bankReference ? (
+                          <p className="text-xs text-ds-text-secondary">
+                            Reference: {proof.bankReference}
+                          </p>
+                        ) : null}
+                        <p className="text-xs text-ds-text-secondary">
+                          {new Date(proof.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setViewingProof(proof)}
+                          className="text-xs text-ds-text-brand hover:underline"
+                        >
+                          View Receipt
+                        </button>
+                        {canAcknowledgeProof && proof.status === "PENDING" ? (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              onClick={() => void handleAcknowledgeProof(proof.id, "VERIFIED")}
+                              disabled={isMutating}
+                            >
+                              Verify
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void handleAcknowledgeProof(proof.id, "REJECTED")}
+                              disabled={isMutating}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                    {proof.notes ? (
+                      <p className="mt-2 text-xs text-ds-text-secondary">Note: {proof.notes}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+
+      {/* Proof Image Modal */}
+      <Modal
+        open={!!viewingProof}
+        onCancel={() => { setViewingProof(null); setAcknowledgeNotes(""); }}
+        footer={null}
+        title="Payment Receipt"
+        width={600}
+      >
+        {viewingProof ? (
+          <div className="space-y-4">
+            <div className="relative h-80 w-full overflow-hidden rounded-ds-md">
+              <img
+                src={viewingProof.imageUrl}
+                alt="Payment proof"
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="space-y-2 text-sm text-ds-text-secondary">
+              <p>Amount: {formatCurrency(viewingProof.amount)}</p>
+              {viewingProof.bankReference ? <p>Reference: {viewingProof.bankReference}</p> : null}
+              <p className="text-xs">Uploaded: {new Date(viewingProof.createdAt).toLocaleString()}</p>
+            </div>
+            {canAcknowledgeProof && viewingProof.status === "PENDING" ? (
+              <div className="space-y-3 border-t border-ds-border-base pt-3">
+                <Input.TextArea
+                  rows={2}
+                  value={acknowledgeNotes}
+                  onChange={(e) => setAcknowledgeNotes(e.target.value)}
+                  placeholder="Optional notes for this decision"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => void handleAcknowledgeProof(viewingProof.id, "VERIFIED")}
+                    disabled={isMutating}
+                  >
+                    Verify & Mark Paid
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => void handleAcknowledgeProof(viewingProof.id, "REJECTED")}
+                    disabled={isMutating}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
 
       <Card>
         <h2 className="text-lg font-semibold text-ds-text-primary">Order Tracking History</h2>

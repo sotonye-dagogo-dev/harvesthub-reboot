@@ -39,6 +39,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
                     },
                     orderBy: { createdAt: 'desc' },
                 },
+                proofOfTransfers: {
+                    orderBy: { createdAt: 'desc' },
+                },
             },
         });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });

@@ -1,5 +1,6 @@
 # Dependency Graph
 
+> **last-updated-by:** update-ai-system.md (2026-08-04)
 > **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
@@ -46,12 +47,61 @@ app/api/upload/route.ts
   -> lib/middleware/rate-limit.ts
   -> lib/api/http.ts
 
-app/advertise/page.tsx + app/ad-application/page.tsx
+app/api/orders/[id]/proof-of-payment/route.ts
+  -> lib/db/prisma.ts
+  -> lib/utils/auth.ts
+  -> lib/middleware/rate-limit.ts
+
+app/api/orders/[id]/proof-of-payment/acknowledge/route.ts
+  -> lib/db/prisma.ts
+  -> lib/utils/auth.ts
+  -> lib/middleware/rate-limit.ts
+  -> prisma/generated/client (ProofOfTransferStatus, PaymentStatus)
+
+app/orders/[id]/page.tsx
+  -> components/ui/ImageUpload.tsx
+  -> app/api/orders/[id]/proof-of-payment/*
+
+app/advertise/page.tsx (landing page, async server component)
+  -> lib/config/siteContent.ts (advertisingConfig copy)
+  -> lib/data/publicContent.ts (getPublicContentBySlug("advertise"))
+  -> lib/rbac/routeConfig.ts (public route policy)
+
+app/advertise/apply/page.tsx (full sponsored-application form)
+  -> components/ui/ImageUpload.tsx
+  -> lib/utils/localDraft.ts
+  -> lib/utils/offlineQueue.ts
+  -> lib/utils/paystackInline.ts
+  -> app/api/upload/route.ts
+  -> app/api/ad-applications|ads/apply
+
+app/ad-application/page.tsx (simple public application form)
   -> components/ui/ImageUpload.tsx
   -> lib/utils/localDraft.ts
   -> lib/utils/offlineQueue.ts
   -> app/api/upload/route.ts
   -> app/api/ad-applications|ads/apply
+
+# --- Banner/Ad Performance Tracking & Analytics ---
+
+components/features/TopAdBanner.tsx | BannerCarousel.tsx | app/components/HomeContent.tsx
+  -> lib/tracking/bannerTracking.ts (beacon/keepalive event emission)
+  -> app/api/banners/[id] (PATCH|POST public tracking endpoint)
+
+app/api/banners/[id]/route.ts
+  -> lib/analytics/bannerAnalytics.ts (event type guard)
+  -> lib/db/prisma.ts (BannerEvent insert + Banner counter increment)
+  -> lib/utils/auth.ts (getCurrentUser, optional)
+  -> lib/middleware/rate-limit.ts (IP rate limit)
+
+app/api/admin/analytics/banners/route.ts
+  -> lib/analytics/bannerAnalytics.ts (aggregateBannerAnalytics)
+  -> lib/db/prisma.ts (Banner + BannerEvent reads)
+  -> lib/utils/auth.ts (admin gate)
+
+components/features/AnalyticsFeature.tsx | app/api/operations/dashboard/route.ts
+  -> lib/data/clientDataFetchers.ts (getBannerAnalyticsClient)
+  -> app/api/admin/analytics/banners (admin analytics read)
 
 lib/services/notifications.ts
   -> lib/services/email.ts
@@ -98,6 +148,7 @@ lib/services/notifications.ts
 - Historical docs referenced `(buyer)/(vendor)/(admin)` route groups, but canonical management routes now live under `app/(operations)/operations/*`.
 - Avoid reintroducing raw media URL entry for upload-governed fields; upload APIs enforce managed URLs for governed flows.
 - `scripts/auditSidebarRoutes.ts` must stay synchronized with `components/layout/Sidebar.tsx` data-shape changes to avoid false route-audit failures.
+- Off-platform payment with proof upload: `BANK_TRANSFER_PROOF` payment method gated by `bankTransferFallbackEnabled` env var and `paymentsEnabled` DB toggle. The proof-of-payment lifecycle spans `app/api/orders/[id]/proof-of-payment/*` for upload and vendor acknowledgment, and `app/orders/[id]/page.tsx` for buyer upload UI and vendor verify/reject UI.
 
 ---
 

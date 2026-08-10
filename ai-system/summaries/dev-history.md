@@ -1,5 +1,7 @@
 # Development History
 
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T00:00:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -21,6 +23,47 @@
 **Next Sprint Focus:**
 [What comes next]
 ```
+
+## 2026-08-10 — Ad/Banner Performance Tracking & Analytics
+
+**Summary:**
+Added end-to-end ads/banners performance tracking (impressions, clicks, conversions) with authenticated vs anonymous and unique counts, surfaced in the operations dashboards. Introduced a granular `BannerEvent` log plus denormalized counters on `Banner`, a public IP-rate-limited tracking endpoint, an admin-only analytics endpoint, and a capability-guarded client tracking util wired into all banner surfaces.
+
+**Completed:**
+- Prisma: `BannerEventType` enum, `BannerEvent` model (composite indexes), `conversionCount` on `Banner`; migration `20260810090000_add_banner_events`.
+- `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+- `PATCH|POST /api/banners/[id]` — public event-tracking endpoint (type/visitorId/source/metadata), IP rate-limited, best-effort event insert + counter increment.
+- `GET /api/admin/analytics/banners` — admin-only summary + per-banner breakdown with `days`/`bannerId` filters.
+- `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, beacon/keepalive fire-and-forget, per-session impression dedupe; wired into `TopAdBanner`, `BannerCarousel` (hero + modal), `HomeContent` (sidebar rail).
+- Admin surfaces: operations dashboard banner metric cards + "Ad & Banner Analytics" quick action; "Banner & Ad Performance" section in `AnalyticsFeature.tsx` via `getBannerAnalyticsClient`.
+
+**Key Changes:**
+- Banner tracking moved from an orphaned click-increment endpoint to a typed event pipeline shared by all placements.
+
+**Next Sprint Focus:**
+- Consider pruning/rolling up the `BannerEvent` log over time, and adding campaign-dated reporting if needed.
+
+## 2026-08-04 — Sponsors & Ads Landing Page
+
+**Summary:**
+Added a public-facing, config-driven and admin-editable landing page at `/advertise` so interested parties can learn about sponsored banner placements, the application process, and policies before submitting. The full ad-application form moved to `/advertise/apply`, while the simple public form (`/ad-application`) and the admin banner-management routes (`/operations/banners`, `/operations/ads`) remain unchanged.
+
+**Completed:**
+
+- Added `advertisingConfig` (metadata, routes, hero copy, placement cards, process steps, policies, FAQ, CTA labels) to `lib/config/siteContent.ts`.
+- Rebuilt `app/advertise/page.tsx` as the landing page and moved the form to `app/advertise/apply/page.tsx`.
+- Added an `advertise` `PublicContent` preset in `components/features/PublicContentAdminPanel.tsx`; the landing page renders admin `PUBLISHED` body as prose with config fallback.
+- Registered `/advertise` + `/advertise/apply` as public routes; added `advertiseApply` label key; added `/advertise` to the static sitemap.
+- Retargeted the footer quick-link to "Advertise With Us" -> `/advertise`.
+- Added focused tests (`app/advertise/__tests__/page.test.tsx`, updated `components/__tests__/Footer.test.tsx`).
+
+**Key Changes:**
+
+- `/advertise` is now the canonical public advertising entry point; procurement happens on `/advertise/apply` (full form) or `/ad-application` (simple form).
+- Landing content is config-driven and admin-editable via the existing `PublicContent` system, consistent with the rest of the application.
+
+**Next Sprint Focus:**
+Monitor CI for the landing-page slice and apply any review findings.
 
 ## 2026-05-19 — CIS Prisma Migrations + Environment Configuration
 
@@ -2153,6 +2196,27 @@ Implemented the first execution slice of the modernization plan with focused, pr
 
 - Add targeted tests for config + RBAC policies and finish remaining modernization tasks (UI refresh breadth, cache invalidation tests, push delivery trigger paths).
 
+## 2026-07-12 — Off-Platform Payment Alternative with Proof Upload and Vendor Acknowledgment
+
+**Summary:**
+Implemented a fallback payment mechanism where customers pay off-platform via bank transfer and upload proof of payment for vendor verification. This is togglable via `PAYMENT_FALLBACK_BANK_TRANSFER` env var and shown when main payment methods (Paystack, wallet) are disabled or unavailable.
+
+**Completed:**
+- Added `bankTransferFallbackEnabled` to payment config API response (`lib/config/payments.ts`)
+- Added `BANK_TRANSFER_PROOF` payment method radio option to checkout page, shown conditionally when `!paymentsEnabled || !gatewayReady` and fallback is enabled
+- Added `POST /api/orders/[id]/proof-of-payment` endpoint for customers to upload payment receipts with amount and bank reference
+- Added `POST /api/orders/[id]/proof-of-payment/acknowledge` endpoint for vendors/admins to verify or reject proof submissions, auto-updating order payment status to PAID on verification
+- Included `proofOfTransfers` in order detail GET response
+- Added proof upload UI to order detail page for buyers with pending `BANK_TRANSFER_PROOF` orders
+- Added vendor acknowledgment UI with receipt preview modal, verify/reject actions, and optional notes
+
+**Key Changes:**
+- New files: `app/api/orders/[id]/proof-of-payment/route.ts`, `app/api/orders/[id]/proof-of-payment/acknowledge/route.ts`
+- Modified: `app/checkout/page.tsx`, `app/orders/[id]/page.tsx`, `app/api/orders/[id]/route.ts`, `lib/config/payments.ts`
+
+**Next Sprint Focus:**
+- Run Prisma migration for `ProofOfTransfer` model and migrate from in-memory store to persisted DB records
+
 ## 2026-04-04 — Cloud Continuation: Signup/Auth/Settings/Operations Hardening
 
 **Summary:**
@@ -2177,3 +2241,24 @@ Completed a major cloud continuation slice to stabilize interrupted refactor wor
 **Notes:**
 
 - Remaining queue closure includes full API wrapper standardization and expanded high-risk regression matrix beyond targeted suites.
+
+## 2026-07-12 — Vendor Bank Details on Checkout + Bank Detail Management + Build Fix
+
+**Summary:**
+Completed the off-platform payment gap by exposing vendor bank details (collected during signup and stored in `businessVerification.bankDetails`) on the checkout page when Bank Transfer (Upload Proof) is selected. Added a new API endpoint for fetching bank details, wired it into the checkout UI, and added bank detail management fields to the store settings page so vendors can update their banking info post-signup. Fixed a pre-existing TypeScript build error (`size="small"` → `size="sm"`) in the order detail page.
+
+**Completed:**
+- Created `app/api/vendors/[id]/bank-details/route.ts` — lightweight public endpoint returning vendor bank name, account name, and account number from `businessVerification.bankDetails`
+- Updated `app/checkout/page.tsx` to fetch and display vendor bank details when `BANK_TRANSFER_PROOF` payment method is selected
+- Extended `app/api/vendors/me/store-settings/route.ts` GET/PUT to include bankName, accountName, accountNumber
+- Updated `components/features/StoreSettingsPage.tsx` with Bank Details card (Bank Name, Account Name, Account Number fields)
+- Fixed pre-existing build error in `app/orders/[id]/page.tsx` — changed `size="small"` to `size="sm"` for Button components
+- Build verified: `npx next build --no-lint` passes
+
+**Key Changes:**
+- New file: `app/api/vendors/[id]/bank-details/route.ts`
+- Modified: `app/checkout/page.tsx`, `app/api/vendors/me/store-settings/route.ts`, `components/features/StoreSettingsPage.tsx`, `app/orders/[id]/page.tsx`
+
+**Next Sprint Focus:**
+- Consider adding a dedicated `bankDetails` field on the Vendor model (instead of nested in `businessVerification` JSON)
+- Add notification to vendors when proof of payment is uploaded by a customer

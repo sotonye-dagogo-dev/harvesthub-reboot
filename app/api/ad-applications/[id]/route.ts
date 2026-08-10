@@ -125,6 +125,7 @@ export async function PATCH(req: NextRequest, context: any) {
                 targetAudience: [],
                 clickCount: 0,
                 impressionCount: 0,
+                conversionCount: 0,
                 createdBy: user.userId,
             });
         }

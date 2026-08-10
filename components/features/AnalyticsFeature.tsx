@@ -9,10 +9,22 @@ import {
   getVendorsClient,
   getOrdersClient,
   getUserCountsClient,
+  getBannerAnalyticsClient,
 } from "@/lib/data/clientDataFetchers";
 import { formatCurrency } from "@/lib/utils";
 import { UserRole, OrderStatus, VendorStatus } from "@/lib/constants";
 import type { Order, Product, Vendor } from "@/lib/types";
+import type { BannerMetrics } from "@/lib/analytics/bannerAnalytics";
+
+type BannerAnalyticsPayload = {
+  rangeDays: number;
+  summary: BannerMetrics;
+  byBanner: { banner: { id: string; title: string; position: string; isActive: boolean }; metrics: BannerMetrics }[];
+};
+
+function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
 
 export function AnalyticsFeature() {
   const { user, isLoading } = useAuth();
@@ -23,6 +35,7 @@ export function AnalyticsFeature() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [userCounts, setUserCounts] = useState({ totalUsers: 0, buyers: 0, vendors: 0 });
+  const [bannerAnalytics, setBannerAnalytics] = useState<BannerAnalyticsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +51,7 @@ export function AnalyticsFeature() {
       return;
     }
 
+    const currentUser = user;
     let mounted = true;
     async function load() {
       try {
@@ -63,6 +77,17 @@ export function AnalyticsFeature() {
               }
             : { totalUsers: 0, buyers: 0, vendors: 0 }
         );
+
+        if (currentUser.role === UserRole.ADMIN) {
+          try {
+            const bannerResult = await getBannerAnalyticsClient(30);
+            if (mounted && bannerResult) {
+              setBannerAnalytics(bannerResult);
+            }
+          } catch (e) {
+            console.error("Banner analytics load failure", e);
+          }
+        }
 
         if (results.every((entry) => entry.status === "rejected")) {
           setError("Failed to load analytics. Please try again later.");
@@ -273,6 +298,144 @@ export function AnalyticsFeature() {
           )}
         </Card>
       </div>
+
+      {!isVendor && bannerAnalytics ? (
+        <BannerPerformanceSection
+          summary={bannerAnalytics.summary}
+          byBanner={bannerAnalytics.byBanner}
+          rangeDays={bannerAnalytics.rangeDays}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function BannerPerformanceSection({
+  summary,
+  byBanner,
+  rangeDays,
+}: {
+  summary: BannerMetrics;
+  byBanner: { banner: { id: string; title: string; position: string; isActive: boolean }; metrics: BannerMetrics }[];
+  rangeDays: number;
+}) {
+  const kpis = [
+    { label: "Impressions", value: summary.impressions.toLocaleString() },
+    { label: "Unique Views", value: summary.uniqueImpressions.toLocaleString() },
+    { label: "Clicks", value: summary.clicks.toLocaleString() },
+    { label: "Conversions", value: summary.conversions.toLocaleString() },
+    { label: "CTR", value: formatPercent(summary.clickThroughRate) },
+    { label: "Conv. Rate", value: formatPercent(summary.conversionRate) },
+  ];
+
+  return (
+    <section className="mt-2">
+      <div>
+        <h2 className="text-xl font-bold text-ds-text-primary">Banner &amp; Ad Performance</h2>
+        <p className="mt-1 text-ds-text-secondary">
+          Views, clicks, and conversions for banner placements over the last {rangeDays} days.
+        </p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label}>
+            <p className="text-xs text-ds-text-secondary">{kpi.label}</p>
+            <p className="mt-1 text-xl font-bold text-ds-text-primary">{kpi.value}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <p className="mb-3 text-sm font-medium text-ds-text-secondary">
+            Audience Split (Impressions)
+          </p>
+          <div className="space-y-2">
+            {[
+              {
+                label: "Unique Visitors",
+                value: summary.uniqueImpressions,
+                color: "bg-ds-brand-primary",
+              },
+              {
+                label: "Authenticated",
+                value: summary.authenticatedImpressions,
+                color: "bg-ds-status-info-bg",
+              },
+              {
+                label: "Anonymous",
+                value: summary.anonymousImpressions,
+                color: "bg-ds-status-warning-bg",
+              },
+            ].map((item) => {
+              const total = Math.max(1, summary.impressions);
+              const percentage = Math.round((item.value / total) * 100);
+              return (
+                <div key={item.label}>
+                  <div className="mb-1 flex items-center justify-between text-xs text-ds-text-secondary">
+                    <span>{item.label}</span>
+                    <span>
+                      {item.value.toLocaleString()} ({percentage}%)
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-ds-surface-muted">
+                    <div
+                      className={`h-2 rounded-full ${item.color}`}
+                      style={{ width: `${Math.min(100, percentage)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card>
+          <p className="mb-3 text-sm font-medium text-ds-text-secondary">Per-Banner Breakdown</p>
+          {byBanner.length === 0 ? (
+            <p className="text-sm text-ds-text-secondary">
+              No banner activity recorded yet in this window.
+            </p>
+          ) : (
+            <div className="max-h-80 overflow-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-ds-border-base text-xs uppercase tracking-wide text-ds-text-tertiary">
+                    <th className="py-2 pr-2">Banner</th>
+                    <th className="py-2 pr-2">Views</th>
+                    <th className="py-2 pr-2">Clicks</th>
+                    <th className="py-2 pr-2">Conv.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byBanner.map(({ banner, metrics }) => (
+                    <tr key={banner.id} className="border-b border-ds-border-base/60">
+                      <td className="py-2 pr-2">
+                        <p className="font-medium text-ds-text-primary">
+                          {banner.title || "Untitled banner"}
+                        </p>
+                        <p className="text-xs text-ds-text-tertiary">
+                          {banner.position} · {banner.isActive ? "Active" : "Inactive"}
+                        </p>
+                      </td>
+                      <td className="py-2 pr-2 text-ds-text-secondary">
+                        {metrics.impressions.toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-2 text-ds-text-secondary">
+                        {metrics.clicks.toLocaleString()}
+                      </td>
+                      <td className="py-2 text-ds-text-secondary">
+                        {metrics.conversions.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
+    </section>
   );
 }

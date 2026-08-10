@@ -1,5 +1,7 @@
 # Lessons Learned
 
+> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-at:** 2026-08-04T00:00:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -23,6 +25,28 @@
 
 ## Lessons
 
+## vi.hoisted Fails When the Import Graph Reaches an ESM-Only Module
+
+**Context:**
+Writing route unit tests that import a route which transitively pulls in `@/prisma/generated/client` (a `"type": "module"` package) failed with `[vitest] "vi.hoisted" hoisting is not supported when importing from ESM-only module`.
+
+**What We Learned:**
+`vi.hoisted` is incompatible with test files whose import graph loads an ESM-only module. Prefer the established pattern used elsewhere in this repo: declare mocks inside `vi.mock(factory)` and import the mocked module (`import { prisma } from '@/lib/db/prisma'`) to get the mock references, then drive them with `vi.mocked(...)`. Also prefer `import type { Prisma }` when `Prisma` is only used for a type assertion — that keeps the ESM-only generated client out of the runtime graph.
+
+**Apply When:**
+Writing unit tests for API routes or modules that touch the Prisma generated client or other ESM-only dependencies.
+
+## jsdom Blob Lacks .text() in Vitest
+
+**Context:**
+Testing `navigator.sendBeacon` payloads in `lib/tracking/__tests__/bannerTracking.test.ts` failed with `blob.text is not a function` because jsdom's `Blob` implementation does not expose `.text()`.
+
+**What We Learned:**
+jsdom's `Blob` is missing modern methods like `.text()`. Stub the global with Node's `Blob` (`import { Blob } from 'node:buffer'`, `vi.stubGlobal('Blob', NodeBlob)`) and remember `.text()` is async — `JSON.parse(await blob.text())`.
+
+**Apply When:**
+Testing code that constructs `Blob` objects (e.g. beacon payloads) inside a jsdom Vitest environment.
+
 ## Route-Migration Documentation Drift Appears Quickly
 
 **Context:**
@@ -45,6 +69,28 @@ Audit tooling can drift silently when UI config shape evolves. Route audits shou
 **Apply When:**
 Refactoring sidebar/header route definitions, link arrays, or navigation config schemas.
 
+## Bank Transfer Fallback Must Coordinate Three Toggles
+
+**Context:**
+Implemented off-platform payment with proof upload as a togglable option. Required coordinating `PAYMENT_FALLBACK_BANK_TRANSFER` (env var), `paymentsEnabled` (DB toggle in `CommerceLifecycleConfig`), and `gatewayReady` (automatic Paystack key check). The option appears only when the env var is true AND either `paymentsEnabled` is false or `gatewayReady` is false.
+
+**What We Learned:**
+A three-layer toggle system (env → DB → runtime health) can be hard to debug. All three conditions must be clearly surfaced in both the payment config API and the UI. The checkout page needs auto-switching logic so the user isn't left on a disabled payment method.
+
+**Apply When:**
+Adding conditional payment methods that depend on multiple configuration sources.
+
+## Vendor Bank Details Must Be Exposed at Checkout
+
+**Context:**
+Vendor bank details were collected during signup and stored in `businessVerification.bankDetails`, but the checkout page did not display them. Customers selecting "Bank Transfer (Upload Proof)" had no way of knowing where to transfer the money.
+
+**What We Learned:**
+Any payment-related data collected at registration must be surfaced at the point of payment. When implementing off-platform payment flows, ensure the transfer destination details (bank name, account name, account number) are fetched and displayed for each vendor in the cart during checkout.
+
+**Apply When:**
+Implementing or reviewing off-platform payment methods that require the customer to manually transfer funds to the vendor.
+
 ## Governed Upload Fields Need End-to-End Language Consistency
 
 **Context:**
@@ -55,3 +101,14 @@ Upload governance is not only API validation. Field labels, helper text, hidden 
 
 **Apply When:**
 Implementing or reviewing forms that include media/screenshot/payment-proof fields.
+
+## Public Marketing Pages Need Config + Admin-Content Fallback Hierarchy
+
+**Context:**
+Building the `/advertise` landing page required copy-driven layout (hero, placements, steps, policies, FAQ) that is config-driven (`advertisingConfig`) while also supporting admin-authored narrative through the existing `PublicContent` system.
+
+**What We Learned:**
+When a public page must be both informative and admin-editable, keep structural copy in typed config (deterministic layout/tests) and layer admin HTML on top with a clean `PUBLISHED`-check fallback. Route migration (moving the form to `/advertise/apply`) must preserve existing management routes and their nav/sidebar entries.
+
+**Apply When:**
+Adding public marketing/landing pages or relocating feature forms while preserving operational route surfaces.

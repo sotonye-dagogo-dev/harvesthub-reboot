@@ -1250,4 +1250,24 @@
 
 **Date:** 2026-03-25
 
+## [`size="small"` TypeScript error in orders detail page]
+
+**Symptom:**
+- `npm run build` failed with: `Type '"small"' is not assignable to type '"sm" | "md" | "lg" | undefined'`
+- Error at `app/orders/[id]/page.tsx:748`
+
+**Root Cause:**
+- Button component's `size` prop only accepts `"sm" | "md" | "lg"`, but the order detail page's proof-of-payment acknowledge buttons used `"small"` (an older/incorrect value).
+
+**Fix Applied:**
+- Changed `size="small"` to `size="sm"` on both the "Verify" and "Reject" acknowledge buttons in `app/orders/[id]/page.tsx`.
+
+**Prevention:**
+- When using shared UI components, verify prop types match the component's current API contract. Run a full build before PR submission.
+
+**Files Affected:**
+- app/orders/[id]/page.tsx
+
+**Date:** 2026-07-12
+
 [Entries move here when the underlying cause has been permanently fixed]

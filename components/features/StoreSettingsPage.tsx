@@ -35,6 +35,9 @@ export default function StoreSettingsFeature() {
     processingTime: "1-2 days",
     returnPolicy: "",
     shippingPolicy: "",
+    bankName: "",
+    accountName: "",
+    accountNumber: "",
   });
 
   const validatedVendorId = typeof vendor?.id === "string" && vendor.id.trim().length > 0 ? vendor.id : null;
@@ -93,6 +96,9 @@ export default function StoreSettingsFeature() {
           processingTime: settings.processingTime || prev.processingTime,
           returnPolicy: settings.returnPolicy || prev.returnPolicy,
           shippingPolicy: settings.shippingPolicy || prev.shippingPolicy,
+          bankName: settings.bankName || prev.bankName,
+          accountName: settings.accountName || prev.accountName,
+          accountNumber: settings.accountNumber || prev.accountNumber,
         }));
       } catch (error) {
         const errMessage = error instanceof Error ? error.message : "Unable to load store settings";
@@ -136,6 +142,9 @@ export default function StoreSettingsFeature() {
           processingTime: formData.processingTime,
           returnPolicy: formData.returnPolicy,
           shippingPolicy: formData.shippingPolicy,
+          bankName: formData.bankName,
+          accountName: formData.accountName,
+          accountNumber: formData.accountNumber,
         }),
       });
 
@@ -370,6 +379,46 @@ export default function StoreSettingsFeature() {
               />
             </div>
           </div>
+      </Card>
+
+      <Card>
+        <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Bank Details</h2>
+        <p className="mb-4 text-sm text-ds-text-secondary">
+          These bank details will be shown to customers during checkout for bank transfer payments.
+        </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+              Bank Name
+            </label>
+            <AntInput
+              value={formData.bankName}
+              onChange={(e) => handleChange("bankName", e.target.value)}
+              placeholder="e.g. First Bank"
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+              Account Name
+            </label>
+            <AntInput
+              value={formData.accountName}
+              onChange={(e) => handleChange("accountName", e.target.value)}
+              placeholder="e.g. John Doe"
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+              Account Number
+            </label>
+            <AntInput
+              value={formData.accountNumber}
+              onChange={(e) => handleChange("accountNumber", e.target.value)}
+              placeholder="e.g. 0123456789"
+              maxLength={10}
+            />
+          </div>
+        </div>
       </Card>
 
       <Card>

@@ -171,6 +171,16 @@ export default async function AboutPage() {
             >
               Join MyHarvestHub Today
             </Link>
+            <p className="mt-4 text-sm text-ds-text-secondary">
+              Keep up with stories, tips, and updates —{" "}
+              <Link
+                href="/blog"
+                className="font-medium text-ds-text-brand hover:underline"
+              >
+                read the HarvestHub blog
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </div>

@@ -29,6 +29,7 @@ const labelMap: Record<string, string> = {
     help: 'Help',
     contact: 'Contact',
     advertise: 'Advertise',
+    advertiseApply: 'Apply to Advertise',
     forgotPassword: 'Forgot Password',
     checkout: 'Checkout',
     analytics: 'Analytics',
@@ -44,6 +45,8 @@ const labelMap: Record<string, string> = {
     vendorMarketingContent: 'Marketing Content',
     vouchers: 'My Vouchers',
     adminVouchers: 'Vouchers',
+    blog: 'Blog',
+    adminBlog: 'Blog',
 };
 
 export function buildNav(role?: UserRole) {
