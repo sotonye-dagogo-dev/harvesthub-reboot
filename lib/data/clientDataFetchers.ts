@@ -36,6 +36,23 @@ export async function getTopBannersClient() {
     }
 }
 
+// ==================== BANNER ANALYTICS ====================
+
+export async function getBannerAnalyticsClient(days = 30) {
+    try {
+        const res = await fetch(`/api/admin/analytics/banners?days=${days}`, {
+            cache: 'no-store',
+        });
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        return data?.data ?? null;
+    } catch (err) {
+        console.error('getBannerAnalyticsClient error', err);
+        return null;
+    }
+}
+
 // ==================== PRODUCTS ====================
 
 export async function getProductsClient(filters?: {

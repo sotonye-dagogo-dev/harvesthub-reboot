@@ -25,6 +25,28 @@
 
 ## Lessons
 
+## vi.hoisted Fails When the Import Graph Reaches an ESM-Only Module
+
+**Context:**
+Writing route unit tests that import a route which transitively pulls in `@/prisma/generated/client` (a `"type": "module"` package) failed with `[vitest] "vi.hoisted" hoisting is not supported when importing from ESM-only module`.
+
+**What We Learned:**
+`vi.hoisted` is incompatible with test files whose import graph loads an ESM-only module. Prefer the established pattern used elsewhere in this repo: declare mocks inside `vi.mock(factory)` and import the mocked module (`import { prisma } from '@/lib/db/prisma'`) to get the mock references, then drive them with `vi.mocked(...)`. Also prefer `import type { Prisma }` when `Prisma` is only used for a type assertion — that keeps the ESM-only generated client out of the runtime graph.
+
+**Apply When:**
+Writing unit tests for API routes or modules that touch the Prisma generated client or other ESM-only dependencies.
+
+## jsdom Blob Lacks .text() in Vitest
+
+**Context:**
+Testing `navigator.sendBeacon` payloads in `lib/tracking/__tests__/bannerTracking.test.ts` failed with `blob.text is not a function` because jsdom's `Blob` implementation does not expose `.text()`.
+
+**What We Learned:**
+jsdom's `Blob` is missing modern methods like `.text()`. Stub the global with Node's `Blob` (`import { Blob } from 'node:buffer'`, `vi.stubGlobal('Blob', NodeBlob)`) and remember `.text()` is async — `JSON.parse(await blob.text())`.
+
+**Apply When:**
+Testing code that constructs `Blob` objects (e.g. beacon payloads) inside a jsdom Vitest environment.
+
 ## Route-Migration Documentation Drift Appears Quickly
 
 **Context:**

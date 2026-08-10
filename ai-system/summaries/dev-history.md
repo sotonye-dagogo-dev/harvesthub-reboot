@@ -24,6 +24,25 @@
 [What comes next]
 ```
 
+## 2026-08-10 — Ad/Banner Performance Tracking & Analytics
+
+**Summary:**
+Added end-to-end ads/banners performance tracking (impressions, clicks, conversions) with authenticated vs anonymous and unique counts, surfaced in the operations dashboards. Introduced a granular `BannerEvent` log plus denormalized counters on `Banner`, a public IP-rate-limited tracking endpoint, an admin-only analytics endpoint, and a capability-guarded client tracking util wired into all banner surfaces.
+
+**Completed:**
+- Prisma: `BannerEventType` enum, `BannerEvent` model (composite indexes), `conversionCount` on `Banner`; migration `20260810090000_add_banner_events`.
+- `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+- `PATCH|POST /api/banners/[id]` — public event-tracking endpoint (type/visitorId/source/metadata), IP rate-limited, best-effort event insert + counter increment.
+- `GET /api/admin/analytics/banners` — admin-only summary + per-banner breakdown with `days`/`bannerId` filters.
+- `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, beacon/keepalive fire-and-forget, per-session impression dedupe; wired into `TopAdBanner`, `BannerCarousel` (hero + modal), `HomeContent` (sidebar rail).
+- Admin surfaces: operations dashboard banner metric cards + "Ad & Banner Analytics" quick action; "Banner & Ad Performance" section in `AnalyticsFeature.tsx` via `getBannerAnalyticsClient`.
+
+**Key Changes:**
+- Banner tracking moved from an orphaned click-increment endpoint to a typed event pipeline shared by all placements.
+
+**Next Sprint Focus:**
+- Consider pruning/rolling up the `BannerEvent` log over time, and adding campaign-dated reporting if needed.
+
 ## 2026-08-04 — Sponsors & Ads Landing Page
 
 **Summary:**

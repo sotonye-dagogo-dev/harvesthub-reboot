@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
@@ -24,6 +24,7 @@ import { AD_RAIL_CONFIG } from "@/lib/config/adRail";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { useAutoScrollRail } from "@/lib/hooks/useAutoScrollRail";
 import { resolveBannerActions } from "@/lib/utils/bannerActions";
+import { trackBannerImpression, trackBannerClick } from "@/lib/tracking/bannerTracking";
 import {
   getBannersClient,
   getProductsClient,
@@ -140,6 +141,12 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     .slice(0, 6);
 
   const hasHeroBanners = activeBanners.length > 0;
+
+  // Track sidebar ad impressions once per session (deduped client-side).
+  useEffect(() => {
+    activeSidebarBanners.forEach((banner) => trackBannerImpression(banner.id, "sidebar"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSidebarBanners.length]);
   const sidebarGridColumnsClass =
     activeSidebarBanners.length > 1
       ? hasHeroBanners
@@ -297,7 +304,10 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       <button
                         type="button"
                         key={banner.id}
-                        onClick={() => setActiveSidebarModalBanner(mapBannerToModalItem(banner))}
+                        onClick={() => {
+                          trackBannerClick(banner.id, "sidebar");
+                          setActiveSidebarModalBanner(mapBannerToModalItem(banner));
+                        }}
                         className="transition-opacity hover:opacity-95"
                         aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
                       >
@@ -335,7 +345,10 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       <button
                         type="button"
                         key={banner.id}
-                        onClick={() => setActiveSidebarModalBanner(mapBannerToModalItem(banner))}
+                        onClick={() => {
+                          trackBannerClick(banner.id, "sidebar");
+                          setActiveSidebarModalBanner(mapBannerToModalItem(banner));
+                        }}
                         className="block min-w-0 transition-opacity hover:opacity-95"
                         aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
                       >
@@ -615,6 +628,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
         <BannerActionModal
           banner={activeSidebarModalBanner}
           onClose={() => setActiveSidebarModalBanner(null)}
+          trackingSource="sidebar-modal"
         />
       ) : null}
     </div>

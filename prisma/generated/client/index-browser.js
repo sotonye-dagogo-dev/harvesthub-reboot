@@ -366,9 +366,21 @@ exports.Prisma.BannerScalarFieldEnum = {
   targetAudience: 'targetAudience',
   clickCount: 'clickCount',
   impressionCount: 'impressionCount',
+  conversionCount: 'conversionCount',
   createdBy: 'createdBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BannerEventScalarFieldEnum = {
+  id: 'id',
+  bannerId: 'bannerId',
+  type: 'type',
+  userId: 'userId',
+  visitorId: 'visitorId',
+  source: 'source',
+  metadata: 'metadata',
+  occurredAt: 'occurredAt'
 };
 
 exports.Prisma.AdApplicationScalarFieldEnum = {
@@ -944,6 +956,12 @@ exports.BannerTheme = exports.$Enums.BannerTheme = {
   PROMOTION: 'PROMOTION'
 };
 
+exports.BannerEventType = exports.$Enums.BannerEventType = {
+  IMPRESSION: 'IMPRESSION',
+  CLICK: 'CLICK',
+  CONVERSION: 'CONVERSION'
+};
+
 exports.AdApplicationStatus = exports.$Enums.AdApplicationStatus = {
   PENDING: 'PENDING',
   PENDING_PAYMENT: 'PENDING_PAYMENT',
@@ -1075,6 +1093,7 @@ exports.Prisma.ModelName = {
   Transaction: 'Transaction',
   Review: 'Review',
   Banner: 'Banner',
+  BannerEvent: 'BannerEvent',
   AdApplication: 'AdApplication',
   AdRateConfig: 'AdRateConfig',
   CommissionConfig: 'CommissionConfig',

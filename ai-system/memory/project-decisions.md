@@ -23,6 +23,27 @@
 [What this decision affects going forward]
 ```
 
+## Banner Events Use a Granular Event Log Plus Denormalized Counters
+
+**Decision:** Banner performance tracking writes a granular `BannerEvent` row (IMPRESSION / CLICK / CONVERSION, optional userId/visitorId/source/metadata) via the public `PATCH|POST /api/banners/[id]` endpoint, while also incrementing a matching denormalized counter on `Banner`. Admin analytics read from `GET /api/admin/analytics/banners` and aggregate with `lib/analytics/bannerAnalytics.ts`.
+**Date:** 2026-08-10
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Impressions/clicks/conversions need both fast dashboard reads (denormalized counters on `Banner`) and granular, queryable history (the event log) to derive unique, authenticated vs anonymous, and time-windowed metrics. `PATCH /api/banners/[id]` already existed as a public click-increment endpoint, so it was generalized into a typed event endpoint instead of adding a parallel surface. The event insert is best-effort (a failed insert must not break a beaconed click), while the counter increment is authoritative for the 5xx path.
+
+**Alternatives Considered:**
+
+- Event-log-only storage (rejected: dashboard reads would require heavy per-request aggregation over the log).
+- Counter-only storage (rejected: cannot recover unique/authenticated splits or time-windowed queries).
+- A separate `/api/banner-events` endpoint (rejected: reuse of the existing `[id]` surface keeps API surface minimal and beacon URLs stable).
+
+**Implications:**
+
+- Public endpoints are IP-rate-limited; authenticated identity is resolved server-side from the session cookie.
+- Client tracking is fire-and-forget: `navigator.sendBeacon` with a keepalive-fetch fallback, a stable localStorage `visitorId`, and per-session impression dedupe to avoid inflating rotating-rail counts.
+- Analytics aggregation stays pure/testable in `lib/analytics/bannerAnalytics.ts` and is reused by the admin route.
+
 ## Public Advertising Uses a Landing Page at /advertise with Split Application Routes
 
 **Decision:** Public advertising is fronted by a config-driven, admin-editable landing page at `/advertise` (`app/advertise/page.tsx`). The full sponsored-application form moved to `/advertise/apply`, while the simple public form stays at `/ad-application`. The footer quick-link now points to `/advertise`; admin banner-management routes (`/operations/banners`, `/operations/ads`) and their navbar/sidebar entries are preserved.

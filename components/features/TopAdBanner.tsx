@@ -21,6 +21,7 @@ import type { Banner } from "@/lib/types";
 import { BANNER_CONFIG } from "@/lib/constants";
 import { getTopBannersClient } from "@/lib/data/clientDataFetchers";
 import { resolvePrimaryBannerAction } from "@/lib/utils/bannerActions";
+import { trackBannerImpression, trackBannerClick } from "@/lib/tracking/bannerTracking";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -110,9 +111,19 @@ export function TopAdBanner() {
     };
   }, [banners, startRotation]);
 
+  const currentBanner = banners[currentIndex];
+
+  // Track the currently displayed top banner as an impression.
+  useEffect(() => {
+    if (currentBanner) {
+      trackBannerImpression(currentBanner.id, "top");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, banners.length]);
+
   if (banners.length === 0) return null;
 
-  const banner = banners[currentIndex];
+  const banner = currentBanner;
   if (!banner) return null;
 
   const themeClasses = getThemeClasses(banner.theme);
@@ -146,6 +157,12 @@ export function TopAdBanner() {
     </div>
   );
 
+  const handleClickThrough = () => {
+    if (banner) {
+      trackBannerClick(banner.id, "top", { conversion: true });
+    }
+  };
+
   return (
     <div className="w-full">
       {primaryAction ? (
@@ -154,12 +171,17 @@ export function TopAdBanner() {
             href={primaryAction.href}
             target={primaryAction.openInNewTab ? "_blank" : undefined}
             rel={primaryAction.openInNewTab ? "noopener noreferrer" : undefined}
+            onClick={handleClickThrough}
             className="block transition-opacity hover:opacity-95"
           >
             {stripContent}
           </a>
         ) : (
-          <Link href={primaryAction.href} className="block transition-opacity hover:opacity-95">
+          <Link
+            href={primaryAction.href}
+            onClick={handleClickThrough}
+            className="block transition-opacity hover:opacity-95"
+          >
             {stripContent}
           </Link>
         )

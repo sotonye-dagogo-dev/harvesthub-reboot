@@ -27,7 +27,7 @@ type QuickAction = {
 };
 
 async function getAdminMetrics() {
-    const [activeVendors, pendingAds, totalOrders, totalUsers] = await Promise.all([
+    const [activeVendors, pendingAds, totalOrders, totalUsers, bannerAgg] = await Promise.all([
         prisma.vendor.count({ where: { status: "APPROVED" } }),
         prisma.adApplication.count({
             where: {
@@ -36,7 +36,14 @@ async function getAdminMetrics() {
         }),
         prisma.order.count(),
         prisma.user.count(),
+        prisma.banner.aggregate({
+            _sum: { impressionCount: true, clickCount: true, conversionCount: true },
+        }),
     ]);
+
+    const bannerImpressions = bannerAgg._sum.impressionCount ?? 0;
+    const bannerClicks = bannerAgg._sum.clickCount ?? 0;
+    const bannerConversions = bannerAgg._sum.conversionCount ?? 0;
 
     const cards: MetricCard[] = [
         {
@@ -54,6 +61,22 @@ async function getAdminMetrics() {
             icon: "megaphone",
             href: "/operations/ads",
             cta: "Review ads",
+        },
+        {
+            title: "Banner Impressions",
+            value: bannerImpressions.toLocaleString(),
+            description: "Total banner views across all placements.",
+            icon: "bar-chart",
+            href: "/analytics",
+            cta: "View ad analytics",
+        },
+        {
+            title: "Banner Clicks",
+            value: bannerClicks.toLocaleString(),
+            description: `${bannerConversions.toLocaleString()} conversions from click-throughs.`,
+            icon: "megaphone",
+            href: "/analytics",
+            cta: "View ad analytics",
         },
         {
             title: "Total Orders",
@@ -74,6 +97,11 @@ async function getAdminMetrics() {
     ];
 
     const quickActions: QuickAction[] = [
+        {
+            title: "Ad & Banner Analytics",
+            description: "Track impressions, clicks, conversions, and unique reach.",
+            href: "/analytics",
+        },
         {
             title: "Moderate Vendors",
             description: "Approve, reject, or suspend vendor accounts.",
