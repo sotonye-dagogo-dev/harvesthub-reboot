@@ -1,7 +1,7 @@
 # Development History
 
-> **last-updated-by:** update-ai-system.md (2026-08-04)
-> **last-updated-at:** 2026-08-04T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-11)
+> **last-updated-at:** 2026-08-11T00:00:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -23,6 +23,69 @@
 **Next Sprint Focus:**
 [What comes next]
 ```
+
+## 2026-08-11 — Universal Structured Content Editor (Public Content + Blog)
+
+**Summary:**
+Extracted the guided no-HTML editing experience from the public content admin into one reusable
+universal structured-content editor and a pure section model, then applied it to the blog editor
+so blog posts are authored as content blocks (text/hero/callout/list/quote) instead of raw HTML.
+Public content behavior is unchanged; blog SEO/featured/author/status fields are preserved and
+legacy raw-HTML posts remain editable through a safe text fallback.
+
+**Completed:**
+- `lib/content/structuredSections.ts` — pure section model: `SectionType` (TEXT/HERO/CALLOUT/
+  LIST/QUOTE), `ContentSection`, `createSection`, `serializeSectionsToHtml` (escaped, `pc-*`
+  wrappers, `\n`→`<br />`), `parseSectionsFromMetadata` (backward-compatible),
+  `buildSectionMetadata` (editorVersion 3 + fallbackContract), `stripSectionMetadata`,
+  `sectionsToPlainText`, `htmlToFallbackSection`, `isSectionType`, `SECTION_*` labels.
+- `components/features/content/StructuredContentEditor.tsx` — controlled shared editor
+  (`sections`/`onSectionsChange`; configurable `allowedTypes`, `mediaFolderType`, `minSections`,
+  `showMedia`, `showButtons`), reusing `Input`/`Button`/`ImageUpload`/`openActionConfirm`.
+- Refactored `PublicContentAdminPanel.tsx` to render the shared editor (TEXT/HERO/CALLOUT only)
+  and removed duplicated inline helpers/types — public behavior/contract preserved.
+- Refactored `BlogAdminPanel.tsx` to render the shared editor (all five types); `body` is now
+  `serializeSectionsToHtml(sections)` (submit + live preview + read-time), edit parses sections
+  from `item.metadata` with legacy HTML flattened via `htmlToFallbackSection`, and `metadata` =
+  custom user JSON merged over `buildSectionMetadata(sections)` with the sections block stripped
+  from the editable JSON field.
+- Tests: `lib/content/__tests__/structuredSections.test.ts` (18) + `components/features/content/
+  __tests__/StructuredContentEditor.test.tsx` (8) — all passing.
+
+**Key Changes:**
+- Blog authoring is now sections-first; raw-HTML authoring removed (no-HTML goal).
+- Content is stored twice per record: escaped HTML `body` (frontend rendering) + structured
+  `sections` in `metadata` (round-trip editing).
+
+**Next Sprint Focus:**
+- No data migration is performed; legacy posts flatten to text only when re-edited.
+
+## 2026-08-11 — DB Schema Sync (Dev + Prod) and Prod Launch Staging
+
+**Summary:**
+Brought both the dev and production databases in sync with the current Prisma schema using
+`prisma db push` (dev reads `.env.local`, prod reads `.env`), then staged the production
+database for launch by force-resetting it so no mock/seed data remains. Also verified the
+off-platform bank-transfer fallback auto-enables when payment processing is disabled.
+
+**Completed:**
+- Dev DB: `prisma db push` (env from `.env.local`) — in sync, no data loss; recent additive
+  migrations (`20260805160000_add_blog`, `20260810090000_add_banner_events`) applied.
+- Prod DB: `prisma db push` (env from `.env`) — in sync.
+- Prod launch staging: `prisma db push --force-reset --accept-data-loss` — database reset and
+  rebuilt from `prisma/schema.prisma`; mock/seed data removed, no seed re-run.
+- Verified `BANK_TRANSFER_PROOF` (off-platform transfer + proof screenshot upload) is
+  auto-enabled and auto-selected at checkout when `paymentsEnabled` is false (or Paystack is
+  not `gatewayReady`) and `PAYMENT_FALLBACK_BANK_TRANSFER` is not disabled.
+- Removed temporary verification scripts/SQL created during the operation.
+
+**Key Changes:**
+- Production database is now launch-staged: correct schema, empty of seed/demo data.
+
+**Next Sprint Focus:**
+- Confirm the source of 2 residual rows reported by a post-reset cleanliness query (identifying
+  query was deferred) before relying on the prod DB as fully empty.
+- Continue the "Migrate mock backend to Prisma + PostgreSQL" queue toward full Prisma-first runtime.
 
 ## 2026-08-10 — Ad/Banner Performance Tracking & Analytics
 

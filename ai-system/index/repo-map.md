@@ -1,7 +1,7 @@
 # Repository Map
 
-> **last-updated-by:** update-ai-system.md (2026-08-04)
-> **last-updated-at:** 2026-08-04T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-11)
+> **last-updated-at:** 2026-08-11T00:00:00Z
 > **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
 
 ---
@@ -27,6 +27,7 @@ harvesthub-reboot/
 │
 ├── components/                        → Shared feature/layout/ui component library + tests
 │   ├── features/
+│   │   └── content/                   → Universal structured content editor + tests
 │   ├── layout/
 │   ├── ui/
 │   └── __tests__/
@@ -35,6 +36,7 @@ harvesthub-reboot/
 │   ├── analytics/                     → Banner event aggregation/metrics helpers
 │   ├── api/                           → Shared API response/handler wrappers
 │   ├── config/                        → Typed env + feature configuration
+│   ├── content/                       → Pure structured-section model + serializer/parser + tests
 │   ├── data/                          → Data facade/adapters and fetch helpers
 │   ├── db/                            → Prisma client + transaction helpers
 │   ├── rbac/                          → Route policy and permission logic
@@ -75,6 +77,8 @@ harvesthub-reboot/
 | `app/api/`    | Domain APIs with role validation and shared wrappers                 | `app/api/auth/*`, `app/api/orders/*`, `app/api/orders/[id]/proof-of-payment/*`, `app/api/vendors/[id]/bank-details/route.ts`, `app/api/upload/route.ts`                  |
 | `components/` | Reusable app-wide UI and feature composition                         | `components/layout/Header.tsx`, `components/layout/Sidebar.tsx`                  |
 | `lib/`        | Core shared runtime utilities and business logic                     | `lib/api/http.ts`, `lib/rbac/routeConfig.ts`, `lib/data/database.ts`             |
+| `lib/content/`| Pure structured-content section model (types, serializer/parser)     | `lib/content/structuredSections.ts`                                              |
+| `components/features/content/` | Shared no-HTML structured content editor                    | `components/features/content/StructuredContentEditor.tsx`                        |
 | `prisma/`     | ORM schema/migrations/client generation                              | `prisma/schema.prisma`, `prisma/migrations/*`, `prisma/seed.ts`                  |
 | `scripts/`    | Route/dead-link/sidebar audits and maintenance tasks                 | `scripts/auditRoutes.ts`, `scripts/auditSidebarRoutes.ts`                        |
 | `ai-system/` | AI execution protocol, planning queue, and change history            | `ai-system/protocols/entry-protocol.md`, `ai-system/planning/task-queue.md` |

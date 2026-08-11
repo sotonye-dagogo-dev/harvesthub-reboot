@@ -1,7 +1,7 @@
 # Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-08-04)
-> **last-updated-at:** 2026-08-04T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-11)
+> **last-updated-at:** 2026-08-11T00:00:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -24,6 +24,29 @@
 ---
 
 ## Lessons
+
+## Extract Shared Authoring Surfaces Before Adding a Second One
+
+**Context:**
+The blog editor previously required raw HTML while the public content editor already had a guided
+no-HTML section editor. Rather than building a second inline section editor, the section model and
+editor were extracted into `lib/content/structuredSections.ts` +
+`components/features/content/StructuredContentEditor.tsx` and both admin panels were refactored onto
+them.
+
+**What We Learned:**
+When a second surface needs the same authoring capability, extract a pure, configurable model +
+controlled component (`allowedTypes`/`showMedia`/`showButtons`) once and configure per surface.
+Store content twice per record (escaped HTML `body` for rendering + structured `sections` in
+`metadata` for round-trip editing); keep the serializer pure, escape-safe, and server-safe so
+read-time/SEO/plain-text consumers can share it. Also verify the editor component's props against
+downstream primitives early (e.g. `ImageUpload`'s `FolderType` needed to be exported to type the
+shared `mediaFolderType` prop).
+
+**Apply When:**
+Adding any new content authoring surface (marketing content, FAQs, vendor content, etc.) or
+extending `SectionType`.
+
 
 ## vi.hoisted Fails When the Import Graph Reaches an ESM-Only Module
 
@@ -112,3 +135,14 @@ When a public page must be both informative and admin-editable, keep structural 
 
 **Apply When:**
 Adding public marketing/landing pages or relocating feature forms while preserving operational route surfaces.
+
+## Prisma CLI Env Selection Differs From Next.js Env Loading
+
+**Context:**
+Running `prisma db push` against dev vs prod requires different env files (`.env.local` for dev, `.env` for prod), but `prisma.config.ts` uses `dotenv/config`, which loads `.env` by default and `dotenv` does not override already-set process env vars.
+
+**What We Learned:**
+To target the dev DB, preload `DIRECT_URL`/`DATABASE_URL` from `.env.local` into the process environment before invoking `npx prisma` (dotenv will not override them). For prod, run with no env overrides so `.env` is used. `prisma db push --force-reset --accept-data-loss` drops all data and rebuilds from the schema but does not run `prisma/seed.ts`. Also, `prisma db execute` does not print `SELECT`/`NOTICE` output and the `@prisma/adapter-pg` runtime may not reach the same proxy endpoint the Prisma CLI uses — use a `DO $$ ... RAISE EXCEPTION` block for pass/fail DB checks via the CLI.
+
+**Apply When:**
+Running schema-sync/reset or data-verification commands against multiple environments in this repo.

@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Input,
-  Badge,
-  openActionConfirm,
-  ActionConfirmBuilder,
-  ActionConfirmPresets,
-} from "@/components/ui";
+import { Button, Input, Badge, openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
 import { fetchJson } from "@/lib/utils";
-import ImageUpload from "@/components/ui/ImageUpload";
-import { Plus, Eye, FileText, Trash2, GripVertical } from "lucide-react";
+import { StructuredContentEditor } from "@/components/features/content/StructuredContentEditor";
+import {
+  buildSectionMetadata,
+  createSection,
+  htmlToFallbackSection,
+  parseSectionsFromMetadata,
+  serializeSectionsToHtml,
+  type ContentSection,
+} from "@/lib/content/structuredSections";
+import { Eye, FileText } from "lucide-react";
 
 type PublicContentItem = {
   id: string;
@@ -24,18 +25,6 @@ type PublicContentItem = {
 };
 
 const statuses = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
-
-type SectionType = "HERO" | "TEXT" | "CALLOUT";
-
-type ContentSection = {
-  id: string;
-  type: SectionType;
-  heading: string;
-  content: string;
-  mediaUrl?: string;
-  buttonLabel?: string;
-  buttonUrl?: string;
-};
 
 type PagePreset = {
   slug: string;
@@ -89,117 +78,6 @@ const pagePresets: PagePreset[] = [
   },
 ];
 
-function createSection(type: SectionType = "TEXT"): ContentSection {
-  return {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    type,
-    heading: "",
-    content: "",
-  };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function formatMultiline(value: string): string {
-  return escapeHtml(value).replace(/\n/g, "<br />");
-}
-
-function serializeSectionsToHtml(sections: ContentSection[]): string {
-  return sections
-    .map((section) => {
-      const heading = section.heading.trim();
-      const content = section.content.trim();
-      const buttonLabel = section.buttonLabel?.trim();
-      const buttonUrl = section.buttonUrl?.trim();
-      const mediaUrl = section.mediaUrl?.trim();
-
-      if (section.type === "HERO") {
-        return [
-          '<section class="pc-hero">',
-          heading ? `<h2>${escapeHtml(heading)}</h2>` : "",
-          content ? `<p>${formatMultiline(content)}</p>` : "",
-          mediaUrl
-            ? `<img src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(heading || "Hero image")}" />`
-            : "",
-          buttonLabel && buttonUrl
-            ? `<p><a href="${escapeHtml(buttonUrl)}">${escapeHtml(buttonLabel)}</a></p>`
-            : "",
-          "</section>",
-        ].join("");
-      }
-
-      if (section.type === "CALLOUT") {
-        return [
-          '<section class="pc-callout">',
-          heading ? `<h3>${escapeHtml(heading)}</h3>` : "",
-          content ? `<p>${formatMultiline(content)}</p>` : "",
-          "</section>",
-        ].join("");
-      }
-
-      return [
-        '<section class="pc-text">',
-        heading ? `<h3>${escapeHtml(heading)}</h3>` : "",
-        content ? `<p>${formatMultiline(content)}</p>` : "",
-        mediaUrl
-          ? `<p><img src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(heading || "Section image")}" /></p>`
-          : "",
-        "</section>",
-      ].join("");
-    })
-    .join("\n");
-}
-
-function parseSectionsFromMetadata(metadata: unknown): ContentSection[] {
-  if (!metadata || typeof metadata !== "object") return [];
-
-  const record = metadata as Record<string, unknown>;
-  const rawSections = record.sections;
-  if (!Array.isArray(rawSections)) return [];
-
-  const parsed: ContentSection[] = [];
-  rawSections.forEach((section, index) => {
-    if (!section || typeof section !== "object") return;
-    const item = section as Record<string, unknown>;
-
-    const type =
-      item.type === "HERO" || item.type === "CALLOUT" || item.type === "TEXT"
-        ? (item.type as SectionType)
-        : "TEXT";
-
-    parsed.push({
-      id: typeof item.id === "string" && item.id.length > 0 ? item.id : `imported-${index}`,
-      type,
-      heading: typeof item.heading === "string" ? item.heading : "",
-      content: typeof item.content === "string" ? item.content : "",
-      mediaUrl: typeof item.mediaUrl === "string" ? item.mediaUrl : undefined,
-      buttonLabel: typeof item.buttonLabel === "string" ? item.buttonLabel : undefined,
-      buttonUrl: typeof item.buttonUrl === "string" ? item.buttonUrl : undefined,
-    });
-  });
-
-  return parsed;
-}
-
-function metadataWithSections(sections: ContentSection[]) {
-  return {
-    editorVersion: 2,
-    sections,
-    generatedAt: new Date().toISOString(),
-    fallbackContract: {
-      source: "structured-sections",
-      fallbackBodyRequired: true,
-    },
-  };
-}
-
 export function PublicContentAdminPanel() {
   const [items, setItems] = useState<PublicContentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -208,7 +86,6 @@ export function PublicContentAdminPanel() {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<PublicContentItem["status"]>("PUBLISHED");
   const [sections, setSections] = useState<ContentSection[]>([createSection("TEXT")]);
-  const [newSectionType, setNewSectionType] = useState<SectionType>("TEXT");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -261,7 +138,7 @@ export function PublicContentAdminPanel() {
           title,
           body: generatedBody,
           status,
-          metadata: metadataWithSections(sections),
+          metadata: buildSectionMetadata(sections),
         }),
       });
 
@@ -292,16 +169,7 @@ export function PublicContentAdminPanel() {
       return;
     }
 
-    setSections([
-      {
-        ...createSection("TEXT"),
-        heading: item.title,
-        content: item.body
-          .replace(/<[^>]*>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim(),
-      },
-    ]);
+    setSections([htmlToFallbackSection(item.body, item.title)]);
   };
 
   const onDelete = async (item: PublicContentItem) => {
@@ -336,40 +204,6 @@ export function PublicContentAdminPanel() {
     setEditingId(null);
     setSelectedItemId(null);
     setError(null);
-  };
-
-  const addSection = () => {
-    setSections((prev) => [...prev, createSection(newSectionType)]);
-  };
-
-  const moveSection = (id: string, direction: "up" | "down") => {
-    setSections((prev) => {
-      const index = prev.findIndex((section) => section.id === id);
-      if (index < 0) return prev;
-
-      const nextIndex = direction === "up" ? index - 1 : index + 1;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
-
-      const next = [...prev];
-      const item = next[index];
-      if (!item) return prev;
-      next.splice(index, 1);
-      next.splice(nextIndex, 0, item);
-      return next;
-    });
-  };
-
-  const updateSection = (id: string, patch: Partial<ContentSection>) => {
-    setSections((prev) =>
-      prev.map((section) => (section.id === id ? { ...section, ...patch } : section))
-    );
-  };
-
-  const removeSection = (id: string) => {
-    setSections((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((section) => section.id !== id);
-    });
   };
 
   const sortedItems = useMemo(
@@ -455,166 +289,12 @@ export function PublicContentAdminPanel() {
             </div>
           </div>
 
-          <div className="rounded-ds-md border border-ds-border-subtle p-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-ds-text-primary">Structured Sections</p>
-              <div className="flex items-center gap-2">
-                <select
-                  className="rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-1.5 text-sm"
-                  value={newSectionType}
-                  aria-label="New section type"
-                  title="New section type"
-                  onChange={(event) => setNewSectionType(event.target.value as SectionType)}
-                >
-                  <option value="TEXT">Text Block</option>
-                  <option value="HERO">Hero Block</option>
-                  <option value="CALLOUT">Callout Block</option>
-                </select>
-                <Button type="button" variant="secondary" onClick={addSection}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  Add Section
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-3 space-y-3">
-              {sections.map((section, index) => (
-                <div
-                  key={section.id}
-                  className="rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-3"
-                >
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-ds-text-primary">
-                      <GripVertical className="h-4 w-4 text-ds-text-tertiary" />
-                      <span>
-                        Section {index + 1} · {section.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSection(section.id, "up")}
-                        disabled={index === 0}
-                      >
-                        ↑
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSection(section.id, "down")}
-                        disabled={index === sections.length - 1}
-                      >
-                        ↓
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        onClick={() =>
-                          openActionConfirm(ActionConfirmPresets.remove("section"), () =>
-                            removeSection(section.id)
-                          )
-                        }
-                        disabled={sections.length <= 1}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <Input
-                      label="Heading"
-                      value={section.heading}
-                      onChange={(event) =>
-                        updateSection(section.id, { heading: event.target.value })
-                      }
-                      placeholder="Section heading"
-                    />
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-                        Section Type
-                      </label>
-                      <select
-                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm"
-                        value={section.type}
-                        aria-label="Section type"
-                        title="Section type"
-                        onChange={(event) =>
-                          updateSection(section.id, { type: event.target.value as SectionType })
-                        }
-                      >
-                        <option value="TEXT">Text</option>
-                        <option value="HERO">Hero</option>
-                        <option value="CALLOUT">Callout</option>
-                      </select>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-                        Content
-                      </label>
-                      <textarea
-                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 text-sm"
-                        rows={4}
-                        value={section.content}
-                        onChange={(event) =>
-                          updateSection(section.id, { content: event.target.value })
-                        }
-                        placeholder="Write section content"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2 rounded-ds-md border border-ds-border-subtle bg-ds-surface-base p-3">
-                      <p className="mb-2 text-sm font-medium text-ds-text-secondary">
-                        Section Media
-                      </p>
-                      <ImageUpload
-                        folderType="banner"
-                        valueUrl={section.mediaUrl}
-                        helpText="Upload image via managed uploader. This URL is stored in section metadata and generated HTML."
-                        onUploaded={(result) =>
-                          updateSection(section.id, {
-                            mediaUrl: result.cacheBustedUrl || result.url,
-                          })
-                        }
-                      />
-                      {section.mediaUrl ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => updateSection(section.id, { mediaUrl: "" })}
-                        >
-                          Remove media
-                        </Button>
-                      ) : null}
-                    </div>
-
-                    <Input
-                      label="Button Label (Optional)"
-                      value={section.buttonLabel || ""}
-                      onChange={(event) =>
-                        updateSection(section.id, { buttonLabel: event.target.value })
-                      }
-                      placeholder="Learn more"
-                    />
-                    <Input
-                      label="Button URL (Optional)"
-                      value={section.buttonUrl || ""}
-                      onChange={(event) =>
-                        updateSection(section.id, { buttonUrl: event.target.value })
-                      }
-                      placeholder="/products"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <StructuredContentEditor
+            sections={sections}
+            onSectionsChange={setSections}
+            allowedTypes={["TEXT", "HERO", "CALLOUT"]}
+            mediaFolderType="banner"
+          />
 
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={saving}>

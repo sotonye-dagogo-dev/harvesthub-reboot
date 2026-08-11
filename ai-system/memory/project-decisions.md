@@ -23,6 +23,84 @@
 [What this decision affects going forward]
 ```
 
+## Universal Structured Content Editor Is the Single No-HTML Authoring Surface
+
+**Decision:** Extract one reusable pure section model (`lib/content/structuredSections.ts`) and one
+controlled client editor (`components/features/content/StructuredContentEditor.tsx`) that both the
+public content admin (`PublicContentAdminPanel`, TEXT/HERO/CALLOUT) and the blog admin
+(`BlogAdminPanel`, all five types including LIST/QUOTE) use. Content is stored twice per record: an
+escaped HTML `body` for safe frontend rendering plus the structured `sections` array inside
+`metadata` (`editorVersion: 3`, `generatedAt`, `fallbackContract`). Blog `metadata` = custom user
+JSON merged over `buildSectionMetadata(sections)` (reserved keys win; the sections block is stripped
+from the editable JSON field). Legacy raw-HTML blog posts flatten to a single TEXT section on edit.
+**Date:** 2026-08-11
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+The public content editor already delivered the no-HTML guided experience, but its section helpers
+were duplicated inline and the blog editor still required raw HTML. A shared, configurable editor
+(`allowedTypes`/`showMedia`/`showButtons`) gives every authoring surface the same UX and keeps the
+section model deterministic, escape-safe, and server-safe (read-time/SEO/plain-text consumers). The
+dual-store contract (HTML body + structured metadata) preserves existing public rendering while
+enabling round-trip editing without HTML knowledge.
+
+**Alternatives Considered:**
+
+- Keep the raw-HTML blog textarea and only tweak it (rejected: contradicts the no-HTML authoring
+  goal and forks the UX).
+- Write a one-off blog section editor with duplicated helpers (rejected: duplicates code that was
+  just extracted, re-creating drift).
+- Migrate legacy blog bodies into structured sections via a data migration (rejected: overkill;
+  legacy posts stay renderable and only flatten to text if an editor opens and saves them).
+
+**Implications:**
+
+- `StructuredContentEditor` is the canonical editor for future content types; extend `SectionType`
+  and the serializer rather than adding new per-surface editors.
+- `metadata.editorVersion` is informational (not read at runtime yet); keep `sections` as the
+  round-trip source of truth and `body` as the render contract.
+- Editing a legacy blog post rewrites its body as generated section HTML — acceptable and expected
+  (no automatic migration).
+
+## Production DB Launch Staging Uses Force-Reset Without Seed
+
+**Decision:** Stage the production database for launch via `prisma db push --force-reset --accept-data-loss`, which drops all data and rebuilds the schema from `prisma/schema.prisma`. Schema sync for both environments uses `prisma db push` rather than `prisma migrate deploy`, with dev reading env from `.env.local` and prod from `.env` (`prisma.config.ts` reads `DIRECT_URL || DATABASE_URL`; `dotenv/config` loads `.env` by default).
+**Date:** 2026-08-11
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+The recent migrations are additive (blog, banner events) and the team wants both DBs in sync without migration-history bookkeeping. The prod DB may contain mock seed data (from `prisma/seed.ts`: demo admin/vendors), so it must be wiped clean for launch. `db push` does not run the seed script, so a force-reset leaves an empty, schema-correct database.
+
+**Alternatives Considered:**
+
+- `prisma migrate reset --skip-seed` (rejected: replays full migration history and is heavier than the requested `db push` flow).
+- Targeted `DELETE` statements per seed table (rejected: error-prone and leaves schema-state uncertainty).
+
+**Implications:**
+
+- Prod DB is now schema-correct and empty of seed/demo data; no re-seeding occurs automatically.
+- `prisma db push` does not populate the `_prisma_migrations` history table; migration tracking for prod is schema-state based.
+- Before relying on the DB as fully empty, re-run a per-table identification query — a post-reset cleanliness check reported 2 residual rows whose table was not identified.
+
+## Bank Transfer Proof Fallback Auto-Enables When Payment Processing Is Disabled
+
+**Decision:** Confirmed contract: when `paymentsEnabled` (DB `CommerceLifecycleConfig`) is false, or the Paystack `gatewayReady` check fails, and `PAYMENT_FALLBACK_BANK_TRANSFER` is not explicitly disabled (default true), checkout automatically enables and auto-selects the `BANK_TRANSFER_PROOF` ("Bank Transfer (Upload Proof)") payment path. The order detail page and `POST /api/orders/[id]/proof-of-payment` accept the proof-of-payment screenshot upload for such orders.
+**Date:** 2026-08-11
+**Made by:** AI implementation session (opencode) — verified against code
+
+**Reason:**
+This preserves a working purchase path whenever online payment processing is off, without operator intervention. It matches the previously documented Payment Fallback Architecture (`system-architecture.md`) and the three-toggle coordination lesson (`lessons-learned.md`).
+
+**Alternatives Considered:**
+
+- Hard-block checkout when payments are disabled (rejected: would kill all orders while processing is off).
+- Require an explicit operator flag per order (rejected: unnecessary friction; the env default already enables the fallback).
+
+**Implications:**
+
+- Turning off payments at `/api/admin/payments/config` or operations settings automatically surfaces the bank-transfer proof path; disabling it requires setting `PAYMENT_FALLBACK_BANK_TRANSFER=false`.
+- Checkout auto-switches users away from CARD/WALLET when the fallback is available, so no dead-end payment states occur.
+
 ## Banner Events Use a Granular Event Log Plus Denormalized Counters
 
 **Decision:** Banner performance tracking writes a granular `BannerEvent` row (IMPRESSION / CLICK / CONVERSION, optional userId/visitorId/source/metadata) via the public `PATCH|POST /api/banners/[id]` endpoint, while also incrementing a matching denormalized counter on `Banner`. Admin analytics read from `GET /api/admin/analytics/banners` and aggregate with `lib/analytics/bannerAnalytics.ts`.
