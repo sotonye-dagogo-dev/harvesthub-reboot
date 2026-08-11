@@ -9,7 +9,7 @@ import {
   validateBannerPlacementRatio,
 } from "@/lib/utils/bannerPlacementValidation";
 
-type FolderType =
+export type FolderType =
   | "product"
   | "vendor-logo"
   | "vendor-banner"

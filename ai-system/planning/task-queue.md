@@ -4,6 +4,39 @@
 
 ---
 
+## Session 90 — Universal Structured Content Editor (Public Content + Blog) (2026-08-11)
+
+> **Section summary:** Extracted the guided no-HTML authoring experience into one reusable pure
+> section model + controlled editor, then refactored the public content and blog admin panels onto
+> it. Blog posts are now authored as structured content blocks (no raw HTML); public behavior
+> unchanged.
+
+- [x] `lib/content/structuredSections.ts` — pure section model: types, `createSection`,
+      `serializeSectionsToHtml` (escaped, `pc-*` wrappers, `\n`→`<br />`),
+      `parseSectionsFromMetadata`, `buildSectionMetadata` (editorVersion 3 + fallbackContract),
+      `stripSectionMetadata`, `sectionsToPlainText`, `htmlToFallbackSection`, `isSectionType`.
+- [x] `components/features/content/StructuredContentEditor.tsx` — controlled shared editor
+      (configurable `allowedTypes`, `mediaFolderType`, `minSections`, `showMedia`, `showButtons`);
+      add/remove/move sections, LIST items, QUOTE attribution, media upload, button fields.
+- [x] Refactor `PublicContentAdminPanel.tsx` — render shared editor (TEXT/HERO/CALLOUT), remove
+      duplicated helpers/types; behavior preserved exactly.
+- [x] Refactor `BlogAdminPanel.tsx` — render shared editor (all five types); `body` =
+      `serializeSectionsToHtml(sections)`; edit parses `item.metadata` with legacy HTML fallback;
+      metadata = custom JSON merged over `buildSectionMetadata(sections)`; editable JSON shows only
+      custom fields. Keep title/slug/excerpt/author/category/tags/status/featured/publish-date/SEO.
+- [x] Export `FolderType` from `components/ui/ImageUpload.tsx` for typed `mediaFolderType`.
+- [x] Tests: `lib/content/__tests__/structuredSections.test.ts` (18) + `components/features/content/
+      __tests__/StructuredContentEditor.test.tsx` (8).
+- [x] Validation gate: `npx tsc --noEmit`, `next lint` touched files, focused vitest, `npm run build`
+      (all pass; 2 pre-existing build warnings unrelated).
+- [x] Sync `ai-system` docs (system-architecture, task-queue, session-log, dev-history,
+      project-decisions, repo-map, dependency-graph) and clear `in-progress.md`.
+
+Notes: No data migration — legacy blog posts stay renderable; they flatten to a single TEXT section
+only when opened and saved in the editor. `metadata.editorVersion` is informational (not yet read at
+runtime).
+
+
 ## Workspace-Wide CIS Federation Rollout
 
 > **Section summary:** Add a canonical identity handshake surface so this repo can consume CIS identity syncs without hardcoding integration details.
@@ -12,6 +45,18 @@
 - [x] Update `ai-system` docs with the CIS contract, rollout constraints, and continuation prompt.
 - [x] Mirror the same CIS handshake surface in report-sys.
 - [x] Validate the touched files after the rollout lands.
+
+## Session 89 — DB Schema Sync (Dev + Prod) + Prod Launch Staging (2026-08-11)
+
+> **Section summary:** Ops-only slice: pushed the current Prisma schema to both databases and staged the production database for launch by force-resetting it (removing mock/seed data).
+
+- [x] Dev DB: `prisma db push` using env from `.env.local` — schema in sync, no data loss (recent additive migrations `20260805160000_add_blog`, `20260810090000_add_banner_events`).
+- [x] Prod DB: `prisma db push` using env from `.env` — schema in sync.
+- [x] Prod launch staging: `prisma db push --force-reset --accept-data-loss` — database reset and rebuilt from schema; no seed re-run (`db push` does not seed).
+- [x] Verified `BANK_TRANSFER_PROOF` fallback auto-enables when payment processing is disabled (or gateway not ready) unless `PAYMENT_FALLBACK_BANK_TRANSFER` is explicitly disabled.
+- [x] Cleaned up temporary verification scripts/SQL; synced `ai-system` docs.
+
+Notes: residual observation — a post-reset cleanliness query reported 2 rows across tracked tables; the identifying query was deferred. Verify source of those rows before treating prod as fully empty.
 
 ## CIS Identity Persistence (Phase 1)
 

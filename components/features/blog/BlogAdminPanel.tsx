@@ -11,6 +11,16 @@ import {
   estimateReadTime,
   type BlogStatusValue,
 } from "@/lib/config/blog";
+import { StructuredContentEditor } from "@/components/features/content/StructuredContentEditor";
+import {
+  buildSectionMetadata,
+  createSection,
+  htmlToFallbackSection,
+  parseSectionsFromMetadata,
+  serializeSectionsToHtml,
+  stripSectionMetadata,
+  type ContentSection,
+} from "@/lib/content/structuredSections";
 import { Eye, Trash2, RefreshCw, Star } from "lucide-react";
 
 type BlogPostItem = {
@@ -44,7 +54,6 @@ const EMPTY_POST = {
   slug: "",
   title: "",
   excerpt: "",
-  body: "",
   coverImage: "",
   authorName: "",
   authorRole: "",
@@ -73,6 +82,7 @@ export function BlogAdminPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_POST });
+  const [sections, setSections] = useState<ContentSection[]>([createSection("TEXT")]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<BlogConfigShape>({
@@ -114,7 +124,8 @@ export function BlogAdminPanel() {
     fetchConfig();
   }, []);
 
-  const readTime = useMemo(() => estimateReadTime(form.body), [form.body]);
+  const generatedBody = useMemo(() => serializeSectionsToHtml(sections), [sections]);
+  const readTime = useMemo(() => estimateReadTime(generatedBody), [generatedBody]);
 
   const setField = (key: keyof typeof EMPTY_POST, value: string | boolean) => {
     setForm((prev) => {
@@ -128,6 +139,7 @@ export function BlogAdminPanel() {
 
   const resetEditor = () => {
     setForm({ ...EMPTY_POST, authorName: config.defaultAuthorName });
+    setSections([createSection("TEXT")]);
     setEditingId(null);
     setError(null);
   };
@@ -137,18 +149,27 @@ export function BlogAdminPanel() {
     setError(null);
 
     const slug = form.slug.trim() || slugifyBlogTitle(form.title);
-    if (!slug || !form.title.trim() || !form.body.trim() || !form.authorName.trim()) {
-      setError("Slug, title, body, and author name are required.");
+    const hasSectionContent = sections.some(
+      (section) =>
+        section.heading.trim() ||
+        section.content.trim() ||
+        section.attribution.trim() ||
+        section.items.some((item) => item.trim())
+    );
+
+    if (!slug || !form.title.trim() || !hasSectionContent || !form.authorName.trim()) {
+      setError("Slug, title, section content, and author name are required.");
       return;
     }
 
     try {
       setSaving(true);
+      const customMetadata = parseMetadataJson(form.metadataJson);
       const payload = {
         slug,
         title: form.title.trim(),
         excerpt: form.excerpt.trim() || null,
-        body: form.body,
+        body: generatedBody,
         coverImage: form.coverImage || null,
         authorName: form.authorName.trim(),
         authorRole: form.authorRole.trim() || null,
@@ -163,7 +184,7 @@ export function BlogAdminPanel() {
         seoTitle: form.seoTitle.trim() || null,
         seoDescription: form.seoDescription.trim() || null,
         seoKeywords: form.seoKeywords.trim() || null,
-        metadata: parseMetadataJson(form.metadataJson),
+        metadata: { ...customMetadata, ...buildSectionMetadata(sections) },
       };
 
       await fetchJson("/api/admin/blog", {
@@ -182,11 +203,12 @@ export function BlogAdminPanel() {
   };
 
   const onEdit = (item: BlogPostItem) => {
+    const parsedSections = parseSectionsFromMetadata(item.metadata);
+    setSections(parsedSections.length > 0 ? parsedSections : [htmlToFallbackSection(item.body, item.title)]);
     setForm({
       slug: item.slug,
       title: item.title,
       excerpt: item.excerpt ?? "",
-      body: item.body,
       coverImage: item.coverImage ?? "",
       authorName: item.authorName,
       authorRole: item.authorRole ?? "",
@@ -198,7 +220,7 @@ export function BlogAdminPanel() {
       seoTitle: item.seoTitle ?? "",
       seoDescription: item.seoDescription ?? "",
       seoKeywords: item.seoKeywords ?? "",
-      metadataJson: JSON.stringify(item.metadata ?? {}, null, 2),
+      metadataJson: JSON.stringify(stripSectionMetadata(item.metadata), null, 2),
     });
     setEditingId(item.id);
     setError(null);
@@ -296,23 +318,16 @@ export function BlogAdminPanel() {
             placeholder="Short summary shown on cards and used for SEO"
           />
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-              Body (HTML)
-            </label>
-            <textarea
-              className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 font-mono text-sm"
-              rows={12}
-              value={form.body}
-              onChange={(e) => setField("body", e.target.value)}
-              placeholder="<p>Write your article here. HTML is supported.</p>"
-              required
-            />
-            <p className="mt-1 text-xs text-ds-text-tertiary">
-              Supports HTML (headings, paragraphs, lists, images). Estimated read time: {readTime}{" "}
-              min.
-            </p>
-          </div>
+          <StructuredContentEditor
+            sections={sections}
+            onSectionsChange={setSections}
+            allowedTypes={["TEXT", "HERO", "CALLOUT", "LIST", "QUOTE"]}
+            defaultType="TEXT"
+            mediaFolderType="banner"
+          />
+          <p className="mt-1 text-xs text-ds-text-tertiary">
+            Build posts from content blocks (no HTML needed). Estimated read time: {readTime} min.
+          </p>
 
           <div className="rounded-ds-md border border-ds-border-subtle bg-ds-surface-base p-3">
             <p className="mb-2 text-sm font-medium text-ds-text-secondary">Cover Image</p>
@@ -456,6 +471,9 @@ export function BlogAdminPanel() {
                   onChange={(e) => setField("metadataJson", e.target.value)}
                   placeholder='{"customField": "value"}'
                 />
+                <p className="mt-1 text-xs text-ds-text-tertiary">
+                  Custom metadata only. The structured content sections are generated automatically.
+                </p>
               </div>
             </div>
           </div>
@@ -490,7 +508,7 @@ export function BlogAdminPanel() {
             <div
               className="prose prose-sm max-w-none text-ds-text-primary dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: form.body || "<p>No preview content yet.</p>",
+                __html: generatedBody || "<p>No preview content yet.</p>",
               }}
             />
           </div>

@@ -4,6 +4,103 @@
 
 ---
 
+## Session 90 — Universal Structured Content Editor (Public Content + Blog) — 2026-08-11
+
+**Goal:**
+Give the blog editor the same no-HTML authoring experience as the public content editor by
+extracting one reusable, universal structured-content editor + pure section model, then refactor
+both admin panels onto it. Keep public content behavior identical; keep blog SEO/featured/author/
+status fields intact; keep legacy raw-HTML posts editable via a safe text fallback.
+
+**Completed:**
+
+- `lib/content/structuredSections.ts` (new): pure section model — `SectionType` (TEXT/HERO/CALLOUT/
+  LIST/QUOTE), `ContentSection`, `createSection`, `serializeSectionsToHtml` (escaped, `pc-*`
+  wrapper classes, `\n`→`<br />`), `parseSectionsFromMetadata` (backward-compatible with public
+  v2 metadata), `buildSectionMetadata` (`editorVersion: 3` + `fallbackContract`),
+  `stripSectionMetadata`, `sectionsToPlainText`, `htmlToFallbackSection`, `isSectionType`,
+  `SECTION_TYPES`/label maps.
+- `components/features/content/StructuredContentEditor.tsx` (new): controlled shared editor
+  (`sections`/`onSectionsChange`; props `allowedTypes` (default all), `defaultType`,
+  `mediaFolderType` (default "banner"), `minSections` (default 1), `showMedia`/`showButtons`
+  (default true)); add/remove/move sections, per-section type select, LIST items textarea, QUOTE
+  attribution, media via `ImageUpload`, button label/url inputs; delete uses
+  `openActionConfirm(ActionConfirmPresets.remove("section"))`.
+- `components/features/PublicContentAdminPanel.tsx`: replaced the inline section editor + duplicated
+  helpers with `<StructuredContentEditor allowedTypes={["TEXT","HERO","CALLOUT"]}>` and the shared
+  section helpers; removed local `ContentSection`/`SectionType` types, `metadataWithSections`,
+  section CRUD functions, and unused imports; `metadata` now `buildSectionMetadata(sections)`;
+  legacy edit fallback uses `htmlToFallbackSection`. Behavior preserved exactly.
+- `components/features/blog/BlogAdminPanel.tsx`: replaced the raw-HTML `body` textarea with
+  `<StructuredContentEditor allowedTypes={[...all five]} defaultType="TEXT">`; `body` =
+  `serializeSectionsToHtml(sections)` (submit + live preview + read-time estimate); edit parses
+  sections from `item.metadata` (fallback `htmlToFallbackSection(item.body, item.title)`); submit
+  metadata = custom JSON merged over `buildSectionMetadata(sections)`; editable "Metadata (JSON)"
+  field shows only custom fields via `stripSectionMetadata`. All other blog fields untouched.
+- `components/ui/ImageUpload.tsx`: exported the `FolderType` type so the shared editor can type its
+  `mediaFolderType` prop.
+- Tests (new, all passing): `lib/content/__tests__/structuredSections.test.ts` (18 tests:
+  serialize output for all 5 types, escaping, URL escaping, round-trip parse, backward compat,
+  metadata build/strip, plain text, HTML fallback) and `components/features/content/__tests__/
+  StructuredContentEditor.test.tsx` (8 tests: render, controlled updates, add section with selected
+  type, allowedTypes filtering, LIST/QUOTE fields, reorder, showMedia/showButtons hiding).
+
+**Validation:**
+
+- `npx tsc --noEmit` ✅
+- `next lint` on touched files ✅ (no errors/warnings)
+- Focused vitest: 18 + 8 tests passing ✅
+- `npm run build` ✅ (passes; 2 pre-existing warnings unrelated to this change:
+  `app/api/orders/[id]/proof-of-payment/route.ts` unused `Prisma` import and
+  `app/orders/[id]/page.tsx` `<img>` usage)
+
+**Files Modified:**
+- New: `lib/content/structuredSections.ts`, `lib/content/__tests__/structuredSections.test.ts`,
+  `components/features/content/StructuredContentEditor.tsx`,
+  `components/features/content/__tests__/StructuredContentEditor.test.tsx`
+- Modified: `components/features/PublicContentAdminPanel.tsx`,
+  `components/features/blog/BlogAdminPanel.tsx`, `components/ui/ImageUpload.tsx`,
+  `ai-system/*` docs (this session log, task-queue, dev-history, project-decisions,
+  system-architecture, repo-map, dependency-graph)
+
+**Next:**
+- Docs sync via `update-ai-system.md`; `in-progress.md` cleared.
+
+
+## Session 89 — 2026-08-11
+
+**Goal:**
+Bring dev and prod databases in sync with the current Prisma schema and stage the production
+database for launch by removing any mock/seed data.
+
+**Completed:**
+
+- Dev DB: `npx prisma db push` with `DIRECT_URL`/`DATABASE_URL` loaded from `.env.local`.
+  Database reported in sync; no data loss (recent migrations `20260805160000_add_blog` and
+  `20260810090000_add_banner_events` are additive).
+- Prod DB: `npx prisma db push` with default `.env` loading. Database reported in sync.
+- Prod DB launch staging: `npx prisma db push --force-reset --accept-data-loss` — database was
+  successfully reset and recreated from `prisma/schema.prisma`, removing all mock/seed data.
+  `db push` does not run `prisma/seed.ts`, so nothing was re-seeded.
+- Verified for reporting: when payment processing is disabled (or the Paystack gateway is not
+  ready) and `PAYMENT_FALLBACK_BANK_TRANSFER` is not explicitly disabled (default true),
+  checkout auto-enables and auto-selects the `BANK_TRANSFER_PROOF` "Bank Transfer (Upload
+  Proof)" path, and the order detail page + `/api/orders/[id]/proof-of-payment` accept the
+  proof-of-payment screenshot upload.
+- Cleaned up temporary verification scripts/SQL created during the operation.
+
+**Files Modified:**
+- None in application code (ops-only slice). `ai-system` docs updated only.
+
+**Validation:**
+- Dev `prisma db push` — "Your database is now in sync with your Prisma schema" ✅
+- Prod `prisma db push` — in sync ✅
+- Prod `prisma db push --force-reset` — "was successfully reset" + "in sync" ✅
+- Residual observation: a post-reset cleanliness query reported 2 rows across tracked tables;
+  the follow-up query to identify the table was not run (user redirected to docs close-out).
+  Recommended before final launch: re-run the identification query against prod to confirm the
+  source of the 2 rows.
+
 ## Session 88 — 2026-08-10
 
 **Goal:**

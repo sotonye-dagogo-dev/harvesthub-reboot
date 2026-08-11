@@ -1,6 +1,6 @@
 # Dependency Graph
 
-> **last-updated-by:** update-ai-system.md (2026-08-04)
+> **last-updated-by:** update-ai-system.md (2026-08-11)
 > **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
 
 ---
@@ -107,6 +107,27 @@ lib/services/notifications.ts
   -> lib/services/email.ts
   -> lib/services/push.ts
   -> lib/data/database.ts
+
+# --- Universal Structured Content Editor ---
+
+lib/content/structuredSections.ts
+  (pure module — no imports from components or client-only code)
+
+components/features/content/StructuredContentEditor.tsx
+  -> lib/content/structuredSections.ts (types, createSection, labels)
+  -> components/ui/Input.tsx | Button.tsx | openActionConfirm (ActionConfirmPresets)
+  -> components/ui/ImageUpload.tsx (media upload, FolderType)
+
+components/features/PublicContentAdminPanel.tsx
+  -> components/features/content/StructuredContentEditor.tsx (allowedTypes TEXT/HERO/CALLOUT)
+  -> lib/content/structuredSections.ts (serialize/parse/build/htmlToFallback)
+  -> app/api/admin/public-content (fetch/mutation)
+
+components/features/blog/BlogAdminPanel.tsx
+  -> components/features/content/StructuredContentEditor.tsx (allowedTypes all five)
+  -> lib/content/structuredSections.ts (serialize/parse/build/strip/htmlToFallback)
+  -> lib/config/blog.ts (statuses, slugify, estimateReadTime)
+  -> app/api/admin/blog (fetch/mutation)
 ```
 
 ---
