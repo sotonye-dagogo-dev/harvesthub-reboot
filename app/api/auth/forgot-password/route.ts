@@ -47,10 +47,18 @@ export async function POST(req: NextRequest) {
       data: { resetToken, resetTokenExpiry },
     });
 
-    // Send reset email (non-blocking)
-    sendResetPasswordEmail(user.email, user.firstName, resetToken).catch((err) =>
-      console.error("Failed to send reset email:", err)
-    );
+    // Send the reset email synchronously so the serverless runtime cannot cut the
+    // delivery/retry loop short before the request returns. The response stays
+    // identical whether or not an account exists (anti-account-enumeration); any
+    // failure is logged here and recorded in the email delivery log.
+    const result = await sendResetPasswordEmail(user.email, user.firstName, resetToken);
+
+    if (!result.success) {
+      console.error(
+        `[ForgotPassword] Reset email failed for ${user.email.slice(0, 3)}*** (id: ${user.id}):`,
+        result.error
+      );
+    }
 
     return NextResponse.json(successResponse);
   } catch (error) {

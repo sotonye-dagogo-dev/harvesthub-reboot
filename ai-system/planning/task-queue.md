@@ -24,6 +24,28 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 
 ---
 
+## Session 94 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix (2026-08-13)
+
+> **Section summary:** Allowed listed non-image file types (PDFs, videos, and other whitelisted
+> formats) on document-capable uploads so verification-docs uploads no longer reject valid files just
+> because they are not images; made upload failure feedback concise and descriptive project-wide via a
+> shared `getUploadErrorMessage` helper surfaced through the global antd toast; and fixed the
+> password-reset email flow so reset emails actually fire (reset URL now carries the `email` param the
+> reset-password route requires, `getAppUrl()` fallback corrected, and forgot-password/register email
+> sends are now awaited instead of fire-and-forget).
+
+- [x] `lib/utils/uploadConfig.ts` (new) — shared upload contract: `FolderType`, `MAX_UPLOAD_SIZE_MB`, `ALLOWED_UPLOAD_FORMATS` (`IMAGE_UPLOAD_FORMATS` = jpeg/jpg/png/webp; `DOCUMENT_UPLOAD_FORMATS` adds `pdf` for `payment-proof`, `verification-doc`, `bug-report`), `acceptAttributeFor`.
+- [x] `lib/services/cloudinary.ts` — `uploadImage` supports non-image MIME types via pure `resolveUploadParams` (image→`image`, `application/pdf`→`image` so thumbnails/transformations keep working, video→`video`, else→`raw`; `allowed_formats`/transformation only for non-raw); `UploadResult.width/height` optional.
+- [x] `app/api/upload/route.ts` — pre-upload size check (`File is too large. The maximum size for <folder> uploads is <N>MB.`), passes `allowedFormats`, and returns a descriptive 400 on upload failure instead of a generic "Internal server error".
+- [x] `lib/utils/uploadHelpers.ts` — `getUploadErrorMessage(error, { maxSizeMB, allowedFormats, fallback })`: size/type/network/auth/scope/rate-limit → concise messages; short server messages pass through; opaque errors → fallback. (Network detection uses `failed to fetch`/`failed to load`/`net::` — not bare `load failed`, which is a substring of "upload failed".)
+- [x] `app/signup/components/VerificationDocs.tsx` — shared config (`ACCEPT_ATTR`, 5MB limit) + `getUploadErrorMessage` toasts ("Unsupported file type. Use JPG, PNG or PDF.", "File is too large (max 5MB).").
+- [x] `components/ui/ImageUpload.tsx` — re-exports `FolderType` from uploadConfig (backward-compat for `StructuredContentEditor.tsx`), default `accept` = `acceptAttributeFor(folderType)`, copy → "Choose file(s)"/"files uploaded successfully"/"Only X files can be uploaded at once".
+- [x] Password-reset email flow — `lib/services/email.ts`: reset URL includes `&email=${encodeURIComponent(to)}`; `getAppUrl()` fallback = `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org'` (was `https://harvesthub.ng`). `app/api/auth/forgot-password/route.ts` (renamed from `.tsx`) now `await`s the send; `app/api/auth/register/route.ts` now `await`s `sendVerifyEmail`.
+- [x] Tests — cloudinary `resolveUploadParams` (+9); uploadHelpers `getUploadErrorMessage` (9); VerificationDocs PDF-accept + unsupported-type toast (10); ImageUpload copy/error-path (4). All green.
+- [x] Validation — `npx tsc --noEmit` clean; ESLint clean; full vitest 444 passed / 67 failed / 12 skipped (all 67 pre-existing integration/server-scope failures); `npm run build` exit 0.
+
+---
+
 ## Session 91 — Upload Retention + Replace + Verification-Docs Upload Feedback (2026-08-13)
 
 > **Section summary:** Made immediate signup uploads retention-safe and feedback-rich: uploaded

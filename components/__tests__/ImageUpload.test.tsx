@@ -33,7 +33,7 @@ describe("ImageUpload", () => {
       />
     );
 
-    const fileInput = screen.getByLabelText("Choose image") as HTMLInputElement;
+    const fileInput = screen.getByLabelText("Choose file") as HTMLInputElement;
     const file = new File(["image-bytes"], "banner.png", { type: "image/png" });
 
     fireEvent.change(fileInput, { target: { files: [file] } });
@@ -74,7 +74,7 @@ describe("ImageUpload", () => {
 
     render(<ImageUpload folderType="ad" onUploaded={onUploaded} />);
 
-    const fileInput = screen.getByLabelText("Choose image") as HTMLInputElement;
+    const fileInput = screen.getByLabelText("Choose file") as HTMLInputElement;
     const file = new File(["image-bytes"], "banner.png", { type: "image/png" });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
@@ -98,7 +98,7 @@ describe("ImageUpload", () => {
       <ImageUpload folderType="product" multiple maxFiles={2} onUploadedMany={onUploadedMany} />
     );
 
-    const fileInput = screen.getByLabelText("Choose images") as HTMLInputElement;
+    const fileInput = screen.getByLabelText("Choose files") as HTMLInputElement;
     const files = [
       new File(["1"], "1.png", { type: "image/png" }),
       new File(["2"], "2.png", { type: "image/png" }),
@@ -108,7 +108,7 @@ describe("ImageUpload", () => {
 
     await waitFor(() => expect(onUploadedMany).toHaveBeenCalledTimes(1));
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(warningSpy).toHaveBeenCalledWith("Only 2 images can be uploaded at once.");
+    expect(warningSpy).toHaveBeenCalledWith("Only 2 files can be uploaded at once.");
   });
 
   it("emits non-blocking placement warning for ratio mismatch while upload succeeds", async () => {
@@ -132,7 +132,7 @@ describe("ImageUpload", () => {
       />
     );
 
-    const fileInput = screen.getByLabelText("Choose image") as HTMLInputElement;
+    const fileInput = screen.getByLabelText("Choose file") as HTMLInputElement;
     const file = new File(["image-bytes"], "banner.png", { type: "image/png" });
     fireEvent.change(fileInput, { target: { files: [file] } });
 

@@ -24,6 +24,46 @@
 [What comes next]
 ```
 
+## 2026-08-13 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix
+
+**Summary:**
+Lifted the "images only" restriction on document-capable uploads so verification docs (PDFs, and
+other whitelisted file types) upload successfully, made upload failure feedback concise and
+descriptive project-wide through a shared `getUploadErrorMessage` helper + global toast, and fixed
+the password-reset email flow so reset emails actually fire (reset URL now carries the required
+`email` param, `getAppUrl()` fallback corrected, and auth email sends are awaited instead of
+fire-and-forget).
+
+**Completed:**
+- `lib/utils/uploadConfig.ts` (new) — shared upload contract: `FolderType`, `MAX_UPLOAD_SIZE_MB`,
+  `ALLOWED_UPLOAD_FORMATS`, `acceptAttributeFor`.
+- `lib/services/cloudinary.ts` — `uploadImage` supports PDF/video/raw via pure `resolveUploadParams`
+  (image→`image`, PDF→`image` for thumbnails, video→`video`, else→`raw`); `width/height` optional.
+- `app/api/upload/route.ts` — pre-upload size check + descriptive 400s instead of a swallowed
+  "Internal server error".
+- `lib/utils/uploadHelpers.ts` — `getUploadErrorMessage` (size/type/network/auth/scope/rate-limit →
+  concise messages; short server messages pass through).
+- `app/signup/components/VerificationDocs.tsx` + `components/ui/ImageUpload.tsx` — shared config +
+  `getUploadErrorMessage` toasts; upload copy updated to "Choose file(s)"/"Only X files".
+- Email flow — `lib/services/email.ts` (reset URL `email` param, `getAppUrl()` fallback),
+  `app/api/auth/forgot-password/route.ts` (renamed from `.tsx`, awaited send),
+  `app/api/auth/register/route.ts` (awaited `sendVerifyEmail`).
+- Tests: cloudinary 9, uploadHelpers 9, VerificationDocs 10, ImageUpload 4.
+
+**Key Changes:**
+- Non-image uploads (PDF/video/raw) are now first-class across the upload pipeline, driven by one
+  shared config module instead of scattered per-folder hardcoding.
+- Upload failures always surface a human-readable reason via the global toast (never a silent generic
+  error).
+- All auth email sends are awaited and logged, so send failures are observable; the reset flow now
+  produces a fully-formed reset link (`token` + `email`).
+
+**Next Sprint Focus:**
+Stale-asset cleanup for orphaned signup uploads (cross-device / cleared-localStorage / interrupted
+signups leave orphaned Cloudinary assets) — backlog.
+
+---
+
 ## 2026-08-13 — Upload Retention + Replace + Verification-Docs Upload Feedback
 
 **Summary:**

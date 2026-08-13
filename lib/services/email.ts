@@ -116,7 +116,10 @@ export async function sendEmail({
 
 // ── Convenience wrappers for each email type ─────────────────────────
 
-const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://harvesthub.ng';
+const getAppUrl = () =>
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://myharvesthub.org';
 
 export async function sendVerifyEmail(to: string, firstName: string, verificationToken: string) {
   const { VerifyEmail } = await import('@/lib/emails/VerifyEmail');
@@ -134,7 +137,9 @@ export async function sendVerifyEmail(to: string, firstName: string, verificatio
 export async function sendResetPasswordEmail(to: string, firstName: string, resetToken: string) {
   const { ResetPassword } = await import('@/lib/emails/ResetPassword');
   const appUrl = getAppUrl();
-  const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
+  // The email address is embedded so the /reset-password page can pre-fill it and the
+  // API can confirm the token belongs to the requester (the page/route requires both).
+  const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(to)}`;
 
   return sendEmail({
     to,

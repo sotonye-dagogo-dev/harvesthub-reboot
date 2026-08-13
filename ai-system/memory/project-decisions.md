@@ -88,8 +88,93 @@ thumbnail across step navigation and page reloads.
 - Cross-device signups, cleared cache/localStorage, or interrupted signups leave orphaned cloud
   uploads (no draft to attach them to) — scheduled as a backlog cleanup task.
 
-## SwNoResponseGuard Silences Only Known Benign SW no-response Rejections
+## Shared Upload Config + PDF-As-Image Resource Mapping
 
+**Decision:** The upload contract (max sizes, allowed formats, accept attribute) lives in one shared
+module, `lib/utils/uploadConfig.ts`, consumed by both the `/api/upload` route and every client upload
+surface. Non-image uploads are mapped in `lib/services/cloudinary.ts` `resolveUploadParams`:
+`image/*`→`image`, `application/pdf`→`image`, `video/*`→`video`, everything else→`raw`.
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Verification-doc uploads rejected valid PDFs because the Cloudinary wrapper only accepted
+`data:image/\w+` URIs, hardcoded `resource_type: 'image'`, and defaulted `allowed_formats` to exclude
+`pdf`. A single shared config prevents per-folder drift (sizes/formats lived in multiple places), and
+routing PDFs through Cloudinary's `image` resource type keeps the existing image transformation and
+thumbnail pipeline working with zero changes to consumers.
+
+**Alternatives Considered:**
+
+- Route PDFs as Cloudinary `raw` (rejected: loses the transformation/thumbnail pipeline that every
+  existing consumer relies on; the signup docs stage already renders image-style previews).
+- Keep per-folder config scattered at call sites (rejected: this session found two divergent 5MB/type
+  definitions; drift was the bug).
+
+**Implications:**
+
+- `UploadResult.width/height` are now optional (raw uploads have no dimensions).
+- Any new upload folder must add its allowed formats/size to `uploadConfig.ts` and be surfaced via
+  `acceptAttributeFor` — do not hardcode `accept` strings in components.
+
+## Upload Failure Feedback Is Concise, Human-Readable, and Project-Wide
+
+**Decision:** All upload failures surface a concise, descriptive message through the global antd
+toast, derived by `getUploadErrorMessage(error, { maxSizeMB, allowedFormats, fallback })` in
+`lib/utils/uploadHelpers.ts`. The helper maps size, unsupported-type, network, auth, folder-scope,
+and rate-limit failures to fixed messages and passes through short server-provided messages verbatim.
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Users were seeing unhelpful failures (e.g. uploads silently failing or a generic "Internal server
+error"), which made the verification-docs PDF case impossible to self-diagnose. A single helper keeps
+message wording consistent everywhere and lets server 4xx bodies (e.g. "File is too large...") reach
+the user directly.
+
+**Alternatives Considered:**
+
+- Per-component bespoke error strings (rejected: already drifting and inconsistent).
+- Always show raw server/Cloudinary errors (rejected: Cloudinary error JSON is noisy; opaque
+  long/stack-containing errors are filtered to a fallback message).
+
+**Implications:**
+
+- The client validation and the API route must stay aligned on `uploadConfig.ts` sizes/formats so the
+  user sees the same guidance client- and server-side.
+- Network detection matches `failed to fetch`/`failed to load`/`net::` — a bare `load failed`
+  substring also matches "upload **failed**" and would mislabel server rejections as network errors.
+
+## Password-Reset Emails Are Awaited and the Reset Link Carries Both Token and Email
+
+**Decision:** The forgot-password route (renamed `route.tsx`→`route.ts`) now `await`s the email send
+instead of fire-and-forget, the reset link includes `&email=${encodeURIComponent(to)}` in addition to
+the token, `getAppUrl()` falls back to `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL ||
+'https://myharvesthub.org'`, and the register route also `await`s `sendVerifyEmail`. The generic
+success response for forgot-password is preserved (anti-account-enumeration).
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Users reported not receiving password-reset emails while welcome/verify emails worked. The reset link
+was missing the `email` query param the reset-password route requires (so the link could not be
+consumed), and `getAppUrl()` pointed at the legacy `harvesthub.ng` domain. Fire-and-forget sends also
+masked delivery failures.
+
+**Alternatives Considered:**
+
+- Only fix the URL and leave sends fire-and-forget (rejected: delivery failures would remain
+  invisible and unlogged).
+- Change the success response to distinguish "email found" vs "not found" (rejected: leaks account
+  existence).
+
+**Implications:**
+
+- Signup is never blocked on email delivery (awaited send is wrapped so failures log but do not fail
+  the request), but send failures are now observable in logs.
+- Any future reset-link builder must include both `token` and `email`.
+
+## SwNoResponseGuard Silences Only Known Benign SW no-response Rejections
 **Decision:** Add a root-level `unhandledrejection` guard (`lib/utils/swNoResponseGuard.ts`, mounted
 in `app/providers.tsx`) that swallows only rejections whose reason `name`/`code` is `no-response` or
 whose message starts with `no-response`. Everything else still propagates.
