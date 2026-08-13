@@ -89,6 +89,14 @@ export function getVendorContentFolder(vendorId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/vendor-content/${vendorId}`;
 }
 
+/**
+ * True when a Cloudinary public_id belongs under the given folder scope.
+ * Used to prevent deleting assets that were not uploaded by the requester.
+ */
+export function isAssetInFolder(publicId: string, folder: string): boolean {
+    return publicId.startsWith(`${folder}/`);
+}
+
 // ============================================================================
 // Types
 // ============================================================================

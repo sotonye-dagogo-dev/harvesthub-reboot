@@ -592,6 +592,7 @@ export interface UserFormData {
     profilePicture?: {
         filename: string;
         url: string;
+        publicId?: string;
     } | null;
     verificationDocuments?: {
         documentType?: 'ID' | 'BUSINESS_REGISTRATION' | 'UTILITY_BILL';

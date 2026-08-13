@@ -18,6 +18,54 @@
 
 ---
 
+## [Build-breaking type errors: syncFromResponse return type + pre-existing VerificationDocs.test.tsx type errors]
+
+**Symptom:**
+
+- `npx tsc --noEmit` failed during the 2026-08-13 upload-retention work.
+- `VerificationDocs.tsx`: `syncFromResponse` returned an object missing `url`/`publicId` typing that
+  the `UploadFile` state expected, breaking the typecheck.
+- `app/signup/__tests__/VerificationDocs.test.tsx` had three pre-existing type errors (present on the
+  clean base commit, verified via `git stash`): `beforeAll` not imported, the two
+  `let resolveUpload!: (value: unknown) => void;` declarations (not assignable to the
+  `(value: Response | PromiseLike<Response>) => void` the mock `fetch` needs), and six
+  `fileInputs(container)[0]` usages typed as `HTMLInputElement | undefined` under
+  `noUncheckedIndexedAccess`.
+
+**Root Cause:**
+
+- The `syncFromResponse` helper inferred a return type that did not satisfy the `VerificationUploadFile`
+  shape (it built an incomplete `UploadFile`).
+- The older test file was written before `beforeAll` was imported and used `value: unknown` for the
+  deferred resolver, and relied on array indexing without the `!` non-null assertion that
+  `noUncheckedIndexedAccess` requires.
+
+**Fix Applied:**
+
+- Changed `syncFromResponse` to return `VerificationUploadFile` explicitly (cast the built object
+  `as VerificationUploadFile`) so `url`/`publicId`/`originFileObj` are present.
+- In the test file: added `beforeAll` to the react-testing-library imports, added a
+  `type ResolveUpload = (value: Response | PromiseLike<Response>) => void;` alias and typed both
+  resolvers with it, and appended `!` to all six `fileInputs(container)[0]` call sites.
+
+**Prevention:**
+
+- When adding an antd `Upload`-style custom-request test, declare the deferred resolver with the exact
+  type `(value: Response | PromiseLike<Response>) => void`, import `beforeAll` explicitly, and treat
+  `queryByRole`-style element lookups under `noUncheckedIndexedAccess` as possibly `undefined`
+  (append `!`).
+- Run `npx tsc --noEmit` after editing the test file, not just vitest — tests can pass at runtime
+  while the typecheck fails.
+
+**Files Affected:**
+
+- app/signup/components/VerificationDocs.tsx
+- app/signup/__tests__/VerificationDocs.test.tsx
+
+**Date:** 2026-08-13
+
+---
+
 ## [Verification-documents upload gave no status feedback and button/tostes lacked loading states]
 
 **Symptom:**

@@ -1,7 +1,7 @@
 # Repository Map
 
-> **last-updated-by:** update-ai-system.md (2026-08-11)
-> **last-updated-at:** 2026-08-11T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-13)
+> **last-updated-at:** 2026-08-13T00:00:00Z
 > **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
 
 ---
@@ -44,7 +44,7 @@ harvesthub-reboot/
 │   ├── services/                      → Email, notification, upload, payment, and related services
 │   ├── store/                         → Client state stores
 │   ├── tracking/                      → Client-side banner event tracking (beacon/fetch)
-│   ├── utils/                         → Shared utilities (drafts, offline queue, formatters, etc.)
+│   ├── utils/                         → Shared utilities (drafts, offline queue, formatters, upload helpers, etc.)
 │   └── __tests__/
 │
 ├── modules/                           → Domain submodules (currently `orders/`)

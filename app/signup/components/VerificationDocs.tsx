@@ -1,10 +1,16 @@
 "use client";
 
 import { Form, Upload, message, Select } from "antd";
-import { PlusOutlined, LoadingOutlined } from "@ant-design/icons";
-import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  PlusOutlined,
+  LoadingOutlined,
+  CheckOutlined,
+  CloseCircleFilled,
+} from "@ant-design/icons";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { FormComponentProps } from "@/app/types";
+import { deleteUploadedAsset } from "@/lib/utils/uploadHelpers";
 
 const ID_TYPES = [
   { value: "NIN", label: "National Identification Number (NIN)" },
@@ -30,6 +36,8 @@ type VerificationDocument = {
 
 type VerificationUploadFile = UploadFile & { publicId?: string };
 
+type SlotKey = "id" | "biz" | "utility";
+
 export default function VerificationDocs({ onNext, updateFormData, formData }: FormComponentProps) {
   const [form] = Form.useForm<VerificationFields>();
   const [idFileList, setIdFileList] = useState<VerificationUploadFile[]>([]);
@@ -37,6 +45,36 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   const [utilityFileList, setUtilityFileList] = useState<VerificationUploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const guestUploadIdRef = useRef<string | null>(null);
+
+  // Tracks the last Cloudinary publicId held by each slot so replacements can
+  // destroy the previous asset instead of orphaning it.
+  const donePublicIdRef = useRef<Partial<Record<SlotKey, string | undefined>>>({});
+  // Snapshot of the docs persisted into the local form draft, used to avoid
+  // redundant writes (and write loops) when uploads complete.
+  const lastPersistedRef = useRef(
+    JSON.stringify({
+      idType: formData?.idType ?? "",
+      verificationDocuments: (formData?.verificationDocuments as VerificationDocument[] | undefined) ?? [],
+    })
+  );
+
+  const fileListOf = (slot: SlotKey): VerificationUploadFile[] => {
+    if (slot === "id") return idFileList;
+    if (slot === "biz") return bizFileList;
+    return utilityFileList;
+  };
+
+  const setterOf = (slot: SlotKey): React.Dispatch<React.SetStateAction<VerificationUploadFile[]>> => {
+    if (slot === "id") return setIdFileList;
+    if (slot === "biz") return setBizFileList;
+    return setUtilityFileList;
+  };
+
+  const docTypeOf = (slot: SlotKey): VerificationDocument["documentType"] => {
+    if (slot === "id") return "ID";
+    if (slot === "biz") return "BUSINESS_REGISTRATION";
+    return "UTILITY_BILL";
+  };
 
   useEffect(() => {
     if (!guestUploadIdRef.current) {
@@ -51,62 +89,47 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
     if (formData?.idType) {
       form.setFieldValue("idType", formData.idType);
     }
-    // Restore previous state if going back
-    if (formData?.verificationDocuments && formData.verificationDocuments.length > 0) {
-      const docs = formData.verificationDocuments as VerificationDocument[];
-      const restored = docs.map((doc, i) => ({
-        uid: `restored-${i}`,
-        name: doc.filename,
-        status: "done" as const,
-        url: doc.url,
-        publicId: doc.publicId,
-      }));
-      const idDoc = docs.find((doc) => doc.documentType === "ID");
-      const bizDoc = docs.find((doc) => doc.documentType === "BUSINESS_REGISTRATION");
-      const utilityDoc = docs.find((doc) => doc.documentType === "UTILITY_BILL");
+    // Restore previous state if going back. Slot-aware so a doc is only ever
+    // restored into its own upload slot, and a live upload already in progress
+    // is never clobbered by a restore pass.
+    const docs = formData?.verificationDocuments as VerificationDocument[] | undefined;
+    if (!docs || docs.length === 0) return;
 
-      if (idDoc) {
-        setIdFileList([
+    const restoreSlot = (
+      slot: SlotKey,
+      doc: VerificationDocument | undefined,
+      setter: React.Dispatch<React.SetStateAction<VerificationUploadFile[]>>
+    ) => {
+      if (!doc) return;
+      setter((current) => {
+        if (current.some((f) => f.status === "uploading")) return current;
+        const existing = current.find((f) => f.status === "done" && f.url);
+        if (existing && existing.url === doc.url && existing.publicId === doc.publicId) {
+          return current;
+        }
+        return [
           {
-            uid: "restored-id",
-            name: idDoc.filename,
-            status: "done",
-            url: idDoc.url,
-            publicId: idDoc.publicId,
+            uid: `restored-${slot}`,
+            name: doc.filename,
+            status: "done" as const,
+            url: doc.url,
+            publicId: doc.publicId,
           },
-        ]);
-      } else {
-        setIdFileList(restored.slice(0, 1));
-      }
+        ];
+      });
+    };
 
-      if (bizDoc) {
-        setBizFileList([
-          {
-            uid: "restored-biz",
-            name: bizDoc.filename,
-            status: "done",
-            url: bizDoc.url,
-            publicId: bizDoc.publicId,
-          },
-        ]);
-      } else if (restored.length > 1) {
-        setBizFileList(restored.slice(1, 2));
-      }
+    const idDoc = docs.find((doc) => doc.documentType === "ID");
+    const bizDoc = docs.find((doc) => doc.documentType === "BUSINESS_REGISTRATION");
+    const utilityDoc = docs.find((doc) => doc.documentType === "UTILITY_BILL");
 
-      if (utilityDoc) {
-        setUtilityFileList([
-          {
-            uid: "restored-utility",
-            name: utilityDoc.filename,
-            status: "done",
-            url: utilityDoc.url,
-            publicId: utilityDoc.publicId,
-          },
-        ]);
-      } else if (restored.length > 2) {
-        setUtilityFileList(restored.slice(2, 3));
-      }
-    }
+    restoreSlot("id", idDoc, setIdFileList);
+    restoreSlot("biz", bizDoc, setBizFileList);
+    restoreSlot("utility", utilityDoc, setUtilityFileList);
+
+    donePublicIdRef.current.id = idDoc?.publicId;
+    donePublicIdRef.current.biz = bizDoc?.publicId;
+    donePublicIdRef.current.utility = utilityDoc?.publicId;
   }, [form, formData?.idType, formData?.verificationDocuments]);
 
   const validateFile = (file: File): boolean => {
@@ -150,29 +173,74 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         const uploadFile = file as VerificationUploadFile;
         uploadFile.url = payload.url;
         uploadFile.publicId = payload.publicId;
+        message.success("Document uploaded");
         onSuccess?.(payload, file);
       })
       .catch((error) => {
         console.error("Verification document upload failed:", error);
+        message.error("Upload failed. Please remove the file and try again.");
         onError?.(error instanceof Error ? error : new Error("Upload failed"));
       });
   };
 
+  const syncFromResponse = (f: UploadFile): VerificationUploadFile => {
+    if (f.status === "done" && !f.url && (f.response as { url?: string } | null)?.url) {
+      return {
+        ...f,
+        url: (f.response as { url: string }).url,
+        publicId: (f.response as { publicId?: string }).publicId,
+      } as VerificationUploadFile;
+    }
+    return f as VerificationUploadFile;
+  };
+
   const handleChange =
-    (setter: React.Dispatch<React.SetStateAction<VerificationUploadFile[]>>) =>
+    (slot: SlotKey) =>
     ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
-      const synced = newFileList.slice(-1).map((f) => {
-        if (f.status === "done" && (f.response as { url?: string; publicId?: string } | null)?.url && !f.url) {
-          return {
-            ...f,
-            url: (f.response as { url: string }).url,
-            publicId: (f.response as { publicId?: string }).publicId,
-          };
-        }
-        return f;
-      });
-      setter(synced as VerificationUploadFile[]);
+      const previousDone = donePublicIdRef.current[slot];
+      const synced = newFileList.slice(-1).map(syncFromResponse);
+      const nextDone = synced.find((f) => f.status === "done" && f.url);
+      const nextPublicId = (nextDone as VerificationUploadFile | undefined)?.publicId;
+
+      // A completed replacement: destroy the asset that was previously occupying this slot.
+      // (Kept until the replacement succeeds so a failed upload never loses the old copy.)
+      if (previousDone && nextPublicId && previousDone !== nextPublicId) {
+        void deleteUploadedAsset({
+          publicId: previousDone,
+          folderType: "verification-doc",
+          guestUploadId: guestUploadIdRef.current ?? undefined,
+        });
+      }
+
+      if (nextPublicId) {
+        donePublicIdRef.current[slot] = nextPublicId;
+      }
+      setterOf(slot)(synced as VerificationUploadFile[]);
     };
+
+  const handleRemove =
+    (slot: SlotKey) =>
+    (file: UploadFile): boolean => {
+      const uploadFile = file as VerificationUploadFile;
+      const staleRefId = donePublicIdRef.current[slot];
+      const targetId = uploadFile.publicId || staleRefId;
+      if (targetId) {
+        void deleteUploadedAsset({
+          publicId: targetId,
+          folderType: "verification-doc",
+          guestUploadId: guestUploadIdRef.current ?? undefined,
+        });
+      }
+      donePublicIdRef.current[slot] = undefined;
+      // Keep the local form draft in sync so a removed doc does not reappear on revisit.
+      const existing = (formData?.verificationDocuments as VerificationDocument[] | undefined) ?? [];
+      const remaining = existing.filter((doc) => doc.documentType !== docTypeOf(slot));
+      updateFormData({ verificationDocuments: remaining } as Partial<FormComponentProps["formData"]>);
+      return true;
+    };
+
+  const pickDone = (list: VerificationUploadFile[]): VerificationUploadFile | undefined =>
+    list.find((f) => f.status === "done" && f.url);
 
   const hasUploadingFile = useMemo(
     () =>
@@ -182,10 +250,125 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
     [idFileList, bizFileList, utilityFileList]
   );
 
-  const onFinish = async (values: VerificationFields) => {
-    const pickDone = (list: VerificationUploadFile[]): VerificationUploadFile | undefined =>
-      list.find((f) => f.status === "done" && f.url);
+  const buildDocs = useCallback(
+    (
+      currentIdType: string,
+      idList: VerificationUploadFile[],
+      bizList: VerificationUploadFile[],
+      utilityList: VerificationUploadFile[]
+    ): VerificationDocument[] => {
+      const toDoc = (
+        file: VerificationUploadFile,
+        docType: VerificationDocument["documentType"],
+        fallbackPrefix: string
+      ): VerificationDocument => ({
+        documentType: docType,
+        filename: file.originFileObj ? `${fallbackPrefix}_${file.name}` : file.name,
+        url: file.url as string,
+        publicId: file.publicId,
+      });
 
+      const docs: VerificationDocument[] = [];
+      const idFile = pickDone(idList);
+      const bizFile = pickDone(bizList);
+      const utilityFile = pickDone(utilityList);
+      if (idFile) docs.push(toDoc(idFile, "ID", currentIdType || "ID"));
+      if (bizFile) docs.push(toDoc(bizFile, "BUSINESS_REGISTRATION", "BUSINESS_REGISTRATION"));
+      if (utilityFile) docs.push(toDoc(utilityFile, "UTILITY_BILL", "UTILITY_BILL"));
+      return docs;
+    },
+    []
+  );
+
+  // Persist uploaded links into the local form draft the moment an upload completes,
+  // so the thumbnails re-render on revisit and the user never re-uploads unless they
+  // choose to replace a document. Skips while anything is still uploading to avoid
+  // churning the draft mid-upload.
+  useEffect(() => {
+    if (hasUploadingFile) return;
+    const currentIdType =
+      (form.getFieldValue("idType") as string) || formData?.idType || "";
+    const docs = buildDocs(currentIdType, idFileList, bizFileList, utilityFileList);
+    if (docs.length === 0) return;
+    const serialized = JSON.stringify({ idType: currentIdType, verificationDocuments: docs });
+    if (serialized === lastPersistedRef.current) return;
+    lastPersistedRef.current = serialized;
+    updateFormData({
+      idType: currentIdType,
+      verificationDocuments: docs,
+    } as Partial<FormComponentProps["formData"]>);
+  }, [
+    idFileList,
+    bizFileList,
+    utilityFileList,
+    form,
+    formData?.idType,
+    hasUploadingFile,
+    updateFormData,
+    buildDocs,
+  ]);
+
+  const renderThumbOverlay = (originNode: React.ReactNode, file: UploadFile): React.ReactNode => {
+    const status = file.status;
+    return (
+      <div className="relative h-full w-full">
+        {originNode}
+        {status === "uploading" && (
+          <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-1 rounded-ds-md bg-ds-surface-overlay/80 text-ds-text-inverse">
+            <LoadingOutlined className="text-base" />
+            <span className="text-[11px] font-medium">Uploading...</span>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-1 rounded-ds-md bg-ds-status-error-bg/90 px-2 text-center text-ds-status-error-text">
+            <CloseCircleFilled className="text-base" />
+            <span className="text-[11px] font-medium leading-tight">Upload failed</span>
+          </div>
+        )}
+        {status === "done" && file.url && (
+          <span
+            className="absolute right-1 top-1 z-[2] flex h-4 w-4 items-center justify-center rounded-full bg-ds-status-success text-white"
+            aria-label="Uploaded successfully"
+          >
+            <CheckOutlined className="text-[10px]" />
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderUpload = (
+    slot: SlotKey,
+    label: React.ReactNode,
+    help: string
+  ): React.ReactElement => {
+    const fileList = fileListOf(slot);
+    return (
+      <Form.Item label={label} required>
+        <Upload
+          listType="picture-card"
+          fileList={fileList}
+          onChange={handleChange(slot)}
+          onRemove={handleRemove(slot)}
+          itemRender={renderThumbOverlay}
+          beforeUpload={beforeUpload}
+          customRequest={uploadViaApi}
+          maxCount={1}
+          accept=".jpg,.jpeg,.png,.pdf"
+        >
+          {fileList.length === 0 && (
+            <div>
+              <PlusOutlined />
+              <div className="mt-2 text-xs">Upload</div>
+            </div>
+          )}
+        </Upload>
+        <p className="text-xs text-ds-text-placeholder mt-1">{help}</p>
+      </Form.Item>
+    );
+  };
+
+  const onFinish = async (values: VerificationFields) => {
     const idFile = pickDone(idFileList);
     const bizFile = pickDone(bizFileList);
     const utilityFile = pickDone(utilityFileList);
@@ -203,22 +386,12 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
 
     setSubmitting(true);
     try {
-      const toDoc = (
-        file: VerificationUploadFile,
-        docType: VerificationDocument["documentType"],
-        fallbackPrefix: string
-      ): VerificationDocument => ({
-        documentType: docType,
-        filename: file.originFileObj ? `${fallbackPrefix}_${file.name}` : file.name,
-        url: file.url as string,
-        publicId: file.publicId,
-      });
-
-      const docs: VerificationDocument[] = [
-        toDoc(idFile, "ID", values.idType),
-        toDoc(bizFile, "BUSINESS_REGISTRATION", "BUSINESS_REGISTRATION"),
-        toDoc(utilityFile, "UTILITY_BILL", "UTILITY_BILL"),
-      ];
+      const docs: VerificationDocument[] = buildDocs(
+        values.idType,
+        idFileList,
+        bizFileList,
+        utilityFileList
+      );
 
       updateFormData({
         idType: values.idType,
@@ -261,97 +434,29 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           <Select size="large" placeholder="Select ID type" options={ID_TYPES} className="w-full" />
         </Form.Item>
 
-        {/* Valid ID Upload (Required) */}
-        <Form.Item
-          label={
-            <span className="text-ds-text-primary font-medium">
-              Valid ID Document <span className="text-ds-status-error-text">*</span>
-            </span>
-          }
-          required
-        >
-          <Upload
-            listType="picture-card"
-            fileList={idFileList}
-            onChange={handleChange(setIdFileList)}
-            beforeUpload={beforeUpload}
-            customRequest={uploadViaApi}
-            maxCount={1}
-            accept=".jpg,.jpeg,.png,.pdf"
-          >
-            {idFileList.length === 0 && (
-              <div>
-                <PlusOutlined />
-                <div className="mt-2 text-xs">Upload ID</div>
-              </div>
-            )}
-          </Upload>
-          <p className="text-xs text-ds-text-placeholder mt-1">
-            NIN slip, Driver&apos;s License, Voter&apos;s Card, or Passport. JPG, PNG, or PDF. Max
-            5MB.
-          </p>
-        </Form.Item>
+        {renderUpload(
+          "id",
+          <span className="text-ds-text-primary font-medium">
+            Valid ID Document <span className="text-ds-status-error-text">*</span>
+          </span>,
+          "NIN slip, Driver's License, Voter's Card, or Passport. JPG, PNG, or PDF. Max 5MB."
+        )}
 
-        {/* Business Registration (Required) */}
-        <Form.Item
-          label={
-            <span className="text-ds-text-primary font-medium">
-              Business Registration Certificate{" "}
-              <span className="text-ds-status-error-text">*</span>
-            </span>
-          }
-          required
-        >
-          <Upload
-            listType="picture-card"
-            fileList={bizFileList}
-            onChange={handleChange(setBizFileList)}
-            beforeUpload={beforeUpload}
-            customRequest={uploadViaApi}
-            maxCount={1}
-            accept=".jpg,.jpeg,.png,.pdf"
-          >
-            {bizFileList.length === 0 && (
-              <div>
-                <PlusOutlined />
-                <div className="mt-2 text-xs">Upload</div>
-              </div>
-            )}
-          </Upload>
-          <p className="text-xs text-ds-text-placeholder mt-1">
-            CAC certificate or similar. JPG, PNG, or PDF. Max 5MB.
-          </p>
-        </Form.Item>
+        {renderUpload(
+          "biz",
+          <span className="text-ds-text-primary font-medium">
+            Business Registration Certificate <span className="text-ds-status-error-text">*</span>
+          </span>,
+          "CAC certificate or similar. JPG, PNG, or PDF. Max 5MB."
+        )}
 
-        {/* Utility Bill (Required) */}
-        <Form.Item
-          label={
-            <span className="text-ds-text-primary font-medium">
-              Utility Bill <span className="text-ds-status-error-text">*</span>
-            </span>
-          }
-          required
-        >
-          <Upload
-            listType="picture-card"
-            fileList={utilityFileList}
-            onChange={handleChange(setUtilityFileList)}
-            beforeUpload={beforeUpload}
-            customRequest={uploadViaApi}
-            maxCount={1}
-            accept=".jpg,.jpeg,.png,.pdf"
-          >
-            {utilityFileList.length === 0 && (
-              <div>
-                <PlusOutlined />
-                <div className="mt-2 text-xs">Upload</div>
-              </div>
-            )}
-          </Upload>
-          <p className="text-xs text-ds-text-placeholder mt-1">
-            Utility bill (electricity, water, etc.). JPG, PNG, or PDF. Max 5MB.
-          </p>
-        </Form.Item>
+        {renderUpload(
+          "utility",
+          <span className="text-ds-text-primary font-medium">
+            Utility Bill <span className="text-ds-status-error-text">*</span>
+          </span>,
+          "Utility bill (electricity, water, etc.). JPG, PNG, or PDF. Max 5MB."
+        )}
 
         <Form.Item className="mb-0">
           <button
