@@ -1,6 +1,26 @@
 # Development Task Queue
 
+> **Metadata**
+> - last-updated-by: ai-system v3 upgrade (task-queue coupling marker added)
+> - last-verified-against-code: 2026-08-13
+> - last-synced: 2026-08-13 — ai-system v3 upgrade applied `last-synced` marker; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - staleness-policy: re-verify before each session
+
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
+
+---
+
+## Complexity Tags
+
+Tags help agents self-select whether a task needs the full `execute-feature.md` pipeline or a lighter `dev-cycle.md`:
+
+| Tag | Meaning | Recommended Command |
+|-----|---------|-------------------|
+| `[XS]` | Trivial — single file, known pattern | dev-cycle.md |
+| `[S]` | Small — 1-3 files, well-understood | dev-cycle.md |
+| `[M]` | Medium — 3-6 files across related modules | execute-feature.md |
+| `[L]` | Large — multi-module, architecture-aware | execute-feature.md (deep sync chain) |
+| `[XL]` | Very large — cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
 
 ---
 
@@ -588,6 +608,8 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [ ] Improve accessibility (keyboard nav, ARIA, contrast)
 - [ ] Add PWA support (service worker + offline caching)
 - [ ] Add search indexing and advanced filters (categories, campus)
+- [XL] Package the `ai-system` kit for versioned install (npm / GitHub Releases) for distribution beyond "clone the template repo" — deferred stretch goal from template v3
+- [XL] Optional `integrations/opencode/` adapter mapping `ai-system` commands to opencode-specific slash-commands (multi-manifest pattern, `AGENTS.md` + `opencode.json`), clearly labeled so the core kit stays vendor-neutral — deferred stretch goal from template v3
 
 ---
 

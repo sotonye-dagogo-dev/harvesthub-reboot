@@ -1,6 +1,6 @@
 # System Architecture
 
-> **last-updated-by:** update-ai-system.md (2026-08-11)
+> **last-updated-by: ai-system v3 upgrade (2026-08-13)
 > **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a mock data layer to simulate a backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable.
 
 ---
@@ -50,3 +50,40 @@
 - The current stack targets Vercel-style deployments but is compatible with any Node.js host.
 - The mock backend can be replaced with a real Prisma + PostgreSQL backend by swapping the data layer implementation.
 - Environment configuration is driven by `.env` files and `process.env` values (see `.env.example`).
+
+---
+
+## Verification CLI (agent-verifiable behavior)
+
+The project exposes scripts an agent can invoke to observe and verify application behavior end-to-end (engineering principle §24). Check here before reaching for a manual check:
+
+| Command | What it proves | When to use |
+|---------|---------------|-------------|
+| `npm run audit:routes` | Every configured role-aware route resolves to a real page/API handler (no broken links) | After adding/renaming routes, or before a quality-gate close |
+| `npm run audit:sidebar-routes` | Every sidebar/navigation entry points at an existing route | After navigation changes, or before a quality-gate close |
+| `npm run audit:dead-links` | Runs both route audits together | Route/navigation hygiene pass |
+| `npx tsc --noEmit` | Type safety across the codebase (strict) | After any type-affecting change |
+| `npm run lint` | ESLint compliance for touched files | Before commit/close |
+| `npm test` (vitest) | Unit + integration coverage for touched scopes | Before marking work complete |
+
+When a change creates a new verification need, extend one of these scripts rather than falling back to "manual reasoning, trust me."
+
+---
+
+## Rollback & Undo (deployment level)
+
+This is the "undo" instinct applied one layer up from data (§22 covers user-facing undo; this covers deployments):
+
+- **Previous-build promotion** — Vercel-style deployments keep prior successful builds; rollback is a re-deploy of the previous version. No custom mechanism in-repo.
+- **DB migration reversibility** — Prisma migrations (`prisma migrate`) are down-migratable; `prisma migrate reset` rebuilds from seed for dev only.
+- **Feature-flag kill switch** — config-driven feature flags (engineering principles §1) in `lib/config/` and `.env` can disable a bad feature without a deploy where the code path honors the flag.
+
+Known constraint: there is no in-repo CI/CD rollback script; rollback relies on the deployment platform's previous-build retention.
+
+---
+
+## Configuration Points
+
+| Config Key | Purpose | Location | Default |
+|-----------|---------|----------|---------|
+| `ENABLE_DESIGN_VIEWER` | Mounts the dev-only design-asset viewer at `/__design/*`; must be false in production builds | .env | false |

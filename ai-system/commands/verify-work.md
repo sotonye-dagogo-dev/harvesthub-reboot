@@ -1,8 +1,8 @@
 # Verify Work Command
 
 > **Metadata**
-> - last-updated-by: bootstrap-project
-> - last-verified-against-code: (set on first run)
+> - last-updated-by: ai-system v3 upgrade (2026-08-13)
+> - last-verified-against-code: 2026-08-13
 > - staleness-policy: re-verify if QA criteria change
 
 > **Overview:** Standalone quality gate invocation. Runs the full QA checklist from `protocols/quality-gate.md` against a given piece of work. Can be invoked on its own or as a required internal step of `execute-feature.md` and `dev-cycle.md`.
@@ -17,6 +17,8 @@
 | Produces a pass / conditional pass / fail result | Does not skip criteria to produce a "pass" result |
 | Identifies specific issues with locations and severity | Does not make assumptions about specific AI tools |
 | Recommends rollback or patch-forward for each failure | Does not modify code |
+
+**Chains to:** `None` — deliberately. `verify-work.md` is read-only by contract ("does not modify code"); it is the human-in-the-loop escalation point, not a chain trigger. Fixes triggered by its findings are separate, deliberate invocations.
 
 ---
 

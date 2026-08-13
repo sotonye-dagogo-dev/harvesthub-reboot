@@ -1,8 +1,8 @@
 # Quality Gate — Anti-Slop Verification Protocol
 
 > **Metadata**
-> - last-updated-by: bootstrap-project
-> - last-verified-against-code: (set on first run)
+> - last-updated-by: ai-system v3 upgrade (2026-08-13)
+> - last-verified-against-code: 2026-08-13
 > - staleness-policy: this file changes rarely — trust unless explicitly flagged
 
 > **Overview:** The mandatory QA checklist that every command must run before declaring work complete. This is the most important protocol in the system — it prevents overconfident output, premature completion, scope-padding, hallucinated file references, and solutions overfit to one example rather than the actual requirement.
@@ -65,12 +65,15 @@ Before ending the turn, ask yourself: "Is there an obvious follow-up question or
 
 ### 9. Pattern Adherence
 
-Does the implementation follow `standards/engineering-principles.md`?
+Does the implementation follow `standards/engineering-principles.md`? The new v3 principles (§11–§24) are enforced at the points the §25 enforcement map routes them to — cross-check your work against that table, not just the principle list:
 - Are values that should be config-driven actually configurable (not hardcoded)?
 - Are existing type/interface/styling definitions reused rather than duplicated?
 - Is modularization appropriate — is each module responsible for one thing?
 - Are third-party SDKs wrapped behind a stable internal interface?
 - Is there a documented fallback for every config-driven value?
+- RBAC via universal pages, not page variants (§11)? Transaction/saga choice stated (§12)?
+- Universal catalog baseline used, raw tokens not leaking (§13, §5)? Data loaded paginated, not fetch-all (§21)?
+- Destructive actions confirmed with undo path (§22)? Audit trails written (§23)?
 
 ---
 

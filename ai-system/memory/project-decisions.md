@@ -1,5 +1,10 @@
 # Project Decisions
 
+> **Metadata**
+> - last-updated-by: ai-system v3 upgrade
+> - last-verified-against-code: 2026-08-13
+> - staleness-policy: each entry has its own staleness — check supersedes links
+
 > **Overview:** Log of significant architectural, technical, and product decisions made during development. Agents consult this before proposing changes to avoid contradicting prior reasoning. Each entry records what was decided, why, and what the alternatives were.
 
 ---
@@ -2093,3 +2098,22 @@ Users could silently create duplicate, unlinked identities across platforms beca
 - Signup submission is blocked while cross-platform prompt is visible
 - When CIS is not configured, check silently returns null and signup proceeds normally
 - The "Sign In Instead" button navigates to /login
+
+## PDF extraction backend for the design-asset viewer
+
+**Decision:** Use the single multi-format converter (`markitdown`) if the project is Python-heavy; use the PDF classify-then-extract library (`pdf-inspector`) if the project is Rust/WASM-friendly. Reaffirm at implementation time of the design-asset viewer.
+**Date:** 2026-08-13
+**Made by:** ai-system v3 upgrade (seeds the v3 decision)
+
+**Reason:**
+The design-asset viewer needs PDF text/structure extraction in one thin wrapper. `tools/registry.md` evaluates both candidates as "adopt (approach)." Picking one is a stack-fit decision (see `tools/integrations/markitdown.md` and `tools/integrations/pdf-inspector.md`), not a fixed default.
+
+**Alternatives Considered:**
+
+- A PDF-only Rust extractor as a hard dependency — rejected as over-coupling where the stack is not Rust/WASM.
+- No extraction at all (render-only viewer) — rejected because agents must be able to read a PDF spec as Markdown.
+
+**Implications:**
+
+- The design-asset viewer's extraction utility is a thin wrapper around whichever backend the stack favors.
+- Do not add both backends unless measurements justify it.

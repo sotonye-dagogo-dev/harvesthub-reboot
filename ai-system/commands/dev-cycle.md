@@ -1,8 +1,8 @@
 # Dev Cycle Command
 
 > **Metadata**
-> - last-updated-by: bootstrap-project
-> - last-verified-against-code: (set on first run)
+> - last-updated-by: ai-system v3 upgrade (2026-08-13)
+> - last-verified-against-code: 2026-08-13
 > - staleness-policy: re-verify if workflow processes change
 
 > **Overview:** The daily autonomous development loop. Executes a full plan → implement → review → test → document cycle for the next task in the queue. Lighter than `execute-feature.md` — suitable for well-defined, scoped tasks.
@@ -17,6 +17,8 @@
 | Runs the quality gate before marking complete | Does not skip reading tier-1 protocol files |
 | Updates all relevant docs after completion | Does not make assumptions about specific AI products |
 | Writes in-progress.md for interruption safety | Does not refactor unrelated code |
+
+**Chains to:** `sync-context.md` — mandatory at close (Step 7), checkable in `session-log.md`. `update-ai-system.md` — mandatory if completing this task empties `planning/task-queue.md`'s "Current Sprint" table (the sprint-end deep sync its overview already describes); invoke it before the final `sync-context.md`, not after. A skipped chain invocation is a compliance violation (per §10 of the v3 spec).
 
 ---
 
@@ -50,7 +52,7 @@ Directive: Prioritise fixing the broken API response formatter before new featur
 
 6. **QA gate.** Run the quality gate checklist. Fix issues. If gate fails and cannot be resolved, write residual risk and flag.
 
-7. **Document.** Update session-log, mark task done in task queue, update dev-history. Run `sync-context.md`.
+7. **Document.** Update session-log, mark task done in task queue (and the `last-synced` marker), update dev-history. **Sprint boundary check:** if this task empties the "Current Sprint" table in `planning/task-queue.md`, run `update-ai-system.md` before `sync-context.md` — the sprint-end deep sync fires here, not just the lightweight sync. Otherwise run `sync-context.md`.
 
 8. **Clear in-progress.md.**
 
