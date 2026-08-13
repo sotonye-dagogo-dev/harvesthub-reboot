@@ -1,5 +1,12 @@
 # Project AI Context
 
+> **Metadata**
+>
+> - last-updated-by: ai-system v3 upgrade (2026-08-13)
+> - last-verified-against-code: 2026-08-13
+> - installed-ai-system-version: 3.0.0
+> - staleness-policy: re-verify before trusting if project structure has changed
+
 > **Overview:** MyHarvestHub (harvesthub-reboot) is an e-commerce marketplace web application connecting buyers and vendors. The codebase implements storefronts, product listings, vendor dashboards, a wallet system, and admin workflows. It's built with TypeScript using Next.js (App Router) for server + client rendering, Tailwind CSS + Ant Design for UI, and Prisma for data modeling; a mock in-memory data layer (in `lib/data`) is used during development. The project supports automated ai-assisted development workflows to let authorized agents perform safe, incremental changes.
 
 ---
@@ -39,6 +46,10 @@
 All AI agent documentation lives in `ai-system/`.
 
 Start with: `ai-system/protocols/entry-protocol.md`
+
+Two catalogs worth knowing exist (read on demand, not up front):
+- Skills catalog: `ai-system/skills/README.md` (Tier 3 — load a skill's `SKILL.md` when its trigger matches)
+- Tool/resource registry: `ai-system/tools/registry.md` (Tier 3 — check before doing by hand what a registered tool does)
 
 ---
 
