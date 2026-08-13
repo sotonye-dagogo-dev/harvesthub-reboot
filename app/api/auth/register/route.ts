@@ -356,10 +356,16 @@ export async function POST(request: NextRequest) {
             return user;
         });
 
-        // Send verification email (non-blocking)
-        sendVerifyEmail(result.email, result.firstName, verificationToken).catch((err) =>
-            console.error('Failed to send verification email:', { ...logBase, error: err })
-        );
+        // Send verification email (awaited so the serverless runtime finishes the
+        // delivery/retry loop; the response stays success even if the send fails so
+        // account creation is never blocked on email infrastructure).
+        const verifyResult = await sendVerifyEmail(result.email, result.firstName, verificationToken);
+        if (!verifyResult.success) {
+            console.error(
+                `[Register] Verification email failed for ${result.email.slice(0, 3)}*** (id: ${result.id}):`,
+                verifyResult.error
+            );
+        }
 
         // Important: Do not log the user in until email is verified.
         return NextResponse.json(

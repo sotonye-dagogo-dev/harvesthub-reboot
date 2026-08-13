@@ -8,17 +8,16 @@ import {
   type BannerPlacementWarning,
   validateBannerPlacementRatio,
 } from "@/lib/utils/bannerPlacementValidation";
+import { getUploadErrorMessage } from "@/lib/utils/uploadHelpers";
+import {
+  type FolderType,
+  MAX_UPLOAD_SIZE_MB,
+  ALLOWED_UPLOAD_FORMATS,
+  acceptAttributeFor,
+} from "@/lib/utils/uploadConfig";
 
-export type FolderType =
-  | "product"
-  | "vendor-logo"
-  | "vendor-banner"
-  | "profile"
-  | "banner"
-  | "ad"
-  | "payment-proof"
-  | "verification-doc"
-  | "bug-report";
+// Re-export the canonical folder-type union so existing consumers keep working.
+export type { FolderType } from "@/lib/utils/uploadConfig";
 
 export type UploadedImageResult = {
   url: string;
@@ -89,7 +88,7 @@ export default function ImageUpload({
     }
     const boundedFiles = (multiple ? selectedFiles : selectedFiles.slice(0, 1)).slice(0, allowedCount);
     if (selectedFiles.length > boundedFiles.length) {
-      message.warning(`Only ${allowedCount} image${allowedCount === 1 ? "" : "s"} can be uploaded at once.`);
+      message.warning(`Only ${allowedCount} file${allowedCount === 1 ? "" : "s"} can be uploaded at once.`);
     }
 
     const uploadedResults: UploadedImageResult[] = [];
@@ -158,11 +157,16 @@ export default function ImageUpload({
         message.success(
           uploadedResults.length === 1
             ? "Upload successful"
-            : `${uploadedResults.length} images uploaded successfully`
+            : `${uploadedResults.length} files uploaded successfully`
         );
       }
     } catch (err: any) {
-      message.error(err?.message || "Upload failed");
+      message.error(
+        getUploadErrorMessage(err, {
+          maxSizeMB: MAX_UPLOAD_SIZE_MB[folderType],
+          allowedFormats: Array.from(ALLOWED_UPLOAD_FORMATS[folderType]),
+        })
+      );
     } finally {
       if (inputElement) {
         inputElement.value = "";
@@ -179,7 +183,7 @@ export default function ImageUpload({
       <input
         id={inputId}
         type="file"
-        accept={accept || "image/*"}
+        accept={accept || acceptAttributeFor(folderType)}
         multiple={multiple}
         onChange={handleFile}
         disabled={uploading || disabled}
@@ -193,7 +197,7 @@ export default function ImageUpload({
             : "cursor-pointer text-ds-text-primary hover:bg-ds-surface-sunken"
         }`}
       >
-        {uploading ? "Uploading..." : multiple ? "Choose images" : "Choose image"}
+        {uploading ? "Uploading..." : multiple ? "Choose files" : "Choose file"}
       </label>
       {uploading && <Progress percent={progress} size="small" />}
       {helpText ? <p className="text-xs text-ds-text-secondary">{helpText}</p> : null}

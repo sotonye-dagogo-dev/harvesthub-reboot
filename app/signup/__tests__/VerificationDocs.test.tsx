@@ -256,4 +256,44 @@ describe("VerificationDocs", () => {
     await waitFor(() => expect(screen.queryAllByText("Uploading...")).toHaveLength(0));
     expect(container.querySelector(".ant-upload-list-item-done")).toBeTruthy();
   });
+
+  it("accepts a PDF document for upload and persists its link to the draft", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        url: "https://cdn.example.com/cac-certificate.pdf",
+        publicId: "pub-pdf",
+      }),
+    } as Response);
+
+    const { container } = renderDocs();
+    const pdf = new File(["%PDF-1.4"], "cac-certificate.pdf", {
+      type: "application/pdf",
+    });
+    fireEvent.change(fileInputs(container)[1]!, { target: { files: [pdf] } });
+
+    await waitFor(() => {
+      expect(mocks.updateFormData).toHaveBeenCalledWith({
+        idType: "NIN",
+        verificationDocuments: [
+          expect.objectContaining({
+            documentType: "BUSINESS_REGISTRATION",
+            url: "https://cdn.example.com/cac-certificate.pdf",
+            publicId: "pub-pdf",
+          }),
+        ],
+      });
+    });
+    expect(fetchSpy).toHaveBeenCalledWith("/api/upload", expect.objectContaining({ method: "POST" }));
+  });
+
+  it("shows a concise unsupported-type toast when a non-listed file is rejected", () => {
+    const { container } = renderDocs();
+    const heic = new File(["bytes"], "photo.heic", { type: "image/heic" });
+    fireEvent.change(fileInputs(container)[0]!, {
+      target: { files: [heic] },
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith("Unsupported file type. Use JPG, PNG or PDF.");
+  });
 });
