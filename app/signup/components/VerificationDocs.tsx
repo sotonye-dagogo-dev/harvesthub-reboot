@@ -2,8 +2,8 @@
 
 import { Form, Upload, message, Select } from "antd";
 import { PlusOutlined, LoadingOutlined } from "@ant-design/icons";
-import { useState, useEffect } from "react";
-import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
+import { useState, useEffect, useMemo, useRef } from "react";
+import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { FormComponentProps } from "@/app/types";
 
 const ID_TYPES = [
@@ -12,6 +12,9 @@ const ID_TYPES = [
   { value: "VOTERS_CARD", label: "Voter's Card" },
   { value: "INTERNATIONAL_PASSPORT", label: "International Passport" },
 ];
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 interface VerificationFields {
   idType: string;
@@ -25,13 +28,24 @@ type VerificationDocument = {
   publicId?: string;
 };
 
+type VerificationUploadFile = UploadFile & { publicId?: string };
+
 export default function VerificationDocs({ onNext, updateFormData, formData }: FormComponentProps) {
   const [form] = Form.useForm<VerificationFields>();
-  const [idFileList, setIdFileList] = useState<UploadFile[]>([]);
-  const [bizFileList, setBizFileList] = useState<UploadFile[]>([]);
-  const [utilityFileList, setUtilityFileList] = useState<UploadFile[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [idFileList, setIdFileList] = useState<VerificationUploadFile[]>([]);
+  const [bizFileList, setBizFileList] = useState<VerificationUploadFile[]>([]);
+  const [utilityFileList, setUtilityFileList] = useState<VerificationUploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const guestUploadIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!guestUploadIdRef.current) {
+      guestUploadIdRef.current =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `signup-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    }
+  }, []);
 
   useEffect(() => {
     if (formData?.idType) {
@@ -45,6 +59,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         name: doc.filename,
         status: "done" as const,
         url: doc.url,
+        publicId: doc.publicId,
       }));
       const idDoc = docs.find((doc) => doc.documentType === "ID");
       const bizDoc = docs.find((doc) => doc.documentType === "BUSINESS_REGISTRATION");
@@ -57,6 +72,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
             name: idDoc.filename,
             status: "done",
             url: idDoc.url,
+            publicId: idDoc.publicId,
           },
         ]);
       } else {
@@ -70,6 +86,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
             name: bizDoc.filename,
             status: "done",
             url: bizDoc.url,
+            publicId: bizDoc.publicId,
           },
         ]);
       } else if (restored.length > 1) {
@@ -83,6 +100,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
             name: utilityDoc.filename,
             status: "done",
             url: utilityDoc.url,
+            publicId: utilityDoc.publicId,
           },
         ]);
       } else if (restored.length > 2) {
@@ -92,113 +110,124 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   }, [form, formData?.idType, formData?.verificationDocuments]);
 
   const validateFile = (file: File): boolean => {
-    const allowed = ["image/jpeg", "image/png", "application/pdf"];
-    if (!allowed.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
       message.error("Only JPG, PNG, or PDF files are accepted");
       return false;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       message.error("File must be smaller than 5MB");
       return false;
     }
     return true;
   };
 
-  const handleIdFileChange = ({ fileList: newFileList }: UploadChangeParam) => {
-    const limited = newFileList.slice(-1);
-    if (limited.length > 0 && limited[0]?.originFileObj) {
-      if (!validateFile(limited[0].originFileObj)) return;
-    }
-    setIdFileList(limited);
+  const beforeUpload = (file: File): boolean => {
+    return validateFile(file);
   };
 
-  const handleBizFileChange = ({ fileList: newFileList }: UploadChangeParam) => {
-    const limited = newFileList.slice(-1);
-    if (limited.length > 0 && limited[0]?.originFileObj) {
-      if (!validateFile(limited[0].originFileObj)) return;
+  const uploadViaApi: UploadProps["customRequest"] = (options) => {
+    const { file, onSuccess, onError } = options;
+    const uploadData = new FormData();
+    uploadData.append("file", file as Blob);
+    uploadData.append("folderType", "verification-doc");
+    uploadData.append("skipPersistence", "true");
+    if (guestUploadIdRef.current) {
+      uploadData.append("guestUploadId", guestUploadIdRef.current);
     }
-    setBizFileList(limited);
+
+    fetch("/api/upload", {
+      method: "POST",
+      body: uploadData,
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload?.url) {
+          throw new Error(payload?.error || "Failed to upload verification document");
+        }
+        return payload;
+      })
+      .then((payload) => {
+        const uploadFile = file as VerificationUploadFile;
+        uploadFile.url = payload.url;
+        uploadFile.publicId = payload.publicId;
+        onSuccess?.(payload, file);
+      })
+      .catch((error) => {
+        console.error("Verification document upload failed:", error);
+        onError?.(error instanceof Error ? error : new Error("Upload failed"));
+      });
   };
 
-  const handleUtilityFileChange = ({ fileList: newFileList }: UploadChangeParam) => {
-    const limited = newFileList.slice(-1);
-    if (limited.length > 0 && limited[0]?.originFileObj) {
-      if (!validateFile(limited[0].originFileObj)) return;
-    }
-    setUtilityFileList(limited);
-  };
+  const handleChange =
+    (setter: React.Dispatch<React.SetStateAction<VerificationUploadFile[]>>) =>
+    ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
+      const synced = newFileList.slice(-1).map((f) => {
+        if (f.status === "done" && (f.response as { url?: string; publicId?: string } | null)?.url && !f.url) {
+          return {
+            ...f,
+            url: (f.response as { url: string }).url,
+            publicId: (f.response as { publicId?: string }).publicId,
+          };
+        }
+        return f;
+      });
+      setter(synced as VerificationUploadFile[]);
+    };
+
+  const hasUploadingFile = useMemo(
+    () =>
+      idFileList.some((f) => f.status === "uploading") ||
+      bizFileList.some((f) => f.status === "uploading") ||
+      utilityFileList.some((f) => f.status === "uploading"),
+    [idFileList, bizFileList, utilityFileList]
+  );
 
   const onFinish = async (values: VerificationFields) => {
-    if (idFileList.length === 0 || bizFileList.length === 0 || utilityFileList.length === 0) {
-      message.error(
-        "Please upload all required documents: valid ID, business registration certificate, and utility bill"
-      );
+    const pickDone = (list: VerificationUploadFile[]): VerificationUploadFile | undefined =>
+      list.find((f) => f.status === "done" && f.url);
+
+    const idFile = pickDone(idFileList);
+    const bizFile = pickDone(bizFileList);
+    const utilityFile = pickDone(utilityFileList);
+
+    if (!idFile || !bizFile || !utilityFile) {
+      if (hasUploadingFile) {
+        message.warning("Please wait for your documents to finish uploading.");
+      } else {
+        message.error(
+          "Please upload all required documents: valid ID, business registration certificate, and utility bill"
+        );
+      }
       return;
     }
 
     setSubmitting(true);
     try {
-      setUploading(true);
-      const uploadDocument = async (
+      const toDoc = (
+        file: VerificationUploadFile,
         docType: VerificationDocument["documentType"],
-        file: UploadFile,
         fallbackPrefix: string
-      ): Promise<VerificationDocument> => {
-        if (file.originFileObj) {
-          const uploadData = new FormData();
-          uploadData.append("file", file.originFileObj);
-          uploadData.append("folderType", "verification-doc");
-          uploadData.append("skipPersistence", "true");
+      ): VerificationDocument => ({
+        documentType: docType,
+        filename: file.originFileObj ? `${fallbackPrefix}_${file.name}` : file.name,
+        url: file.url as string,
+        publicId: file.publicId,
+      });
 
-          const response = await fetch("/api/upload", {
-            method: "POST",
-            body: uploadData,
-          });
+      const docs: VerificationDocument[] = [
+        toDoc(idFile, "ID", values.idType),
+        toDoc(bizFile, "BUSINESS_REGISTRATION", "BUSINESS_REGISTRATION"),
+        toDoc(utilityFile, "UTILITY_BILL", "UTILITY_BILL"),
+      ];
 
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok || !payload?.url) {
-            throw new Error(payload?.error || "Failed to upload verification document");
-          }
-
-          return {
-            documentType: docType,
-            filename: `${fallbackPrefix}_${file.name}`,
-            url: payload.url,
-            publicId: payload.publicId,
-          };
-        }
-
-        if (file.url) {
-          return {
-            documentType: docType,
-            filename: file.name,
-            url: file.url,
-          };
-        }
-
-        throw new Error("Missing file data for required document");
-      };
-
-      const docs: VerificationDocument[] = [];
-      const idFile = idFileList[0];
-      const bizFile = bizFileList[0];
-      const utilityFile = utilityFileList[0];
-      if (!idFile || !bizFile || !utilityFile) {
-        throw new Error("Missing required verification files");
-      }
-
-      docs.push(await uploadDocument("ID", idFile, values.idType));
-      docs.push(await uploadDocument("BUSINESS_REGISTRATION", bizFile, "BUSINESS_REGISTRATION"));
-      docs.push(await uploadDocument("UTILITY_BILL", utilityFile, "UTILITY_BILL"));
-
-      setUploading(false);
       updateFormData({
         idType: values.idType,
         verificationDocuments: docs,
       } as Partial<FormComponentProps["formData"]>);
+      message.success("Verification documents uploaded successfully");
       onNext();
     } catch (error) {
-      console.error("Error uploading documents:", error);
+      console.error("Error saving verification documents:", error);
       message.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
@@ -244,15 +273,16 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           <Upload
             listType="picture-card"
             fileList={idFileList}
-            onChange={handleIdFileChange}
-            beforeUpload={() => false}
+            onChange={handleChange(setIdFileList)}
+            beforeUpload={beforeUpload}
+            customRequest={uploadViaApi}
             maxCount={1}
             accept=".jpg,.jpeg,.png,.pdf"
           >
             {idFileList.length === 0 && (
               <div>
-                {uploading ? <LoadingOutlined /> : <PlusOutlined />}
-                <div className="mt-2 text-xs">{uploading ? "Uploading" : "Upload ID"}</div>
+                <PlusOutlined />
+                <div className="mt-2 text-xs">Upload ID</div>
               </div>
             )}
           </Upload>
@@ -275,8 +305,9 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           <Upload
             listType="picture-card"
             fileList={bizFileList}
-            onChange={handleBizFileChange}
-            beforeUpload={() => false}
+            onChange={handleChange(setBizFileList)}
+            beforeUpload={beforeUpload}
+            customRequest={uploadViaApi}
             maxCount={1}
             accept=".jpg,.jpeg,.png,.pdf"
           >
@@ -304,8 +335,9 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           <Upload
             listType="picture-card"
             fileList={utilityFileList}
-            onChange={handleUtilityFileChange}
-            beforeUpload={() => false}
+            onChange={handleChange(setUtilityFileList)}
+            beforeUpload={beforeUpload}
+            customRequest={uploadViaApi}
             maxCount={1}
             accept=".jpg,.jpeg,.png,.pdf"
           >
@@ -324,10 +356,17 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         <Form.Item className="mb-0">
           <button
             type="submit"
-            disabled={submitting || uploading}
+            disabled={submitting || hasUploadingFile}
+            aria-busy={submitting}
             className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
-            {submitting ? "Processing..." : "Continue"}
+            {submitting ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <LoadingOutlined /> Processing...
+              </span>
+            ) : (
+              "Continue"
+            )}
           </button>
         </Form.Item>
       </Form>

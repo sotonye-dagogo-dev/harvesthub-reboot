@@ -100,8 +100,8 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
       // Validate username uniqueness (mock)
       await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
-      // Update form data in parent component
       updateFormData(values);
+      message.success("Profile updated");
       onNext();
     } catch (error) {
       console.error("Error during form submission:", error);
@@ -188,9 +188,16 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
           <button
             type="submit"
             disabled={submitting || uploading}
+            aria-busy={submitting || uploading}
             className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
-            {submitting ? "Processing..." : "Continue"}
+            {submitting || uploading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <LoadingOutlined /> {submitting ? "Processing..." : "Uploading..."}
+              </span>
+            ) : (
+              "Continue"
+            )}
           </button>
         </Form.Item>
       </Form>

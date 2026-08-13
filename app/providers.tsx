@@ -27,6 +27,7 @@ import {
   shouldShowRuntimeActivity,
 } from "@/lib/config/runtimeActivityCopy";
 import { registerActionConfirmPresenter } from "@/components/ui/actionConfirm";
+import { SwNoResponseGuard } from "@/lib/utils/swNoResponseGuard";
 
 // ============================================================================
 // FORM DATA CONTEXT (for multi-step forms)
@@ -183,6 +184,7 @@ export function Providers({ children }: { children: ReactNode }): ReactElement {
     <AntdRegistry>
       <ThemeProvider>
         <AntdThemeProvider>
+          <SwNoResponseGuard />
           <AuthProvider>
             <ActionConfirmBridge />
             <RuntimeBootstrap />
