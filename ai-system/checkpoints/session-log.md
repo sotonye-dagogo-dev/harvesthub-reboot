@@ -4,6 +4,97 @@
 
 ---
 
+## Session 92 — Upload Retention + Replace + Verification-Docs Upload Feedback — 2026-08-13
+
+**Goal:**
+Make immediate signup uploads (verification docs + profile photos) retention-safe and
+feedback-rich: persist uploaded links into the local form draft the moment they complete so
+thumbnails re-render on revisit without re-upload, delete the old Cloudinary asset when a file is
+replaced or removed, add per-thumbnail upload status overlays + upload success/error toasts on the
+verification-docs page, and re-verify the `no-response` guard. Adds a backlog task for stale-asset
+cleanup.
+
+**Completed:**
+
+- `app/api/upload/route.ts`: added owner-scoped `DELETE /api/upload?publicId=...&folderType=...&guestUploadId=...` — destroys the asset only if `publicId` is inside the requester's folder scope via `lib/services/cloudinary.ts::isAssetInFolder` (guest scope `guest-<guestUploadId>`, authenticated scope = the user's own folder); rate-limited.
+- `lib/services/cloudinary.ts`: added `isAssetInFolder(publicId, folder)` scope guard.
+- `lib/utils/uploadHelpers.ts` (new): `deleteUploadedAsset({ publicId, folderType, userId?, guestUploadId? })` client helper.
+- `app/signup/components/VerificationDocs.tsx`: on upload completion the doc (`url`, `publicId`, `filename`) is persisted into the form draft immediately (persist `useEffect` guarded by `lastPersistedRef` to prevent loops, returns early while `hasUploadingFile`); slot-aware restore effect that never clobbers in-progress uploads and seeds `donePublicIdRef`; replacing a file deletes the old asset only after the replacement upload succeeds (failed replacement keeps old copy); removing a file deletes its Cloudinary asset and syncs formData; `itemRender` renders a per-thumbnail overlay (Uploading.../failed red + retry/check badge) on top of the antd built-in states, plus per-upload success/error toasts.
+- `app/signup/components/AccountInfo.tsx`: stable `guestUploadId` ref appended to the profile upload; retains `publicId` on `profilePicture`.
+- `lib/types.ts`: `UserFormData.profilePicture.publicId` optional.
+- Tests (all passing): extended `app/signup/__tests__/VerificationDocs.test.tsx` (8 tests — added retention, replace-deletes-old, remove-deletes, status overlay), new `lib/utils/__tests__/uploadHelpers.test.ts` (3) and `lib/services/__tests__/cloudinary.test.ts` (`isAssetInFolder`, 3).
+
+**Validation:**
+
+- `npx tsc --noEmit` ✅ (clean — also fixed pre-existing type errors in the VerificationDocs test file: `beforeAll` import, `ResolveUpload` resolver type, `!` on `fileInputs(container)[0]`; and the `syncFromResponse` return type in VerificationDocs.tsx).
+- `next lint` on touched files ✅ (no warnings/errors).
+- Focused vitest: 4 files / 18 tests passing ✅.
+- Full vitest run: 430 passed / 67 failed / 12 skipped — all 67 failures pre-existing (same 17 files as the previous baseline) ✅.
+- `npm run build` ✅ exit 0 (only pre-existing build warnings: unused `Prisma` import, `<img>` element, sitemap Prisma fetch failures).
+
+**Files Modified:**
+- Modified: `app/api/upload/route.ts`, `app/signup/components/VerificationDocs.tsx`,
+  `app/signup/components/AccountInfo.tsx`, `lib/types.ts`, `lib/services/cloudinary.ts`,
+  `app/signup/__tests__/VerificationDocs.test.tsx`
+- New: `lib/utils/uploadHelpers.ts`, `lib/utils/__tests__/uploadHelpers.test.ts`,
+  `lib/services/__tests__/cloudinary.test.ts`
+
+**Backlog:**
+- Stale-asset cleanup for signup uploads (cross-device / cleared-localStorage / interrupted
+  signups leave orphaned Cloudinary assets) — added to `task-queue.md` backlog.
+
+---
+
+## Session 91 — Signup Feedback + Verification Docs Upload Overlay + no-response Guard — 2026-08-13
+
+**Goal:**
+Improve button/loading feedback and toasts across myharvesthub (observed in the registering flow,
+apply broadly), fix the verification-documents upload flow by adding a status tracker/overlay on the
+file thumbnails, and resolve the `Uncaught (in promise) no-response` console error on
+`/signup/verification-docs`.
+
+**Completed:**
+
+- `app/signup/components/VerificationDocs.tsx`: rewrote upload flow to upload each file immediately
+  on selection via antd `customRequest` (fetch to `/api/upload` with `folderType=verification-doc`,
+  `skipPersistence=true`, stable `guestUploadId`); `VerificationUploadFile = UploadFile &
+  { publicId?: string }`; `beforeUpload` validates jpg/png/pdf ≤ 5MB; `handleChange` syncs
+  `url`/`publicId` from `f.response` when `status === "done"`; picture-card thumbnails now show the
+  built-in antd uploading/done/error overlay; `Continue` disabled while `hasUploadingFile` and shows
+  `LoadingOutlined` while submitting; missing-docs and still-uploading submits show error/warning
+  toasts; draft-restore logic preserved.
+- `UserInfo.tsx`, `StoreInfo.tsx`, `AccountInfo.tsx`, `SecurityInfo.tsx`: added `LoadingOutlined`
+  spinners (`aria-busy`, disabled) and success/error toasts on submit flows ("Personal information
+  saved", "Store details saved", "Profile updated", "Uploading...", "Account created! Check your
+  email to verify.").
+- `lib/utils/swNoResponseGuard.ts` (new) + mounted in `app/providers.tsx`: `SwNoResponseGuard`
+  attaches an `unhandledrejection` listener that swallows Serwist/Workbox navigation-preload
+  `no-response` rejections (matching name/code/message prefix), letting real errors propagate.
+- Tests (new, all passing): `app/signup/__tests__/VerificationDocs.test.tsx` (4 tests: 3 slots
+  render; Continue disabled during in-flight upload then re-enabled; upload-all + submit produces
+  correct docs + success toast; missing-docs error toast) and
+  `lib/utils/__tests__/swNoResponseGuard.test.tsx` (4 tests: suppresses message/name/code variants,
+  allows unrelated, removes listener on unmount).
+
+**Validation:**
+
+- `npx tsc --noEmit` ✅
+- `next lint` on touched files ✅ (after removing unused `DocKey` type)
+- Focused vitest: VerificationDocs 4/4 + swNoResponseGuard 4/4 passing ✅
+- `npm run build` (prisma generate + next build) ✅ exit 0
+- Full vitest run: 420 passed / 67 failed / 12 skipped. All 67 failures are pre-existing and
+  unrelated — verified by stashing these changes and reproducing identical failures on base
+  `b597cd1` (API integration tests need a dev server on :3000; jwt/schemas/navigation/layout/
+  PhoneInput/FilterSidebar failures pre-date this change).
+
+**Files Modified:**
+- Modified: `app/providers.tsx`, `app/signup/components/VerificationDocs.tsx`, `app/signup/components/UserInfo.tsx`,
+  `app/signup/components/StoreInfo.tsx`, `app/signup/components/AccountInfo.tsx`, `app/signup/components/SecurityInfo.tsx`
+- New: `lib/utils/swNoResponseGuard.ts`, `lib/utils/__tests__/swNoResponseGuard.test.tsx`,
+  `app/signup/__tests__/VerificationDocs.test.tsx`
+
+---
+
 ## Session 90 — Universal Structured Content Editor (Public Content + Blog) — 2026-08-11
 
 **Goal:**
