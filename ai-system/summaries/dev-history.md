@@ -24,6 +24,39 @@
 [What comes next]
 ```
 
+## 2026-08-13 — Upload Retention + Replace + Verification-Docs Upload Feedback
+
+**Summary:**
+Made immediate signup uploads retention-safe and feedback-rich. Uploaded verification links now
+persist into the local form draft the instant they complete (thumbnails re-render on revisit without
+re-upload), replacing or removing a file deletes the old Cloudinary asset instead of orphaning it,
+and the verification-docs page gained per-thumbnail upload status overlays plus upload success/error
+toasts. Added an owner-scoped `DELETE /api/upload` route and a stale-asset cleanup backlog task.
+
+**Completed:**
+- `app/api/upload/route.ts` — owner-scoped `DELETE` (folder-scope guarded via `isAssetInFolder`;
+  guest scope `guest-<guestUploadId>`; rate-limited).
+- `lib/services/cloudinary.ts` — `isAssetInFolder(publicId, folder)` guard.
+- `lib/utils/uploadHelpers.ts` (new) — `deleteUploadedAsset` client helper.
+- `app/signup/components/VerificationDocs.tsx` — immediate form-draft persistence on upload
+  completion (`lastPersistedRef` loop guard; skip while `hasUploadingFile`), slot-aware restore that
+  seeds `donePublicIdRef` and never clobbers in-progress uploads, replace/remove deletes the old
+  asset, `itemRender` thumbnail overlay (uploading/failed/check) + per-upload toasts.
+- `app/signup/components/AccountInfo.tsx` — stable `guestUploadId` + `publicId` retention on profile upload.
+- `lib/types.ts` — optional `publicId` on `UserFormData.profilePicture`.
+- Tests: VerificationDocs 8, uploadHelpers 3, cloudinary 3.
+
+**Key Changes:**
+- Uploaded assets are now tied to the local form draft as soon as they complete, decoupling
+  "uploaded" from "submitted" — re-rendering a signup step shows already-uploaded thumbnails.
+- Cloud assets are deleted on replace/remove (scope-confined), so replace no longer orphans the
+  previous file.
+- `DELETE /api/upload` only destroys assets inside the requester's folder scope.
+
+**Next Sprint Focus:**
+- Stale-asset cleanup for orphaned signup uploads (cross-device / cleared cache / interrupted
+  signups) — backlog item added to `task-queue.md`.
+
 ## 2026-08-11 — Universal Structured Content Editor (Public Content + Blog)
 
 **Summary:**

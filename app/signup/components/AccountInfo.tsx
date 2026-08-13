@@ -2,7 +2,7 @@
 
 import { Form, Input, Upload, message } from "antd";
 import { PlusOutlined, LoadingOutlined } from "@ant-design/icons";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 
 interface FormValues {
@@ -11,6 +11,7 @@ interface FormValues {
   profilePicture?: {
     filename: string;
     url: string;
+    publicId?: string;
   } | null;
 }
 
@@ -25,6 +26,16 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const guestUploadIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!guestUploadIdRef.current) {
+      guestUploadIdRef.current =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `signup-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    }
+  }, []);
 
   useEffect(() => {
     if (formData?.username) {
@@ -79,6 +90,9 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
         uploadData.append("file", fileList[0].originFileObj);
         uploadData.append("folderType", "profile");
         uploadData.append("skipPersistence", "true");
+        if (guestUploadIdRef.current) {
+          uploadData.append("guestUploadId", guestUploadIdRef.current);
+        }
 
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -94,6 +108,7 @@ export default function AccountInfo({ onNext, updateFormData, formData }: Accoun
         values.profilePicture = {
           filename: fileList[0]?.name || "profile",
           url: payload.url,
+          publicId: payload.publicId,
         };
       }
 

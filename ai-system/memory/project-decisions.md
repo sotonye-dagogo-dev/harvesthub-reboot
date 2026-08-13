@@ -53,6 +53,36 @@ status in real time and prevents advancing to the next step with half-uploaded d
   `restored-*` uids.
 - Any new "uploads" surface should reuse the same immediate-upload + antd overlay pattern.
 
+## Uploaded Links Persist to the Local Form Draft Immediately on Completion
+
+**Decision:** Once an upload completes, its `url`/`publicId`/`filename` are written into the local
+form draft right away (a persist `useEffect` guarded by `lastPersistedRef` to avoid loops, returning
+early while `hasUploadingFile`), so the thumbnail re-renders on revisit without re-uploading. A
+slot-aware restore effect seeds `donePublicIdRef` and never clobbers in-progress uploads.
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Previously an uploaded file only landed in the form payload on Continue, so navigating back to the
+verification-docs step lost the upload and forced the user to re-upload (duplicating cloud assets and
+hurting UX). Persisting on completion decouples "uploaded" from "submitted" and preserves the
+thumbnail across step navigation and page reloads.
+
+**Alternatives Considered:**
+
+- Keep upload-at-submit (rejected: forces re-upload on back-navigation; the previous session moved
+  to immediate uploads precisely to avoid this).
+- Persist on every file-list change (rejected: churn while files are mid-upload; the effect skips
+  while `hasUploadingFile` to avoid serializing transient states).
+
+**Implications:**
+
+- A `DELETE /api/upload` route (owner-scoped via `isAssetInFolder`) exists so the UI can remove or
+  replace an asset; the old asset is deleted only after a replacement upload succeeds, so a failed
+  replacement never loses the previous copy.
+- Cross-device signups, cleared cache/localStorage, or interrupted signups leave orphaned cloud
+  uploads (no draft to attach them to) — scheduled as a backlog cleanup task.
+
 ## SwNoResponseGuard Silences Only Known Benign SW no-response Rejections
 
 **Decision:** Add a root-level `unhandledrejection` guard (`lib/utils/swNoResponseGuard.ts`, mounted

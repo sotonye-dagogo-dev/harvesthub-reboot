@@ -42,10 +42,21 @@ lib/data/prismaAdapter.ts
   -> prisma/schema.prisma (generated types)
 
 app/api/upload/route.ts
-  -> lib/services/cloudinary.ts
+  -> lib/services/cloudinary.ts (upload + isAssetInFolder destroy-scope guard; DELETE /api/upload)
   -> lib/services/asset.ts
   -> lib/middleware/rate-limit.ts
   -> lib/api/http.ts
+
+lib/utils/uploadHelpers.ts
+  -> app/api/upload/route.ts (DELETE /api/upload, owner-scoped asset removal)
+
+app/signup/components/VerificationDocs.tsx
+  -> app/api/upload/route.ts (POST customRequest uploads)
+  -> lib/utils/uploadHelpers.ts (deleteUploadedAsset on replace/remove)
+  -> lib/utils/localDraft.ts (form-draft persistence)
+
+app/signup/components/AccountInfo.tsx
+  -> app/api/upload/route.ts (POST profile upload, scoped guestUploadId)
 
 app/api/orders/[id]/proof-of-payment/route.ts
   -> lib/db/prisma.ts

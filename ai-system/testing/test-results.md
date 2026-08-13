@@ -15,8 +15,10 @@
 | Build | ✅ (next build, exit 0) | 0 | 0 |
 | Typecheck | ✅ (npx tsc --noEmit) | 0 | 0 |
 | Lint | ✅ (next lint on touched files) | 0 | 0 |
-| Vitest (full) | 420 | 67 | 12 |
-| VerificationDocs.test.tsx | 4 | 0 | 0 |
+| Vitest (full) | 430 | 67 | 12 |
+| VerificationDocs.test.tsx | 8 | 0 | 0 |
+| uploadHelpers.test.ts | 3 | 0 | 0 |
+| cloudinary.test.ts | 3 | 0 | 0 |
 | swNoResponseGuard.test.tsx | 4 | 0 | 0 |
 
 **Overall Status:** Build + typecheck + lint passing; new-feature tests pass.
@@ -42,6 +44,7 @@ Full-suite vitest failures are pre-existing/environmental and unrelated to the 2
 
 | Date       | Passed | Failed | Notes                                          |
 | ---------- | ------ | ------ | ---------------------------------------------- |
+| 2026-08-13 | 430    | 67     | Upload retention + replace + verification-docs status overlay; fixed pre-existing test-file type errors (tsc clean) |
 | 2026-08-13 | 420    | 67     | Signup button/toast feedback + verification-docs upload overlay + no-response guard |
 | 2026-03-25 | n/a    | n/a    | Added Prisma reconnect wrapper for banners API |
 

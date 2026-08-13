@@ -4,6 +4,39 @@
 
 ---
 
+## Session 91 — Upload Retention + Replace + Verification-Docs Upload Feedback (2026-08-13)
+
+> **Section summary:** Made immediate signup uploads retention-safe and feedback-rich: uploaded
+> verification links persist into the local form draft the moment they complete (thumbnail re-renders
+> on revisit, no re-upload), replacing/removing a file now deletes the old Cloudinary asset, and the
+> verification-docs page gained per-thumbnail upload status overlays plus upload success/error toasts.
+> Also re-verified the `Uncaught (in promise) no-response` guard on `/signup/verification-docs`.
+
+- [x] `app/api/upload/route.ts` — add owner-scoped `DELETE /api/upload?publicId=...&folderType=...&guestUploadId=...` (destroys the asset only if `publicId` is inside the requester's folder scope via `isAssetInFolder`; guest scope = `guest-<guestUploadId>`, authenticated scope = the user's own folder; rate-limited).
+- [x] `lib/services/cloudinary.ts` — add `isAssetInFolder(publicId, folder)` scope guard.
+- [x] `lib/utils/uploadHelpers.ts` (new) — `deleteUploadedAsset` client helper.
+- [x] `app/signup/components/VerificationDocs.tsx` — persist docs to form draft on upload completion (`lastPersistedRef` loop guard; persist effect skips while `hasUploadingFile`); slot-aware restore that never clobbers in-progress uploads and seeds `donePublicIdRef`; old asset deleted only after a replacement succeeds; remove deletes asset + syncs formData; `itemRender` thumbnail overlay (uploading/failed/check) + per-upload success/error toasts.
+- [x] `app/signup/components/AccountInfo.tsx` — stable `guestUploadId` ref appended to profile upload; retains `publicId` on `profilePicture`.
+- [x] `lib/types.ts` — `UserFormData.profilePicture.publicId` optional.
+- [x] Tests: extend `app/signup/__tests__/VerificationDocs.test.tsx` (retention, replace-delete, remove-delete, status overlay — 8 tests); add `lib/utils/__tests__/uploadHelpers.test.ts` (3) + `lib/services/__tests__/cloudinary.test.ts` (`isAssetInFolder`, 3).
+- [x] Validation: `npx tsc --noEmit` (clean — also fixed pre-existing type errors in the VerificationDocs test file), `next lint` touched files (clean), focused vitest (4 files / 18 tests), full vitest (430 passed, 67 failed — all pre-existing, 12 skipped), `npm run build` (exit 0; only pre-existing build warnings).
+- [x] Backlog: add stale-asset cleanup task (below).
+- [x] Sync `ai-system` docs (task-queue, repair-system, test-results, session-log, dev-history, project-decisions) and clear `in-progress.md`.
+
+Notes: cross-device/localStorage-cleared signups leave orphaned cloud uploads (no local draft to
+attach them to) — scheduled as a backlog cleanup task below. The `no-response` service-worker guard
+(`lib/utils/swNoResponseGuard.ts`, PR #126) remains in place and covered by tests.
+
+## Backlog (added 2026-08-13)
+
+- [ ] Stale-asset cleanup for signup uploads — orphaned Cloudinary assets (verification docs + profile
+      photos) created by signups that never completed: cross-device signups, cleared
+      cache/localStorage where the local form draft is gone, or interrupted registrations. Requires
+      an inventory of how assets are referenced post-registration, a retention policy (e.g. age-based),
+      and a scoped cleanup job that only deletes assets outside active account folders.
+
+---
+
 ## Session 90 — Universal Structured Content Editor (Public Content + Blog) (2026-08-11)
 
 > **Section summary:** Extracted the guided no-HTML authoring experience into one reusable pure

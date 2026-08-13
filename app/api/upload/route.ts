@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import {
     uploadImage,
+    deleteImage,
+    isAssetInFolder,
     getProductFolder,
     getVendorLogoFolder,
     getVendorBannerFolder,
@@ -221,5 +223,86 @@ export async function POST(request: NextRequest) {
             },
             201
         );
+    });
+}
+
+// DELETE /api/upload?publicId=...&folderType=...&guestUploadId=... — Owner-scoped asset removal.
+// Used when a previously uploaded file is replaced or removed so the old Cloudinary asset is not
+// left orphaned. Deletions are strictly scoped to the requester's own upload folder.
+export async function DELETE(request: NextRequest) {
+    return withApiHandler('DELETE /api/upload', async () => {
+        const { searchParams } = new URL(request.url);
+        const publicId = searchParams.get('publicId') || '';
+        const folderType = searchParams.get('folderType') as FolderType | null;
+        const rawGuestUploadId = searchParams.get('guestUploadId') || '';
+        const userId = searchParams.get('userId') || '';
+
+        if (!publicId) {
+            return apiError('publicId is required', 400);
+        }
+
+        if (!folderType || !VALID_FOLDER_TYPES.includes(folderType)) {
+            return apiError(
+                `Invalid folderType. Must be one of: ${VALID_FOLDER_TYPES.join(', ')}`,
+                400
+            );
+        }
+
+        // ── Auth ──────────────────────────────────────────────────────
+        const { cookies } = await import('next/headers');
+        const { verifyToken } = await import('@/lib/utils/auth');
+
+        const cookieStore = await cookies();
+        const token = cookieStore.get('accessToken')?.value;
+        const payload = token ? await verifyToken(token) : null;
+
+        if (payload) {
+            const rl = await rateLimitByUser(payload.userId);
+            if (!rl.success) return getRateLimitResponse(rl);
+        } else {
+            const rl = await rateLimitByIP(request, { limit: 20, window: 60 });
+            if (!rl.success) return getRateLimitResponse(rl);
+        }
+
+        // ── Resolve the owner folder the publicId must live under ─────
+        let ownerPrefix: string;
+        if (payload) {
+            const effectiveUserId = userId || payload.userId;
+            const folder = resolveFolder(folderType, undefined, effectiveUserId);
+            if (!folder) {
+                return apiError(
+                    'Cannot resolve upload folder. Ensure userId is provided for this folderType.',
+                    400
+                );
+            }
+            ownerPrefix = folder;
+        } else {
+            const normalizedGuestUploadId = rawGuestUploadId
+                .replace(/[^a-zA-Z0-9_-]/g, '')
+                .slice(0, 48);
+            if (!normalizedGuestUploadId) {
+                return apiError('guestUploadId is required to delete a guest upload', 400);
+            }
+            const folder = resolveFolder(folderType, undefined, `guest-${normalizedGuestUploadId}`);
+            if (!folder) {
+                return apiError(
+                    'Cannot resolve upload folder. Ensure userId is provided for this folderType.',
+                    400
+                );
+            }
+            ownerPrefix = folder;
+        }
+
+        // ── Ownership guard: only allow deleting assets inside the scope ──
+        if (!isAssetInFolder(publicId, ownerPrefix)) {
+            return apiError('Asset does not belong to this upload scope', 403);
+        }
+
+        const deleted = await deleteImage(publicId);
+        if (!deleted) {
+            return apiError('Failed to delete asset', 400);
+        }
+
+        return apiSuccess({ deleted: true, publicId }, 200);
     });
 }

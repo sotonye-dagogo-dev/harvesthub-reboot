@@ -1,7 +1,7 @@
 # Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-08-11)
-> **last-updated-at:** 2026-08-11T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-13)
+> **last-updated-at:** 2026-08-13T00:00:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -24,6 +24,47 @@
 ---
 
 ## Lessons
+
+## Typecheck Your Test Files, Not Just Your App Code
+
+**Context:**
+During the upload-retention work, `npx tsc --noEmit` surfaced three pre-existing errors in
+`app/signup/__tests__/VerificationDocs.test.tsx` (`beforeAll` not imported, the deferred resolver
+typed `(value: unknown) => void` instead of `(value: Response | PromiseLike<Response>) => void`, and
+`fileInputs(container)[0]` needing `!` under `noUncheckedIndexedAccess`) plus a real return-type bug
+in `VerificationDocs.tsx` — even though the tests passed at runtime under vitest.
+
+**What We Learned:**
+Vitest transpiles with esbuild and does not type-check, so a test file can pass while
+`tsc --noEmit` fails. Always run the typecheck after editing test files, not just the test runner.
+When mocking `fetch` for upload tests, type deferred resolvers explicitly
+(`type ResolveUpload = (value: Response | PromiseLike<Response>) => void`) and treat element lookups
+under `noUncheckedIndexedAccess` as possibly `undefined`.
+
+**Apply When:**
+Writing or editing any `*.test.ts(x)` with deferred promise resolvers or DOM lookups; any time the QA
+gate includes `tsc --noEmit`.
+
+## Persist Uploaded Asset References to Local Drafts as Soon as Uploads Complete
+
+**Context:**
+Verification documents used to exist only in the submit payload, so back-navigation lost the upload
+and forced re-uploads (duplicating cloud assets). The flow now writes `url`/`publicId`/`filename`
+into the local form draft immediately on completion (a `useEffect` guarded by `lastPersistedRef`,
+skipping while `hasUploadingFile`) and restores thumbnails slot-aware so in-progress uploads are
+never clobbered.
+
+**What We Learned:**
+Decouple "uploaded" from "submitted": persist the asset reference the moment it exists, guard
+persist effects against loops with a last-persisted ref, and seed a `donePublicIdRef` so the restore
+path knows which slots already have assets. When replacing/removing an asset, delete the old
+Cloudinary file through an owner-scoped route (folder-scope check via a pure
+`isAssetInFolder(publicId, folder)` guard) so one user can never delete another's files, and only
+delete the old asset after a replacement upload succeeds so a failed replacement keeps the prior copy.
+
+**Apply When:**
+Building or modifying any immediate-upload surface (signup docs/profile, ad proof, payment proof);
+any flow that replaces or removes a previously uploaded asset.
 
 ## Extract Shared Authoring Surfaces Before Adding a Second One
 
