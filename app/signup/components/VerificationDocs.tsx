@@ -10,7 +10,14 @@ import {
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { FormComponentProps } from "@/app/types";
-import { deleteUploadedAsset } from "@/lib/utils/uploadHelpers";
+import {
+  deleteUploadedAsset,
+  getUploadErrorMessage,
+} from "@/lib/utils/uploadHelpers";
+import {
+  MAX_UPLOAD_SIZE_MB,
+  acceptAttributeFor,
+} from "@/lib/utils/uploadConfig";
 
 const ID_TYPES = [
   { value: "NIN", label: "National Identification Number (NIN)" },
@@ -20,7 +27,8 @@ const ID_TYPES = [
 ];
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ACCEPT_ATTR = acceptAttributeFor("verification-doc");
+const MAX_FILE_SIZE_BYTES = MAX_UPLOAD_SIZE_MB["verification-doc"] * 1024 * 1024;
 
 interface VerificationFields {
   idType: string;
@@ -134,11 +142,19 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
 
   const validateFile = (file: File): boolean => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      message.error("Only JPG, PNG, or PDF files are accepted");
+      message.error(
+        getUploadErrorMessage(new Error("Unsupported file type"), {
+          allowedFormats: ["jpeg", "png", "pdf"],
+        })
+      );
       return false;
     }
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      message.error("File must be smaller than 5MB");
+      message.error(
+        getUploadErrorMessage(new Error("File is too large"), {
+          maxSizeMB: MAX_UPLOAD_SIZE_MB["verification-doc"],
+        })
+      );
       return false;
     }
     return true;
@@ -178,7 +194,13 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
       })
       .catch((error) => {
         console.error("Verification document upload failed:", error);
-        message.error("Upload failed. Please remove the file and try again.");
+        message.error(
+          getUploadErrorMessage(error, {
+            maxSizeMB: MAX_UPLOAD_SIZE_MB["verification-doc"],
+            allowedFormats: ["jpeg", "png", "pdf"],
+            fallback: "Upload failed. Please remove the file and try again.",
+          })
+        );
         onError?.(error instanceof Error ? error : new Error("Upload failed"));
       });
   };
@@ -354,7 +376,7 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           beforeUpload={beforeUpload}
           customRequest={uploadViaApi}
           maxCount={1}
-          accept=".jpg,.jpeg,.png,.pdf"
+          accept={ACCEPT_ATTR}
         >
           {fileList.length === 0 && (
             <div>

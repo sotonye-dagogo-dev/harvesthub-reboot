@@ -104,29 +104,93 @@ export function isAssetInFolder(publicId: string, folder: string): boolean {
 export interface UploadResult {
     url: string;
     publicId: string;
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
     format: string;
 }
 
 interface UploadOptions {
     /** Maximum file size in MB (validated against bytes after upload) */
     maxSizeMB?: number;
-    /** Allowed image formats (default: jpeg, jpg, png, webp) */
+    /** Allowed file formats (default: jpeg, jpg, png, webp) */
     allowedFormats?: string[];
+    /** Override the auto-detected Cloudinary resource type */
+    resourceType?: UploadResourceType;
 }
 
 const DEFAULT_ALLOWED_FORMATS = ['jpeg', 'jpg', 'png', 'webp'];
 const BYTES_PER_MB = 1024 * 1024;
+
+const DEFAULT_TRANSFORMATION = [{ quality: 'auto', fetch_format: 'auto' }];
+
+export type UploadResourceType = 'image' | 'video' | 'raw';
+
+export interface ResolvedUploadParams {
+    mime: string | null;
+    ext: string | null;
+    resourceType: UploadResourceType;
+    transformation: { quality: string; fetch_format: string }[] | undefined;
+}
+
+/**
+ * Parse a base64 data URI and validate it against the accepted formats without
+ * touching Cloudinary, so the format/resource-type logic is unit-testable.
+ *
+ * - `image/*` MIME types map to the Cloudinary `image` resource type.
+ * - `application/pdf` also maps to `image` because Cloudinary stores PDFs as
+ *   image assets (thumbnail + page transforms still work).
+ * - `video/*` maps to `video`.
+ * - anything else maps to `raw`.
+ *
+ * @throws when the data URI is malformed or its format is not in `allowedFormats`.
+ */
+export function resolveUploadParams(
+    source: string,
+    allowedFormats: string[]
+): ResolvedUploadParams {
+    const match = source.match(/^data:([^;,]+);base64,/);
+    if (!match) {
+        throw new Error(
+            'Invalid file data URI. Expected format: data:<mime>;base64,...'
+        );
+    }
+
+    const mime = (match[1] || '').toLowerCase();
+    const ext = mime.includes('/') ? mime.split('/')[1] ?? '' : '';
+    if (!ext || !allowedFormats.includes(ext)) {
+        throw new Error(
+            `File type "${ext || mime}" is not allowed. Accepted formats: ${allowedFormats.join(', ')}`
+        );
+    }
+
+    const resourceType: UploadResourceType = mime.startsWith('image/')
+        ? 'image'
+        : mime === 'application/pdf'
+            ? 'image'
+            : mime.startsWith('video/')
+                ? 'video'
+                : 'raw';
+
+    return {
+        mime,
+        ext,
+        resourceType,
+        transformation: resourceType === 'raw' ? undefined : DEFAULT_TRANSFORMATION,
+    };
+}
 
 // ============================================================================
 // Core Operations
 // ============================================================================
 
 /**
- * Upload an image to Cloudinary.
+ * Upload a file to Cloudinary.
  *
- * @param file - A base64 data URI string (`data:image/...;base64,...`) or a Buffer
+ * Accepts any of the formats allowed by `options.allowedFormats`. Images and PDFs
+ * are stored as image resources (so thumbnails and transformations keep working),
+ * videos as video resources, and other file types as raw resources.
+ *
+ * @param file - A base64 data URI string (`data:<mime>;base64,...`) or a Buffer
  * @param folder - The Cloudinary folder path (use the folder builders above)
  * @param options - Optional size and format constraints
  */
@@ -143,31 +207,27 @@ export async function uploadImage(
     // Convert Buffer to a base64 data URI so the Cloudinary SDK can handle it
     const source =
         Buffer.isBuffer(file)
-            ? `data:image/png;base64,${file.toString('base64')}`
+            ? `data:application/octet-stream;base64,${file.toString('base64')}`
             : file;
 
-    // Validate the data URI format when a string is provided
-    if (typeof source === 'string' && source.startsWith('data:')) {
-        const mimeMatch = source.match(/^data:(image\/\w+);/);
-        if (!mimeMatch) {
-            throw new Error(
-                'Invalid image data URI. Expected format: data:image/<type>;base64,...'
-            );
-        }
+    let resourceType: UploadResourceType;
+    let transformation: { quality: string; fetch_format: string }[] | undefined;
 
-        const ext = mimeMatch[1]?.replace('image/', '').toLowerCase() ?? '';
-        if (!ext || !allowedFormats.includes(ext)) {
-            throw new Error(
-                `File type "${ext}" is not allowed. Accepted formats: ${allowedFormats.join(', ')}`
-            );
-        }
+    if (typeof source === 'string' && source.startsWith('data:')) {
+        const params = resolveUploadParams(source, allowedFormats);
+        resourceType = options.resourceType ?? params.resourceType;
+        transformation = params.transformation;
+    } else {
+        resourceType = options.resourceType ?? 'image';
+        transformation = resourceType === 'raw' ? undefined : DEFAULT_TRANSFORMATION;
     }
 
     const result: UploadApiResponse = await cloudinary.uploader.upload(source, {
         folder,
-        resource_type: 'image',
-        allowed_formats: allowedFormats,
-        transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+        resource_type: resourceType,
+        // `allowed_formats` is only a valid upload parameter for image/video resources.
+        ...(resourceType === 'raw' ? {} : { allowed_formats: allowedFormats }),
+        transformation,
     });
 
     // Validate file size after upload (Cloudinary returns bytes)

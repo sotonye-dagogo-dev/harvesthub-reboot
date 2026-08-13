@@ -18,6 +18,52 @@
 
 ---
 
+## [Upload failures reject non-image files / generic upload errors / password-reset email not received]
+
+**Symptom:**
+
+- Verification-doc uploads (and other document uploads) failed when selecting files under the size
+  limit from the file manager, but succeeded when the same content was saved as an image.
+- Upload failures showed a generic "Internal server error" (or nothing useful) — no "file too large"
+  or "unsupported file type" explanation.
+- Users reported not receiving password-reset emails while welcome/verify emails worked.
+
+**Root Cause:**
+
+- `lib/services/cloudinary.ts::uploadImage` only accepted `data:image/\w+` data URIs, hardcoded
+  `resource_type: 'image'`, and defaulted `allowed_formats` to image formats only — `pdf` was
+  rejected before ever reaching Cloudinary.
+- `/api/upload` swallowed Cloudinary/upload errors into a generic failure, and client upload
+  surfaces had no shared message helper (per-folder size/format rules had drifted).
+- The forgot-password route was fire-and-forget (`.catch()` swallow), the reset link omitted the
+  `email` query param that the reset-password route requires, and `getAppUrl()` defaulted to the
+  legacy `https://harvesthub.ng` domain.
+
+**Fix Applied:**
+
+- New `lib/utils/uploadConfig.ts` centralizes `FolderType`, `MAX_UPLOAD_SIZE_MB`,
+  `ALLOWED_UPLOAD_FORMATS`, `acceptAttributeFor`; the API route and client surfaces share it.
+- `resolveUploadParams` in `lib/services/cloudinary.ts` maps `image/*`→`image`,
+  `application/pdf`→`image`, `video/*`→`video`, else→`raw`; `allowed_formats`/transformation only
+  for non-raw; `width/height` optional.
+- `/api/upload` pre-checks size and returns descriptive 400s; `getUploadErrorMessage` in
+  `lib/utils/uploadHelpers.ts` maps errors to concise toasts project-wide (short server messages pass
+  through; opaque/stack-bearing errors fall back).
+- Email: reset link includes `&email=...`; `getAppUrl()` fallback →
+  `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org'`; forgot-password route
+  renamed `.tsx`→`.ts` and `await`s the send; register route `await`s `sendVerifyEmail`.
+
+**Prevention:**
+
+- Any new upload folder must register its size/format rules in `uploadConfig.ts` and use
+  `acceptAttributeFor` — never hardcode `accept` strings in components.
+- Do not use a bare `load failed` substring for network detection in error mapping — it also matches
+  "upload **failed**" and mislabels server rejections as network errors (use `failed to fetch` /
+  `failed to load` / `net::`).
+- Auth email sends must be awaited + logged; reset links must carry both `token` and `email`.
+
+---
+
 ## [Build-breaking type errors: syncFromResponse return type + pre-existing VerificationDocs.test.tsx type errors]
 
 **Symptom:**

@@ -4,6 +4,81 @@
 
 ---
 
+## Session 94 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix — 2026-08-13
+
+**Goal:**
+(1) Allow listed non-image file types on document-capable uploads — verification-docs uploads were
+rejecting valid PDFs from the file manager (the root cause: the Cloudinary wrapper only accepted
+`data:image/\w+` URIs with a hardcoded `image` resource type and default `allowedFormats` that
+excluded `pdf`). (2) Make upload failure feedback concise and descriptive project-wide via a shared
+`getUploadErrorMessage` helper surfaced through the global antd toast. (3) Fix the password-reset
+email so reset emails actually fire (welcome/verify emails already worked, so the reset path was the
+suspect); tighten all mail flows end-to-end without breaking changes.
+
+**Completed:**
+
+- `lib/utils/uploadConfig.ts` (new): single source of truth for the upload contract —
+  `FolderType`, `MAX_UPLOAD_SIZE_MB`, `ALLOWED_UPLOAD_FORMATS` (`IMAGE_UPLOAD_FORMATS` =
+  `jpeg,jpg,png,webp`; `DOCUMENT_UPLOAD_FORMATS` adds `pdf` for `payment-proof`,
+  `verification-doc`, `bug-report`), and `acceptAttributeFor(folderType)`.
+- `lib/services/cloudinary.ts`: `uploadImage` generalised to non-image MIME types via pure
+  `resolveUploadParams` — `image/*`→`image`, `application/pdf`→`image` (so thumbnails/transformations
+  keep working), `video/*`→`video`, everything else→`raw`; `allowed_formats`/transformation only sent
+  for non-raw; `UploadResult.width/height` now optional (raw uploads have none).
+- `app/api/upload/route.ts`: pre-upload size check →
+  `File is too large. The maximum size for ${folderType} uploads is ${maxSizeMB}MB.`; passes
+  `allowedFormats` through; upload failures return a descriptive 400 (previously swallowed into a
+  generic "Internal server error" by the handler).
+- `lib/utils/uploadHelpers.ts`: `getUploadErrorMessage(error, { maxSizeMB, allowedFormats, fallback })`
+  maps size → `File is too large (max XMB).`, type → `Unsupported file type. Use JPG, PNG or PDF.`,
+  network → `Network error. Please check your connection and try again.`, auth → `Upload failed.
+  Please sign in again and retry.`, scope → `You are not allowed to modify that file.`, rate-limit →
+  `Too many uploads right now. Please wait a moment and try again.`; short (≤200 chars, no
+  exception/stack) server messages pass through verbatim; opaque errors → fallback `Upload failed.
+  Please try again.`
+- `app/signup/components/VerificationDocs.tsx`: uses shared config (`ACCEPT_ATTR`, 5MB limit) and
+  `getUploadErrorMessage` for concise toasts.
+- `components/ui/ImageUpload.tsx`: re-exports `FolderType` from uploadConfig (backward-compat for
+  `StructuredContentEditor.tsx`), default `accept` = `acceptAttributeFor(folderType)`, copy changed
+  to "Choose file(s)"/"files uploaded successfully"/"Only X files can be uploaded at once".
+- Email fixes: `lib/services/email.ts` — reset URL now includes `&email=${encodeURIComponent(to)}`
+  (the reset-password route/page require both token and email); `getAppUrl()` fallback corrected to
+  `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org'` (was
+  `https://harvesthub.ng`). `app/api/auth/forgot-password/route.tsx` renamed → `route.ts` (git mv,
+  staged) and the email send is now `await`ed (was fire-and-forget `.catch()`); generic success
+  response preserved for anti-account-enumeration; failures logged with redacted email + delivery log.
+  `app/api/auth/register/route.ts` now `await`s `sendVerifyEmail` (was fire-and-forget) with error
+  logging; the signup response contract is unchanged (account creation never blocked on email).
+- Tests: `lib/services/__tests__/cloudinary.test.ts` (+9 `resolveUploadParams`: png, pdf→image,
+  video/mp4→video, text/csv→raw, rejects heic + pdf-not-in-list, malformed URI);
+  `lib/utils/__tests__/uploadHelpers.test.ts` (9); `app/signup/__tests__/VerificationDocs.test.tsx`
+  (10 — added PDF-acceptance + unsupported-type toast);
+  `components/__tests__/ImageUpload.test.tsx` (4 — copy updated + error-message path fixed).
+
+**Validation:**
+
+- `npx tsc --noEmit` ✅ clean.
+- ESLint on touched files ✅ clean.
+- Focused vitest: cloudinary 9, uploadHelpers 9, VerificationDocs 10, ImageUpload 4,
+  StructuredContentEditor 8, notifications/order-email-routing + advert upload 8 ✅.
+- Full vitest run: 444 passed / 67 failed / 12 skipped — all 67 failures pre-existing (same 17
+  files: live-server integration tests ECONNREFUSED + Next request-scope tests) ✅.
+- `npm run build` ✅ exit 0 (only pre-existing warnings: unused `Prisma` import, `<img>` element,
+  sitemap Prisma fetch failures).
+
+**Files Modified:**
+- Modified: `app/api/upload/route.ts`, `lib/services/cloudinary.ts`, `lib/utils/uploadHelpers.ts`,
+  `app/signup/components/VerificationDocs.tsx`, `components/ui/ImageUpload.tsx`,
+  `lib/services/email.ts`, `app/api/auth/register/route.ts`,
+  `app/api/auth/forgot-password/route.ts` (renamed from `.tsx` via git mv),
+  `lib/services/__tests__/cloudinary.test.ts`, `lib/utils/__tests__/uploadHelpers.test.ts`,
+  `app/signup/__tests__/VerificationDocs.test.tsx`, `components/__tests__/ImageUpload.test.tsx`
+- New: `lib/utils/uploadConfig.ts`
+
+**Next:** Human review of the diff; stale-asset cleanup backlog task remains for a future sprint.
+
+---
+
 ## Session 93 — ai-system v2 → v3 template upgrade — 2026-08-13
 
 **Goal:**

@@ -17,17 +17,11 @@ import { UserRole } from '@/lib/constants';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { apiError, apiSuccess, withApiHandler } from '@/lib/api/http';
 import { randomUUID } from 'node:crypto';
-
-type FolderType =
-    | 'product'
-    | 'vendor-logo'
-    | 'vendor-banner'
-    | 'profile'
-    | 'banner'
-    | 'ad'
-    | 'payment-proof'
-    | 'verification-doc'
-    | 'bug-report';
+import {
+    type FolderType,
+    MAX_UPLOAD_SIZE_MB,
+    ALLOWED_UPLOAD_FORMATS,
+} from '@/lib/utils/uploadConfig';
 
 const VALID_FOLDER_TYPES: FolderType[] = [
     'product',
@@ -41,18 +35,7 @@ const VALID_FOLDER_TYPES: FolderType[] = [
     'bug-report',
 ];
 
-/** Maximum upload sizes in MB per folder type */
-const MAX_SIZE_MB: Record<FolderType, number> = {
-    product: 5,
-    'vendor-logo': 2,
-    'vendor-banner': 10,
-    profile: 2,
-    banner: 10,
-    ad: 10,
-    'payment-proof': 5,
-    'verification-doc': 5,
-    'bug-report': 5,
-};
+const BYTES_PER_MB = 1024 * 1024;
 
 function resolveFolder(
     folderType: FolderType,
@@ -179,9 +162,27 @@ export async function POST(request: NextRequest) {
         const mimeType = file.type || 'image/png';
         const dataUri = `data:${mimeType};base64,${base64}`;
 
+        // ── Pre-validate size before hitting Cloudinary ──────────────
+        const maxSizeMB = MAX_UPLOAD_SIZE_MB[folderType];
+        if (file.size > maxSizeMB * BYTES_PER_MB) {
+            return apiError(
+                `File is too large. The maximum size for ${folderType} uploads is ${maxSizeMB}MB.`,
+                400
+            );
+        }
+
         // ── Upload ───────────────────────────────────────────────────
-        const maxSizeMB = MAX_SIZE_MB[folderType];
-        const result = await uploadImage(dataUri, folder, { maxSizeMB });
+        const allowedFormats = Array.from(ALLOWED_UPLOAD_FORMATS[folderType]);
+        let result;
+        try {
+            result = await uploadImage(dataUri, folder, { maxSizeMB, allowedFormats });
+        } catch (error) {
+            // Surface the concrete reason (unsupported type, size, malformed file)
+            // instead of letting the generic handler swallow it.
+            const reason = error instanceof Error ? error.message : 'Upload failed';
+            console.error('Upload failed:', reason);
+            return apiError(reason, 400);
+        }
 
         // Persist metadata to Prisma only for authenticated + opted-in flows.
         const { persistUploadMetadata, getCacheBustedUrl } = await import('@/lib/services/asset');
