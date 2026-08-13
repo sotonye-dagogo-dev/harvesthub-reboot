@@ -4,6 +4,37 @@
 
 ---
 
+## Session 93 — ai-system v2 → v3 template upgrade — 2026-08-13
+
+**Goal:**
+Migrate the local `ai-system/` from template v2 to v3 per `docs/V2_TO_V3_MIGRATION.md`, running the `pull-template-update.md` diff-based flow against `Sotonye0808/ai-system-template`. Preserve all local project content; only apply the v3 deltas.
+
+**Comparison result:**
+- Upstream `VERSION` = `3.0.0`; local recorded version (set in `ai-context.md`) = `3.0.0` → newer than the pre-existing baseline → update applied.
+- All changed files were checked against `memory/project-decisions.md` for logged local customizations. No customizations were logged for the migrated structural files; local project content files (task-queue, memory, checkpoints, summaries, testing, index, system-architecture, design-system, repair-system, project-context) were preserved and only received the v3 metadata/marker additions.
+
+**Completed:**
+
+- New folders: `skills/` (9 skills + README), `tools/` (`registry.md` + `integrations/*`), `design-references/` (README + TEMPLATE).
+- New commands: `audit-sources.md`, `visual-review.md`, `generate-design-md.md`, `pull-template-update.md`.
+- Root: `VERSION` (`3.0.0`), `CHANGELOG.md`; migration guide copied to `docs/V2_TO_V3_MIGRATION.md`.
+- `standards/engineering-principles.md`: +§11–§24, enforcement renumbered §10→§25, doc-style addendum.
+- `protocols/entry-protocol.md` (tool-discovery-first + closing-turn advisory), `context-tiering.md` (Tier 3/4 rows), `quality-gate.md` + `verification-rules.md` (v3 pattern + contract-compliance checks).
+- All commands: `Chains to` contract row + new steps (task-queue trace, checkpoint coupling, deep-sync chains).
+- `agents/tester-qa.md`: live-preview/browsing capability.
+- `planning/task-queue.md`: `last-synced` marker + complexity tags + seeded v3 backlog items.
+- `ai-context.md`: `installed-ai-system-version: 3.0.0` + skills/tools catalog pointers.
+- `design-system.md`: Reference Library + Design Asset Viewer sections. `system-architecture.md`: Verification CLI + Rollback & Undo + `ENABLE_DESIGN_VIEWER` config point. `memory/project-decisions.md`: seeded PDF-extraction-backend decision.
+- Freshness metadata refreshed on all migrated files.
+
+**Files Modified (new):** `ai-system/skills/**`, `ai-system/tools/**`, `ai-system/design-references/**`, `ai-system/commands/{audit-sources,visual-review,generate-design-md,pull-template-update}.md`, `VERSION`, `CHANGELOG.md`, `docs/V2_TO_V3_MIGRATION.md`.
+
+**Files Modified (edited, content preserved):** `ai-context.md`, `ai-system/standards/engineering-principles.md`, `ai-system/protocols/*`, `ai-system/commands/*`, `ai-system/agents/tester-qa.md`, `ai-system/planning/task-queue.md`, `ai-system/design-system.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/checkpoints/session-log.md`.
+
+**Next:** Human review of the diff; then a `sync-context.md` pass to verify freshness metadata is consistent.
+
+---
+
 ## Session 92 — Upload Retention + Replace + Verification-Docs Upload Feedback — 2026-08-13
 
 **Goal:**
