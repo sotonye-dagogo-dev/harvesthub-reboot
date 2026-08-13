@@ -1,6 +1,7 @@
 "use client";
 
-import { Form, Input } from "antd";
+import { Form, Input, message } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FormComponentProps } from "@/app/types";
 import { PhoneInput } from "@/components/ui";
@@ -98,9 +99,11 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
         return;
       }
       updateFormData(values);
+      message.success("Personal information saved");
       onNext();
     } catch (error) {
       console.error("Form submission error:", error);
+      message.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -221,9 +224,16 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
           <button
             type="submit"
             disabled={submitting || !!crossPlatformAccount}
+            aria-busy={submitting}
             className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
-            {submitting ? "Processing..." : "Continue"}
+            {submitting ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <LoadingOutlined /> Processing...
+              </span>
+            ) : (
+              "Continue"
+            )}
           </button>
         </Form.Item>
       </Form>

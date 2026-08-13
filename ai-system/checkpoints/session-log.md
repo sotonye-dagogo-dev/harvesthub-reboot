@@ -4,6 +4,56 @@
 
 ---
 
+## Session 91 — Signup Feedback + Verification Docs Upload Overlay + no-response Guard — 2026-08-13
+
+**Goal:**
+Improve button/loading feedback and toasts across myharvesthub (observed in the registering flow,
+apply broadly), fix the verification-documents upload flow by adding a status tracker/overlay on the
+file thumbnails, and resolve the `Uncaught (in promise) no-response` console error on
+`/signup/verification-docs`.
+
+**Completed:**
+
+- `app/signup/components/VerificationDocs.tsx`: rewrote upload flow to upload each file immediately
+  on selection via antd `customRequest` (fetch to `/api/upload` with `folderType=verification-doc`,
+  `skipPersistence=true`, stable `guestUploadId`); `VerificationUploadFile = UploadFile &
+  { publicId?: string }`; `beforeUpload` validates jpg/png/pdf ≤ 5MB; `handleChange` syncs
+  `url`/`publicId` from `f.response` when `status === "done"`; picture-card thumbnails now show the
+  built-in antd uploading/done/error overlay; `Continue` disabled while `hasUploadingFile` and shows
+  `LoadingOutlined` while submitting; missing-docs and still-uploading submits show error/warning
+  toasts; draft-restore logic preserved.
+- `UserInfo.tsx`, `StoreInfo.tsx`, `AccountInfo.tsx`, `SecurityInfo.tsx`: added `LoadingOutlined`
+  spinners (`aria-busy`, disabled) and success/error toasts on submit flows ("Personal information
+  saved", "Store details saved", "Profile updated", "Uploading...", "Account created! Check your
+  email to verify.").
+- `lib/utils/swNoResponseGuard.ts` (new) + mounted in `app/providers.tsx`: `SwNoResponseGuard`
+  attaches an `unhandledrejection` listener that swallows Serwist/Workbox navigation-preload
+  `no-response` rejections (matching name/code/message prefix), letting real errors propagate.
+- Tests (new, all passing): `app/signup/__tests__/VerificationDocs.test.tsx` (4 tests: 3 slots
+  render; Continue disabled during in-flight upload then re-enabled; upload-all + submit produces
+  correct docs + success toast; missing-docs error toast) and
+  `lib/utils/__tests__/swNoResponseGuard.test.tsx` (4 tests: suppresses message/name/code variants,
+  allows unrelated, removes listener on unmount).
+
+**Validation:**
+
+- `npx tsc --noEmit` ✅
+- `next lint` on touched files ✅ (after removing unused `DocKey` type)
+- Focused vitest: VerificationDocs 4/4 + swNoResponseGuard 4/4 passing ✅
+- `npm run build` (prisma generate + next build) ✅ exit 0
+- Full vitest run: 420 passed / 67 failed / 12 skipped. All 67 failures are pre-existing and
+  unrelated — verified by stashing these changes and reproducing identical failures on base
+  `b597cd1` (API integration tests need a dev server on :3000; jwt/schemas/navigation/layout/
+  PhoneInput/FilterSidebar failures pre-date this change).
+
+**Files Modified:**
+- Modified: `app/providers.tsx`, `app/signup/components/VerificationDocs.tsx`, `app/signup/components/UserInfo.tsx`,
+  `app/signup/components/StoreInfo.tsx`, `app/signup/components/AccountInfo.tsx`, `app/signup/components/SecurityInfo.tsx`
+- New: `lib/utils/swNoResponseGuard.ts`, `lib/utils/__tests__/swNoResponseGuard.test.tsx`,
+  `app/signup/__tests__/VerificationDocs.test.tsx`
+
+---
+
 ## Session 90 — Universal Structured Content Editor (Public Content + Blog) — 2026-08-11
 
 **Goal:**

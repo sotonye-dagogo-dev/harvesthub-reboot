@@ -23,6 +23,60 @@
 [What this decision affects going forward]
 ```
 
+## Verification Documents Upload Immediately, Not at Submit
+
+**Decision:** In the signup verification-documents stage, each selected file uploads immediately on
+selection (antd `Upload` `customRequest` to `/api/upload` with `folderType=verification-doc`,
+`skipPersistence=true`, and a stable `guestUploadId`) rather than at Continue/submit. The Continue
+button is disabled while any file is uploading, and each thumbnail shows antd's built-in
+uploading/done/error overlay.
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Uploading at submit gave users no progress feedback and made failures indistinguishable from
+success. Immediate per-file upload lets the picture-card thumbnail overlay communicate per-file
+status in real time and prevents advancing to the next step with half-uploaded documents.
+
+**Alternatives Considered:**
+
+- Keep upload-on-submit and only render an overlay then (rejected: still no feedback during the
+  wait, and failure recovery is harder).
+- Build a custom progress tracker per file outside antd (rejected: antd's picture-card already
+  renders uploading/done/error overlays for free; reimplementing it adds drift).
+
+**Implications:**
+
+- `handleChange` must sync `url`/`publicId` from `f.response` when `status === "done"` because antd
+  does not populate them onto the file item automatically.
+- The draft-restore path keeps working by mapping restored docs back into file items with
+  `restored-*` uids.
+- Any new "uploads" surface should reuse the same immediate-upload + antd overlay pattern.
+
+## SwNoResponseGuard Silences Only Known Benign SW no-response Rejections
+
+**Decision:** Add a root-level `unhandledrejection` guard (`lib/utils/swNoResponseGuard.ts`, mounted
+in `app/providers.tsx`) that swallows only rejections whose reason `name`/`code` is `no-response` or
+whose message starts with `no-response`. Everything else still propagates.
+**Date:** 2026-08-13
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Serwist/Workbox navigation-preload on `/signup/verification-docs` rejects with `no-response`
+while the service worker already falls back to a cached page or `/offline.html`. The rejection is
+harmless but surfaces as `Uncaught (in promise) no-response` in the console. Guarding at the app root
+clears the console noise without changing SW behavior.
+
+**Alternatives Considered:**
+
+- Disable navigation-preload in the service worker (rejected: loses the preload speed benefit).
+- Broadly swallow all `unhandledrejection` events (rejected: would mask real bugs).
+
+**Implications:**
+
+- The guard must stay narrowly scoped to the `no-response` signature only.
+- If Serwist config changes, re-verify whether this guard is still needed.
+
 ## Universal Structured Content Editor Is the Single No-HTML Authoring Surface
 
 **Decision:** Extract one reusable pure section model (`lib/content/structuredSections.ts`) and one

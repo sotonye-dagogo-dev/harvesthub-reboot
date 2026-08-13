@@ -1,6 +1,7 @@
 "use client";
 
 import { Form, Input, Checkbox, Progress, App } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent } from "react";
 import { getFriendlySignupError } from "@/lib/utils/authMessages";
@@ -96,6 +97,7 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
 
       // Call the registration API with the most recently validated security payload
       await onNext(values);
+      message.success("Account created! Check your email to verify.");
     } catch (err) {
       const raw =
         err instanceof Error ? err.message : "Registration failed. Please try again.";
@@ -206,9 +208,16 @@ export default function SecurityInfo({ onNext, updateFormData, formData }: Secur
           <button
             type="submit"
             disabled={loading}
+            aria-busy={loading}
             className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <LoadingOutlined /> Creating Account...
+              </span>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </Form.Item>
       </Form>

@@ -18,6 +18,76 @@
 
 ---
 
+## [Verification-documents upload gave no status feedback and button/tostes lacked loading states]
+
+**Symptom:**
+
+- In the signup verification-documents stage, files selected for upload gave no visible progress indication; the thumbnails showed no uploading/done/error overlay, so users could not tell whether an upload was working.
+- Submit buttons across the registering flow (and other forms) triggered async work without loading spinners or success/error toasts, so the UI felt unresponsive.
+
+**Root Cause:**
+
+- `VerificationDocs.tsx` deferred upload to form submit and tracked a single boolean, so per-file state (uploading/done/error) was never rendered on the thumbnail.
+- Ant `Upload` did not copy `response.url` onto file list items automatically, so uploaded files lost their public URL unless explicitly synced.
+- Signup stage forms (UserInfo/StoreInfo/AccountInfo/SecurityInfo) called `updateFormData`/APIs without toasting success or showing button loading state.
+
+**Fix Applied:**
+
+- Rewrote `VerificationDocs.tsx` to upload each file immediately on selection via `customRequest` (`POST /api/upload`, `folderType=verification-doc`, `skipPersistence=true`, stable `guestUploadId`). antd picture-card now renders the built-in status overlay on each thumbnail (spinner → success/error). `handleChange` syncs `url`/`publicId` from `f.response` when `status === "done"`.
+- `Continue` button disabled while any file is `uploading`, shows `LoadingOutlined` while `submitting`; missing-docs and still-uploading submits produce error/warning toasts.
+- Added `LoadingOutlined` + disabled/`aria-busy` states and success/error `message` toasts to `UserInfo`, `StoreInfo`, `AccountInfo`, and `SecurityInfo` submit flows.
+- Added tests: `VerificationDocs.test.tsx` (render 3 slots, disabled-during-upload, submit produces correct docs + success toast, missing-docs error) and `swNoResponseGuard.test.tsx`.
+
+**Prevention:**
+
+- When using antd `Upload` with `customRequest`, always sync `url`/`publicId` from `f.response` in `onChange` because antd does not populate them for you.
+- Treat async form actions as requiring (1) button loading/disabled state, (2) success toast, and (3) error toast; keep per-item status on the item itself.
+- Antd-component tests need a `window.matchMedia` mock; re-create module-level spies inside `beforeEach` because `vi.restoreAllMocks()` destroys them.
+
+**Files Affected:**
+
+- app/signup/components/VerificationDocs.tsx
+- app/signup/components/UserInfo.tsx
+- app/signup/components/StoreInfo.tsx
+- app/signup/components/AccountInfo.tsx
+- app/signup/components/SecurityInfo.tsx
+- app/signup/__tests__/VerificationDocs.test.tsx (new)
+
+**Date:** 2026-08-13
+
+---
+
+## [Uncaught (in promise) no-response error on /signup/verification-docs]
+
+**Symptom:**
+
+- Browser console shows `Uncaught (in promise) no-response: no-response::[{"url":"https://www.myharvesthub.org/signup/verification-docs"}]` when navigating to the verification-docs signup step.
+
+**Root Cause:**
+
+- Serwist/Workbox navigation-preload request on `/signup/verification-docs` rejects with a `no-response` error. The service worker already falls back to a cached page or `/offline.html`, but the rejected navigation-preload promise is left unhandled at the window level, so the console logs an uncaught rejection.
+
+**Fix Applied:**
+
+- Added `lib/utils/swNoResponseGuard.ts` (`SwNoResponseGuard` component) that attaches an `unhandledrejection` listener in `useEffect` and swallows rejections whose reason `name`/`code` is `no-response` or whose message starts with `no-response`, allowing real errors to propagate.
+- Mounted `<SwNoResponseGuard />` in `app/providers.tsx` inside `AntdThemeProvider`.
+- Added `lib/utils/__tests__/swNoResponseGuard.test.tsx` (suppresses message/name/code variants, passes unrelated errors through, removes listener on unmount).
+
+**Prevention:**
+
+- When relying on a service worker's offline fallback, remember that navigation-preload failures still surface as window-level unhandled rejections; guard known-benign rejection signatures at the app root.
+- Keep the guard narrowly scoped (match `no-response` only) so genuine errors are never masked.
+
+**Files Affected:**
+
+- lib/utils/swNoResponseGuard.ts (new)
+- lib/utils/__tests__/swNoResponseGuard.test.tsx (new)
+- app/providers.tsx
+
+**Date:** 2026-08-13
+
+---
+
 ## [Cart/checkout showed original price for discounted products]
 
 **Symptom:**

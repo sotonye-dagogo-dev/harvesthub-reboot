@@ -1,6 +1,7 @@
 "use client";
 
-import { Form, Input, Select } from "antd";
+import { Form, Input, Select, message } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
 import {
@@ -59,9 +60,11 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
       await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
       updateFormData(values);
+      message.success("Store details saved");
       onNext();
     } catch (error) {
       console.error("Error during form submission:", error);
+      message.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -260,9 +263,16 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           <button
             type="submit"
             disabled={submitting}
+            aria-busy={submitting}
             className="w-full rounded-ds-md bg-ds-brand-primary py-3 text-white font-semibold hover:bg-ds-brand-primary-hover disabled:bg-ds-surface-disabled transition-colors"
           >
-            {submitting ? "Processing..." : "Continue"}
+            {submitting ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <LoadingOutlined /> Processing...
+              </span>
+            ) : (
+              "Continue"
+            )}
           </button>
         </Form.Item>
       </Form>
