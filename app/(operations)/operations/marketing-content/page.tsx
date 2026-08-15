@@ -339,7 +339,7 @@ export default function OperationsMarketingContentPage() {
           {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
         </div>
         <div className="flex items-center gap-2">
-          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
+          <Button icon={<ReloadOutlined />} loading={isRefreshing} onClick={() => void refresh(true)}>
             Refresh
           </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>

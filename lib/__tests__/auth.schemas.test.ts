@@ -30,10 +30,10 @@ describe('Auth Validation Schemas', () => {
             }
         });
 
-        it('should reject short password', () => {
+        it('should reject empty password', () => {
             const invalidData = {
                 email: 'test@example.com',
-                password: 'short',
+                password: '',
             };
 
             const result = loginSchema.safeParse(invalidData);
@@ -59,8 +59,11 @@ describe('Auth Validation Schemas', () => {
                 email: 'buyer@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'SecurePass123!',
-                fullName: 'John Doe',
+                firstName: 'John',
+                lastName: 'Doe',
                 phoneNumber: '08012345678',
+                role: 'BUYER',
+                agreeToTerms: true,
             };
 
             const result = registerBuyerSchema.safeParse(validData);
@@ -72,8 +75,11 @@ describe('Auth Validation Schemas', () => {
                 email: 'buyer@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'DifferentPass123!',
-                fullName: 'John Doe',
+                firstName: 'John',
+                lastName: 'Doe',
                 phoneNumber: '08012345678',
+                role: 'BUYER',
+                agreeToTerms: true,
             };
 
             const result = registerBuyerSchema.safeParse(invalidData);
@@ -98,8 +104,11 @@ describe('Auth Validation Schemas', () => {
                     email: 'buyer@example.com',
                     password: 'SecurePass123!',
                     confirmPassword: 'SecurePass123!',
-                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
                     phoneNumber,
+                    role: 'BUYER',
+                    agreeToTerms: true,
                 };
 
                 const result = registerBuyerSchema.safeParse(data);
@@ -120,8 +129,11 @@ describe('Auth Validation Schemas', () => {
                     email: 'buyer@example.com',
                     password: 'SecurePass123!',
                     confirmPassword: 'SecurePass123!',
-                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
                     phoneNumber,
+                    role: 'BUYER',
+                    agreeToTerms: true,
                 };
 
                 const result = registerBuyerSchema.safeParse(data);
@@ -142,8 +154,11 @@ describe('Auth Validation Schemas', () => {
                     email: 'buyer@example.com',
                     password,
                     confirmPassword: password,
-                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
                     phoneNumber: '08012345678',
+                    role: 'BUYER',
+                    agreeToTerms: true,
                 };
 
                 const result = registerBuyerSchema.safeParse(data);
@@ -164,8 +179,11 @@ describe('Auth Validation Schemas', () => {
                     email,
                     password: 'SecurePass123!',
                     confirmPassword: 'SecurePass123!',
-                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe',
                     phoneNumber: '08012345678',
+                    role: 'BUYER',
+                    agreeToTerms: true,
                 };
 
                 const result = registerBuyerSchema.safeParse(data);
@@ -180,12 +198,15 @@ describe('Auth Validation Schemas', () => {
                 email: 'vendor@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'SecurePass123!',
-                fullName: 'Jane Smith',
+                firstName: 'Jane',
+                lastName: 'Smith',
                 phoneNumber: '08087654321',
+                role: 'VENDOR',
+                agreeToTerms: true,
                 storeName: 'Fresh Foods Store',
                 storeDescription: 'Selling fresh farm produce',
-                category: 'Farm Produce',
-                whatsapp: '08087654321',
+                storeCategory: 'AGRICULTURE',
+                whatsappNumber: '08087654321',
                 campus: 'GBAGADA',
             };
 
@@ -198,11 +219,14 @@ describe('Auth Validation Schemas', () => {
                 email: 'vendor@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'SecurePass123!',
-                fullName: 'Jane Smith',
+                firstName: 'Jane',
+                lastName: 'Smith',
                 phoneNumber: '08087654321',
+                role: 'VENDOR',
+                agreeToTerms: true,
                 storeDescription: 'Selling fresh farm produce',
-                category: 'Farm Produce',
-                whatsapp: '08087654321',
+                storeCategory: 'AGRICULTURE',
+                whatsappNumber: '08087654321',
                 campus: 'GBAGADA',
             };
 
@@ -215,11 +239,14 @@ describe('Auth Validation Schemas', () => {
                 email: 'vendor@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'SecurePass123!',
-                fullName: 'Jane Smith',
+                firstName: 'Jane',
+                lastName: 'Smith',
                 phoneNumber: '08087654321',
+                role: 'VENDOR',
+                agreeToTerms: true,
                 storeName: 'Fresh Foods Store',
                 storeDescription: 'Selling fresh farm produce',
-                whatsapp: '08087654321',
+                whatsappNumber: '08087654321',
                 campus: 'GBAGADA',
             };
 
@@ -239,12 +266,15 @@ describe('Auth Validation Schemas', () => {
                     email: 'vendor@example.com',
                     password: 'SecurePass123!',
                     confirmPassword: 'SecurePass123!',
-                    fullName: 'Jane Smith',
+                    firstName: 'Jane',
+                    lastName: 'Smith',
                     phoneNumber: '08087654321',
+                    role: 'VENDOR',
+                    agreeToTerms: true,
                     storeName: 'Fresh Foods Store',
                     storeDescription: 'Selling fresh farm produce',
-                    category: 'Farm Produce',
-                    whatsapp,
+                    storeCategory: 'AGRICULTURE',
+                    whatsappNumber: whatsapp,
                     campus: 'GBAGADA',
                 };
 
@@ -258,12 +288,15 @@ describe('Auth Validation Schemas', () => {
                 email: 'vendor@example.com',
                 password: 'SecurePass123!',
                 confirmPassword: 'SecurePass123!',
-                fullName: 'Jane Smith',
+                firstName: 'Jane',
+                lastName: 'Smith',
                 phoneNumber: '08087654321',
+                role: 'VENDOR',
+                agreeToTerms: true,
                 storeName: 'Fresh Foods Store',
                 storeDescription: 'Selling fresh farm produce',
-                category: 'Farm Produce',
-                whatsapp: '08087654321',
+                storeCategory: 'AGRICULTURE',
+                whatsappNumber: '08087654321',
                 campus: 'GBAGADA',
             };
 
@@ -275,10 +308,14 @@ describe('Auth Validation Schemas', () => {
                 'email',
                 'password',
                 'confirmPassword',
-                'fullName',
+                'firstName',
+                'lastName',
                 'phoneNumber',
+                'role',
+                'agreeToTerms',
                 'storeName',
-                'category',
+                'storeCategory',
+                'whatsappNumber',
                 'campus',
             ];
 

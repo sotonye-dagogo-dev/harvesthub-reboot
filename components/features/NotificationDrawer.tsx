@@ -13,7 +13,7 @@
 
 import { useState, useMemo } from "react";
 import { StatusTag, SectionLoader, EmptyState, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
-import { Drawer, Tabs, Button, Dropdown, Space } from "antd";
+import { Drawer, Tabs, Button, Dropdown, Space, message } from "antd";
 import { Check, CheckCheck, Filter, MoreVertical, Trash2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
@@ -125,9 +125,14 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         label: "Delete",
                         danger: true,
                         onClick: () =>
-                          openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
-                            deleteNotification(notification.id)
-                          ),
+                          openActionConfirm(ActionConfirmPresets.delete("notification"), async () => {
+                            const ok = await deleteNotification(notification.id);
+                            if (ok) {
+                              message.success("Notification deleted");
+                            } else {
+                              message.error("Failed to delete notification");
+                            }
+                          }),
                       },
                     ],
                   }}
@@ -186,9 +191,14 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         label: "Delete",
                         danger: true,
                         onClick: () =>
-                          openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
-                            deleteNotification(notification.id)
-                          ),
+                          openActionConfirm(ActionConfirmPresets.delete("notification"), async () => {
+                            const ok = await deleteNotification(notification.id);
+                            if (ok) {
+                              message.success("Notification deleted");
+                            } else {
+                              message.error("Failed to delete notification");
+                            }
+                          }),
                       },
                     ],
                   }}

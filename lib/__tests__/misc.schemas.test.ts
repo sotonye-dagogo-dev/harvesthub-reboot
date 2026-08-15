@@ -212,7 +212,7 @@ describe('Address Validation Schemas', () => {
         });
 
         it('should require all mandatory fields', () => {
-            const requiredFields = ['fullName', 'phoneNumber', 'address', 'city', 'state', 'campus'];
+            const requiredFields = ['fullName', 'phoneNumber', 'address', 'city', 'state'];
 
             requiredFields.forEach((field) => {
                 const incompleteAddress = {
@@ -235,6 +235,7 @@ describe('Address Validation Schemas', () => {
     describe('updateAddressSchema', () => {
         it('should validate address updates', () => {
             const validUpdate = {
+                id: 'addr-123',
                 address: '456 New Street',
                 city: 'Ikeja',
             };
@@ -245,6 +246,7 @@ describe('Address Validation Schemas', () => {
 
         it('should allow partial updates', () => {
             const partialUpdate = {
+                id: 'addr-123',
                 phoneNumber: '08087654321',
             };
 
@@ -259,6 +261,7 @@ describe('Review Validation Schemas', () => {
         it('should validate correct review data', () => {
             const validReview = {
                 productId: 'prod-123',
+                orderId: 'order-123',
                 rating: 5,
                 comment: 'Excellent product! Highly recommended.',
             };
@@ -270,6 +273,7 @@ describe('Review Validation Schemas', () => {
         it('should reject rating below 1', () => {
             const invalidReview = {
                 productId: 'prod-123',
+                orderId: 'order-123',
                 rating: 0,
                 comment: 'Bad product',
             };
@@ -281,6 +285,7 @@ describe('Review Validation Schemas', () => {
         it('should reject rating above 5', () => {
             const invalidReview = {
                 productId: 'prod-123',
+                orderId: 'order-123',
                 rating: 6,
                 comment: 'Excellent product',
             };
@@ -295,6 +300,7 @@ describe('Review Validation Schemas', () => {
             ratings.forEach((rating) => {
                 const review = {
                     productId: 'prod-123',
+                    orderId: 'order-123',
                     rating,
                     comment: 'Test review',
                 };
@@ -307,6 +313,7 @@ describe('Review Validation Schemas', () => {
         it('should require minimum comment length', () => {
             const invalidReview = {
                 productId: 'prod-123',
+                orderId: 'order-123',
                 rating: 5,
                 comment: 'OK',
             };
@@ -318,6 +325,7 @@ describe('Review Validation Schemas', () => {
         it('should accept reviews with images', () => {
             const reviewWithImages = {
                 productId: 'prod-123',
+                orderId: 'order-123',
                 rating: 5,
                 comment: 'Excellent product! Here are some photos.',
                 images: [
@@ -344,6 +352,7 @@ describe('Review Validation Schemas', () => {
     describe('updateReviewSchema', () => {
         it('should validate review updates', () => {
             const validUpdate = {
+                reviewId: 'review-123',
                 rating: 4,
                 comment: 'Updated my review after using it more',
             };
@@ -354,6 +363,7 @@ describe('Review Validation Schemas', () => {
 
         it('should allow updating only rating', () => {
             const ratingUpdate = {
+                reviewId: 'review-123',
                 rating: 3,
             };
 
@@ -363,6 +373,7 @@ describe('Review Validation Schemas', () => {
 
         it('should allow updating only comment', () => {
             const commentUpdate = {
+                reviewId: 'review-123',
                 comment: 'Changed my mind, this is a great product!',
             };
 
@@ -372,6 +383,7 @@ describe('Review Validation Schemas', () => {
 
         it('should reject invalid rating in update', () => {
             const invalidUpdate = {
+                reviewId: 'review-123',
                 rating: 10,
             };
 

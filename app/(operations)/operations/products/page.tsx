@@ -561,7 +561,7 @@ export default function OperationsProductsPage() {
               ]}
             />
           )}
-          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
+          <Button icon={<ReloadOutlined />} loading={isRefreshing} onClick={() => void refresh(true)}>
             Refresh
           </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>

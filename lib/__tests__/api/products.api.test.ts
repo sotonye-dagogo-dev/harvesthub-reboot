@@ -5,7 +5,11 @@
 
 import { describe, it, expect } from 'vitest';
 
-describe('Products API Integration Tests', () => {
+// Requires a running dev server (npm run dev) with a seeded database.
+// Run explicitly with: RUN_INTEGRATION=1 npx vitest run lib/__tests__/api
+const runIntegration = process.env.RUN_INTEGRATION === '1';
+
+describe.skipIf(!runIntegration)('Products API Integration Tests', () => {
     describe('GET /api/products', () => {
         it('should return paginated list of products', async () => {
             const response = await fetch('http://localhost:3000/api/products?page=1&limit=10');

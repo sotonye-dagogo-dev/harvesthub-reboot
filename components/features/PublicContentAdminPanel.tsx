@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Badge, openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
+import { message } from "antd";
 import { fetchJson } from "@/lib/utils";
 import { StructuredContentEditor } from "@/components/features/content/StructuredContentEditor";
 import {
@@ -130,6 +131,7 @@ export function PublicContentAdminPanel() {
 
     try {
       setSaving(true);
+      const wasEditing = Boolean(editingId);
       await fetchJson("/api/admin/public-content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,6 +151,7 @@ export function PublicContentAdminPanel() {
       setEditingId(null);
       setSelectedItemId(null);
       await fetchContent();
+      message.success(wasEditing ? "Public content updated" : "Public content created");
     } catch (e: any) {
       setError(e?.message ?? "Failed to save public content");
     } finally {
@@ -173,14 +176,19 @@ export function PublicContentAdminPanel() {
   };
 
   const onDelete = async (item: PublicContentItem) => {
-    await fetchJson(`/api/admin/public-content?slug=${encodeURIComponent(item.slug)}`, {
-      method: "DELETE",
-    });
-    await fetchContent();
+    try {
+      await fetchJson(`/api/admin/public-content?slug=${encodeURIComponent(item.slug)}`, {
+        method: "DELETE",
+      });
+      await fetchContent();
 
-    if (selectedItemId === item.id) {
-      setSelectedItemId(null);
-      setEditingId(null);
+      if (selectedItemId === item.id) {
+        setSelectedItemId(null);
+        setEditingId(null);
+      }
+      message.success("Public content deleted");
+    } catch (e: any) {
+      message.error(e?.message ?? "Failed to delete public content");
     }
   };
 

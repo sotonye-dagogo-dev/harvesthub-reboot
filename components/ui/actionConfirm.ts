@@ -106,6 +106,15 @@ export class ActionConfirmPresets {
       .build();
   }
 
+  static deactivate(subject: string) {
+    return new ActionConfirmBuilder()
+      .title(`Deactivate ${subject}`)
+      .message(`Deactivate this ${subject}?`)
+      .confirmText("Deactivate")
+      .danger()
+      .build();
+  }
+
   static approve(subject: string) {
     return new ActionConfirmBuilder()
       .title(`Approve ${subject}`)
@@ -126,7 +135,8 @@ export function registerActionConfirmPresenter(presenter: ActionConfirmPresenter
 
 export function openActionConfirm(
   config: ActionConfirmConfig,
-  onConfirm: () => void | Promise<void>
+  onConfirm: () => void | Promise<void>,
+  onCancel?: () => void
 ) {
   const modalConfig: Parameters<typeof Modal.confirm>[0] = {
     title: config.title,
@@ -135,6 +145,7 @@ export function openActionConfirm(
     cancelText: config.cancelText ?? "Cancel",
     okButtonProps: { danger: !!config.danger },
     onOk: onConfirm,
+    onCancel,
   };
 
   if (actionConfirmPresenter) {

@@ -11,7 +11,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Badge, Dropdown, Button } from "antd";
+import { Badge, Dropdown, Button, message } from "antd";
 import { SectionLoader, EmptyState, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { Bell, Check, Settings, X } from "lucide-react";
 import Link from "next/link";
@@ -135,9 +135,14 @@ export function NotificationBell() {
                       icon={<X className="h-4 w-4" />}
                       onClick={(e) => {
                         e.stopPropagation();
-                        openActionConfirm(ActionConfirmPresets.delete("notification"), () =>
-                          deleteNotification(notification.id)
-                        );
+                        openActionConfirm(ActionConfirmPresets.delete("notification"), async () => {
+                          const ok = await deleteNotification(notification.id);
+                          if (ok) {
+                            message.success("Notification deleted");
+                          } else {
+                            message.error("Failed to delete notification");
+                          }
+                        });
                       }}
                       title="Delete"
                     />

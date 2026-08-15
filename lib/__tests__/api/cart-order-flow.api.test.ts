@@ -5,10 +5,14 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 
+// Requires a running dev server (npm run dev) with a seeded database.
+// Run explicitly with: RUN_INTEGRATION=1 npx vitest run lib/__tests__/api
+const runIntegration = process.env.RUN_INTEGRATION === '1';
+
 let authToken: string;
 let orderId: string;
 
-describe('Cart & Order Flow Integration Tests', () => {
+describe.skipIf(!runIntegration)('Cart & Order Flow Integration Tests', () => {
     beforeAll(async () => {
         // Login to get auth token
         const loginResponse = await fetch('http://localhost:3000/api/auth/login', {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Header } from "@/components/layout/Header";
 
 vi.mock("next/navigation", () => ({
@@ -37,6 +37,8 @@ vi.mock("@/components/ui", () => ({
 describe("Header notification badges", () => {
   it("shows notifications link with unread count for authenticated users", () => {
     render(<Header />);
+
+    fireEvent.click(screen.getByRole("button", { name: /browse/i }));
 
     expect(screen.getByRole("link", { name: /notifications/i })).toBeInTheDocument();
     expect(screen.getAllByText("6").length).toBeGreaterThan(0);

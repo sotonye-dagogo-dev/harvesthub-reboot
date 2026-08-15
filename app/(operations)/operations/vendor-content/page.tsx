@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { Button, Card, Tag, Modal, Input, Select, Empty, Spin, message, Image } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { SectionLoader, VendorAvatar } from "@/components/ui";
+import { SectionLoader, VendorAvatar, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 
 const { TextArea } = Input;
@@ -117,7 +117,7 @@ export default function OperationsVendorContentPage() {
             <Option value="ACTIVE">Active</Option>
             <Option value="ALL">All</Option>
           </Select>
-          <Button icon={<ReloadOutlined />} onClick={() => void refresh(true)}>
+          <Button icon={<ReloadOutlined />} loading={isRefreshing} onClick={() => void refresh(true)}>
             Refresh
           </Button>
         </div>
@@ -205,7 +205,12 @@ export default function OperationsVendorContentPage() {
                       type="primary"
                       icon={<CheckCircleOutlined />}
                       loading={actionLoading === item.id}
-                      onClick={() => handleModerate(item.id, "APPROVED")}
+                      onClick={() =>
+                      openActionConfirm(
+                        ActionConfirmPresets.approve("content"),
+                        () => handleModerate(item.id, "APPROVED")
+                      )
+                    }
                       block
                     >
                       Approve

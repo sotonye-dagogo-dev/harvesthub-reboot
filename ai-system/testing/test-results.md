@@ -6,7 +6,7 @@
 
 ## Last Run
 
-**Date:** 2026-08-13
+**Date:** 2026-08-15
 **Run by:** opencode-agent
 
 **Results:**
@@ -15,18 +15,16 @@
 | Build | ✅ (next build, exit 0) | 0 | 0 |
 | Typecheck | ✅ (npx tsc --noEmit) | 0 | 0 |
 | Lint | ✅ (next lint on touched files) | 0 | 0 |
-| Vitest (full) | 430 | 67 | 12 |
-| VerificationDocs.test.tsx | 8 | 0 | 0 |
-| uploadHelpers.test.ts | 3 | 0 | 0 |
-| cloudinary.test.ts | 3 | 0 | 0 |
-| swNoResponseGuard.test.tsx | 4 | 0 | 0 |
+| Vitest (full) | 451 | 67 | 12 |
+| forgot-password.test.tsx (new) | 3 | 0 | 0 |
+| authMessages.test.ts (new) | 4 | 0 | 0 |
 
 **Overall Status:** Build + typecheck + lint passing; new-feature tests pass.
 
 ## Active Failures
 
-Full-suite vitest failures are pre-existing/environmental and unrelated to the 2026-08-13 changes
-(all 67 fail identically on the clean base commit `b597cd1`):
+Full-suite vitest failures are pre-existing/environmental and unrelated to the 2026-08-15 changes
+(all 67 fail identically on the clean base commit `b597cd1`, verified via `git stash` baseline):
 
 | Test file | Error | Status | Assigned To |
 | --------- | ----- | ------ | ----------- |
@@ -44,6 +42,7 @@ Full-suite vitest failures are pre-existing/environmental and unrelated to the 2
 
 | Date       | Passed | Failed | Notes                                          |
 | ---------- | ------ | ------ | ---------------------------------------------- |
+| 2026-08-15 | 451    | 67     | Forgot-password feedback fix + UI/UX feedback-gap audit (auth email flows, change-email, profile upload, vendor toasts); 7 new tests added |
 | 2026-08-13 | 430    | 67     | Upload retention + replace + verification-docs status overlay; fixed pre-existing test-file type errors (tsc clean) |
 | 2026-08-13 | 420    | 67     | Signup button/toast feedback + verification-docs upload overlay + no-response guard |
 | 2026-03-25 | n/a    | n/a    | Added Prisma reconnect wrapper for banners API |

@@ -24,6 +24,85 @@
 [What comes next]
 ```
 
+## 2026-08-15 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green
+
+**Summary:**
+Closed the 2026-08-15 feedback/security backlog: the profile picture pipeline now invalidates caches
+and surfaces on the vendors list, login no longer leaks account existence via the verification-pending
+oracle, the dead `/contact` form points to the live bug-report flow, and the profile addresses tab got
+real CRUD. Notification deletes and admin content saves/deletes now give honest feedback, and
+moderation actions (vendor-content approval, banner toggles) gained confirmations. Then drove the
+entire vitest suite to green — 107 files / 498 tests passing, with the 3 server-dependent API
+integration files gated behind `RUN_INTEGRATION=1`.
+
+**Completed:**
+- `app/api/users/[id]/profile/route.ts` + `app/api/vendors/route.ts` — profile picture cache
+  invalidation + `profilePicture` in the vendors-list user select.
+- `vitest.setup.tsx` + `lib/__tests__/jwt.utils.test.ts` — jose 6.1.3 jsdom realm fix
+  (`Uint8Array` realm alignment) and JWT tests aligned to the `userId` claim; 15/15 green.
+- `app/api/auth/login/route.ts` — verification-pending returned regardless of password correctness
+  (oracle closed); tradeoff documented.
+- `app/contact/page.tsx` — dead form removed; static channels + `/bug-report` pointer.
+- `app/api/users/[id]/addresses/route.ts` + `components/features/ProfilePage.tsx` — address
+  POST/PUT/DELETE + wired Save/Edit/Delete handlers with toasts.
+- Notification + admin feedback — `deleteNotification` returns `Promise<boolean>` with
+  success/error toasts; BlogAdminPanel/PublicContentAdminPanel save/delete toasts; vendor-content
+  approve + banner toggle confirmations.
+- Test-suite green — gated API integration tests behind `RUN_INTEGRATION=1`, restored the
+  `OrderStatus` enum in `updateOrderStatusSchema`, fixed stale auth/order/product/navigation schema
+  tests and 7 stale component/layout/page tests; fixed the FilterSidebar rating de-select source bug
+  (checked radios never fire `onChange`) and the PhoneInput duplicate aria-label.
+
+**Key Changes:**
+- Login flow: an unverified account now receives `403 verification-pending` before password
+  verification — accepted tradeoff is that a known email reveals the account exists (rate limiting
+  still bounds enumeration).
+- Update-order-status schema now enforces `OrderStatus` natively again (defensive; the route already
+  validates transitions).
+
+**Next Sprint Focus:**
+Stale-asset cleanup for signup uploads (remaining backlog item); run the gated API integration suite
+(`RUN_INTEGRATION=1 npx vitest run lib/__tests__/api`) against a live dev server + seeded DB.
+
+## 2026-08-15 — Forgot-Password Feedback Fix + UI/UX Feedback-Gap Audit
+
+**Summary:**
+Fixed the forgot-password flow so submitting an email not in the database no longer shows the fake
+"Check Your Email / link sent" success view — users now get truthful, actionable feedback. Audited
+the codebase for similar UI/UX feedback gaps and fixed the high-value ones: resend-verification and
+verify-email now surface real send results (including an `emailDelivered=0` warning), change-email
+surfaces send failures, the profile-picture "upload success" toast now reflects a real upload, and
+vendor approve/reject no longer shows contradictory success + email-failure toasts. Larger gaps were
+logged to the backlog.
+
+**Completed:**
+- `app/api/auth/forgot-password/route.ts` + `app/(auth)/forgot-password/page.tsx` — unknown email →
+  `404 USER_NOT_FOUND` with "No account found with that email address" + "Create an account" link;
+  send failure → `502 EMAIL_DELIVERY_FAILED`; success view only on real success.
+- `app/api/auth/resend-verification/route.tsx` + `app/verify-email/page.tsx` — awaited send,
+  `404 USER_NOT_FOUND`, `alreadyVerified:true`, `502 EMAIL_DELIVERY_FAILED`, `emailDelivered=0`
+  warning banner, and rendered success/alreadyVerified/error feedback.
+- `app/api/auth/register/route.ts` + `lib/contexts/AuthContext.tsx` + `app/signup/security-info/page.tsx`
+  — register response carries `emailDelivered`; `register()` returns `Promise<RegisterResponse>`;
+  redirects to `/verify-email?emailDelivered=0` when delivery failed.
+- `lib/utils/authMessages.ts` — added password-error mappings for the new messages.
+- `app/api/users/me/change-email/route.ts` — surfaced send failure via `apiError(..., 502)`.
+- `components/features/ProfilePage.tsx` — real profile-picture upload replaces the fake success toast.
+- `app/(operations)/operations/vendors/page.tsx` + `[id]/page.tsx` — single non-contradictory
+  approve/reject toast; `updateVendorStatus` returns `{ok, emailDispatchFailed}`.
+- `ai-system/planning/task-queue.md` — backlog: address management dead form, `/contact` no-op form,
+  login verify-email enumeration nuance.
+- Tests: `app/(auth)/__tests__/forgot-password.test.tsx` (3), `lib/utils/__tests__/authMessages.test.ts` (4).
+
+**Key Changes:**
+- Dropped the anti-account-enumeration generic success for auth email flows; distinct codes
+  (`USER_NOT_FOUND`, `EMAIL_DELIVERY_FAILED`, `alreadyVerified`) are now returned. Rate limiting
+  (`rateLimitStrict`) still bounds enumeration. Tradeoff documented in session-log and task-queue.
+
+**Next Sprint Focus:**
+Pick up backlog items (stale-asset cleanup, address management, `/contact` form, login enumeration
+nuance) from `planning/task-queue.md`.
+
 ## 2026-08-13 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix
 
 **Summary:**

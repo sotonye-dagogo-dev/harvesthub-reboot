@@ -373,6 +373,7 @@ export async function POST(request: NextRequest) {
                 success: true,
                 message: 'Registration successful. Please verify your email address before logging in.',
                 needsEmailVerification: true,
+                emailDelivered: verifyResult.success,
                 user: {
                     id: result.id,
                     email: result.email,

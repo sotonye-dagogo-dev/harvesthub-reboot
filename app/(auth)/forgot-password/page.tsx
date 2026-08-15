@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Form, Input, Button, Alert, Card, Typography, App } from "antd";
-import { MailOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  ArrowLeftOutlined,
+  UserAddOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 import Link from "next/link";
 import { forgotPasswordSchema } from "@/lib/schemas/auth.schemas";
 import { z } from "zod";
@@ -12,16 +17,23 @@ const { Title, Text } = Typography;
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
+type FeedbackState =
+  | { kind: "none" }
+  | { kind: "success"; token?: string }
+  | { kind: "notFound" }
+  | { kind: "deliveryFailed" };
+
 export default function ForgotPasswordPage() {
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackState>({ kind: "none" });
   const [resetToken, setResetToken] = useState<string | null>(null);
 
   const handleSubmit = async (values: ForgotPasswordFormData) => {
     try {
       setLoading(true);
+      setFeedback({ kind: "none" });
 
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
@@ -32,15 +44,25 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        // No account with this email — tell the user truthfully instead of showing
+        // the misleading "we sent a link" screen.
+        if (data.code === "USER_NOT_FOUND") {
+          setFeedback({ kind: "notFound" });
+          return;
+        }
+        // Email delivery itself failed — say so rather than claiming success.
+        if (data.code === "EMAIL_DELIVERY_FAILED") {
+          setFeedback({ kind: "deliveryFailed" });
+          return;
+        }
         throw new Error(data.error || "Failed to send reset email");
       }
-
-      setSuccess(true);
 
       // In development, show the token
       if (data.token) {
         setResetToken(data.token);
       }
+      setFeedback({ kind: "success", token: data.token });
     } catch (err) {
       const raw = err instanceof Error ? err.message : "An error occurred";
       message.error(getFriendlyPasswordError(raw));
@@ -49,7 +71,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  if (success) {
+  if (feedback.kind === "success") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ds-surface-sunken py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
@@ -91,7 +113,7 @@ export default function ForgotPasswordPage() {
             <Text className="block text-sm text-ds-text-secondary">
               Didn&apos;t receive the email? Check your spam folder or{" "}
               <button
-                onClick={() => setSuccess(false)}
+                onClick={() => setFeedback({ kind: "none" })}
                 className="text-ds-text-brand hover:text-ds-palette-purple-700 dark:hover:text-ds-brand-muted font-medium"
               >
                 try again
@@ -124,6 +146,42 @@ export default function ForgotPasswordPage() {
         </div>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
+          {feedback.kind === "notFound" && (
+            <Alert
+              type="warning"
+              showIcon
+              icon={<UserAddOutlined />}
+              className="mb-4"
+              message="No account found with that email address"
+              description={
+                <div>
+                  <p className="mb-2">
+                    Please double-check the email you entered, or create a new account to get
+                    started.
+                  </p>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-1 font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
+                  >
+                    <UserAddOutlined />
+                    Create an account
+                  </Link>
+                </div>
+              }
+            />
+          )}
+
+          {feedback.kind === "deliveryFailed" && (
+            <Alert
+              type="error"
+              showIcon
+              icon={<WarningOutlined />}
+              className="mb-4"
+              message="We couldn't send the reset email"
+              description="Please try again in a few minutes. If the problem persists, contact support."
+            />
+          )}
+
           <Form.Item
             name="email"
             label="Email Address"

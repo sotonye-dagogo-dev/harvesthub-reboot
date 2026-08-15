@@ -26,17 +26,23 @@ export async function POST(req: NextRequest) {
 
     const { email } = validation.data;
 
-    const successResponse = {
-      success: true,
-      message: "If an account with that email exists, we sent a password reset link.",
-    };
-
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
 
+    // No account with this email — surface truthful, actionable feedback instead of
+    // pretending a link was sent. The product owner requires meaningful feedback: a
+    // user who typo'd their address or never signed up should not land on a "check your
+    // inbox" dead-end with zero signal. Rate limiting (above) still bounds enumeration.
     if (!user) {
-      return NextResponse.json(successResponse);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No account found with that email address.",
+          code: "USER_NOT_FOUND",
+        },
+        { status: 404 }
+      );
     }
 
     const resetToken = crypto.randomUUID();
@@ -48,9 +54,9 @@ export async function POST(req: NextRequest) {
     });
 
     // Send the reset email synchronously so the serverless runtime cannot cut the
-    // delivery/retry loop short before the request returns. The response stays
-    // identical whether or not an account exists (anti-account-enumeration); any
-    // failure is logged here and recorded in the email delivery log.
+    // delivery/retry loop short before the request returns. If the send itself fails,
+    // report it instead of claiming success — otherwise the user waits forever for an
+    // email that was never sent (and the delivery log records the failure).
     const result = await sendResetPasswordEmail(user.email, user.firstName, resetToken);
 
     if (!result.success) {
@@ -58,9 +64,20 @@ export async function POST(req: NextRequest) {
         `[ForgotPassword] Reset email failed for ${user.email.slice(0, 3)}*** (id: ${user.id}):`,
         result.error
       );
+      return NextResponse.json(
+        {
+          success: false,
+          error: "We couldn't send the reset email right now. Please try again in a few minutes.",
+          code: "EMAIL_DELIVERY_FAILED",
+        },
+        { status: 502 }
+      );
     }
 
-    return NextResponse.json(successResponse);
+    return NextResponse.json({
+      success: true,
+      message: "Password reset link sent. Check your email.",
+    });
   } catch (error) {
     console.error("Forgot password error:", error);
     return NextResponse.json(

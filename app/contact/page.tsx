@@ -1,5 +1,6 @@
 import { Metadata } from "next";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Bug } from "lucide-react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Contact Us | MyHarvestHub",
@@ -97,77 +98,29 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Contact Form */}
+        {/* Report a problem / bug */}
         <div className="rounded-ds-md bg-ds-surface-base p-8 shadow-ds-sm dark:bg-ds-surface-base">
-          <h2 className="mb-6 text-2xl font-bold text-ds-text-primary">Send a Message</h2>
-          <form className="space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="mb-1 block text-sm font-medium text-ds-text-secondary"
-              >
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
-                placeholder="Your full name"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block text-sm font-medium text-ds-text-secondary"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
-                placeholder="your.email@example.com"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="subject"
-                className="mb-1 block text-sm font-medium text-ds-text-secondary"
-              >
-                Subject
-              </label>
-              <input
-                type="text"
-                id="subject"
-                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
-                placeholder="How can we help?"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="message"
-                className="mb-1 block text-sm font-medium text-ds-text-secondary"
-              >
-                Message
-              </label>
-              <textarea
-                id="message"
-                rows={5}
-                className="w-full rounded-ds-md border border-ds-border-base px-4 py-2 focus:border-ds-border-focus focus:ring-2 focus:ring-ds-focus-ring/30 dark:text-ds-text-primary"
-                placeholder="Tell us more about your inquiry..."
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
-            >
-              Send Message
-            </button>
-          </form>
+          <div className="flex h-12 w-12 items-center justify-center rounded-ds-md bg-ds-brand-subtle">
+            <Bug className="h-6 w-6 text-ds-text-brand" />
+          </div>
+          <h2 className="mb-3 mt-4 text-2xl font-bold text-ds-text-primary">Report a Problem</h2>
+          <p className="mb-6 text-ds-text-secondary">
+            Spotted a bug or something not working as expected? Let us know through the bug report
+            form — you can attach screenshots and we&apos;ll get back to you.
+          </p>
+          <Link
+            href="/bug-report"
+            className="inline-flex items-center rounded-ds-md bg-ds-brand-primary px-6 py-3 font-semibold text-white hover:bg-ds-brand-primary-hover dark:bg-ds-brand-primary dark:hover:bg-ds-brand-primary"
+          >
+            Report a Bug
+          </Link>
+          <p className="mt-6 text-sm text-ds-text-secondary">
+            For account or order issues, email{" "}
+            <a href="mailto:support@myharvesthub.org" className="text-ds-text-brand hover:underline">
+              support@myharvesthub.org
+            </a>
+            .
+          </p>
         </div>
       </div>
     </div>

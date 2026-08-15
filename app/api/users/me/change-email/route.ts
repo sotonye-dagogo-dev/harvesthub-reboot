@@ -96,7 +96,18 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        await sendVerifyEmail(newEmail, current.firstName, token);
+        const sendResult = await sendVerifyEmail(newEmail, current.firstName, token);
+
+        if (!sendResult.success) {
+            console.error(
+                `[ChangeEmail] Verification email failed for user ${current.id} -> ${newEmail.slice(0, 3)}***:`,
+                sendResult.error
+            );
+            return apiError(
+                "We couldn't send the verification link right now. Please try again in a few minutes.",
+                502
+            );
+        }
 
         return apiSuccess({
             message: 'Verification link sent to your new email address.',
