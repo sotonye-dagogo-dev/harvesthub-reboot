@@ -89,9 +89,14 @@ export default function OperationsVendorDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
-      message.success(`Vendor ${status.toLowerCase()} successfully`);
-      if (data?.emailDispatch?.attempted && !data?.emailDispatch?.sent) {
-        message.warning("Status changed, but vendor review email was not delivered.");
+      const emailDispatchFailed =
+        data?.emailDispatch?.attempted && !data?.emailDispatch?.sent;
+      if (emailDispatchFailed) {
+        message.warning(
+          `Vendor ${status.toLowerCase()} — but the review email couldn't be delivered. You may need to contact them directly.`
+        );
+      } else {
+        message.success(`Vendor ${status.toLowerCase()} successfully`);
       }
       setVendor(data.vendor);
     } catch (err) {

@@ -24,10 +24,15 @@ export default function VerifyEmailPage() {
   const search = useSearchParams();
   const token = search.get("token") || "";
   const emailFromQuery = search.get("email") || "";
+  const emailDeliveredFromQuery = search.get("emailDelivered");
   const continuationFromQuery = sanitizeInternalRedirectPath(search.get("from"), "");
   const isEmailChangeToken = token.startsWith("email-change:");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
+  const [resendStatus, setResendStatus] = useState<
+    "idle" | "loading" | "success" | "error" | "alreadyVerified"
+  >("idle");
+  const [resendMessage, setResendMessage] = useState<string>("");
   const [email, setEmail] = useState<string>(emailFromQuery.toLowerCase());
   const [resendLoading, setResendLoading] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(4);
@@ -94,10 +99,12 @@ export default function VerifyEmailPage() {
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
     if (!email) {
-      setMessage("Please enter your email to resend verification.");
+      setResendStatus("error");
+      setResendMessage("Please enter your email to resend verification.");
       return;
     }
     setResendLoading(true);
+    setResendStatus("loading");
     try {
       const res = await fetch("/api/auth/resend-verification", {
         method: "POST",
@@ -105,13 +112,25 @@ export default function VerifyEmailPage() {
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setMessage(data.message || "Verification link sent if account exists.");
+      if (res.ok && data.success && data.alreadyVerified) {
+        setResendStatus("alreadyVerified");
+        setResendMessage(data.message || "Your email is already verified. You can sign in now.");
+      } else if (res.ok && data.success) {
+        setResendStatus("success");
+        setResendMessage(data.message || "Verification link sent. Check your inbox.");
+      } else if (data.code === "USER_NOT_FOUND") {
+        setResendStatus("error");
+        setResendMessage("No account found with that email address. Please check the email you entered.");
+      } else if (data.code === "EMAIL_DELIVERY_FAILED") {
+        setResendStatus("error");
+        setResendMessage("We couldn't send the verification email right now. Please try again in a few minutes.");
       } else {
-        setMessage(data.error || "Failed to resend verification.");
+        setResendStatus("error");
+        setResendMessage(data.error || "Failed to resend verification.");
       }
     } catch (err) {
-      setMessage((err instanceof Error && err.message) || "Network error");
+      setResendStatus("error");
+      setResendMessage((err instanceof Error && err.message) || "Network error");
     } finally {
       setResendLoading(false);
     }
@@ -132,6 +151,17 @@ export default function VerifyEmailPage() {
           Verification email recipient: <span className="font-semibold text-ds-text-primary">{email}</span>
         </p>
       ) : null}
+      {emailDeliveredFromQuery === "0" && (
+        <div className="mb-4 rounded-ds-md border border-ds-status-warning-border bg-ds-status-warning-bg p-3">
+          <p className="text-sm font-medium text-ds-status-warning-text">
+            We couldn&apos;t deliver the verification email to that address just now.
+          </p>
+          <p className="mt-1 text-sm text-ds-text-secondary">
+            Your account was created successfully. Resend the verification email below, and check
+            your spam folder if it doesn&apos;t arrive.
+          </p>
+        </div>
+      )}
       {status === "loading" && <p className="text-ds-text-secondary">Verifying...</p>}
       {status === "success" && (
         <div className="mb-4 space-y-2">
@@ -173,6 +203,21 @@ export default function VerifyEmailPage() {
             {resendLoading ? "Sending…" : "Resend verification email"}
           </button>
         </div>
+        {resendStatus === "success" && (
+          <p className="text-sm text-green-600 dark:text-green-400">{resendMessage}</p>
+        )}
+        {resendStatus === "alreadyVerified" && (
+          <p className="text-sm text-green-600 dark:text-green-400">
+            {resendMessage}
+            {" "}
+            <Link href="/login" className="font-medium text-ds-text-brand hover:text-ds-palette-purple-700">
+              Sign in now
+            </Link>
+          </p>
+        )}
+        {resendStatus === "error" && (
+          <p className="text-sm text-red-500">{resendMessage}</p>
+        )}
       </form>
     </main>
   );

@@ -76,6 +76,19 @@ attach them to) — scheduled as a backlog cleanup task below. The `no-response`
       cache/localStorage where the local form draft is gone, or interrupted registrations. Requires
       an inventory of how assets are referenced post-registration, a retention policy (e.g. age-based),
       and a scoped cleanup job that only deletes assets outside active account folders.
+- [ ] Profile address management is non-functional (feedback gap found in 2026-08-15 auth feedback
+      audit) — `components/features/ProfilePage.tsx` addresses tab renders an `AddressForm` wired to a
+      no-op `onChange` with no Save button, and per-address Edit/Delete buttons have no handlers.
+      `/api/users/[id]/addresses` only supports GET. Requires POST/PUT/DELETE address routes plus
+      Save/Edit/Delete handlers with loading + success/error toasts.
+- [ ] Contact form on `/contact` is a dead affordance (feedback gap found in 2026-08-15 auth feedback
+      audit) — `app/contact/page.tsx` "Send Message" form has no `onSubmit` and posts nowhere. Requires
+      a backend `/api/contact` route (or reuse of bug-report infrastructure) plus loading + success/error
+      states; otherwise the form should be removed in favour of the static contact channels.
+- [ ] Login "Please verify your email address before logging in" only fires after a correct password,
+      leaking that the account exists and the password is right (security nuance flagged in 2026-08-15
+      audit) — decide whether to return the verification-pending message regardless of password
+      correctness and document the tradeoff.
 
 ---
 

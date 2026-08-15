@@ -38,6 +38,10 @@ const SIGNUP_ERROR_MAP: Record<string, string> = {
 const PASSWORD_ERROR_MAP: Record<string, string> = {
   "Failed to send reset email":
     "We couldn\u2019t send a reset email right now. Please try again in a moment.",
+  "No account found with that email address.":
+    "No account found with that email address. Check the email you entered or create a new account.",
+  "We couldn't send the reset email right now. Please try again in a few minutes.":
+    "We couldn\u2019t send the reset email right now. Please try again in a few minutes.",
   "Invalid or expired reset token":
     "This reset link has expired or is invalid. Please request a new one.",
   "Invalid reset link. Please request a new password reset.":

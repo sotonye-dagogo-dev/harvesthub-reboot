@@ -401,9 +401,47 @@ export default function ProfilePage() {
                 </div>
                 <Upload
                   showUploadList={false}
-                  beforeUpload={() => {
-                    message.success("Profile picture updated");
-                    return false;
+                  accept="image/jpeg,image/png,image/webp"
+                  customRequest={async ({ file, onSuccess, onError }) => {
+                    try {
+                      const formData = new FormData();
+                      formData.append("file", file as Blob);
+                      formData.append("folderType", "profile");
+                      formData.append("skipPersistence", "true");
+
+                      const res = await fetch("/api/upload", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const payload = await res.json().catch(() => ({}));
+                      if (!res.ok || !payload?.url) {
+                        throw new Error(
+                          payload?.error || "Failed to upload profile picture"
+                        );
+                      }
+
+                      const updateRes = await fetch(`/api/users/${user.id}/profile`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ profilePicture: payload.url }),
+                      });
+                      const updatePayload = await updateRes.json().catch(() => ({}));
+                      if (!updateRes.ok) {
+                        throw new Error(
+                          updatePayload?.error || "Failed to save profile picture"
+                        );
+                      }
+
+                      onSuccess?.(payload);
+                      await refreshUser();
+                      await refreshProfileResource(true);
+                      message.success("Profile picture updated");
+                    } catch (err) {
+                      const errMessage =
+                        err instanceof Error ? err.message : "Unable to upload profile picture";
+                      message.error(errMessage);
+                      onError?.(err as Error);
+                    }
                   }}
                 >
                   <button

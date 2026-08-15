@@ -155,9 +155,8 @@ export default function OperationsVendorsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
 
-      if (data?.emailDispatch?.attempted && !data?.emailDispatch?.sent) {
-        message.warning("Vendor status updated, but review email delivery failed.");
-      }
+      const emailDispatchFailed =
+        data?.emailDispatch?.attempted && !data?.emailDispatch?.sent;
 
       mutate((prev) => {
         if (!prev) {
@@ -174,10 +173,10 @@ export default function OperationsVendorsPage() {
       if (status === VendorStatus.APPROVED || status === VendorStatus.REJECTED) {
         void refresh(true);
       }
-      return true;
+      return { ok: true, emailDispatchFailed };
     } catch (err) {
       message.error(err instanceof Error ? err.message : "Failed to update vendor status");
-      return false;
+      return { ok: false, emailDispatchFailed: false };
     } finally {
       setLoadingId(null);
     }
@@ -185,15 +184,31 @@ export default function OperationsVendorsPage() {
 
   const handleApprove = (vendorId: string) => {
     openActionConfirm(ActionConfirmPresets.approve("vendor"), async () => {
-      const ok = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
-      if (ok) message.success("Vendor approved successfully");
+      const result = await updateVendorStatus(vendorId, VendorStatus.APPROVED);
+      if (result?.ok) {
+        if (result.emailDispatchFailed) {
+          message.warning(
+            "Vendor approved, but the review email couldn't be delivered. You may need to contact them directly."
+          );
+        } else {
+          message.success("Vendor approved successfully");
+        }
+      }
     });
   };
 
   const handleReject = (vendorId: string) => {
     openActionConfirm(ActionConfirmPresets.reject("vendor"), async () => {
-      const ok = await updateVendorStatus(vendorId, VendorStatus.REJECTED);
-      if (ok) message.warning("Vendor application rejected");
+      const result = await updateVendorStatus(vendorId, VendorStatus.REJECTED);
+      if (result?.ok) {
+        if (result.emailDispatchFailed) {
+          message.warning(
+            "Vendor application rejected, but the review email couldn't be delivered. You may need to contact them directly."
+          );
+        } else {
+          message.warning("Vendor application rejected");
+        }
+      }
     });
   };
 

@@ -76,13 +76,21 @@ export interface RegisterData {
   isChurchAffiliated?: boolean;
 }
 
+// Registration response (surface the email-delivery outcome so callers can react).
+export interface RegisterResponse {
+  success?: boolean;
+  needsEmailVerification?: boolean;
+  emailDelivered?: boolean;
+  user?: AuthUser;
+}
+
 // Auth context type
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials & { rememberMe?: boolean }) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<RegisterResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -166,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Register function
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterData): Promise<RegisterResponse> => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: {
