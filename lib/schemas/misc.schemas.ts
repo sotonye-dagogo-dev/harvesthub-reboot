@@ -77,7 +77,7 @@ const addressBaseSchema = z.object({
     addressLine2: z.string().max(200, 'Address line 2 too long').optional().nullable(),
     city: z.string().min(2, 'City is required').trim(),
     state: z.string().min(2, 'State is required').trim(),
-    campus: z.nativeEnum(Campus),
+    campus: z.nativeEnum(Campus).optional().nullable(),
     landmark: z.string().max(200, 'Landmark too long').optional().nullable(),
     isDefault: z.boolean().default(false),
 });
@@ -141,7 +141,8 @@ export const updateReviewSchema = z.object({
         .number()
         .int('Rating must be a whole number')
         .min(VALIDATION_RULES.MIN_RATING, `Minimum rating is ${VALIDATION_RULES.MIN_RATING}`)
-        .max(VALIDATION_RULES.MAX_RATING, `Maximum rating is ${VALIDATION_RULES.MAX_RATING}`),
+        .max(VALIDATION_RULES.MAX_RATING, `Maximum rating is ${VALIDATION_RULES.MAX_RATING}`)
+        .optional(),
     comment: z
         .string()
         .max(VALIDATION_RULES.MAX_REVIEW_LENGTH, `Review must not exceed ${VALIDATION_RULES.MAX_REVIEW_LENGTH} characters`)

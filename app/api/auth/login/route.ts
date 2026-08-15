@@ -51,9 +51,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!user.isActive) {
+        // Verification-pending accounts get the same 403 regardless of whether the
+        // password matches, so the verification status is not a password oracle.
+        if (!user.emailVerified) {
             return NextResponse.json(
-                { error: 'Account is inactive. Please contact support.' },
+                { error: 'Please verify your email address before logging in', needsEmailVerification: true },
                 { status: 403 }
             );
         }
@@ -66,9 +68,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!user.emailVerified) {
+        // Inactive status is only revealed to a caller with valid credentials.
+        if (!user.isActive) {
             return NextResponse.json(
-                { error: 'Please verify your email address before logging in', needsEmailVerification: true },
+                { error: 'Account is inactive. Please contact support.' },
                 { status: 403 }
             );
         }

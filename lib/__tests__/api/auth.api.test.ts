@@ -5,7 +5,11 @@
 
 import { describe, it, expect } from 'vitest';
 
-describe('Authentication API Integration Tests', () => {
+// Requires a running dev server (npm run dev) with a seeded database.
+// Run explicitly with: RUN_INTEGRATION=1 npx vitest run lib/__tests__/api
+const runIntegration = process.env.RUN_INTEGRATION === '1';
+
+describe.skipIf(!runIntegration)('Authentication API Integration Tests', () => {
     describe('POST /api/auth/register', () => {
         it('should register a new buyer successfully', async () => {
             const newBuyer = {

@@ -6,6 +6,20 @@ import * as matchers from "@testing-library/jest-dom/matchers";
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);
 
+// jose 6.x webapi build uses `payload instanceof Uint8Array` in FlattenedSign.
+// Under vitest's jsdom environment, globalThis.TextEncoder.encode() returns a
+// Uint8Array created in a different realm than the ambient global Uint8Array,
+// so `instanceof` fails even though the value is a genuine Uint8Array. Align
+// the global constructors to the realm that TextEncoder produces.
+const probe = new TextEncoder().encode("probe");
+const encoderRealmUint8Array = probe.constructor as typeof Uint8Array;
+if (encoderRealmUint8Array && encoderRealmUint8Array !== globalThis.Uint8Array) {
+  globalThis.Uint8Array = encoderRealmUint8Array;
+  if (typeof window !== "undefined") {
+    window.Uint8Array = encoderRealmUint8Array;
+  }
+}
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();

@@ -23,7 +23,7 @@ describe("FilterSidebar Component", () => {
     it("should render filters header", () => {
       render(<FilterSidebar {...defaultProps} />);
 
-      expect(screen.getByText(/Filters/i)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /filters/i })).toBeInTheDocument();
     });
 
     it("should render clear all button", () => {
@@ -255,7 +255,7 @@ describe("FilterSidebar Component", () => {
     it("should render mobile filter toggle button", () => {
       render(<FilterSidebar {...defaultProps} />);
 
-      const toggleButton = screen.getByText("Filters");
+      const toggleButton = screen.getByRole("button", { name: /filters/i });
       expect(toggleButton).toBeInTheDocument();
     });
   });

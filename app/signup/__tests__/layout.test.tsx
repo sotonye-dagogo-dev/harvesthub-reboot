@@ -81,14 +81,14 @@ describe("SignupLayout", () => {
     expect(mocks.push).toHaveBeenCalledWith("/signup/user-info");
   });
 
-  it("keeps signup route-group footer without nested header regression", () => {
+  it("omits footer on signup route-group without nested header regression", () => {
     render(
       <SignupLayout>
         <div>Signup Child</div>
       </SignupLayout>
     );
 
-    expect(screen.getByTestId("signup-footer")).toBeInTheDocument();
+    expect(screen.queryByTestId("signup-footer")).not.toBeInTheDocument();
     expect(screen.queryByTestId("shell-header")).not.toBeInTheDocument();
   });
 });

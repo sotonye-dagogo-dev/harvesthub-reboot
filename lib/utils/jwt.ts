@@ -54,7 +54,6 @@ export interface JWTPayload {
  */
 export async function generateAccessToken(userId: string, email: string, role: UserRole, emailVerified = false): Promise<string> {
     const secret = getAccessSecret();
-    console.log('generateAccessToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,
@@ -77,7 +76,6 @@ export async function generateAccessToken(userId: string, email: string, role: U
  */
 export async function generateRefreshToken(userId: string, email: string, role: UserRole, emailVerified = false): Promise<string> {
     const secret = getRefreshSecret();
-    console.log('generateRefreshToken secret type', secret.constructor.name, secret instanceof Uint8Array);
     const token = await new SignJWT({
         userId,
         email,

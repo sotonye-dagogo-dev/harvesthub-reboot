@@ -14,6 +14,25 @@ vi.mock("@/lib/db/prisma", () => ({
   prisma: prismaMock,
 }));
 
+vi.mock("next/headers", () => ({
+  headers: () => ({ get: () => null }),
+}));
+
+vi.mock("@/lib/contexts/ToastContext", () => ({
+  useToast: () => ({
+    message: {},
+    notify: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+  }),
+}));
+
+vi.mock("@/lib/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: null }),
+}));
+
 import ProductDetailPage from "@/app/products/[id]/page";
 
 describe("ProductDetailPage fallbacks", () => {

@@ -274,7 +274,14 @@ export default function OperationsBannersPage() {
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => handleToggleActive(record.id, record.isActive)}
+            onClick={() =>
+              openActionConfirm(
+                record.isActive
+                  ? ActionConfirmPresets.deactivate("banner")
+                  : ActionConfirmPresets.activate("banner"),
+                () => handleToggleActive(record.id, record.isActive)
+              )
+            }
           >
             {record.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>

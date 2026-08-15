@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
             prisma.vendor.findMany({
                 where,
                 include: {
-                    user: { select: { id: true, firstName: true, lastName: true, email: true } },
+                    user: { select: { id: true, firstName: true, lastName: true, email: true, profilePicture: true } },
                     _count: { select: { products: true } },
                 },
                 orderBy: { createdAt: 'desc' },
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
                     deliveryZones: [],
                 },
             },
-            include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+            include: { user: { select: { id: true, firstName: true, lastName: true, email: true, profilePicture: true } } },
         });
 
         return NextResponse.json({ success: true, vendor }, { status: 201 });

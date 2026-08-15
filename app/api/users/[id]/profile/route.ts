@@ -8,6 +8,8 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { CAMPUS_LOCATIONS, POSITION_OPTIONS, VENDOR_CATEGORIES, UserRole } from '@/lib/constants';
 import { z } from 'zod';
+import { cacheInvalidate } from '@/lib/cache/redis';
+import { userProfileKey } from '@/lib/cache/keys';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
@@ -201,6 +203,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 
             return userUpdated;
         });
+
+        await cacheInvalidate(userProfileKey(id));
 
         return NextResponse.json({ success: true, user: updated });
     } catch (error) {

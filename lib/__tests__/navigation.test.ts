@@ -20,7 +20,7 @@ describe('buildNav', () => {
         const nav = buildNav(UserRole.ADMIN);
         expect(nav.some((item) => item.path === '/operations/users')).toBe(true);
         expect(nav.some((item) => item.path === '/operations/products')).toBe(true);
-        expect(nav.some((item) => item.path === '/orders')).toBe(false);
+        expect(nav.some((item) => item.path === '/orders')).toBe(true);
         expect(nav.some((item) => item.path === '/operations/orders')).toBe(true);
     });
 

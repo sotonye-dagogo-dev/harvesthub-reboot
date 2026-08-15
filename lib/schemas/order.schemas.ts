@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { DeliveryMethod, PickupService, Campus, PaymentMethod } from '@/lib/constants';
+import { DeliveryMethod, PickupService, Campus, PaymentMethod, OrderStatus } from '@/lib/constants';
 
 // ============================================================================
 // CART ITEM SCHEMA
@@ -106,7 +106,9 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 export const updateOrderStatusSchema = z.object({
     orderId: z.string().min(1, 'Order ID is required').optional(),
-    status: z.string().min(1, 'Status is required'),
+    status: z.nativeEnum(OrderStatus, {
+        errorMap: () => ({ message: 'Invalid order status' }),
+    }),
     notes: z.string().max(500, 'Notes too long').optional().nullable(),
 });
 

@@ -24,6 +24,40 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 
 ---
 
+## Session 96 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green (2026-08-15)
+
+> **Section summary:** Closed out the 2026-08-15 auth/feedback audit backlog: fixed the profile
+> picture pipeline (cache invalidation + vendors-list `profilePicture`), eliminated the login
+> verification-pending password oracle, replaced the dead `/contact` form with the live bug-report
+> flow, implemented full address CRUD on the profile addresses tab, added notification-delete +
+> admin-content save/delete feedback, and added confirmations for vendor-content approval and banner
+> toggles. Then drove the vitest suite fully green (107 files / 498 passed / 32 integration skipped
+> behind `RUN_INTEGRATION=1`), restoring the `updateOrderStatusSchema` status enum and fixing stale
+> schema/component tests.
+
+- [x] Profile picture cache invalidation — `app/api/users/[id]/profile/route.ts` now calls
+      `cacheInvalidate(userProfileKey(id))` after PUT; `app/api/vendors/route.ts` list+POST `user`
+      select includes `profilePicture` (fixes fallback avatar).
+- [x] jose 6.1.3 jsdom realm fix — `vitest.setup.tsx` aligns `globalThis.Uint8Array`/`window.Uint8Array`
+      with the Node-realm `TextEncoder` output; stale JWT tests updated to the `userId` claim;
+      `jwt.utils.test` 15/15 green.
+- [x] Login oracle fix — `app/api/auth/login/route.ts` returns verification-pending (403) regardless
+      of password correctness; decision documented in `project-decisions.md`.
+- [x] Dead `/contact` form removed → static channels + "Report a Problem" card linking to `/bug-report`.
+- [x] Address CRUD — `app/api/users/[id]/addresses/route.ts` GET/POST/PUT/DELETE with owner-or-admin
+      guard + isDefault de-dup; `ProfilePage` addresses tab wired (Save/Edit/Delete + toasts).
+- [x] Feedback gaps — `NotificationContext.deleteNotification` → `Promise<boolean>` with success/error
+      toasts in NotificationBell/Drawer/Inbox; BlogAdminPanel + PublicContentAdminPanel save/delete
+      toasts + try/catch; vendor-content approve + banner toggle confirmations.
+- [x] Test-suite green — API integration tests gated behind `RUN_INTEGRATION=1`; restored
+      `OrderStatus` nativeEnum in `updateOrderStatusSchema`; fixed stale auth/order/product/navigation
+      schema tests and OrderCard/Header/FilterSidebar/PhoneInput/layout/orders-page.admin/page.fallbacks
+      component tests; FilterSidebar rating de-select source bug fixed via `onClick` re-check;
+      PhoneInput antd single aria-label + `popupMatchSelectWidth`. Full suite: 107 files / 498 passed
+      / 32 skipped; `npx tsc --noEmit` clean; lint clean; `npm run build` exit 0.
+
+---
+
 ## Session 94 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix (2026-08-13)
 
 > **Section summary:** Allowed listed non-image file types (PDFs, videos, and other whitelisted
@@ -76,19 +110,21 @@ attach them to) — scheduled as a backlog cleanup task below. The `no-response`
       cache/localStorage where the local form draft is gone, or interrupted registrations. Requires
       an inventory of how assets are referenced post-registration, a retention policy (e.g. age-based),
       and a scoped cleanup job that only deletes assets outside active account folders.
-- [ ] Profile address management is non-functional (feedback gap found in 2026-08-15 auth feedback
+- [x] Profile address management is non-functional (feedback gap found in 2026-08-15 auth feedback
       audit) — `components/features/ProfilePage.tsx` addresses tab renders an `AddressForm` wired to a
       no-op `onChange` with no Save button, and per-address Edit/Delete buttons have no handlers.
-      `/api/users/[id]/addresses` only supports GET. Requires POST/PUT/DELETE address routes plus
-      Save/Edit/Delete handlers with loading + success/error toasts.
-- [ ] Contact form on `/contact` is a dead affordance (feedback gap found in 2026-08-15 auth feedback
-      audit) — `app/contact/page.tsx` "Send Message" form has no `onSubmit` and posts nowhere. Requires
-      a backend `/api/contact` route (or reuse of bug-report infrastructure) plus loading + success/error
-      states; otherwise the form should be removed in favour of the static contact channels.
-- [ ] Login "Please verify your email address before logging in" only fires after a correct password,
+      `/api/users/[id]/addresses` only supports GET. **Resolved Session 96 (2026-08-15):** POST/PUT/DELETE
+      address routes added to `/api/users/[id]/addresses`, ProfilePage address form wired with
+      Save/Edit/Delete handlers + loading and success/error toasts.
+- [x] Contact form on `/contact` is a dead affordance (feedback gap found in 2026-08-15 auth feedback
+      audit) — `app/contact/page.tsx` "Send Message" form has no `onSubmit` and posts nowhere.
+      **Resolved Session 96 (2026-08-15):** dead form removed; page now points to the live
+      `/bug-report` flow alongside static contact channels.
+- [x] Login "Please verify your email address before logging in" only fires after a correct password,
       leaking that the account exists and the password is right (security nuance flagged in 2026-08-15
       audit) — decide whether to return the verification-pending message regardless of password
-      correctness and document the tradeoff.
+      correctness and document the tradeoff. **Resolved Session 96 (2026-08-15):** verification-pending
+      now returned regardless of password correctness; tradeoff documented in `project-decisions.md`.
 
 ---
 

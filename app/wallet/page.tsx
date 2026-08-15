@@ -445,7 +445,7 @@ export default function WalletPage() {
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Transaction History</h2>
             <div className="mb-3">
-              <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+              <Button type="button" variant="outline" size="sm" loading={isRefreshing} onClick={() => void refresh(true)}>
                 Refresh
               </Button>
             </div>

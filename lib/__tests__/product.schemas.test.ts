@@ -12,7 +12,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -27,7 +27,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: -100,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -47,7 +47,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 0,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -62,7 +62,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: -10,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -77,7 +77,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: [],
                 vendorId: 'vendor-123',
@@ -97,7 +97,7 @@ describe('Product Validation Schemas', () => {
                 name: 'T-Shirt',
                 description: 'Cotton t-shirt in various sizes',
                 price: 5000,
-                category: 'Fashion & Apparel',
+                category: 'MENS_FASHION',
                 stock: 100,
                 images: ['https://example.com/tshirt.jpg'],
                 vendorId: 'vendor-123',
@@ -124,7 +124,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -140,7 +140,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -156,7 +156,7 @@ describe('Product Validation Schemas', () => {
                 name: 'AB',
                 description: 'Locally grown fresh tomatoes',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -171,7 +171,7 @@ describe('Product Validation Schemas', () => {
                 name: 'Fresh Tomatoes',
                 description: 'Short',
                 price: 5000,
-                category: 'Farm Produce',
+                category: 'AGRICULTURE',
                 stock: 100,
                 images: ['https://example.com/tomato.jpg'],
                 vendorId: 'vendor-123',
@@ -185,6 +185,7 @@ describe('Product Validation Schemas', () => {
     describe('updateProductSchema', () => {
         it('should validate partial product updates', () => {
             const partialUpdate = {
+                id: 'product-123',
                 price: 6000,
                 stock: 150,
             };
@@ -195,6 +196,7 @@ describe('Product Validation Schemas', () => {
 
         it('should validate updating only name', () => {
             const nameUpdate = {
+                id: 'product-123',
                 name: 'Premium Fresh Tomatoes',
             };
 
@@ -204,6 +206,7 @@ describe('Product Validation Schemas', () => {
 
         it('should reject invalid partial updates', () => {
             const invalidUpdate = {
+                id: 'product-123',
                 price: -100,
             };
 
@@ -212,7 +215,9 @@ describe('Product Validation Schemas', () => {
         });
 
         it('should allow empty object (no updates)', () => {
-            const emptyUpdate = {};
+            const emptyUpdate = {
+                id: 'product-123',
+            };
 
             const result = updateProductSchema.safeParse(emptyUpdate);
             expect(result.success).toBe(true);

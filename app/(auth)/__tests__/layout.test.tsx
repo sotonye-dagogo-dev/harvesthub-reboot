@@ -7,14 +7,14 @@ vi.mock("@/components/layout", () => ({
 }));
 
 describe("AuthLayout", () => {
-  it("renders footer and does not render nested operations header", () => {
+  it("omits footer and does not render nested operations header", () => {
     render(
       <AuthLayout>
         <div>Auth Child</div>
       </AuthLayout>
     );
 
-    expect(screen.getByTestId("auth-footer")).toBeInTheDocument();
+    expect(screen.queryByTestId("auth-footer")).not.toBeInTheDocument();
     expect(screen.queryByTestId("shell-header")).not.toBeInTheDocument();
   });
 });
