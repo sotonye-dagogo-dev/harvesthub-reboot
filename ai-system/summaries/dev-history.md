@@ -24,6 +24,45 @@
 [What comes next]
 ```
 
+## 2026-08-15 — Forgot-Password Feedback Fix + UI/UX Feedback-Gap Audit
+
+**Summary:**
+Fixed the forgot-password flow so submitting an email not in the database no longer shows the fake
+"Check Your Email / link sent" success view — users now get truthful, actionable feedback. Audited
+the codebase for similar UI/UX feedback gaps and fixed the high-value ones: resend-verification and
+verify-email now surface real send results (including an `emailDelivered=0` warning), change-email
+surfaces send failures, the profile-picture "upload success" toast now reflects a real upload, and
+vendor approve/reject no longer shows contradictory success + email-failure toasts. Larger gaps were
+logged to the backlog.
+
+**Completed:**
+- `app/api/auth/forgot-password/route.ts` + `app/(auth)/forgot-password/page.tsx` — unknown email →
+  `404 USER_NOT_FOUND` with "No account found with that email address" + "Create an account" link;
+  send failure → `502 EMAIL_DELIVERY_FAILED`; success view only on real success.
+- `app/api/auth/resend-verification/route.tsx` + `app/verify-email/page.tsx` — awaited send,
+  `404 USER_NOT_FOUND`, `alreadyVerified:true`, `502 EMAIL_DELIVERY_FAILED`, `emailDelivered=0`
+  warning banner, and rendered success/alreadyVerified/error feedback.
+- `app/api/auth/register/route.ts` + `lib/contexts/AuthContext.tsx` + `app/signup/security-info/page.tsx`
+  — register response carries `emailDelivered`; `register()` returns `Promise<RegisterResponse>`;
+  redirects to `/verify-email?emailDelivered=0` when delivery failed.
+- `lib/utils/authMessages.ts` — added password-error mappings for the new messages.
+- `app/api/users/me/change-email/route.ts` — surfaced send failure via `apiError(..., 502)`.
+- `components/features/ProfilePage.tsx` — real profile-picture upload replaces the fake success toast.
+- `app/(operations)/operations/vendors/page.tsx` + `[id]/page.tsx` — single non-contradictory
+  approve/reject toast; `updateVendorStatus` returns `{ok, emailDispatchFailed}`.
+- `ai-system/planning/task-queue.md` — backlog: address management dead form, `/contact` no-op form,
+  login verify-email enumeration nuance.
+- Tests: `app/(auth)/__tests__/forgot-password.test.tsx` (3), `lib/utils/__tests__/authMessages.test.ts` (4).
+
+**Key Changes:**
+- Dropped the anti-account-enumeration generic success for auth email flows; distinct codes
+  (`USER_NOT_FOUND`, `EMAIL_DELIVERY_FAILED`, `alreadyVerified`) are now returned. Rate limiting
+  (`rateLimitStrict`) still bounds enumeration. Tradeoff documented in session-log and task-queue.
+
+**Next Sprint Focus:**
+Pick up backlog items (stale-asset cleanup, address management, `/contact` form, login enumeration
+nuance) from `planning/task-queue.md`.
+
 ## 2026-08-13 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix
 
 **Summary:**

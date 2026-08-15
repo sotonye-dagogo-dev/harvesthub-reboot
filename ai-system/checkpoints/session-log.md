@@ -4,6 +4,79 @@
 
 ---
 
+## Session 95 — Forgot-Password Feedback Fix + UI/UX Feedback-Gap Audit — 2026-08-15
+
+**Goal:**
+(1) Fix the forgot-password flow so a user submitting an email not in the DB no longer lands on
+the fake "Check Your Email / link sent" success view — they must get truthful, actionable feedback.
+(2) Audit the codebase for similar UI/UX feedback gaps (misleading success states, swallowed
+errors, dead controls) and fix the high-value ones; log larger gaps as backlog.
+
+**Product decision (documented tradeoff):** the anti-account-enumeration generic success was dropped
+for auth email flows; distinct codes are now returned (`USER_NOT_FOUND`, `EMAIL_DELIVERY_FAILED`,
+`alreadyVerified`). Rate limiting (`rateLimitStrict`) still bounds enumeration.
+
+**Completed:**
+
+- `app/api/auth/forgot-password/route.ts`: unknown email → `404 {success:false, code:"USER_NOT_FOUND"}`;
+  email-send failure → `502 {success:false, code:"EMAIL_DELIVERY_FAILED"}`; success →
+  `200 {success:true, message:"Password reset link sent. Check your email."}`
+- `app/(auth)/forgot-password/page.tsx`: `FeedbackState` union (`none|success|notFound|deliveryFailed`);
+  inline warning Alert "No account found with that email address" + "Create an account" link for
+  notFound; error Alert for deliveryFailed; success view only rendered on real success; "try again"
+  resets state.
+- `lib/utils/authMessages.ts`: added friendly password-error mappings for the new messages.
+- `app/api/auth/resend-verification/route.tsx`: awaited send; `404 USER_NOT_FOUND`;
+  `200 {alreadyVerified:true}` for already-verified accounts; `502 EMAIL_DELIVERY_FAILED`.
+- `app/verify-email/page.tsx`: new `resendStatus`/`resendMessage` state; `emailDelivered=0` warning
+  banner; rendered success/alreadyVerified/error resend feedback ("Sign in now" link).
+- `app/api/auth/register/route.ts`: response now includes `emailDelivered: verifyResult.success`.
+- `lib/contexts/AuthContext.tsx`: added `RegisterResponse` interface; `register` now returns
+  `Promise<RegisterResponse>`.
+- `app/signup/security-info/page.tsx`: appends `emailDelivered=0` query param to `/verify-email`
+  redirect when delivery failed.
+- `app/api/users/me/change-email/route.ts`: surfaced send failure via `apiError(..., 502)`.
+- `components/features/ProfilePage.tsx`: replaced fake profile-picture "upload success" toast with a
+  real `customRequest` → `/api/upload` (`folderType: profile`, `skipPersistence: true`) + PUT
+  `/api/users/[id]/profile` + `refreshUser()`/`refreshProfileResource(true)` + success/error toasts.
+- `app/(operations)/operations/vendors/page.tsx` + `[id]/page.tsx`: combined the contradictory
+  success + email-failure toasts into one non-contradictory message; list
+  `updateVendorStatus` now returns `{ok, emailDispatchFailed}`.
+- `ai-system/planning/task-queue.md`: added backlog items — address management dead form, `/contact`
+  form no-op, login verify-email-after-correct-password enumeration nuance (stale-asset cleanup
+  already existed).
+- Tests added: `app/(auth)/__tests__/forgot-password.test.tsx` (3 tests),
+  `lib/utils/__tests__/authMessages.test.ts` (4 tests) — all 7 pass.
+
+**Files Modified:**
+- `app/api/auth/forgot-password/route.ts`
+- `app/(auth)/forgot-password/page.tsx`
+- `lib/utils/authMessages.ts`
+- `app/api/auth/resend-verification/route.tsx`
+- `app/verify-email/page.tsx`
+- `app/api/auth/register/route.ts`
+- `lib/contexts/AuthContext.tsx`
+- `app/signup/security-info/page.tsx`
+- `app/api/users/me/change-email/route.ts`
+- `components/features/ProfilePage.tsx`
+- `app/(operations)/operations/vendors/page.tsx`
+- `app/(operations)/operations/vendors/[id]/page.tsx`
+- `ai-system/planning/task-queue.md`
+- `ai-system/testing/test-results.md`
+- `app/(auth)/__tests__/forgot-password.test.tsx` (new)
+- `lib/utils/__tests__/authMessages.test.ts` (new)
+
+**Validation:**
+- `npx tsc --noEmit` ✅
+- `npx next lint --file ...` (11 touched files) ✅
+- `npx next build` (exit 0) ✅
+- New tests (7) ✅
+- Full `npx vitest run`: 67 failed / 451 passed / 12 skipped — all 67 failures pre-existing and
+  documented (verified identical failing-file set on the clean base via `git stash`): ECONNREFUSED
+  integration tests, schema assertion failures, footer layout tests, JWT/misc schema tests.
+
+---
+
 ## Session 94 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix — 2026-08-13
 
 **Goal:**

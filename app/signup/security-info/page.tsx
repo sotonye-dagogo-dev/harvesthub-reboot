@@ -103,7 +103,7 @@ export default function SecurityInfoPage() {
         }),
       };
 
-      await register(payload);
+      const responseData = await register(payload);
 
       // Redirect to verify email page
       const continuationFromQuery = sanitizeInternalRedirectPath(searchParams.get("from"), "");
@@ -113,6 +113,11 @@ export default function SecurityInfoPage() {
       });
       if (continuation) {
         verifyParams.set("from", continuation);
+      }
+      // Surface whether the verification email actually went out so the verify-email
+      // page can warn the user instead of leaving them on a "check your inbox" dead-end.
+      if (responseData && responseData.emailDelivered === false) {
+        verifyParams.set("emailDelivered", "0");
       }
       router.push(`/verify-email?${verifyParams.toString()}`);
     } catch (error) {
