@@ -332,7 +332,13 @@ export default function OperationsUsersPage() {
               { value: "INACTIVE", label: "Suspended" },
             ]}
           />
-          <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={isRefreshing}
+            onClick={() => void refresh(true)}
+          >
             Refresh
           </Button>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Badge, openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
+import { message } from "antd";
 import { fetchJson } from "@/lib/utils";
 import ImageUpload from "@/components/ui/ImageUpload";
 import {
@@ -164,6 +165,7 @@ export function BlogAdminPanel() {
 
     try {
       setSaving(true);
+      const wasEditing = Boolean(editingId);
       const customMetadata = parseMetadataJson(form.metadataJson);
       const payload = {
         slug,
@@ -195,6 +197,7 @@ export function BlogAdminPanel() {
 
       resetEditor();
       await fetchAll();
+      message.success(wasEditing ? "Blog post updated" : "Blog post created");
     } catch (e: any) {
       setError(e?.message ?? "Failed to save blog post");
     } finally {
@@ -227,11 +230,16 @@ export function BlogAdminPanel() {
   };
 
   const onDelete = async (item: BlogPostItem) => {
-    await fetchJson(`/api/admin/blog/${encodeURIComponent(item.slug)}`, { method: "DELETE" });
-    if (editingId === item.id) {
-      resetEditor();
+    try {
+      await fetchJson(`/api/admin/blog/${encodeURIComponent(item.slug)}`, { method: "DELETE" });
+      if (editingId === item.id) {
+        resetEditor();
+      }
+      await fetchAll();
+      message.success("Blog post deleted");
+    } catch (e: any) {
+      message.error(e?.message ?? "Failed to delete blog post");
     }
-    await fetchAll();
   };
 
   const requestDelete = (item: BlogPostItem) => {

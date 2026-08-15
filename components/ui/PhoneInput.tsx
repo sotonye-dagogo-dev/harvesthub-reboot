@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useMemo, useState, useCallback } from "react";
+import { forwardRef, useEffect, useMemo, useState, useCallback, useId } from "react";
 import { Input, InputProps } from "./Input";
 import { Select } from "antd";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
   ) => {
     const [countryCode, setCountryCode] = useState(defaultCountryCode);
     const [localValue, setLocalValue] = useState("");
+    const countryCodeSelectId = useId();
 
     // When the controlled value changes, split it into code + local number
     useEffect(() => {
@@ -74,19 +75,22 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     const select = useMemo(
       () => (
         <Select
+          id={countryCodeSelectId}
           className="min-w-[80px] max-w-[110px] w-fit"
-          dropdownMatchSelectWidth={false}
+          popupMatchSelectWidth={false}
           value={countryCode}
           onChange={handleCountryChange}
           options={countryCodes}
-          aria-label="Country code"
         />
       ),
-      [countryCode, countryCodes, handleCountryChange]
+      [countryCode, countryCodes, handleCountryChange, countryCodeSelectId]
     );
 
     return (
       <div className={cn("flex items-center gap-2", className)}>
+        <label htmlFor={countryCodeSelectId} className="sr-only">
+          Country code
+        </label>
         {select}
         <Input
           ref={ref}

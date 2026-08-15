@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
                 where,
                 select: {
                     id: true, firstName: true, lastName: true, email: true, phoneNumber: true,
-                    role: true, isActive: true, emailVerified: true, profilePicture: true,
+                    role: true, isActive: true, status: true, emailVerified: true, profilePicture: true,
                     createdAt: true, updatedAt: true,
                 },
                 orderBy: { createdAt: 'desc' },

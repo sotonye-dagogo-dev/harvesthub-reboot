@@ -40,9 +40,7 @@ vi.mock("@/components/layout", () => ({
 
 import OrdersPage from "@/app/orders/page";
 
-function makeResourceState(
-  overrides?: Partial<SmartResourceState<any[]>>
-): SmartResourceState<any[]> {
+function makeResourceState(overrides?: Partial<SmartResourceState<any>>): SmartResourceState<any> {
   return {
     data: [],
     isLoading: false,
@@ -87,18 +85,21 @@ describe("OrdersPage client runtime behavior", () => {
     useAuthMock.mockReturnValue({ user: makeUser({ role: UserRole.ADMIN }), isLoading: false });
     useSmartResourceMock.mockReturnValue(
       makeResourceState({
-        data: [
-          {
-            id: "order-1",
-            orderNumber: "ORD-1001",
-            status: "PENDING",
-            total: 1200,
-            deliveryMethod: "DELIVERY",
-            deliveryAddress: { address: "Campus Avenue" },
-            createdAt: new Date().toISOString(),
-            items: [],
-          },
-        ],
+        data: {
+          orders: [
+            {
+              id: "order-1",
+              orderNumber: "ORD-1001",
+              status: "PENDING",
+              total: 1200,
+              deliveryMethod: "DELIVERY",
+              deliveryAddress: { address: "Campus Avenue" },
+              createdAt: new Date().toISOString(),
+              items: [],
+            },
+          ],
+          pagination: { total: 1, page: 1, limit: 12, totalPages: 1 },
+        },
       })
     );
 

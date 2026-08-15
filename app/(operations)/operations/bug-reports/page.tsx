@@ -244,10 +244,11 @@ export default function OperationsBugReportsPage() {
         </div>
         <button
           onClick={() => void refresh(true)}
-          className="flex items-center gap-2 rounded-ds-md border border-ds-border-base px-4 py-2 text-sm text-ds-text-secondary hover:bg-ds-surface-sunken"
+          disabled={isRefreshing}
+          className="flex items-center gap-2 rounded-ds-md border border-ds-border-base px-4 py-2 text-sm text-ds-text-secondary hover:bg-ds-surface-sunken disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
       {isRefreshing ? (

@@ -2202,3 +2202,33 @@ The design-asset viewer needs PDF text/structure extraction in one thin wrapper.
 
 - The design-asset viewer's extraction utility is a thin wrapper around whichever backend the stack favors.
 - Do not add both backends unless measurements justify it.
+
+## Login Verification-Pending and Inactive Checks Are Not Password Oracles
+
+**Decision:** In `POST /api/auth/login`, a verification-pending account (email not yet verified) always
+returns the same 403 "Please verify your email address" regardless of whether the submitted password is
+correct. The inactive-account check runs only after password verification, so an inactive status is only
+revealed to a caller holding valid credentials. Unknown emails still return the generic 401 "Invalid
+email or password".
+**Date:** 2026-08-15
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+Previously `isActive` was checked before password verification (status oracle), and the
+verification-pending branch ran after password verification, so a caller could probe password
+correctness for any unverified account by comparing the 401 vs 403 responses.
+
+**Alternatives Considered:**
+
+- Leave the ordering unchanged (rejected: leaks password correctness and account status).
+- Mask verification status entirely behind the generic 401 (rejected: genuine users are left with no
+  way to discover they must verify their email; the verification-pending response is an accepted
+  account-enumeration tradeoff since the account already belongs to the caller's known email).
+
+**Implications:**
+
+- A valid email + any wrong password on an unverified account yields the verification 403, not a
+  password hint. Rate limiting (`rateLimitStrict`) still applies to slow brute-force attempts.
+- The account-existence tradeoff is accepted and intentional: the verification-pending branch reveals
+  that an account exists for a given email, which is consistent with the existing forgot-password
+  anti-enumeration stance only insofar as the response still requires knowing the exact account email.

@@ -28,6 +28,7 @@ export default function OperationsUserDetailPage() {
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [pendingRole, setPendingRole] = useState<UserRole | null>(null);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -73,6 +74,27 @@ export default function OperationsUserDetailPage() {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const requestRoleChange = (nextRole: UserRole) => {
+    setPendingRole(nextRole);
+    openActionConfirm(
+      new ActionConfirmBuilder()
+        .title("Change user role")
+        .message(
+          `Update role for ${profileUser?.firstName} ${profileUser?.lastName} to ${nextRole}?`
+        )
+        .confirmText("Change Role")
+        .build(),
+      async () => {
+        try {
+          await updateUser({ role: nextRole });
+        } finally {
+          setPendingRole(null);
+        }
+      },
+      () => setPendingRole(null)
+    );
   };
 
   const deleteUser = async () => {
@@ -175,18 +197,9 @@ export default function OperationsUserDetailPage() {
                   <div className="relative">
                     <select
                       id="user-role"
-                      value={profileUser.role}
+                      value={pendingRole ?? profileUser.role}
                       onChange={(event) =>
-                        openActionConfirm(
-                          new ActionConfirmBuilder()
-                            .title("Change user role")
-                            .message(
-                              `Update role for ${profileUser.firstName} ${profileUser.lastName} to ${event.target.value}?`
-                            )
-                            .confirmText("Change Role")
-                            .build(),
-                          () => updateUser({ role: event.target.value as UserRole })
-                        )
+                        requestRoleChange(event.target.value as UserRole)
                       }
                       className="w-full appearance-none rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       disabled={actionLoading}

@@ -81,7 +81,7 @@ describe('JWT Utilities (jose library)', () => {
             const payload = await verifyAccessToken(token) as ExtendedJWTPayload | null;
 
             expect(payload).toBeDefined();
-            expect(payload?.sub).toBe(testUserId);
+            expect(payload?.userId).toBe(testUserId);
             expect(payload?.email).toBe(testEmail);
             expect(payload?.role).toBe(testRole);
             expect(payload?.emailVerified).toBe(false);
@@ -109,7 +109,7 @@ describe('JWT Utilities (jose library)', () => {
             const payload = await verifyRefreshToken(token) as ExtendedJWTPayload | null;
 
             expect(payload).toBeDefined();
-            expect(payload?.sub).toBe(testUserId);
+            expect(payload?.userId).toBe(testUserId);
         });
 
         it('should return null for invalid token', async () => {
@@ -124,7 +124,7 @@ describe('JWT Utilities (jose library)', () => {
             const token = await generateAccessToken(testUserId, testEmail, testRole);
             const payload = await verifyAccessToken(token);
 
-            expect(payload).toHaveProperty('sub');
+            expect(payload).toHaveProperty('userId');
             expect(payload).toHaveProperty('email');
             expect(payload).toHaveProperty('role');
             expect(payload).toHaveProperty('emailVerified');
@@ -136,7 +136,7 @@ describe('JWT Utilities (jose library)', () => {
             const token = await generateRefreshToken(testUserId, testEmail, testRole);
             const payload = await verifyRefreshToken(token);
 
-            expect(payload).toHaveProperty('sub');
+            expect(payload).toHaveProperty('userId');
             expect(payload).toHaveProperty('iat');
             expect(payload).toHaveProperty('exp');
         });

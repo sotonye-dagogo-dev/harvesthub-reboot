@@ -20,6 +20,17 @@ export default function ProfilePage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [addressForm, setAddressForm] = useState({
+    fullName: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    landmark: "",
+    isDefault: false,
+  });
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [savingAddress, setSavingAddress] = useState(false);
   const [emailChangeStatus, setEmailChangeStatus] = useState<{
     hasPendingEmailChange: boolean;
     pendingEmail: string | null;
@@ -249,6 +260,106 @@ export default function ProfilePage() {
       message.error(errMessage);
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const resetAddressForm = () => {
+    setAddressForm({
+      fullName: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      landmark: "",
+      isDefault: false,
+    });
+    setEditingAddressId(null);
+  };
+
+  const startEditAddress = (address: Address) => {
+    setEditingAddressId(address.id);
+    setAddressForm({
+      fullName: address.fullName,
+      phone: address.phoneNumber,
+      address: address.addressLine1,
+      city: address.city,
+      state: address.state,
+      landmark: address.landmark || "",
+      isDefault: address.isDefault,
+    });
+  };
+
+  const handleSaveAddress = async () => {
+    if (!user) return;
+
+    if (!addressForm.fullName.trim() || !addressForm.phone.trim() || !addressForm.address.trim()) {
+      message.warning("Please fill in your full name, phone number, and street address");
+      return;
+    }
+    if (!addressForm.city.trim() || !addressForm.state.trim()) {
+      message.warning("Please provide a city and state");
+      return;
+    }
+
+    setSavingAddress(true);
+    try {
+      const payload = {
+        fullName: addressForm.fullName.trim(),
+        phoneNumber: addressForm.phone.trim(),
+        addressLine1: addressForm.address.trim(),
+        city: addressForm.city.trim(),
+        state: addressForm.state.trim(),
+        landmark: addressForm.landmark.trim() || undefined,
+        isDefault: addressForm.isDefault,
+      };
+
+      const isEdit = Boolean(editingAddressId);
+      const res = await fetch(`/api/users/${user.id}/addresses`, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isEdit ? { id: editingAddressId, ...payload } : payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || (isEdit ? "Failed to update address" : "Failed to save address"));
+      }
+
+      await refreshProfileResource(true);
+      message.success(isEdit ? "Address updated successfully" : "Address saved successfully");
+      resetAddressForm();
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to save address";
+      message.error(errMessage);
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user) return;
+
+    setSavingAddress(true);
+    try {
+      const res = await fetch(`/api/users/${user.id}/addresses`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: addressId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete address");
+      }
+
+      await refreshProfileResource(true);
+      message.success("Address deleted");
+      if (editingAddressId === addressId) {
+        resetAddressForm();
+      }
+    } catch (error) {
+      const errMessage = error instanceof Error ? error.message : "Unable to delete address";
+      message.error(errMessage);
+    } finally {
+      setSavingAddress(false);
     }
   };
 
@@ -677,10 +788,21 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startEditAddress(address)}
+                          disabled={savingAddress}
+                        >
                           Edit
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteAddress(address.id)}
+                          disabled={savingAddress}
+                          loading={savingAddress && editingAddressId === address.id}
+                        >
                           Delete
                         </Button>
                       </div>
@@ -691,8 +813,23 @@ export default function ProfilePage() {
             </Card>
 
             <Card>
-              <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Add New Address</h2>
-              <AddressForm value={{}} onChange={() => {}} />
+              <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">
+                {editingAddressId ? "Edit Address" : "Add New Address"}
+              </h2>
+              <AddressForm
+                value={addressForm}
+                onChange={(value) => setAddressForm((prev) => ({ ...prev, ...value }))}
+              />
+              <div className="mt-4 flex gap-3">
+                <Button onClick={handleSaveAddress} loading={savingAddress}>
+                  {editingAddressId ? "Save Changes" : "Save Address"}
+                </Button>
+                {editingAddressId && (
+                  <Button variant="outline" onClick={resetAddressForm} disabled={savingAddress}>
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </Card>
           </div>
         )}

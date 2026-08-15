@@ -106,7 +106,7 @@ export default function OperationsDashboardPage() {
             <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing dashboard metrics...</p>
           ) : null}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+        <Button type="button" variant="outline" size="sm" loading={isRefreshing} onClick={() => void refresh(true)}>
           Refresh
         </Button>
       </div>

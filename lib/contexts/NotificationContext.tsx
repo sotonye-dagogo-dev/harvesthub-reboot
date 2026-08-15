@@ -20,7 +20,7 @@ interface NotificationContextType {
   fetchNotifications: (silent?: boolean) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  deleteNotification: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => Promise<boolean>;
   /**
    * Requests browser push permission when needed and synchronizes the current
    * browser push subscription with backend persistence.
@@ -177,7 +177,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const deleteNotification = useCallback(async (id: string) => {
+  const deleteNotification = useCallback(async (id: string): Promise<boolean> => {
     try {
       const res = await fetch(`/api/notifications/${id}`, {
         method: "DELETE",
@@ -194,9 +194,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         if (removedUnread) {
           setUnreadCount((prev) => Math.max(0, prev - 1));
         }
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Failed to delete notification:", error);
+      return false;
     }
   }, []);
 

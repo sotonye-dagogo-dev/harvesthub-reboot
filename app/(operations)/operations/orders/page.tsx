@@ -350,7 +350,7 @@ export default function OperationsOrdersPage() {
             <p className="mt-1 text-xs text-ds-text-tertiary">Refreshing orders...</p>
           ) : null}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+        <Button type="button" variant="outline" size="sm" loading={isRefreshing} onClick={() => void refresh(true)}>
           Refresh
         </Button>
       </div>

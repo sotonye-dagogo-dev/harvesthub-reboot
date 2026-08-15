@@ -73,7 +73,7 @@ describe("OrderCard Component", () => {
     it("should display DELIVERED status", () => {
       render(<OrderCard {...mockOrderProps} status={OrderStatus.DELIVERED} />);
 
-      expect(screen.getByText(/Completed/i)).toBeInTheDocument();
+      expect(screen.getByText(/Delivered/i)).toBeInTheDocument();
     });
 
     it("should display CANCELLED status", () => {

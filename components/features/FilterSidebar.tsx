@@ -177,6 +177,11 @@ export function FilterSidebar({
                 type="radio"
                 checked={filters.rating === rating}
                 onChange={() => handleRatingChange(rating)}
+                onClick={() => {
+                  if (filters.rating === rating) {
+                    handleRatingChange(rating);
+                  }
+                }}
                 className="h-4 w-4 border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
               />
               <span className="text-sm text-ds-text-secondary">{rating} stars & up</span>

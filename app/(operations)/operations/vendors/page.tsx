@@ -374,7 +374,7 @@ export default function OperationsVendorsPage() {
           ) : null}
           {error ? <p className="mt-1 text-xs text-ds-status-error-text">{error}</p> : null}
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => void refresh(true)}>
+        <Button type="button" variant="outline" size="sm" loading={isRefreshing} onClick={() => void refresh(true)}>
           <RefreshCw className="mr-1 h-4 w-4" />
           Refresh
         </Button>

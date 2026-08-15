@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Button, Segmented } from "antd";
+import { Button, Segmented, message } from "antd";
 import { Bell, CheckCheck, RefreshCw, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { EmptyState, SectionLoader, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
@@ -44,7 +44,12 @@ export function NotificationInbox() {
   const handleDelete = async (id: string) => {
     setBusyId(id);
     try {
-      await deleteNotification(id);
+      const ok = await deleteNotification(id);
+      if (ok) {
+        message.success("Notification deleted");
+      } else {
+        message.error("Failed to delete notification");
+      }
     } finally {
       setBusyId((current) => (current === id ? null : current));
     }
