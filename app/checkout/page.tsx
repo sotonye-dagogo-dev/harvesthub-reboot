@@ -217,7 +217,7 @@ export default function CheckoutPage() {
   const gatewayReady = paymentConfig?.gatewayReady ?? false;
   const cardPaymentsAvailable = paymentsEnabled && gatewayReady;
   const bankTransferFallbackEnabled = paymentConfig?.bankTransferFallbackEnabled ?? false;
-  const bankTransferAvailable = bankTransferFallbackEnabled && (!paymentsEnabled || !gatewayReady);
+  const bankTransferAvailable = bankTransferFallbackEnabled;
   const availableWalletBalance = walletSummary?.availableBalance ?? null;
   const hasSufficientWalletBalance =
     typeof availableWalletBalance === "number" ? availableWalletBalance >= total : true;
@@ -646,7 +646,8 @@ export default function CheckoutPage() {
               Card payment is temporarily unavailable
             </p>
             <p className="mt-1 text-xs text-ds-text-secondary">
-              Wallet checkout is still available while gateway credentials are being finalized.
+              Wallet checkout and bank-transfer (upload proof) are still available while gateway
+              credentials are being finalized.
             </p>
           </div>
         </div>

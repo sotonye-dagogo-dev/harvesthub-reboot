@@ -34,6 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     placement = "topRight",
   }: any) => {
     notification.open({
+      key: String(m),
       message: m as ReactNode,
       description: description as ReactNode,
       duration,
@@ -43,20 +44,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   };
 
   const success = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
-    msg.success(m, dur as number | undefined);
     if (d) notify({ type: "success", message: m, description: d, duration: dur });
+    else msg.success(m, dur as number | undefined);
   };
   const error = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
-    msg.error(m, dur as number | undefined);
     if (d) notify({ type: "error", message: m, description: d, duration: dur });
+    else msg.error(m, dur as number | undefined);
   };
   const info = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
-    msg.info(m, dur as number | undefined);
     if (d) notify({ type: "info", message: m, description: d, duration: dur });
+    else msg.info(m, dur as number | undefined);
   };
   const warning = (m: ReactNode, d?: ReactNode, dur?: number | undefined) => {
-    msg.warning(m, dur as number | undefined);
     if (d) notify({ type: "warning", message: m, description: d, duration: dur });
+    else msg.warning(m, dur as number | undefined);
   };
 
   return (

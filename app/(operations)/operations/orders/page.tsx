@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DeliveryMethod, OrderStatus, UserRole } from "@/lib/constants";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import { Button, SectionLoader } from "@/components/ui";
 import Link from "next/link";
 import { Input, Modal, Select, Table, Tag, message } from "antd";
@@ -211,6 +212,7 @@ export default function OperationsOrdersPage() {
       }
 
       message.success("Order status updated successfully.");
+      emitDataMutated(["orders", "operations-dashboard", "analytics"]);
       setStatusModalOpen(false);
       setSelectedOrder(null);
       setNextStatus(null);

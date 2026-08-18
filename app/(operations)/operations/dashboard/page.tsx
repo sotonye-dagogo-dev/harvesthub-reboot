@@ -77,8 +77,24 @@ export default function OperationsDashboardPage() {
     refresh,
   } = useSmartResource(loadDashboard, {
     key: "operations-dashboard",
-    staleTimeMs: 15_000,
+    staleTimeMs: 0,
     refreshIntervalMs: 60_000,
+    invalidateOn: [
+      "operations-dashboard",
+      "products",
+      "banners",
+      "vendor-content",
+      "vendors",
+      "orders",
+      "vouchers",
+      "marketing-content",
+      "blog",
+      "public-content",
+      "users",
+      "ads",
+      "settings",
+      "analytics",
+    ],
   });
 
   if (isLoading && !dashboard) {

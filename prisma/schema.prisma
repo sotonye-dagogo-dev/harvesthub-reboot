@@ -418,6 +418,9 @@ model User {
   isActive       Boolean    @default(true)
   status         UserStatus @default(ACTIVE)
 
+  // Primary campus for pickup/serving location (optional — Address/Order carry per-transaction campus)
+  campus Campus?
+
   // Password reset
   resetToken       String?   @unique
   resetTokenExpiry DateTime?

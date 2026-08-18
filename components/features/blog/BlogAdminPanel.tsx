@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Badge, openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
 import { message } from "antd";
 import { fetchJson } from "@/lib/utils";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import ImageUpload from "@/components/ui/ImageUpload";
 import {
   BLOG_STATUSES,
@@ -198,8 +199,11 @@ export function BlogAdminPanel() {
       resetEditor();
       await fetchAll();
       message.success(wasEditing ? "Blog post updated" : "Blog post created");
+      emitDataMutated(["blog", "operations-dashboard"]);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to save blog post");
+      const reason = e?.message ?? "Failed to save blog post";
+      setError(reason);
+      message.error(reason);
     } finally {
       setSaving(false);
     }
@@ -237,6 +241,7 @@ export function BlogAdminPanel() {
       }
       await fetchAll();
       message.success("Blog post deleted");
+      emitDataMutated(["blog", "operations-dashboard"]);
     } catch (e: any) {
       message.error(e?.message ?? "Failed to delete blog post");
     }
@@ -487,7 +492,7 @@ export function BlogAdminPanel() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving} loading={saving}>
               {saving ? "Saving..." : editingId ? "Update Post" : "Create Post"}
             </Button>
             <Button type="button" variant="secondary" onClick={resetEditor}>

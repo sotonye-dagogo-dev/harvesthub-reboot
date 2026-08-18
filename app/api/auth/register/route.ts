@@ -178,6 +178,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (campus && !isValidEnumValue(campus, Object.values(Campus) as readonly string[])) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid campus value' },
+                { status: 400 }
+            );
+        }
+
         let parsedDateOfBirth: Date | undefined;
         if (dateOfBirth) {
             const maybeDate = new Date(dateOfBirth);
@@ -220,6 +227,7 @@ export async function POST(request: NextRequest) {
                     lastName,
                     phoneNumber,
                     role,
+                    campus: campus ? (campus as Campus) : undefined,
                     emailVerified: false,
                     isActive: true,
                     emailVerificationToken: verificationToken,
@@ -381,6 +389,7 @@ export async function POST(request: NextRequest) {
                     lastName: result.lastName,
                     phoneNumber: result.phoneNumber,
                     role: result.role,
+                    campus: result.campus,
                     profilePicture: result.profilePicture,
                     emailVerified: result.emailVerified,
                     isActive: result.isActive,

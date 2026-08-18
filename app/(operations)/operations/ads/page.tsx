@@ -9,6 +9,7 @@ import { AdApplication } from "@/lib/types";
 import { BannerImageGuidelines } from "@/components/features";
 import { Eye, Check, X } from "lucide-react";
 import { openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 interface ApplicationRow extends AdApplication {
   key: string;
@@ -96,6 +97,7 @@ export default function OperationsAdsPage() {
       if (!res.ok) throw new Error(data.error || "Failed to update ad rate config");
       setRateConfig(data.rateConfig);
       message.success("Ad rates updated successfully");
+      emitDataMutated(["ads", "operations-dashboard"]);
     } catch (err: any) {
       console.error(err);
       message.error(err.message || "Could not update ad rate config");
@@ -130,6 +132,7 @@ export default function OperationsAdsPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to update");
         message.success(`Application ${actionLabel}d successfully`);
+        emitDataMutated(["ads", "banners", "operations-dashboard"]);
         fetchApplications();
       } catch (err: any) {
         console.error(err);

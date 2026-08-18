@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useDataMutationInvalidation } from "@/lib/data-runtime/mutationBus";
 import { Card, EmptyState } from "@/components/ui";
 import {
   getProductsClient,
@@ -37,6 +38,12 @@ export function AnalyticsFeature() {
   const [userCounts, setUserCounts] = useState({ totalUsers: 0, buyers: 0, vendors: 0 });
   const [bannerAnalytics, setBannerAnalytics] = useState<BannerAnalyticsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useDataMutationInvalidation(
+    ["analytics", "products", "orders", "vendors", "banners", "users"],
+    () => setReloadToken((token) => token + 1)
+  );
 
   useEffect(() => {
     if (isLoading) return;
@@ -103,7 +110,7 @@ export function AnalyticsFeature() {
     return () => {
       mounted = false;
     };
-  }, [isLoading, router, user]);
+  }, [isLoading, reloadToken, router, user]);
 
   const stats = useMemo(() => {
     const currentVendor = isVendor ? vendors.find((vendor) => vendor.userId === user?.id) : null;

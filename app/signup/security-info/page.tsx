@@ -85,13 +85,13 @@ export default function SecurityInfoPage() {
         agreeToTerms: securityData.agreement,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
+        campus: (formData.campus || Campus.IKEJA) as Campus,
 
         ...(role === UserRole.VENDOR && {
           storeName: formData.storeName,
           storeDescription: formData.storeDescription || formData.bio,
           category: (formData.storeCategory || VendorCategory.OTHERS) as VendorCategory,
           whatsappNumber: formData.whatsappNumber || formData.phoneNumber,
-          campus: (formData.campus || Campus.IKEJA) as Campus,
           position: formData.position ? (formData.position as Position) : undefined,
           isChurchAffiliated: formData.isChurchAffiliated || false,
           verificationDocuments: formData.verificationDocuments,
