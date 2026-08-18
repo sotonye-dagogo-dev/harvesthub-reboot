@@ -57,6 +57,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
             select: {
                 id: true, firstName: true, lastName: true, email: true,
                 phoneNumber: true, profilePicture: true, role: true, emailVerified: true,
+                campus: true,
                 createdAt: true, updatedAt: true,
                 buyer: { select: { id: true } },
                 vendor: {
@@ -154,6 +155,9 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         if (payload.lastName !== undefined) userUpdateData.lastName = payload.lastName;
         if (payload.phoneNumber !== undefined) userUpdateData.phoneNumber = payload.phoneNumber;
         if (payload.profilePicture !== undefined) userUpdateData.profilePicture = payload.profilePicture;
+        if (payload.campus && validCampusValues.has(payload.campus)) {
+            userUpdateData.campus = payload.campus;
+        }
 
         const updated = await prisma.$transaction(async (tx) => {
             const userUpdated = await tx.user.update({

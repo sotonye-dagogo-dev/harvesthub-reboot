@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Input, message } from "antd";
+import { Form, Input, Select, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FormComponentProps } from "@/app/types";
@@ -8,12 +8,14 @@ import { PhoneInput } from "@/components/ui";
 import { CrossPlatformAccountPrompt } from "@/components/ui/CrossPlatformAccountPrompt";
 import type { CrossPlatformAccountInfo } from "@/components/ui/CrossPlatformAccountPrompt";
 import { checkEmailCrossPlatform, type CrossPlatformCheckResult } from "@/lib/services/cisCheck";
+import { CAMPUS_LOCATIONS } from "@/lib/constants";
 
 interface UserInfoFields {
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
+  campus: string;
 }
 
 const CHECK_DEBOUNCE_MS = 800;
@@ -34,6 +36,7 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
         lastName: formData.lastName || "",
         email: formData.email || "",
         phoneNumber: formData.phoneNumber || "",
+        campus: formData.campus || undefined,
       });
     }
   }, [form, formData]);
@@ -218,6 +221,30 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
           ]}
         >
           <PhoneInput placeholder="8012345678" className="rounded-ds-md" />
+        </Form.Item>
+
+        <Form.Item
+          name="campus"
+          label={
+            <span className="text-ds-text-primary font-medium">
+              Campus / Pickup Location
+            </span>
+          }
+          rules={[{ required: true, message: "Please select your campus location" }]}
+        >
+          <Select
+            size="large"
+            placeholder="Select your campus"
+            className="rounded-ds-md"
+            options={CAMPUS_LOCATIONS.map((campus) => ({
+              value: campus.value,
+              label: campus.label,
+            }))}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
 
         <Form.Item className="mb-0">

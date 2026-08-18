@@ -10,7 +10,7 @@ import { User, Mail, Phone, MapPin, Lock, Upload as UploadIcon } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 import type { Address } from "@/lib/types";
-import { CAMPUS_LOCATIONS, POSITION_OPTIONS, UserRole, VENDOR_CATEGORIES } from "@/lib/constants";
+import { CAMPUS_LOCATIONS, Campus, POSITION_OPTIONS, UserRole, VENDOR_CATEGORIES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -26,6 +26,7 @@ export default function ProfilePage() {
     address: "",
     city: "",
     state: "",
+    campus: "" as Campus,
     landmark: "",
     isDefault: false,
   });
@@ -164,6 +165,7 @@ export default function ProfilePage() {
       lastName?: string;
       email?: string;
       phoneNumber?: string;
+      campus?: string;
       vendorContext?: {
         whatsappNumber?: string;
         category?: string;
@@ -185,7 +187,7 @@ export default function ProfilePage() {
           ? profile.vendorContext.whatsappNumber || profile.phoneNumber || prev.whatsappNumber
           : prev.whatsappNumber || profile.phoneNumber || "",
       category: profile.vendorContext?.category || "",
-      campus: profile.vendorContext?.campus || "",
+      campus: profile.campus || profile.vendorContext?.campus || "",
       position: profile.vendorContext?.position || "",
       businessAddress: profile.vendorContext?.businessAddress || "",
     }));
@@ -270,6 +272,7 @@ export default function ProfilePage() {
       address: "",
       city: "",
       state: "",
+      campus: "" as Campus,
       landmark: "",
       isDefault: false,
     });
@@ -284,6 +287,7 @@ export default function ProfilePage() {
       address: address.addressLine1,
       city: address.city,
       state: address.state,
+      campus: address.campus || ("" as Campus),
       landmark: address.landmark || "",
       isDefault: address.isDefault,
     });
@@ -309,6 +313,7 @@ export default function ProfilePage() {
         addressLine1: addressForm.address.trim(),
         city: addressForm.city.trim(),
         state: addressForm.state.trim(),
+        campus: addressForm.campus?.trim() || undefined,
         landmark: addressForm.landmark.trim() || undefined,
         isDefault: addressForm.isDefault,
       };
@@ -653,6 +658,26 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              <div>
+                <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                  Campus / Pickup Location
+                </label>
+                <select
+                  value={formData.campus}
+                  onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
+                  disabled={!editMode}
+                  title="Campus"
+                  className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
+                >
+                  <option value="">Select campus</option>
+                  {CAMPUS_LOCATIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {user.role === UserRole.VENDOR ? (
                 <>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -669,25 +694,6 @@ export default function ProfilePage() {
                       >
                         <option value="">Select category</option>
                         {VENDOR_CATEGORIES.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
-                        Campus
-                      </label>
-                      <select
-                        value={formData.campus}
-                        onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
-                        disabled={!editMode}
-                        title="Campus"
-                        className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
-                      >
-                        <option value="">Select campus</option>
-                        {CAMPUS_LOCATIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
@@ -780,6 +786,13 @@ export default function ProfilePage() {
                           <div className="text-sm text-ds-text-secondary">
                             {address.city}, {address.state}, Nigeria
                           </div>
+                          {address.campus ? (
+                            <div className="text-xs text-ds-text-tertiary">
+                              Campus:{" "}
+                              {CAMPUS_LOCATIONS.find((c) => c.value === address.campus)?.label ??
+                                address.campus}
+                            </div>
+                          ) : null}
                           {address.isDefault && (
                             <span className="mt-1 inline-block rounded-ds-xs bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
                               Default

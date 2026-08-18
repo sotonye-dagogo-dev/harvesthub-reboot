@@ -132,6 +132,7 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   isActive: 'isActive',
   status: 'status',
+  campus: 'campus',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
   emailVerificationToken: 'emailVerificationToken',
@@ -746,34 +747,6 @@ exports.UserStatus = exports.$Enums.UserStatus = {
   BANNED: 'BANNED'
 };
 
-exports.Gender = exports.$Enums.Gender = {
-  MALE: 'MALE',
-  FEMALE: 'FEMALE',
-  OTHER: 'OTHER'
-};
-
-exports.VendorCategory = exports.$Enums.VendorCategory = {
-  ELECTRONICS: 'ELECTRONICS',
-  COMPUTERS_OFFICE: 'COMPUTERS_OFFICE',
-  HOME_APPLIANCES: 'HOME_APPLIANCES',
-  FURNITURE: 'FURNITURE',
-  HOME_DECOR: 'HOME_DECOR',
-  KITCHEN_DINING: 'KITCHEN_DINING',
-  FASHION: 'FASHION',
-  BEAUTY: 'BEAUTY',
-  BABY_KIDS: 'BABY_KIDS',
-  TOYS_GAMES: 'TOYS_GAMES',
-  AUTOMOTIVE: 'AUTOMOTIVE',
-  MOTORCYCLES: 'MOTORCYCLES',
-  SPARE_PARTS: 'SPARE_PARTS',
-  INDUSTRIAL: 'INDUSTRIAL',
-  AGRICULTURE: 'AGRICULTURE',
-  SECURITY: 'SECURITY',
-  GROCERY_FOOD: 'GROCERY_FOOD',
-  SERVICES: 'SERVICES',
-  OTHERS: 'OTHERS'
-};
-
 exports.Campus = exports.$Enums.Campus = {
   LONDON: 'LONDON',
   BIRMINGHAM: 'BIRMINGHAM',
@@ -809,6 +782,34 @@ exports.Campus = exports.$Enums.Campus = {
   GLOBE: 'GLOBE',
   AJAH: 'AJAH',
   ONLINE: 'ONLINE'
+};
+
+exports.Gender = exports.$Enums.Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+  OTHER: 'OTHER'
+};
+
+exports.VendorCategory = exports.$Enums.VendorCategory = {
+  ELECTRONICS: 'ELECTRONICS',
+  COMPUTERS_OFFICE: 'COMPUTERS_OFFICE',
+  HOME_APPLIANCES: 'HOME_APPLIANCES',
+  FURNITURE: 'FURNITURE',
+  HOME_DECOR: 'HOME_DECOR',
+  KITCHEN_DINING: 'KITCHEN_DINING',
+  FASHION: 'FASHION',
+  BEAUTY: 'BEAUTY',
+  BABY_KIDS: 'BABY_KIDS',
+  TOYS_GAMES: 'TOYS_GAMES',
+  AUTOMOTIVE: 'AUTOMOTIVE',
+  MOTORCYCLES: 'MOTORCYCLES',
+  SPARE_PARTS: 'SPARE_PARTS',
+  INDUSTRIAL: 'INDUSTRIAL',
+  AGRICULTURE: 'AGRICULTURE',
+  SECURITY: 'SECURITY',
+  GROCERY_FOOD: 'GROCERY_FOOD',
+  SERVICES: 'SERVICES',
+  OTHERS: 'OTHERS'
 };
 
 exports.Position = exports.$Enums.Position = {

@@ -4981,3 +4981,53 @@ Close the gap where vendor bank account details (collected during signup) were n
 
 **Validation:**
 - `npx next build --no-lint` ✅
+
+## Session 2026-08-18 — "Tightening up" Directive (Session 97)
+
+**Goal:**
+Execute the execute-feature.md tightening-up directive: simultaneous payment options, campus for all
+users, upload feedback, global toast tightening, and auto-updating dashboard/store/profile pages.
+
+**Completed:**
+
+- **Payments** — `app/checkout/page.tsx`: bank-transfer upload proof now available alongside Paystack
+  card whenever `bankTransferFallbackEnabled` (previously exclusive to Paystack outage). Paystack
+  off-toggle + automatic WALLET→BANK_TRANSFER_PROOF fallback preserved.
+- **Campus** — Added `User.campus Campus?` (`prisma/schema.prisma`) + migration
+  `20260818000000_add_user_campus` + regenerated client (v7.5.0). Registration now validates and
+  persists campus for all roles (`app/api/auth/register/route.ts`, `security-info`, `UserInfo`).
+  Profile API GET/PUT supports campus; ProfilePage shows an editable Campus select for all roles;
+  AddressForm gained a campus Select (typed `Campus`) wired into profile address CRUD and checkout
+  deliveryAddress.
+- **Orders** — Confirmed status transitions (sent/delivered/received) + audit trail (`statusHistory`
+  with notes/updatedBy/timestamp) and buyer confirm-delivery already implemented. No change.
+- **Upload feedback** — Marketing-content modal shows active upload progress during submit;
+  BlogAdminPanel + PublicContentAdminPanel save buttons got `loading` spinners + `message.error` on
+  failure.
+- **Toast tightening** — `lib/contexts/ToastContext.tsx` no longer double-toasts: description →
+  notification only, otherwise message only; notification `key` de-dupes.
+- **Auto-refresh** — New `lib/data-runtime/mutationBus.ts` (CustomEvent pub/sub) + `invalidateOn`
+  option on `useSmartResource`/`useRuntimeResource`. Operations dashboard subscribes to all mutation
+  keys (`staleTimeMs: 0`); AnalyticsFeature re-runs on mutation; StoreSettingsPage refetches after
+  save; `emitDataMutated` wired into products, banners, vendors, orders, vouchers, marketing-content,
+  vendor-content, users, ads, settings, blog, and public-content mutation handlers.
+
+**Files Modified:**
+- `app/checkout/page.tsx`
+- `prisma/schema.prisma`, `prisma/migrations/20260818000000_add_user_campus/migration.sql`,
+  `prisma/generated/client/*`
+- `app/api/auth/register/route.ts`, `app/signup/security-info/page.tsx`,
+  `app/signup/components/UserInfo.tsx`
+- `app/api/users/[id]/profile/route.ts`, `components/features/ProfilePage.tsx`,
+  `components/features/AddressForm.tsx`, `lib/types.ts`
+- `app/(operations)/operations/{marketing-content,banners,products,vendors,orders,vouchers,users,vendor-content,ads,settings,dashboard}/page.tsx`
+- `components/features/blog/BlogAdminPanel.tsx`, `components/features/PublicContentAdminPanel.tsx`,
+  `components/features/StoreSettingsPage.tsx`, `components/features/AnalyticsFeature.tsx`
+- `lib/contexts/ToastContext.tsx`, `lib/data-runtime/mutationBus.ts` (new),
+  `lib/hooks/useRuntimeResource.ts`, `lib/hooks/useSmartResource.ts`
+- `ai-system/checkpoints/in-progress.md`, `ai-system/planning/task-queue.md`,
+  `ai-system/summaries/dev-history.md`, `ai-system/checkpoints/session-log.md`
+
+**Validation:**
+- `npx tsc --noEmit` ✅ · `npm run lint` ✅ (2 pre-existing warnings) · `npx vitest run` ✅ (107
+  files / 498 passed / 32 skipped) · `npm run build` ✅

@@ -2,6 +2,7 @@
 
 import { Input, PhoneInput } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { CAMPUS_LOCATIONS, Campus } from "@/lib/constants";
 
 export interface AddressFormData {
   fullName: string;
@@ -9,6 +10,7 @@ export interface AddressFormData {
   address: string;
   city: string;
   state: string;
+  campus?: Campus;
   landmark?: string;
   isDefault?: boolean;
 }
@@ -117,6 +119,29 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
         {errors.state && (
           <p className="mt-1 text-sm text-ds-status-error-text">{errors.state}</p>
         )}
+      </div>
+
+      {/* Campus (Optional) */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-ds-text-secondary">
+          Campus / Pickup Location
+        </label>
+        <select
+          value={value.campus || ""}
+          onChange={(e) => onChange({ ...value, campus: e.target.value as Campus })}
+          aria-label="Select campus"
+          className={cn(
+            "w-full rounded-ds-md border px-3 py-2 text-ds-text-primary focus:outline-none focus:ring-2 dark:bg-ds-surface-base dark:text-ds-text-primary",
+            "border-ds-border-base focus:border-ds-border-focus focus:ring-ds-focus-ring/20 dark:focus:border-ds-brand-accent"
+          )}
+        >
+          <option value="">Select campus (optional)</option>
+          {CAMPUS_LOCATIONS.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Landmark (Optional) */}

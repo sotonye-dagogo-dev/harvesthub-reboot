@@ -15,6 +15,7 @@ import {
   Table,
   Tag,
   message,
+  Progress,
   Switch,
   Empty,
 } from "antd";
@@ -29,6 +30,7 @@ import type { UploadFile } from "antd/es/upload";
 import dayjs from "dayjs";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -194,6 +196,7 @@ export default function OperationsMarketingContentPage() {
 
       if (data.success) {
         message.success(editItem ? "Content updated" : "Content submitted for review");
+        emitDataMutated(["marketing-content", "operations-dashboard"]);
         setModalOpen(false);
         setEditItem(null);
         setFileList([]);
@@ -216,6 +219,7 @@ export default function OperationsMarketingContentPage() {
       const data = await res.json();
       if (data.success) {
         message.success("Content deleted");
+        emitDataMutated(["marketing-content", "operations-dashboard"]);
         await refresh(true);
       } else {
         message.error(data.error || "Delete failed");
@@ -447,6 +451,14 @@ export default function OperationsMarketingContentPage() {
                 <p className="text-xs text-ds-text-secondary mt-1">
                   Max 10MB. {contentType === "VIDEO" ? "MP4, WebM, MOV" : "JPG, PNG, WebP"}
                 </p>
+                {submitting && fileList.length > 0 ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Progress percent={undefined} size="small" style={{ flex: 1 }} status="active" />
+                    <span className="text-xs text-ds-text-secondary">
+                      Uploading file and submitting...
+                    </span>
+                  </div>
+                ) : null}
               </Form.Item>
             )}
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LISTING_TYPES, PRODUCT_SUBCATEGORIES, UserRole, VALIDATION_RULES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { loadLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/utils/localDraft";
@@ -368,6 +369,7 @@ export default function OperationsProductsPage() {
       message.success(
         editingProduct ? "Product updated successfully" : "Product created successfully"
       );
+      emitDataMutated(["products", "operations-dashboard", "analytics"]);
       clearLocalDraft(draftKey);
       closeModal();
       await refresh(true);
@@ -391,6 +393,7 @@ export default function OperationsProductsPage() {
       }
 
       message.success("Product deleted successfully");
+      emitDataMutated(["products", "operations-dashboard", "analytics"]);
       await refresh(true);
     } catch (error) {
       const description = error instanceof Error ? error.message : "Unable to delete product";

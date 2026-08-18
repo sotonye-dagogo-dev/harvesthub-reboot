@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import { isAntdFormValidationError } from "@/lib/utils/formErrors";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 import { generateRequestKey } from "@/lib/utils/requestKey";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -139,6 +140,7 @@ export default function OperationsBannersPage() {
       message.success(
         editingBanner ? "Banner updated successfully" : "Banner created successfully"
       );
+      emitDataMutated(["banners", "operations-dashboard"]);
 
       setShowModal(false);
       setPlacementWarning(null);
@@ -175,6 +177,7 @@ export default function OperationsBannersPage() {
           return;
         }
         message.success("Banner deleted successfully");
+        emitDataMutated(["banners", "operations-dashboard"]);
         await reloadBanners();
       } catch (error) {
         message.error(error instanceof Error ? error.message : "Failed to delete banner");
@@ -196,6 +199,7 @@ export default function OperationsBannersPage() {
         return;
       }
       message.success(`Banner ${currentStatus ? "deactivated" : "activated"} successfully`);
+      emitDataMutated(["banners", "operations-dashboard"]);
       setBanners((prev) =>
         prev.map((banner) =>
           banner.id === bannerId ? { ...banner, isActive: targetStatus } : banner

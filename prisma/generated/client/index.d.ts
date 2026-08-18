@@ -5485,6 +5485,7 @@ export namespace Prisma {
     emailVerified: boolean | null
     isActive: boolean | null
     status: $Enums.UserStatus | null
+    campus: $Enums.Campus | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     emailVerificationToken: string | null
@@ -5506,6 +5507,7 @@ export namespace Prisma {
     emailVerified: boolean | null
     isActive: boolean | null
     status: $Enums.UserStatus | null
+    campus: $Enums.Campus | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     emailVerificationToken: string | null
@@ -5527,6 +5529,7 @@ export namespace Prisma {
     emailVerified: number
     isActive: number
     status: number
+    campus: number
     resetToken: number
     resetTokenExpiry: number
     emailVerificationToken: number
@@ -5558,6 +5561,7 @@ export namespace Prisma {
     emailVerified?: true
     isActive?: true
     status?: true
+    campus?: true
     resetToken?: true
     resetTokenExpiry?: true
     emailVerificationToken?: true
@@ -5579,6 +5583,7 @@ export namespace Prisma {
     emailVerified?: true
     isActive?: true
     status?: true
+    campus?: true
     resetToken?: true
     resetTokenExpiry?: true
     emailVerificationToken?: true
@@ -5600,6 +5605,7 @@ export namespace Prisma {
     emailVerified?: true
     isActive?: true
     status?: true
+    campus?: true
     resetToken?: true
     resetTokenExpiry?: true
     emailVerificationToken?: true
@@ -5708,6 +5714,7 @@ export namespace Prisma {
     emailVerified: boolean
     isActive: boolean
     status: $Enums.UserStatus
+    campus: $Enums.Campus | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     emailVerificationToken: string | null
@@ -5748,6 +5755,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: boolean
+    campus?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     emailVerificationToken?: boolean
@@ -5785,6 +5793,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: boolean
+    campus?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     emailVerificationToken?: boolean
@@ -5806,6 +5815,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: boolean
+    campus?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     emailVerificationToken?: boolean
@@ -5827,6 +5837,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: boolean
+    campus?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     emailVerificationToken?: boolean
@@ -5836,7 +5847,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "firstName" | "lastName" | "phoneNumber" | "role" | "profilePicture" | "emailVerified" | "isActive" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerificationToken" | "emailVerificationExpiry" | "registrationSequence" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "firstName" | "lastName" | "phoneNumber" | "role" | "profilePicture" | "emailVerified" | "isActive" | "status" | "campus" | "resetToken" | "resetTokenExpiry" | "emailVerificationToken" | "emailVerificationExpiry" | "registrationSequence" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     buyer?: boolean | User$buyerArgs<ExtArgs>
     vendor?: boolean | User$vendorArgs<ExtArgs>
@@ -5889,6 +5900,7 @@ export namespace Prisma {
       emailVerified: boolean
       isActive: boolean
       status: $Enums.UserStatus
+      campus: $Enums.Campus | null
       resetToken: string | null
       resetTokenExpiry: Date | null
       emailVerificationToken: string | null
@@ -6345,6 +6357,7 @@ export namespace Prisma {
     readonly emailVerified: FieldRef<"User", 'Boolean'>
     readonly isActive: FieldRef<"User", 'Boolean'>
     readonly status: FieldRef<"User", 'UserStatus'>
+    readonly campus: FieldRef<"User", 'Campus'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
     readonly emailVerificationToken: FieldRef<"User", 'String'>
@@ -51147,6 +51160,7 @@ export namespace Prisma {
     emailVerified: 'emailVerified',
     isActive: 'isActive',
     status: 'status',
+    campus: 'campus',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
     emailVerificationToken: 'emailVerificationToken',
@@ -51937,6 +51951,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Campus'
+   */
+  export type EnumCampusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Campus'>
+    
+
+
+  /**
+   * Reference to a field of type 'Campus[]'
+   */
+  export type ListEnumCampusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Campus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -52003,20 +52031,6 @@ export namespace Prisma {
    * Reference to a field of type 'VendorCategory[]'
    */
   export type ListEnumVendorCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VendorCategory[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Campus'
-   */
-  export type EnumCampusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Campus'>
-    
-
-
-  /**
-   * Reference to a field of type 'Campus[]'
-   */
-  export type ListEnumCampusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Campus[]'>
     
 
 
@@ -52458,6 +52472,7 @@ export namespace Prisma {
     emailVerified?: BoolFilter<"User"> | boolean
     isActive?: BoolFilter<"User"> | boolean
     status?: EnumUserStatusFilter<"User"> | $Enums.UserStatus
+    campus?: EnumCampusNullableFilter<"User"> | $Enums.Campus | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     emailVerificationToken?: StringNullableFilter<"User"> | string | null
@@ -52494,6 +52509,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     isActive?: SortOrder
     status?: SortOrder
+    campus?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
@@ -52535,6 +52551,7 @@ export namespace Prisma {
     emailVerified?: BoolFilter<"User"> | boolean
     isActive?: BoolFilter<"User"> | boolean
     status?: EnumUserStatusFilter<"User"> | $Enums.UserStatus
+    campus?: EnumCampusNullableFilter<"User"> | $Enums.Campus | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     emailVerificationExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     registrationSequence?: IntNullableFilter<"User"> | number | null
@@ -52569,6 +52586,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     isActive?: SortOrder
     status?: SortOrder
+    campus?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     emailVerificationToken?: SortOrderInput | SortOrder
@@ -52598,6 +52616,7 @@ export namespace Prisma {
     emailVerified?: BoolWithAggregatesFilter<"User"> | boolean
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
     status?: EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
+    campus?: EnumCampusNullableWithAggregatesFilter<"User"> | $Enums.Campus | null
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     emailVerificationToken?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -56122,6 +56141,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -56158,6 +56178,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -56194,6 +56215,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56230,6 +56252,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56266,6 +56289,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -56287,6 +56311,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56308,6 +56333,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -60371,6 +60397,13 @@ export namespace Prisma {
     not?: NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
   }
 
+  export type EnumCampusNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumCampusNullableFilter<$PrismaModel> | $Enums.Campus | null
+  }
+
   export type DateTimeNullableFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -60541,6 +60574,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     isActive?: SortOrder
     status?: SortOrder
+    campus?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     emailVerificationToken?: SortOrder
@@ -60566,6 +60600,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     isActive?: SortOrder
     status?: SortOrder
+    campus?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     emailVerificationToken?: SortOrder
@@ -60587,6 +60622,7 @@ export namespace Prisma {
     emailVerified?: SortOrder
     isActive?: SortOrder
     status?: SortOrder
+    campus?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     emailVerificationToken?: SortOrder
@@ -60662,6 +60698,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumUserStatusFilter<$PrismaModel>
     _max?: NestedEnumUserStatusFilter<$PrismaModel>
+  }
+
+  export type EnumCampusNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel> | $Enums.Campus | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumCampusNullableFilter<$PrismaModel>
+    _max?: NestedEnumCampusNullableFilter<$PrismaModel>
   }
 
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -61724,13 +61770,6 @@ export namespace Prisma {
     subtotal?: SortOrder
   }
 
-  export type EnumCampusNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumCampusNullableFilter<$PrismaModel> | $Enums.Campus | null
-  }
-
   export type AddressCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -61780,16 +61819,6 @@ export namespace Prisma {
     isDefault?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type EnumCampusNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel> | $Enums.Campus | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumCampusNullableFilter<$PrismaModel>
-    _max?: NestedEnumCampusNullableFilter<$PrismaModel>
   }
 
   export type WalletCountOrderByAggregateInput = {
@@ -63814,6 +63843,10 @@ export namespace Prisma {
     set?: $Enums.UserStatus
   }
 
+  export type NullableEnumCampusFieldUpdateOperationsInput = {
+    set?: $Enums.Campus | null
+  }
+
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
   }
@@ -65270,10 +65303,6 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type NullableEnumCampusFieldUpdateOperationsInput = {
-    set?: $Enums.Campus | null
-  }
-
   export type UserUpdateOneRequiredWithoutAddressesNestedInput = {
     create?: XOR<UserCreateWithoutAddressesInput, UserUncheckedCreateWithoutAddressesInput>
     connectOrCreate?: UserCreateOrConnectWithoutAddressesInput
@@ -66031,6 +66060,13 @@ export namespace Prisma {
     not?: NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
   }
 
+  export type NestedEnumCampusNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumCampusNullableFilter<$PrismaModel> | $Enums.Campus | null
+  }
+
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -66135,6 +66171,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumUserStatusFilter<$PrismaModel>
     _max?: NestedEnumUserStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel> | $Enums.Campus | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumCampusNullableFilter<$PrismaModel>
+    _max?: NestedEnumCampusNullableFilter<$PrismaModel>
   }
 
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -66482,23 +66528,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDeliveryMethodFilter<$PrismaModel>
     _max?: NestedEnumDeliveryMethodFilter<$PrismaModel>
-  }
-
-  export type NestedEnumCampusNullableFilter<$PrismaModel = never> = {
-    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumCampusNullableFilter<$PrismaModel> | $Enums.Campus | null
-  }
-
-  export type NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Campus | EnumCampusFieldRefInput<$PrismaModel> | null
-    in?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.Campus[] | ListEnumCampusFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumCampusNullableWithAggregatesFilter<$PrismaModel> | $Enums.Campus | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumCampusNullableFilter<$PrismaModel>
-    _max?: NestedEnumCampusNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumTransactionTypeFilter<$PrismaModel = never> = {
@@ -68046,6 +68075,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -68081,6 +68111,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -68162,6 +68193,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68197,6 +68229,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68350,6 +68383,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -68385,6 +68419,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -68633,6 +68668,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68668,6 +68704,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68874,6 +68911,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -68909,6 +68947,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -69202,6 +69241,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -69237,6 +69277,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70703,6 +70744,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -70738,6 +70780,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -70789,6 +70832,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70824,6 +70868,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70859,6 +70904,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -70894,6 +70940,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -70985,6 +71032,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71020,6 +71068,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71490,6 +71539,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71525,6 +71575,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71606,6 +71657,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71641,6 +71693,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71826,6 +71879,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71861,6 +71915,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71901,6 +71956,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71936,6 +71992,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -71987,6 +72044,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72022,6 +72080,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72068,6 +72127,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72103,6 +72163,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72138,6 +72199,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72173,6 +72235,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72224,6 +72287,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72259,6 +72323,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72294,6 +72359,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72329,6 +72395,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72380,6 +72447,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72415,6 +72483,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72450,6 +72519,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72485,6 +72555,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72536,6 +72607,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72571,6 +72643,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72814,6 +72887,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72849,6 +72923,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -72934,6 +73009,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72969,6 +73045,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73136,6 +73213,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73171,6 +73249,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73273,6 +73352,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73308,6 +73388,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73487,6 +73568,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73522,6 +73604,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73624,6 +73707,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73659,6 +73743,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73694,6 +73779,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73729,6 +73815,7 @@ export namespace Prisma {
     emailVerified?: boolean
     isActive?: boolean
     status?: $Enums.UserStatus
+    campus?: $Enums.Campus | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     emailVerificationToken?: string | null
@@ -73780,6 +73867,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73815,6 +73903,7 @@ export namespace Prisma {
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+    campus?: NullableEnumCampusFieldUpdateOperationsInput | $Enums.Campus | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     emailVerificationToken?: NullableStringFieldUpdateOperationsInput | string | null

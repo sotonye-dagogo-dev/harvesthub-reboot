@@ -58,6 +58,7 @@ export interface User {
     emailVerified: boolean;
     isActive: boolean;
     status?: 'ACTIVE' | 'INACTIVE' | 'BANNED' | null;
+    campus?: Campus | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 

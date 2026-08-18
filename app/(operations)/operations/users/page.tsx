@@ -13,6 +13,7 @@ import { UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/lib/constants";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 export default function OperationsUsersPage() {
   const { user } = useAuth();
@@ -132,6 +133,7 @@ export default function OperationsUsersPage() {
             )
           );
           message.success(`User ${targetUser.isActive ? "suspended" : "activated"} successfully`);
+          emitDataMutated(["users", "operations-dashboard"]);
         } catch (err) {
           message.error(err instanceof Error ? err.message : "Failed to update user status");
         }
@@ -147,6 +149,7 @@ export default function OperationsUsersPage() {
         if (!res.ok) throw new Error(data.error || "Failed to delete user");
         mutate((prev) => (prev ?? []).filter((item) => item.id !== userId));
         message.success("User deleted");
+        emitDataMutated(["users", "operations-dashboard"]);
       } catch (err) {
         message.error(err instanceof Error ? err.message : "Failed to delete user");
       }

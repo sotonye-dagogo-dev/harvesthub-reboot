@@ -6,6 +6,7 @@ import { CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined } from "@ant-d
 import dayjs from "dayjs";
 import { SectionLoader, VendorAvatar, openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -83,6 +84,7 @@ export default function OperationsVendorContentPage() {
       const data = await res.json();
       if (data.success) {
         message.success(`Content ${status.toLowerCase()}`);
+        emitDataMutated(["vendor-content", "operations-dashboard"]);
         setRejectModal(null);
         setRejectionReason("");
         await refresh(true);

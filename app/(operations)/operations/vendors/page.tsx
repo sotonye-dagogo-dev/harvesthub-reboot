@@ -11,6 +11,7 @@ import { Input, Select, Table, message, Tag, Tooltip } from "antd";
 import { useRouter } from "next/navigation";
 import { VendorStatus, CAMPUS_LOCATIONS } from "@/lib/constants";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 type VendorsApiResponse = {
   vendors?: Vendor[];
@@ -173,6 +174,7 @@ export default function OperationsVendorsPage() {
       if (status === VendorStatus.APPROVED || status === VendorStatus.REJECTED) {
         void refresh(true);
       }
+      emitDataMutated(["vendors", "operations-dashboard", "analytics"]);
       return { ok: true, emailDispatchFailed };
     } catch (err) {
       message.error(err instanceof Error ? err.message : "Failed to update vendor status");
