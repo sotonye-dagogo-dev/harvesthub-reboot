@@ -24,6 +24,37 @@
 [What comes next]
 ```
 
+## 2026-08-18 — "Tightening up" Directive (Session 97)
+
+**Summary:**
+Executed the execute-feature.md tightening-up directive. Bank-transfer upload proof now shows
+alongside Paystack card whenever the fallback is enabled (Paystack off-toggle + automatic upload
+fallback preserved). Campus is collected for all roles at registration and flows through profile,
+addresses, and checkout delivery info. Confirmed order status changes + audit trail were already in
+place. Added upload feedback across content flows, fixed the ToastContext double-toast, and built a
+cross-resource mutation bus so dashboard/analytics/store-settings auto-refresh after operations CRUD.
+
+**Completed:**
+- `app/checkout/page.tsx` — `bankTransferAvailable = bankTransferFallbackEnabled` (both payment
+  options available simultaneously); gateway-outage notice updated.
+- `prisma/schema.prisma` + `prisma/migrations/20260818000000_add_user_campus/migration.sql` —
+  `User.campus Campus?`; generated client regenerated (v7.5.0).
+- `app/api/auth/register/route.ts`, `app/signup/security-info/page.tsx`,
+  `app/signup/components/UserInfo.tsx` — campus validated + collected for all roles.
+- `app/api/users/[id]/profile/route.ts`, `components/features/ProfilePage.tsx`,
+  `components/features/AddressForm.tsx` — campus editable in profile, saved on addresses, included in
+  checkout deliveryAddress.
+- `app/(operations)/operations/marketing-content/page.tsx`, `BlogAdminPanel`,
+  `PublicContentAdminPanel` — upload progress + save spinner + failure toasts.
+- `lib/contexts/ToastContext.tsx` — notification-only when description passed (no double-toast).
+- `lib/data-runtime/mutationBus.ts` (new) + `useSmartResource`/`useRuntimeResource` `invalidateOn` —
+  dashboard subscribes to all mutation keys (`staleTimeMs: 0`); AnalyticsFeature re-runs on mutation;
+  StoreSettingsPage refetches after save; `emitDataMutated` wired across operations pages.
+
+**Validation:**
+- `npx tsc --noEmit` ✅ · `npm run lint` ✅ (2 pre-existing warnings) · `npx vitest run` ✅ (107
+  files / 498 passed / 32 skipped) · `npm run build` ✅
+
 ## 2026-08-15 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green
 
 **Summary:**

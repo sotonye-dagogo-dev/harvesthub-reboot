@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Badge, openActionConfirm, ActionConfirmBuilder } from "@/components/ui";
 import { message } from "antd";
 import { fetchJson } from "@/lib/utils";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import { StructuredContentEditor } from "@/components/features/content/StructuredContentEditor";
 import {
   buildSectionMetadata,
@@ -152,8 +153,11 @@ export function PublicContentAdminPanel() {
       setSelectedItemId(null);
       await fetchContent();
       message.success(wasEditing ? "Public content updated" : "Public content created");
+      emitDataMutated(["public-content", "operations-dashboard"]);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to save public content");
+      const reason = e?.message ?? "Failed to save public content";
+      setError(reason);
+      message.error(reason);
     } finally {
       setSaving(false);
     }
@@ -187,6 +191,7 @@ export function PublicContentAdminPanel() {
         setEditingId(null);
       }
       message.success("Public content deleted");
+      emitDataMutated(["public-content", "operations-dashboard"]);
     } catch (e: any) {
       message.error(e?.message ?? "Failed to delete public content");
     }
@@ -305,7 +310,7 @@ export function PublicContentAdminPanel() {
           />
 
           <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving} loading={saving}>
               {saving ? "Saving..." : editingId ? "Update Content" : "Create Content"}
             </Button>
             <Button type="button" variant="secondary" onClick={clearEditor}>

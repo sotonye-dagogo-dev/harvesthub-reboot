@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import { Card, Button, Badge, EmptyState } from "@/components/ui";
 import { openActionConfirm, ActionConfirmPresets } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
@@ -179,6 +180,7 @@ export default function OperationsVouchersPage() {
       }
 
       message.success(editingVoucher ? "Voucher updated" : "Voucher created");
+      emitDataMutated(["vouchers", "operations-dashboard"]);
       setShowModal(false);
       await refresh(true);
     } catch (err) {
@@ -209,6 +211,7 @@ export default function OperationsVouchersPage() {
             (prev ?? []).map((v) => (v.id === voucher.id ? { ...v, isActive: !voucher.isActive } : v))
           );
           message.success(`Voucher ${voucher.isActive ? "deactivated" : "activated"}`);
+          emitDataMutated(["vouchers", "operations-dashboard"]);
         } catch (err) {
           message.error(err instanceof Error ? err.message : "Failed to update voucher");
         }
@@ -227,6 +230,7 @@ export default function OperationsVouchersPage() {
         const data = await res.json() as { message?: string };
         mutate((prev) => (prev ?? []).filter((v) => v.id !== voucher.id));
         message.success(data.message ?? "Voucher removed");
+        emitDataMutated(["vouchers", "operations-dashboard"]);
       } catch (err) {
         message.error(err instanceof Error ? err.message : "Failed to delete voucher");
       }

@@ -24,6 +24,49 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 
 ---
 
+## Session 97 — "Tightening up" Directive (2026-08-18)
+
+> **Section summary:** Executed the `execute-feature.md` tightening-up directive: bank-transfer
+> upload proof now available alongside Paystack card whenever the fallback is enabled (Paystack
+> off-toggle + automatic upload fallback preserved); campus collected for all roles during
+> registration and surfaced across profile, addresses, and checkout delivery info; confirmed order
+> status changes (sent/delivered/received) + audit trail already implemented; added upload
+> feedback (marketing-content modal progress + blog/public-content spinner + failure toasts);
+> fixed the ToastContext double-toast when description is passed; added a cross-resource mutation
+> bus so dashboard/analytics/store-settings auto-refresh after operations CRUD without manual
+> reload/navigation. QA gate green: tsc clean, lint clean (pre-existing warnings only), 107 files /
+> 498 tests passed, build exit 0.
+
+- [x] Payments — `app/checkout/page.tsx`: `bankTransferAvailable = bankTransferFallbackEnabled`
+      (no longer exclusive to Paystack outage); gateway-unavailable notice mentions wallet +
+      bank-transfer remain available; WALLET auto-switch fallback preserved.
+- [x] Campus schema — `User.campus Campus?` added to `prisma/schema.prisma`; migration
+      `20260818000000_add_user_campus` (`ALTER TABLE users ADD COLUMN campus "Campus"`); client
+      regenerated (v7.5.0).
+- [x] Registration campus — `app/api/auth/register/route.ts` validates + persists campus for all
+      roles; `app/signup/security-info/page.tsx` always sends campus; `app/signup/components/UserInfo.tsx`
+      adds required Campus/Pickup Location Select (all roles).
+- [x] Profile campus — `app/api/users/[id]/profile/route.ts` GET selects + PUT applies campus;
+      `ProfilePage` renders an editable Campus select for all roles, load falls back to
+      vendorContext.campus, address list shows campus.
+- [x] Address/checkout campus — `components/features/AddressForm.tsx` adds campus Select + typed
+      `campus?: Campus`; ProfilePage address CRUD carries campus; checkout deliveryAddress includes it.
+- [x] Upload feedback — marketing-content modal shows active upload progress + "Uploading file and
+      submitting..." while submitting; BlogAdminPanel + PublicContentAdminPanel save buttons get
+      `loading` spinner and `message.error` on failure.
+- [x] Toast fix — `lib/contexts/ToastContext.tsx` uses notification-only when description is passed,
+      message-only otherwise (no double-toast); notification `key` de-dupes.
+- [x] Auto-refresh — new `lib/data-runtime/mutationBus.ts` (`emitDataMutated` /
+      `useDataMutationInvalidation` on `myharvesthub:data-mutated` CustomEvent); `useSmartResource`
+      gains `invalidateOn`; operations dashboard subscribes to all mutation keys with
+      `staleTimeMs: 0`; AnalyticsFeature re-runs on mutation; StoreSettingsPage refetches after save;
+      `emitDataMutated` wired into products, banners, vendors, orders, vouchers, marketing-content,
+      vendor-content, users, ads, settings, blog, public-content mutation handlers.
+- [x] QA gate — `npx tsc --noEmit` clean; `npm run lint` clean (2 pre-existing warnings); `npx vitest
+      run` 107 files / 498 passed / 32 skipped; `npm run build` exit 0.
+
+---
+
 ## Session 96 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green (2026-08-15)
 
 > **Section summary:** Closed out the 2026-08-15 auth/feedback audit backlog: fixed the profile

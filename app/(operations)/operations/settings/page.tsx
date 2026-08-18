@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, Button } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 import {
   PLATFORM_DEFAULTS,
   COMMISSION_RATES,
@@ -382,6 +383,7 @@ export default function OperationsSettingsPage() {
       });
 
       message.success("Platform settings saved successfully");
+      emitDataMutated(["settings", "operations-dashboard"]);
     } catch (error) {
       if (savedSections.length > 0) {
         message.warning(

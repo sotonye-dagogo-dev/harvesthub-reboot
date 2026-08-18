@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Card, Button, PageLoader } from "@/components/ui";
@@ -8,6 +8,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Camera, Store, MapPin, Percent, Info, X } from "lucide-react";
 import { Switch, Select, message, Input as AntInput } from "antd";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES, COMMISSION_RATES } from "@/lib/constants";
+import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
 
 const { TextArea } = AntInput;
 
@@ -42,30 +43,25 @@ export default function StoreSettingsFeature() {
 
   const validatedVendorId = typeof vendor?.id === "string" && vendor.id.trim().length > 0 ? vendor.id : null;
 
-  useEffect(() => {
-    let mounted = true;
+  const loadVendorSettings = useCallback(
+    async (skipGuards = false) => {
+      if (!skipGuards) {
+        if (!user) {
+          setLoadingSettings(false);
+          return;
+        }
 
-    if (!user) {
-      setLoadingSettings(false);
-      return () => {
-        mounted = false;
-      };
-    }
+        if (user.role !== "VENDOR") {
+          setLoadingSettings(false);
+          return;
+        }
+      }
 
-    if (user.role !== "VENDOR") {
-      setLoadingSettings(false);
-      return () => {
-        mounted = false;
-      };
-    }
-
-    async function loadVendor() {
       setLoadingSettings(true);
       try {
         const res = await fetch("/api/vendors/me/store-settings");
         if (!res.ok) throw new Error("Failed to load store settings");
         const json = await res.json();
-        if (!mounted) return;
 
         if (!json.success || !json.settings) {
           throw new Error(json.error || "Unable to load store settings");
@@ -104,17 +100,15 @@ export default function StoreSettingsFeature() {
         const errMessage = error instanceof Error ? error.message : "Unable to load store settings";
         message.error(errMessage);
       } finally {
-        if (mounted) {
-          setLoadingSettings(false);
-        }
+        setLoadingSettings(false);
       }
-    }
+    },
+    [user]
+  );
 
-    loadVendor();
-    return () => {
-      mounted = false;
-    };
-  }, [user]);
+  useEffect(() => {
+    void loadVendorSettings();
+  }, [loadVendorSettings]);
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -154,6 +148,8 @@ export default function StoreSettingsFeature() {
       }
 
       message.success("Store settings updated successfully!");
+      emitDataMutated(["settings", "operations-dashboard", "vendors"]);
+      await loadVendorSettings(true);
     } catch (error) {
       const errMessage = error instanceof Error ? error.message : "Unable to update store settings";
       message.error(errMessage);

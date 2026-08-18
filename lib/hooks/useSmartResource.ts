@@ -19,6 +19,7 @@ export interface UseSmartResourceOptions<T> {
   enabled?: boolean;
   refreshIntervalMs?: number;
   staleTimeMs?: number;
+  invalidateOn?: string[];
   areEqual?: (prev: T | undefined, next: T) => boolean;
   onError?: (error: unknown) => void;
 }
@@ -32,6 +33,7 @@ export function useSmartResource<T>(
     enabled = true,
     refreshIntervalMs = 0,
     staleTimeMs = 30_000,
+    invalidateOn,
     areEqual = defaultAreEqual,
     onError,
   }: UseSmartResourceOptions<T>
@@ -41,6 +43,7 @@ export function useSmartResource<T>(
     enabled,
     refreshIntervalMs,
     staleTimeMs,
+    invalidateOn,
     compareStrategy: areEqual,
     onError,
     scope: { visibility: "public" },

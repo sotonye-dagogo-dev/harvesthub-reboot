@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useRuntimeStore, updateRuntimeResourceData } from "@/lib/data-runtime/runtimeStore";
 import { ensureRuntimeDefinition, loadRuntimeResource } from "@/lib/data-runtime/runtimeClient";
+import { useDataMutationInvalidation } from "@/lib/data-runtime/mutationBus";
 import type {
   RuntimeFetchContext,
   RuntimePolicyOverride,
@@ -23,6 +24,7 @@ type UseRuntimeResourceOptions<TData, TParams = unknown> = {
   retry?: RuntimePolicyOverride<TData>["retry"];
   scope?: RuntimeResourceScope;
   tags?: string[];
+  invalidateOn?: string[];
   onError?: (error: unknown) => void;
 };
 
@@ -49,6 +51,7 @@ export function useRuntimeResource<TData, TParams = unknown>({
   retry,
   scope = { visibility: "public" },
   tags,
+  invalidateOn,
   onError,
 }: UseRuntimeResourceOptions<TData, TParams>): RuntimeResourceHookState<TData> {
   const resource = useRuntimeStore((state) => state.resources[key]);
@@ -116,6 +119,13 @@ export function useRuntimeResource<TData, TParams = unknown>({
 
     return () => window.clearInterval(interval);
   }, [enabled, key, refreshIntervalMs]);
+
+  useDataMutationInvalidation(
+    enabled && invalidateOn ? invalidateOn : [],
+    () => {
+      void loadRuntimeResource<TData, TParams>(key, { force: true, background: true });
+    }
+  );
 
   const hasAnyData =
     typeof resource?.data !== "undefined" || typeof resource?.lastGoodData !== "undefined";
