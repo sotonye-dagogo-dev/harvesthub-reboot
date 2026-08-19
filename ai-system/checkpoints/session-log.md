@@ -4,6 +4,52 @@
 
 ---
 
+## Session 98 — Login P2022 Fix + SSL Warning Remediation — 2026-08-19
+
+**Goal:**
+Investigate a production login failure (`PrismaClientKnownRequestError` P2022 — "The column
+`(not available)` does not exist in the current database" on `prisma.user.findUnique`) suspected to
+be an unapplied migration, plus the pg-connection-string SSL-mode warning
+(`sslmode=require` aliased to `verify-full`).
+
+**Completed:**
+
+- **Root cause confirmed:** `prisma/schema.prisma` declares `User.campus` (added by migration
+  `20260818000000_add_user_campus` in Session 97), but the production DB (Prisma Postgres at
+  `db.prisma.io`) never received that column. The DB was originally built with `prisma db push`
+  (Session 89), so no migration records exist and `migrate deploy` could not replay them. The Prisma
+  client generated from the schema expected `campus`, so every `user.findUnique` (login route
+  `app/api/auth/login/route.ts:37`) failed with P2022.
+- **Schema drift fixed:** `prisma migrate diff --from-config-datasource --to-schema` showed the only
+  delta was the missing `users.campus` column. Ran `npx prisma db push` — DB now in sync with schema
+  (additive, no data loss).
+- **Verified:** a scripted `prisma.user.findUnique`/`findFirst` (with `campus` in the select) now
+  succeeds against production; the login query path is unblocked.
+- **SSL warning fixed:** `.env`, `.env.local`, and `.env.example` changed
+  `sslmode=require` → `sslmode=verify-full` in `DIRECT_URL` (per pg-connection-string guidance to
+  keep the current verify-full behavior explicitly and avoid libpq semantic drift in the next major
+  version). Warning no longer emitted at runtime.
+- **Migration history baselined:** because the DB was `db push`-managed, all 11 migrations in
+  `prisma/migrations` were marked applied via `prisma migrate resolve --applied` (in chronological
+  order). This prevents `scripts/prisma-deploy-if-server.mjs` (`prisma migrate deploy` on Vercel)
+  from attempting to replay migrations against an already-populated schema on the next deploy.
+  `prisma migrate status` now reports "Database schema is up to date!".
+
+**Files Modified:**
+- `.env`, `.env.local` (gitignored — `DIRECT_URL` sslmode), `.env.example`
+- No application code changed. DB ops only (`prisma db push`, `prisma migrate resolve` ×11).
+
+**Validation:**
+- `npx tsc --noEmit` ✅ · `npm run lint` ✅ (2 pre-existing warnings) · `npm run build` ✅ (exit 0)
+- Full `npx vitest run --pool=threads` → 484 passed / 32 skipped / 14 failed — the 14 failures are
+  all in `bannerTracking.test.ts` (10, jsdom `localStorage.clear is not a function`),
+  `cartStore.reconcile.test.ts` (3, `storage.setItem is not a function`), and one
+  `forgot-password.test.tsx` timeout — environment-level jsdom localStorage shim issues unrelated to
+  this change (verified no source code touched).
+- Production login query verified against the live DB (previously P2022).
+
+---
+
 ## Session 96 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green — 2026-08-15
 
 **Goal:**

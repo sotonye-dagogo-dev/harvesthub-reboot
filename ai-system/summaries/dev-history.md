@@ -24,6 +24,34 @@
 [What comes next]
 ```
 
+## 2026-08-19 — Login P2022 Fix + SSL Warning Remediation (Session 98)
+
+**Summary:**
+Diagnosed and fixed a production login failure caused by schema/DB drift: the `User.campus` column
+added in Session 97 existed in the Prisma schema and generated client but was never applied to the
+Prisma Postgres database (built via `db push` in Session 89, so migrations had no history).
+`prisma db push` synced the schema, all 11 migrations were baselined with `prisma migrate resolve`
+so the Vercel `migrate deploy` hook stays a no-op, and `sslmode=require` was changed to
+`sslmode=verify-full` in the direct connection strings to silence the pg-connection-string
+deprecation warning. No application code changed.
+
+**Completed:**
+- Diagnosed P2022 (`column does not exist`) → missing `users.campus` via
+  `prisma migrate diff --from-config-datasource --to-schema`.
+- `npx prisma db push` — production schema in sync (additive).
+- Verified login query (`user.findUnique` + `campus` select) succeeds against the live DB.
+- `sslmode=verify-full` in `.env`, `.env.local`, `.env.example` — warning eliminated.
+- Baselined all 11 migrations as applied; `prisma migrate status` → "up to date".
+
+**Key Changes:**
+- `.env.example` (tracked): `DIRECT_URL` sslmode require → verify-full.
+- `.env` / `.env.local` (untracked): same sslmode change.
+- Prisma Postgres production DB: schema synced + migration history recorded.
+
+**Next Sprint Focus:**
+Confirm no further schema drift on next deploy; keep `prisma migrate deploy`/`db push` usage
+consistent going forward.
+
 ## 2026-08-18 — "Tightening up" Directive (Session 97)
 
 **Summary:**

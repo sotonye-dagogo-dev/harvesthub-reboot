@@ -2,32 +2,26 @@
 
 > **Metadata**
 >
-> - last-updated-by: execute-feature.md (Session 97)
-> - last-verified-against-code: 2026-08-18
+> - last-updated-by: execute-feature.md (Session 98)
+> - last-verified-against-code: 2026-08-19
 
-**Status:** COMPLETE — Session 97 — "Tightening up" directive. All tasks implemented, QA passed, docs synced to `session-log.md`.
+**Status:** COMPLETE — Session 98 — Login P2022 Fix + SSL Warning Remediation.
 
 ## Directive summary
 
-1. Allow both payment options (Paystack card + bank-transfer upload proof) to be
-   available simultaneously, keeping Paystack off-toggle + automatic upload fallback.
-2. Ensure campus data is collected during registration for all users and available in
-   checkout/billing info (AddressForm + order delivery address + profile).
-3. Confirm order status change availability (sent/delivered/received + audit trail) — confirmed already implemented.
-4. Feedback in upload of content flow: button loading state, around upload input, success/failure toasts.
-5. Tighten global feedback toast functionality.
-6. Ensure dashboard/store/profile pages auto-update after edits/uploads/product CRUD without manual refresh/navigation.
+Investigate a production login failure (`P2022: column does not exist` on
+`prisma.user.findUnique`) suspected to be an unapplied migration, review error logs, code, and
+migrations, do what needs to be done, and address the pg-connection-string SSL-mode warning.
 
 ## Implementation tasks
 
-- [x] Checkout: enable bank-transfer alongside card.
-- [x] Schema: `User.campus` + migration + regen client.
-- [x] Register API + SecurityInfo page + UserInfo campus field.
-- [x] Profile API GET/PUT campus for all roles; ProfilePage campus for buyers.
-- [x] AddressForm campus select + wire checkout deliveryAddress + profile address save.
-- [x] Marketing-content modal upload feedback.
-- [x] Admin panels (blog/public-content) failure toasts + button loading spinner.
-- [x] ToastContext double-toast fix.
-- [x] Mutation bus + wire dashboard/analytics/store-settings refresh + emitDataMutated across operations pages.
-- [x] QA gate: tsc, lint, vitest, build.
-- [x] Sync ai-system docs + clear this file.
+- [x] Diagnose P2022 — `prisma migrate diff` confirmed only `users.campus` missing (added in
+      Session 97 but never applied to the `db push`-built production DB).
+- [x] `prisma db push` — production schema in sync (additive, no data loss).
+- [x] Verify login query path (`user.findUnique` + `campus` select) against the live DB.
+- [x] SSL warning — `sslmode=require` → `sslmode=verify-full` in `.env`, `.env.local`, `.env.example`.
+- [x] Baseline all 11 migrations (`prisma migrate resolve --applied`) — `migrate status` up to date.
+- [x] QA gate: tsc clean, lint clean (2 pre-existing warnings), build exit 0, vitest 484 passed
+      (14 environment-level jsdom localStorage failures unrelated).
+- [x] Sync ai-system docs (session-log, dev-history, task-queue, project-decisions, repair-system)
+      and clear this file.

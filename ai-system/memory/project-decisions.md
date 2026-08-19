@@ -2232,3 +2232,36 @@ correctness for any unverified account by comparing the 401 vs 403 responses.
 - The account-existence tradeoff is accepted and intentional: the verification-pending branch reveals
   that an account exists for a given email, which is consistent with the existing forgot-password
   anti-enumeration stance only insofar as the response still requires knowing the exact account email.
+
+## DB Sync Strategy: `prisma db push` + Migrations Baselined, Not Replayed
+
+**Decision:** The production Prisma Postgres DB is synced via `prisma db push` (as established in
+Session 89), and all existing `prisma/migrations/*` entries are marked applied with
+`prisma migrate resolve --applied` rather than replayed via `prisma migrate deploy`.
+**Date:** 2026-08-19
+**Made by:** AI implementation session (opencode)
+
+**Reason:**
+The DB was originally built with `db push`, which creates the schema but records no migration
+history (`_prisma_migrations` absent). When Session 97 added `User.campus` (migration
+`20260818000000_add_user_campus`), the schema and generated client carried the column but the DB
+never received it — every `prisma.user.findUnique` (login) failed with P2022. `migrate deploy`
+cannot recover a `db push`-built DB because the oldest migrations would conflict with existing
+tables. Syncing with `db push` (additive) then baselining migrations as applied makes the schema
+consistent while keeping the Vercel deploy hook (`scripts/prisma-deploy-if-server.mjs` →
+`prisma migrate deploy`) a safe no-op for the already-applied set.
+
+**Alternatives Considered:**
+- `prisma migrate deploy` to replay all 11 migrations (rejected: the first migration creates tables
+  that already exist — conflicts, data-loss risk).
+- `prisma migrate reset` (rejected: destroys data).
+- Leave the drift unaddressed (rejected: login is broken in production).
+
+**Implications:**
+- Any new schema change must be applied to the DB AND the migration recorded/baselined consistently —
+  keep the workflow explicit (`prisma db push` for sync, `prisma migrate resolve` to record).
+- `prisma migrate status` now reports "Database schema is up to date!"; future additive migrations
+  that are genuinely new can be applied normally.
+- The SSL mode on `DIRECT_URL` is explicitly `sslmode=verify-full` (not `require`) to keep the
+  current verify-full semantics and avoid pg-connection-string v3 libpq-semantic drift (warning
+  silenced).

@@ -3,7 +3,7 @@
 > **Metadata**
 > - last-updated-by: ai-system v3 upgrade (task-queue coupling marker added)
 > - last-verified-against-code: 2026-08-13
-> - last-synced: 2026-08-13 — ai-system v3 upgrade applied `last-synced` marker; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - last-synced: 2026-08-19 — Session 98 (login P2022 fix + SSL warning) applied; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
 > - staleness-policy: re-verify before each session
 
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
@@ -21,6 +21,25 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 | `[M]` | Medium — 3-6 files across related modules | execute-feature.md |
 | `[L]` | Large — multi-module, architecture-aware | execute-feature.md (deep sync chain) |
 | `[XL]` | Very large — cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
+
+---
+
+## Session 98 — Login P2022 Fix + SSL Warning Remediation (2026-08-19)
+
+> **Section summary:** Fixed a production login failure (`P2022: column does not exist` on
+> `prisma.user.findUnique`) caused by schema/DB drift — the `users.campus` column added in Session 97
+> existed in schema + generated client but was never applied to the Prisma Postgres DB. Ran
+> `prisma db push` to sync, baselined all 11 migrations with `prisma migrate resolve --applied` so the
+> Vercel `migrate deploy` hook is a no-op, and switched `sslmode=require` → `sslmode=verify-full` in
+> `DIRECT_URL` to remove the pg-connection-string warning. No application code changed; QA green
+> (tsc/lint/build; vitest 484 passed, 14 env-level jsdom localStorage failures unrelated).
+
+- [x] Diagnose P2022 on login — `prisma migrate diff` confirmed only `users.campus` missing.
+- [x] `prisma db push` — production schema in sync (additive, no data loss).
+- [x] Verify login query path (`user.findUnique` + `campus` select) against live DB.
+- [x] SSL warning — `sslmode=require` → `sslmode=verify-full` in `.env`, `.env.local`, `.env.example`.
+- [x] Baseline all 11 migrations (`prisma migrate resolve --applied`) — `migrate status` up to date.
+- [x] QA gate — tsc clean, lint clean (2 pre-existing warnings), build exit 0.
 
 ---
 
