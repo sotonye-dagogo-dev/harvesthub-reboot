@@ -18,6 +18,46 @@
 
 ---
 
+## [Login fails with P2022 "The column `(not available)` does not exist in the current database"]
+
+**Symptom:**
+- `POST /api/auth/login` logs `PrismaClientKnownRequestError` P2022 from
+  `prisma.user.findUnique({ where: { email } })`: "The column `(not available)` does not exist in the
+  current database."
+- Occurs in production only (NODE_ENV=production), after a schema change added a column but before the
+  DB was updated.
+
+**Root Cause:**
+- Schema/DB drift: `prisma/schema.prisma` (and the generated client) expected `users.campus`, added by
+  migration `20260818000000_add_user_campus`, but the production Prisma Postgres DB never received the
+  column. The DB was built with `prisma db push` (Session 89), which writes no `_prisma_migrations`
+  history, so `prisma migrate deploy` could not replay the migration — the newest schema delta stayed
+  unapplied and the client failed on every query selecting `User` scalars.
+
+**Fix Applied:**
+- `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma` → only delta was
+  `users.campus`.
+- `npx prisma db push` — production schema in sync (additive, no data loss).
+- Baselined all 11 migrations as applied (`prisma migrate resolve --applied <name>` ×11, chronological)
+  so `scripts/prisma-deploy-if-server.mjs`'s `prisma migrate deploy` stays a no-op on deploy.
+- Verified the login query path (`user.findUnique` + `campus` select) against the live DB.
+
+**Prevention:**
+- After any schema change that ships a migration, apply it to the DB before deploying the generated
+  client — never deploy a schema that expects columns the DB lacks.
+- For `db push`-managed databases, baseline new migrations (`prisma migrate resolve --applied`) in the
+  same session that creates them, or the P2022 drift returns.
+- Add a quick drift check (`prisma migrate status` / `migrate diff`) to the QA gate when a session
+  touches `prisma/schema.prisma`.
+
+**Files Affected:**
+- DB ops only (Prisma Postgres production); no application source changed.
+- `.env` / `.env.local` / `.env.example` — `DIRECT_URL` `sslmode=require` → `sslmode=verify-full`.
+
+**Date:** 2026-08-19
+
+---
+
 ## [Upload failures reject non-image files / generic upload errors / password-reset email not received]
 
 **Symptom:**
