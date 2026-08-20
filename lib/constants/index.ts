@@ -852,7 +852,7 @@ export const PLATFORM_DEFAULTS = {
     /** Whether the platform currently processes payments */
     PAYMENTS_ENABLED: false,
     /** Payment notice message shown at checkout */
-    PAYMENT_NOTICE: 'Online payment processing is coming soon. For now, please arrange payment directly with the vendor after placing your order.',
+    PAYMENT_NOTICE: 'Online payment processing is not enabled yet. Please pay via bank transfer and upload your proof of payment to complete checkout. The vendor will verify your transfer and confirm your order.',
 } as const;
 
 // ============================================================================

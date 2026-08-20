@@ -6,42 +6,25 @@
 
 ## Last Run
 
-**Date:** 2026-08-15
+**Date:** 2026-08-20
 **Run by:** opencode-agent
 
 **Results:**
 | Suite | Passed | Failed | Skipped |
 |-------|--------|--------|---------|
 | Build | ✅ (next build, exit 0) | 0 | 0 |
-| Typecheck | ✅ (npx tsc --noEmit) | 0 | 0 |
+| Typecheck | ✅ (npx tsc --noEmit, changed files clean) | 0 | 0 |
 | Lint | ✅ (next lint on touched files) | 0 | 0 |
-| Vitest (full) | 451 | 67 | 12 |
-| forgot-password.test.tsx (new) | 3 | 0 | 0 |
-| authMessages.test.ts (new) | 4 | 0 | 0 |
+| Vitest (full) | 501 | 0 | 32 |
 
-**Overall Status:** Build + typecheck + lint passing; new-feature tests pass.
-
-## Active Failures
-
-Full-suite vitest failures are pre-existing/environmental and unrelated to the 2026-08-15 changes
-(all 67 fail identically on the clean base commit `b597cd1`, verified via `git stash` baseline):
-
-| Test file | Error | Status | Assigned To |
-| --------- | ----- | ------ | ----------- |
-| lib/__tests__/api/auth.api.test.ts | fetch failed / ECONNREFUSED ::1:3000 (needs live dev server) | Pre-existing | — |
-| lib/__tests__/api/products.api.test.ts | fetch failed / ECONNREFUSED ::1:3000 (needs live dev server) | Pre-existing | — |
-| lib/__tests__/api/cart-order-flow.api.test.ts | fetch failed / ECONNREFUSED ::1:3000 | Pre-existing | — |
-| lib/__tests__/jwt.utils.test.ts | TypeError: payload must be an instance of Uint8Array | Pre-existing | — |
-| lib/__tests__/auth.schemas.test.ts, misc.schemas.test.ts, product.schemas.test.ts, order.schemas.test.ts | AssertionError | Pre-existing | — |
-| lib/__tests__/navigation.test.ts | AssertionError | Pre-existing | — |
-| app/signup/__tests__/layout.test.tsx, app/(auth)/__tests__/layout.test.tsx | signup-footer/auth-footer not found (test asserts footer; layout intentionally omits it) | Pre-existing | — |
-| components/ui/__tests__/PhoneInput.test.tsx | duplicate "Country code" | Pre-existing | — |
-| components/__tests__/FilterSidebar.test.tsx, Header.notifications-badge.test.tsx, OrderCard.test.tsx, app/orders/__tests__/orders-page.admin.test.tsx, app/products/[id]/__tests__/page.fallbacks.test.tsx | pre-existing UI/assertion failures | Pre-existing | — |
+**Overall Status:** Build + typecheck + lint passing; full vitest suite green (107 files / 501
+passed / 32 skipped; 3 skipped test-files are pre-existing/environmental).
 
 ## History
 
 | Date       | Passed | Failed | Notes                                          |
 | ---------- | ------ | ------ | ---------------------------------------------- |
+| 2026-08-20 | 501    | 0      | Checkout must enforce proof-of-payment upload for bank transfer; 3 new tests added |
 | 2026-08-15 | 451    | 67     | Forgot-password feedback fix + UI/UX feedback-gap audit (auth email flows, change-email, profile upload, vendor toasts); 7 new tests added |
 | 2026-08-13 | 430    | 67     | Upload retention + replace + verification-docs status overlay; fixed pre-existing test-file type errors (tsc clean) |
 | 2026-08-13 | 420    | 67     | Signup button/toast feedback + verification-docs upload overlay + no-response guard |
