@@ -67,7 +67,10 @@ export default function CartPage() {
           okText="Remove all"
           cancelText="Cancel"
           okButtonProps={{ danger: true }}
-          onConfirm={clearCart}
+          onConfirm={() => {
+            clearCart();
+            message.success("Cart cleared");
+          }}
         >
           <Button type="button" variant="outline">
             Clear Cart
@@ -91,7 +94,10 @@ export default function CartPage() {
               quantity={item.quantity}
               stock={item.stock}
               onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty)}
-              onRemove={() => removeItem(item.productId)}
+              onRemove={() => {
+                removeItem(item.productId);
+                message.success(`${item.name} removed from cart`);
+              }}
             />
           ))}
         </div>
