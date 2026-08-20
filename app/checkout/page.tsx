@@ -6,7 +6,7 @@ import { getCartPricingBreakdown, useCart } from "@/lib/store/cartStore";
 import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
-import { Radio, message, Tag } from "antd";
+import { Input, Radio, message, Tag } from "antd";
 import {
   Store,
   Wallet,
@@ -21,6 +21,7 @@ import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { AddressFormData } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
+import ImageUpload from "@/components/ui/ImageUpload";
 import { mapCheckoutErrorMessage } from "@/app/checkout/error-mapping";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getProductsClient } from "@/lib/data/clientDataFetchers";
@@ -62,6 +63,11 @@ export default function CheckoutPage() {
   const [cardPaymentState, setCardPaymentState] = useState<CardPaymentState>("IDLE");
   const [vendorBankInfo, setVendorBankInfo] = useState<VendorBankInfo[]>([]);
   const [loadingBankInfo, setLoadingBankInfo] = useState(false);
+
+  const [proofImageUrl, setProofImageUrl] = useState<string | null>(null);
+  const [proofImagePublicId, setProofImagePublicId] = useState<string | null>(null);
+  const [proofAmount, setProofAmount] = useState("");
+  const [proofBankRef, setProofBankRef] = useState("");
 
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<{
@@ -217,7 +223,7 @@ export default function CheckoutPage() {
   const gatewayReady = paymentConfig?.gatewayReady ?? false;
   const cardPaymentsAvailable = paymentsEnabled && gatewayReady;
   const bankTransferFallbackEnabled = paymentConfig?.bankTransferFallbackEnabled ?? false;
-  const bankTransferAvailable = bankTransferFallbackEnabled;
+  const bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled;
   const availableWalletBalance = walletSummary?.availableBalance ?? null;
   const hasSufficientWalletBalance =
     typeof availableWalletBalance === "number" ? availableWalletBalance >= total : true;
@@ -248,6 +254,12 @@ export default function CheckoutPage() {
       setPaymentMethod("BANK_TRANSFER_PROOF");
     }
   }, [hasSufficientWalletBalance, bankTransferAvailable, paymentMethod]);
+
+  useEffect(() => {
+    if (!paymentsEnabled) {
+      setPaymentMethod("BANK_TRANSFER_PROOF");
+    }
+  }, [paymentsEnabled]);
 
   useEffect(() => {
     if (!Array.isArray(runtimeProducts) || runtimeProducts.length === 0 || items.length === 0) {
@@ -414,6 +426,18 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (paymentMethod === "BANK_TRANSFER_PROOF") {
+      if (!proofImageUrl) {
+        message.error("Please upload your proof of payment (bank transfer receipt) to continue.");
+        return;
+      }
+      const proofAmountParsed = parseFloat(proofAmount);
+      if (Number.isNaN(proofAmountParsed) || proofAmountParsed <= 0) {
+        message.error("Please enter the amount you transferred.");
+        return;
+      }
+    }
+
     const hasLiveCartChanges = await reconcileCheckoutCartWithLiveDb();
     if (hasLiveCartChanges) {
       return;
@@ -564,6 +588,15 @@ export default function CheckoutPage() {
           paymentReference,
           paymentVerificationReference:
             paymentMethod === "CARD" && paymentReference ? paymentReference : undefined,
+          proofOfTransfer:
+            paymentMethod === "BANK_TRANSFER_PROOF" && proofImageUrl
+              ? {
+                  imageUrl: proofImageUrl,
+                  imagePublicId: proofImagePublicId,
+                  bankReference: proofBankRef.trim() || undefined,
+                  amount: parseFloat(proofAmount),
+                }
+              : undefined,
           vendorVerificationAcknowledged,
           voucherCode: appliedVoucher?.code,
           voucherDiscount: appliedVoucher?.discount,
@@ -629,10 +662,12 @@ export default function CheckoutPage() {
           <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
           <div>
             <p className="text-sm font-medium text-ds-status-info-text">
-              Payment Processing Coming Soon
+              Bank Transfer Payment
             </p>
             <p className="mt-1 text-xs text-ds-text-secondary">
-              {PLATFORM_DEFAULTS.PAYMENT_NOTICE}
+              Online payment processing is not enabled yet, so please pay via bank transfer to the
+              vendor account(s) below and upload your proof of payment to complete checkout. The
+              vendor will verify your transfer and confirm your order.
             </p>
           </div>
         </div>
@@ -830,6 +865,7 @@ export default function CheckoutPage() {
             >
               <Radio
                 value="WALLET"
+                disabled={!paymentsEnabled}
                 className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
               >
                 <div className="flex-1">
@@ -838,6 +874,11 @@ export default function CheckoutPage() {
                     Pay with Wallet
                   </div>
                   <div className="mt-1 text-sm text-ds-text-secondary">{walletBalanceLabel}</div>
+                  {!paymentsEnabled ? (
+                    <div className="mt-1 text-xs text-ds-text-tertiary">
+                      Wallet payments are unavailable while online payment processing is disabled.
+                    </div>
+                  ) : null}
                   {!hasSufficientWalletBalance ? (
                     <div className="mt-1 text-xs text-ds-status-warning-text">
                       Wallet balance is below your current order total.
@@ -940,6 +981,55 @@ export default function CheckoutPage() {
             {paymentMethod === "BANK_TRANSFER_PROOF" && loadingBankInfo ? (
               <div className="mt-4 text-xs text-ds-text-tertiary">
                 Loading vendor bank details...
+              </div>
+            ) : null}
+            {paymentMethod === "BANK_TRANSFER_PROOF" ? (
+              <div className="mt-4 space-y-3 rounded-ds-md border border-ds-border-base bg-ds-surface-base p-3">
+                <p className="text-sm font-semibold text-ds-text-primary">
+                  Upload Proof of Payment
+                </p>
+                <p className="text-xs text-ds-text-secondary">
+                  After transferring to the account above, upload a clear receipt and provide the
+                  amount you paid. Your upload is required to place this order, and the vendor will
+                  verify it before confirming your order.
+                </p>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Upload Payment Receipt
+                  </label>
+                  <ImageUpload
+                    folderType="payment-proof"
+                    valueUrl={proofImageUrl || undefined}
+                    onUploaded={(result) => {
+                      setProofImageUrl(result.url);
+                      setProofImagePublicId(result.publicId);
+                    }}
+                    helpText="JPG, PNG, WEBP or PDF (max 5MB)"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Amount Paid (NGN)
+                  </label>
+                  <Input
+                    type="number"
+                    value={proofAmount}
+                    onChange={(e) => setProofAmount(e.target.value)}
+                    placeholder="Enter amount you transferred"
+                    disabled={isPlacingOrder}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">
+                    Bank Reference (optional)
+                  </label>
+                  <Input
+                    value={proofBankRef}
+                    onChange={(e) => setProofBankRef(e.target.value)}
+                    placeholder="Enter bank transaction reference"
+                    disabled={isPlacingOrder}
+                  />
+                </div>
               </div>
             ) : null}
           </Card>
@@ -1047,21 +1137,13 @@ export default function CheckoutPage() {
                 ? cardPaymentReference
                   ? "Verify Card Payment & Place Order"
                   : "Initialize Card Payment"
-                : paymentMethod === "BANK_TRANSFER_PROOF"
-                  ? "Place Order (Upload Proof Later)"
-                  : paymentsEnabled
-                    ? "Place Order"
-                    : "Place Order (Pay Later)"}
+                : "Place Order"}
             </Button>
 
-            {!paymentsEnabled && paymentMethod !== "BANK_TRANSFER_PROOF" ? (
+            {paymentMethod === "BANK_TRANSFER_PROOF" ? (
               <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
-                Your order will be placed with payment pending. You&apos;ll be notified when payment
-                processing is available.
-              </p>
-            ) : paymentMethod === "BANK_TRANSFER_PROOF" ? (
-              <p className="mt-3 text-center text-[11px] text-ds-text-tertiary">
-                Pay off-platform via bank transfer, then upload your proof of payment from the order details page.
+                Your proof of payment upload is required before placing this order. The vendor will
+                verify your transfer and confirm your order.
               </p>
             ) : null}
           </Card>

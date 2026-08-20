@@ -1474,4 +1474,56 @@
 
 **Date:** 2026-07-12
 
+## [Checkout let buyers place orders without any payment process / proof upload]
+
+**Symptom:**
+- A buyer placed an order during checkout without uploading proof of payment and without going
+  through any payment process.
+- Checkout defaulted to `WALLET`; when payment processing was disabled (`paymentsEnabled === false`)
+  a wallet checkout was silently accepted as "Pay Later" (payment status `PENDING`, no real payment
+  step). The `BANK_TRANSFER_PROOF` option said "Place Order (Upload Proof Later)" and deferred the
+  upload to the order-details page.
+
+**Root Cause:**
+- The checkout page never wired a proof-of-payment upload step into the order placement flow.
+  `bankTransferAvailable` was gated purely on `env.paymentFallbackBankTransfer`, so when payments were
+  disabled the only active path was wallet/"pay later" — an order could be placed with zero payment
+  ceremony. `POST /api/orders` accepted `BANK_TRANSFER_PROOF` with no proof payload.
+
+**Fix Applied:**
+- `app/checkout/page.tsx`
+  - Added an inline proof-of-payment upload (ImageUpload `payment-proof` + amount + optional bank
+    reference) shown when `BANK_TRANSFER_PROOF` is selected; upload + amount are validated before
+    the order can be placed.
+  - `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled` so the bank-transfer
+    option is always wired in, including when payments are disabled.
+  - When payments are disabled: `WALLET` radio is disabled and the default method is forced to
+    `BANK_TRANSFER_PROOF`. Removed the "Place Order (Pay Later)"/"Upload Proof Later" paths and
+    updated the notices/helper copy.
+  - Passes `proofOfTransfer` (`imageUrl`, `imagePublicId`, `bankReference`, `amount`) to
+    `POST /api/orders`.
+- `app/api/orders/route.ts`
+  - Normalizes `proofOfTransfer`; returns `PROOF_OF_PAYMENT_REQUIRED` (400) for
+    `BANK_TRANSFER_PROOF` without a valid proof.
+  - Persists a `ProofOfTransfer` record (status `PENDING`) per created order inside the same
+    transaction; audit note now records that proof was uploaded and awaits vendor verification.
+- `lib/constants/index.ts` — `PLATFORM_DEFAULTS.PAYMENT_NOTICE` updated to describe the bank-transfer
+  proof flow instead of "arrange payment directly with the vendor".
+- Tests: 3 new cases in `app/api/orders/__tests__/route.payment-smoke.test.ts` (missing proof → 400;
+  missing amount → 400; success path creates order + proof).
+
+**Prevention:**
+- Every payment method must resolve to a real payment artifact before order placement; never fall
+  back to a "pay later" default. When payment processing is disabled the bank-transfer + proof
+  upload path must be active (gated on `!paymentsEnabled` as an OR condition, not only on the
+  fallback env flag).
+
+**Files Affected:**
+- app/checkout/page.tsx
+- app/api/orders/route.ts
+- app/api/orders/__tests__/route.payment-smoke.test.ts
+- lib/constants/index.ts
+
+**Date:** 2026-08-20
+
 [Entries move here when the underlying cause has been permanently fixed]

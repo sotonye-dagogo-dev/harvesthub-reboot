@@ -257,4 +257,111 @@ describe("POST /api/orders payment smoke paths", () => {
     expect(json.success).toBe(true);
     expect(json.order?.id).toBe("order-1");
   });
+
+  it("rejects bank transfer proof checkout without a proof of payment upload", async () => {
+    mockPrisma.buyer.upsert.mockResolvedValue({ id: "buyer-1" });
+    mockPrisma.vendor.findMany.mockResolvedValue([
+      { id: "vendor-1", userId: "vendor-user-1", status: "APPROVED" },
+    ]);
+
+    const res = await POST(
+      buildRequest({
+        paymentMethod: "BANK_TRANSFER_PROOF",
+      })
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("PROOF_OF_PAYMENT_REQUIRED");
+  });
+
+  it("rejects bank transfer proof checkout when proof amount is missing", async () => {
+    const res = await POST(
+      buildRequest({
+        paymentMethod: "BANK_TRANSFER_PROOF",
+        proofOfTransfer: {
+          imageUrl: "https://cdn.example.com/receipt.jpg",
+          imagePublicId: "payment-proof/receipt",
+        },
+      })
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("PROOF_OF_PAYMENT_REQUIRED");
+  });
+
+  it("creates order and proof of transfer for bank transfer proof checkout", async () => {
+    mockPrisma.buyer.upsert.mockResolvedValue({ id: "buyer-1" });
+    mockPrisma.vendor.findMany.mockResolvedValue([
+      { id: "vendor-1", userId: "vendor-user-1", status: "APPROVED" },
+    ]);
+    mockPrisma.product.findUnique.mockResolvedValue({
+      id: "product-1",
+      name: "Fresh Tomato",
+      isActive: true,
+      vendorId: "vendor-1",
+      stock: 20,
+      listingType: "PRODUCT",
+      price: 5000,
+      mainImage: "https://cdn.example.com/product-1.jpg",
+    });
+
+    const proofCreate = vi.fn().mockResolvedValue({ id: "proof-1" });
+    mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => unknown) =>
+      callback({
+        order: {
+          create: vi.fn().mockResolvedValue({
+            id: "order-1",
+            orderNumber: "MHH-5678",
+            vendorId: "vendor-1",
+            total: 6500,
+            items: [],
+            vendor: { id: "vendor-1", storeName: "Fresh Farm" },
+          }),
+        },
+        proofOfTransfer: {
+          create: proofCreate,
+        },
+        product: {
+          findUnique: vi.fn().mockResolvedValue({ listingType: "PRODUCT" }),
+          update: vi.fn().mockResolvedValue({ id: "product-1" }),
+        },
+        vendor: {
+          update: vi.fn().mockResolvedValue({ id: "vendor-1" }),
+        },
+      })
+    );
+
+    const res = await POST(
+      buildRequest({
+        paymentMethod: "BANK_TRANSFER_PROOF",
+        paymentGateway: undefined,
+        paymentReference: undefined,
+        paymentVerificationReference: undefined,
+        proofOfTransfer: {
+          imageUrl: "https://cdn.example.com/receipt.jpg",
+          imagePublicId: "payment-proof/receipt",
+          bankReference: "TXN-REF-123",
+          amount: 6500,
+        },
+      })
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(json.success).toBe(true);
+    expect(json.order?.id).toBe("order-1");
+    expect(proofCreate).toHaveBeenCalledTimes(1);
+    expect(proofCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          orderId: "order-1",
+          imageUrl: "https://cdn.example.com/receipt.jpg",
+          amount: 6500,
+          status: "PENDING",
+        }),
+      })
+    );
+  });
 });

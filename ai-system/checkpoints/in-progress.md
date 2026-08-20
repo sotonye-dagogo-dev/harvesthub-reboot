@@ -2,26 +2,33 @@
 
 > **Metadata**
 >
-> - last-updated-by: execute-feature.md (Session 98)
-> - last-verified-against-code: 2026-08-19
+> - last-updated-by: fix-build.md (Session 99)
+> - last-verified-against-code: 2026-08-20
 
-**Status:** COMPLETE — Session 98 — Login P2022 Fix + SSL Warning Remediation.
+**Status:** COMPLETE — Session 99 — Checkout proof-of-payment enforcement for bank transfer.
 
 ## Directive summary
 
-Investigate a production login failure (`P2022: column does not exist` on
-`prisma.user.findUnique`) suspected to be an unapplied migration, review error logs, code, and
-migrations, do what needs to be done, and address the pg-connection-string SSL-mode warning.
+Users could place orders without uploading proof of payment (and without any payment process).
+Expected behavior:
+- Payment processing **enabled**: options are bank transfer (proof-of-payment upload **compulsory**
+  before order placement; validation left to the vendor) OR Paystack (card) OR wallet.
+- Payment processing **disabled**: the proof-of-payment option is still present and the upload must
+  be wired in regardless (no "pay later" bypass).
 
 ## Implementation tasks
 
-- [x] Diagnose P2022 — `prisma migrate diff` confirmed only `users.campus` missing (added in
-      Session 97 but never applied to the `db push`-built production DB).
-- [x] `prisma db push` — production schema in sync (additive, no data loss).
-- [x] Verify login query path (`user.findUnique` + `campus` select) against the live DB.
-- [x] SSL warning — `sslmode=require` → `sslmode=verify-full` in `.env`, `.env.local`, `.env.example`.
-- [x] Baseline all 11 migrations (`prisma migrate resolve --applied`) — `migrate status` up to date.
-- [x] QA gate: tsc clean, lint clean (2 pre-existing warnings), build exit 0, vitest 484 passed
-      (14 environment-level jsdom localStorage failures unrelated).
-- [x] Sync ai-system docs (session-log, dev-history, task-queue, project-decisions, repair-system)
-      and clear this file.
+- [x] Add proof-of-payment upload (ImageUpload payment-proof + amount + bank reference) to the
+      checkout page for `BANK_TRANSFER_PROOF`.
+- [x] Validate proof image + amount before placing order (client) and pass `proofOfTransfer` payload
+      to `POST /api/orders`.
+- [x] Server: enforce `PROOF_OF_PAYMENT_REQUIRED` for `BANK_TRANSFER_PROOF`; persist
+      `ProofOfTransfer` (status PENDING) per order inside the transaction.
+- [x] When payments disabled: `bankTransferAvailable` forced on, WALLET disabled, default payment
+      method forced to `BANK_TRANSFER_PROOF`; removed "Place Order (Pay Later)"/"Upload Proof Later".
+- [x] Update checkout notices + `PLATFORM_DEFAULTS.PAYMENT_NOTICE`.
+- [x] Tests: 3 new bank-transfer-proof paths in `route.payment-smoke.test.ts`.
+- [x] QA gate: vitest 107 files / 501 passed / 32 skipped; tsc clean (changed files); lint clean;
+      build exit 0.
+- [x] Sync ai-system docs (session-log, test-results, repair-system, dev-history, task-queue) and
+      clear this file.

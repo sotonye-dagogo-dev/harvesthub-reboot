@@ -4,6 +4,50 @@
 
 ---
 
+## Session 99 — Checkout proof-of-payment enforcement for bank transfer — 2026-08-20
+
+**Goal:**
+Close the checkout gap where a buyer could place an order without uploading proof of payment (and
+without any real payment process). Expected behavior: with payment processing enabled, bank transfer
+(proof-of-payment upload compulsory before order placement, validation left to the vendor), Paystack,
+and wallet are all available; with payment processing disabled, the bank-transfer proof upload must
+still be wired in — no "pay later" bypass.
+
+**Completed:**
+
+- **Proof upload wired into checkout** — `app/checkout/page.tsx` now shows an inline
+  "Upload Proof of Payment" section (ImageUpload `payment-proof` + amount + optional bank reference)
+  when `BANK_TRANSFER_PROOF` is selected. Upload + amount are validated before the order can be
+  placed (`PROOF_OF_PAYMENT_REQUIRED`-style client errors), and `proofOfTransfer`
+  (`imageUrl`, `imagePublicId`, `bankReference`, `amount`) is sent to `POST /api/orders`.
+- **Disabled-payments path fixed** — `bankTransferAvailable = bankTransferFallbackEnabled ||
+  !paymentsEnabled` so the bank-transfer option is always active; when payments are disabled the
+  `WALLET` radio is disabled, the default method is forced to `BANK_TRANSFER_PROOF`, and the
+  "Place Order (Pay Later)" / "Upload Proof Later" flows were removed.
+- **Server enforcement + persistence** — `app/api/orders/route.ts` returns
+  `PROOF_OF_PAYMENT_REQUIRED` (400) for `BANK_TRANSFER_PROOF` without a valid proof, and creates a
+  `ProofOfTransfer` record (status `PENDING`) per order inside the same transaction so the vendor can
+  verify. Audit note records proof uploaded + awaiting vendor verification.
+- **Copy/constants** — checkout notices and `PLATFORM_DEFAULTS.PAYMENT_NOTICE` updated to describe
+  the bank-transfer + proof flow.
+- **Tests** — 3 new cases in `app/api/orders/__tests__/route.payment-smoke.test.ts` (missing proof →
+  400; missing amount → 400; success path creates order + proof).
+
+**Files Modified:**
+- `app/checkout/page.tsx`
+- `app/api/orders/route.ts`
+- `app/api/orders/__tests__/route.payment-smoke.test.ts`
+- `lib/constants/index.ts`
+- `ai-system/repair-system.md`, `ai-system/testing/test-results.md`,
+  `ai-system/checkpoints/session-log.md`, `ai-system/checkpoints/in-progress.md`
+
+**Validation:**
+- `npx tsc --noEmit` ✅ (changed files clean) · `npm run lint` ✅ (0 warnings/errors)
+- `npx vitest run` ✅ — 107 files / 501 passed / 32 skipped
+- `npm run build` ✅ (exit 0)
+
+---
+
 ## Session 98 — Login P2022 Fix + SSL Warning Remediation — 2026-08-19
 
 **Goal:**

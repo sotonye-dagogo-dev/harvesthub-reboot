@@ -159,6 +159,7 @@ export async function POST(req: NextRequest) {
             paymentGateway,
             paymentReference,
             paymentVerificationReference,
+            proofOfTransfer,
         } = body;
 
         const normalizedNotes = typeof notes === 'string' ? notes.trim() : '';
@@ -166,6 +167,36 @@ export async function POST(req: NextRequest) {
             typeof paymentReference === 'string' && paymentReference.trim().length > 0
                 ? paymentReference.trim()
                 : null;
+
+        let normalizedProofOfTransfer: {
+            imageUrl: string;
+            imagePublicId: string | null;
+            bankReference: string | null;
+            amount: number;
+        } | null = null;
+        if (
+            proofOfTransfer &&
+            typeof proofOfTransfer === 'object' &&
+            typeof (proofOfTransfer as Record<string, unknown>).imageUrl === 'string'
+        ) {
+            const proof = proofOfTransfer as Record<string, unknown>;
+            const imageUrl = String(proof.imageUrl).trim();
+            const amount = Number(proof.amount);
+            if (imageUrl.length > 0 && Number.isFinite(amount) && amount > 0) {
+                normalizedProofOfTransfer = {
+                    imageUrl,
+                    imagePublicId:
+                        typeof proof.imagePublicId === 'string' && proof.imagePublicId.trim().length > 0
+                            ? proof.imagePublicId.trim()
+                            : null,
+                    bankReference:
+                        typeof proof.bankReference === 'string' && proof.bankReference.trim().length > 0
+                            ? proof.bankReference.trim()
+                            : null,
+                    amount,
+                };
+            }
+        }
 
         let normalizedVendorOrders: IncomingVendorOrder[] = [];
         if (Array.isArray(vendorOrders) && vendorOrders.length > 0) {
@@ -232,6 +263,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
         }
 
+        if (paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF && !normalizedProofOfTransfer) {
+            return NextResponse.json(
+                {
+                    error:
+                        'A proof of payment upload (receipt image and amount) is required to place a bank transfer order.',
+                    code: 'PROOF_OF_PAYMENT_REQUIRED',
+                },
+                { status: 400 }
+            );
+        }
+
         const commerceConfig = await getCommerceLifecycleConfig(prisma);
         const paymentsEnabled = commerceConfig.paymentsEnabled;
         const requiresGatewayVerification = paymentsEnabled && paymentMethod === PaymentMethod.CARD;
@@ -282,7 +324,11 @@ export async function POST(req: NextRequest) {
             paymentAuditNote = 'Wallet payment selected.';
         } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
             const fallback = getPaymentFallbackTelemetry();
-            paymentAuditNote = `Bank transfer fallback used (deprecates in ${fallback.deprecationDays} day(s)).`;
+            if (normalizedProofOfTransfer) {
+                paymentAuditNote = `Bank transfer with proof of payment uploaded. Vendor verification required (fallback deprecates in ${fallback.deprecationDays} day(s)).`;
+            } else {
+                paymentAuditNote = `Bank transfer fallback used (deprecates in ${fallback.deprecationDays} day(s)).`;
+            }
         }
 
         // Use Prisma for all order operations (no mock fallback)
@@ -577,6 +623,20 @@ export async function POST(req: NextRequest) {
                     },
                     include: { items: true, vendor: { select: { id: true, storeName: true } } },
                 });
+
+                if (normalizedProofOfTransfer) {
+                    await tx.proofOfTransfer.create({
+                        data: {
+                            orderId: newOrder.id,
+                            userId: user.userId,
+                            imageUrl: normalizedProofOfTransfer.imageUrl,
+                            imagePublicId: normalizedProofOfTransfer.imagePublicId,
+                            bankReference: normalizedProofOfTransfer.bankReference,
+                            amount: normalizedProofOfTransfer.amount,
+                            status: 'PENDING',
+                        },
+                    });
+                }
 
                 if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled && buyerWalletId) {
                     const balanceBefore = runningWalletBalance;
