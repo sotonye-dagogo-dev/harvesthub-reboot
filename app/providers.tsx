@@ -1,5 +1,11 @@
 "use client";
 
+// antd v5 only officially supports React 16-18. The app runs on React 19, so the
+// official compatibility patch must be loaded before any antd static method
+// (`message`, `notification`, `Modal.confirm`, ...) is invoked. Without it those
+// static feedback surfaces silently no-op, which broke the global toast.
+import "@ant-design/v5-patch-for-react-19";
+
 import {
   createContext,
   useContext,
