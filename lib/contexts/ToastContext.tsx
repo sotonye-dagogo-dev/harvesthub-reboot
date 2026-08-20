@@ -23,6 +23,8 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+let toastKey = 0;
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const { message: msg, notification } = App.useApp();
 
@@ -32,14 +34,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     description,
     duration = 4.5,
     placement = "topRight",
+    ...rest
   }: any) => {
+    // Use a unique key per call so repeated/identical toasts always fire
+    // instead of silently updating an existing (or previously closed) notice.
+    toastKey += 1;
     notification.open({
-      key: String(m),
+      key: `toast-${toastKey}`,
       message: m as ReactNode,
       description: description as ReactNode,
       duration,
       placement,
       type,
+      ...rest,
     } as any);
   };
 
