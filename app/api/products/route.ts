@@ -153,7 +153,8 @@ export async function POST(req: NextRequest) {
             stock: Math.floor(numericStock),
             images: images || [],
             mainImage,
-            variants: variants || null,
+            // Preserve explicit [] (sizing disabled) vs null (fallback to category config)
+            variants: Array.isArray(variants) ? variants : variants ?? null,
             tags: tags || [],
             isFeatured: isFeatured || false,
             listingType: listingType || 'PRODUCT',

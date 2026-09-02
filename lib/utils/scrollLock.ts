@@ -11,6 +11,7 @@
 let lockCount = 0;
 let prevOverflow: string | null = null;
 let prevPaddingRight: string | null = null;
+let prevHtmlOverflow: string | null = null;
 
 function getScrollbarWidth(): number {
   if (typeof document === "undefined") return 0;
@@ -23,12 +24,15 @@ export function lockScroll(): void {
     if (lockCount === 0) {
       prevOverflow = document.body.style.overflow;
       prevPaddingRight = document.body.style.paddingRight;
+      prevHtmlOverflow = document.documentElement.style.overflow;
       const scrollbarWidth = getScrollbarWidth();
       if (scrollbarWidth > 0) {
         const computed = parseFloat(getComputedStyle(document.body).paddingRight || "0");
         document.body.style.paddingRight = `${computed + scrollbarWidth}px`;
       }
+      // Lock both body and html to cover browsers that scroll html element
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     }
     lockCount += 1;
   } catch {
@@ -43,8 +47,10 @@ export function unlockScroll(): void {
     if (lockCount === 0) {
       document.body.style.overflow = prevOverflow ?? "";
       document.body.style.paddingRight = prevPaddingRight ?? "";
+      document.documentElement.style.overflow = prevHtmlOverflow ?? "";
       prevOverflow = null;
       prevPaddingRight = null;
+      prevHtmlOverflow = null;
     }
   } catch {
     // non-blocking
