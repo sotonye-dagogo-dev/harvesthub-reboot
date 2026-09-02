@@ -269,6 +269,12 @@ export default function ProductsContent({
 
   const handleAddToCart = (product: Product) => {
     if (!requireAuth("add items to your cart")) return;
+    // Non-blocking: if product has variants (e.g. sizes), require selection via detail page instead of quick add
+    const hasVariants = Array.isArray((product as unknown as { variants?: unknown[] }).variants) && ((product as unknown as { variants: unknown[] }).variants?.length ?? 0) > 0;
+    if (hasVariants) {
+      toast.error("Please select options (e.g. size) on the product page before adding to cart");
+      return;
+    }
     const vendor = liveVendors.find((v) => v.id === product.vendorId);
     const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
     const pricing = buildCartPricing(product.price, product.discount);

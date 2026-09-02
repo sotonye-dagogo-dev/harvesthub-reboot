@@ -30,6 +30,7 @@ type ProductApiResponse = {
     isFeatured?: boolean;
     listingType?: string | null;
     category?: string | null;
+    variants?: Array<{ id?: string; name: string; values: string[]; priceAdjustment?: number | null }> | null;
     vendorId: string;
     vendor?: {
       id: string;
@@ -276,6 +277,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             vendorId={productVendorId}
             vendorName={vendorName}
             stock={productStock}
+            category={product.category ?? null}
+            variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
           />
 
           <p className="mt-4 text-ds-text-secondary">

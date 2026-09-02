@@ -6,6 +6,8 @@ interface OrderItemData {
   name: string;
   quantity: number;
   price: number;
+  selectedVariants?: Record<string, string> | null;
+  productImage?: string;
 }
 
 interface OrderConfirmationProps {
@@ -90,19 +92,43 @@ export function OrderConfirmation({
         </tbody>
       </table>
 
-      {/* Items */}
+      {/* Items — includes size/color/variant, qty, unit price and line total */}
       <Section style={{ margin: "16px 0" }}>
         <Text style={{ ...styles.paragraph, fontWeight: 600, margin: "0 0 8px" }}>Items</Text>
-        {items.map((item, i) => (
-          <Row key={i} style={{ marginBottom: "4px" }}>
-            <Column style={{ fontSize: "14px", color: "#374151" }}>
-              {item.name} × {item.quantity}
-            </Column>
-            <Column style={{ fontSize: "14px", color: "#374151", textAlign: "right" }}>
-              {formatNgn(item.price * item.quantity)}
-            </Column>
-          </Row>
-        ))}
+        <table style={{ ...styles.table, marginTop: "0" }}>
+          <thead>
+            <tr>
+              <th style={{ ...styles.tableCellLabel, fontWeight: 700, textAlign: "left" }}>Product</th>
+              <th style={{ ...styles.tableCellLabel, fontWeight: 700, textAlign: "center" }}>Qty</th>
+              <th style={{ ...styles.tableCellLabel, fontWeight: 700, textAlign: "right" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, i) => {
+              const variantLabel =
+                item.selectedVariants && Object.keys(item.selectedVariants).length > 0
+                  ? Object.entries(item.selectedVariants)
+                      .map(([k, v]) => `${k}: ${v}`)
+                      .join(", ")
+                  : null;
+              return (
+                <tr key={i} style={styles.tableRow}>
+                  <td style={{ ...styles.tableCellValue, textAlign: "left" }}>
+                    <div style={{ fontWeight: 600, color: "#111827" }}>{item.name}</div>
+                    {variantLabel ? (
+                      <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>{variantLabel}</div>
+                    ) : null}
+                    <div style={{ fontSize: "12px", color: "#6b7280" }}>{formatNgn(item.price)} each</div>
+                  </td>
+                  <td style={{ ...styles.tableCellValue, textAlign: "center" }}>{item.quantity}</td>
+                  <td style={{ ...styles.tableCellValue, textAlign: "right", fontWeight: 600 }}>
+                    {formatNgn(item.price * item.quantity)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </Section>
 
       {/* Totals */}

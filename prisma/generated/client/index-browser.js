@@ -706,6 +706,16 @@ exports.Prisma.BlogConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProductVariationConfigScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  version: 'version',
+  categories: 'categories',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1116,7 +1126,8 @@ exports.Prisma.ModelName = {
   PublicContent: 'PublicContent',
   VendorContent: 'VendorContent',
   BlogPost: 'BlogPost',
-  BlogConfig: 'BlogConfig'
+  BlogConfig: 'BlogConfig',
+  ProductVariationConfig: 'ProductVariationConfig'
 };
 
 /**
