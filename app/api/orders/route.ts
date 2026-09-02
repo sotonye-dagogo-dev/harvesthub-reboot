@@ -471,6 +471,57 @@ export async function POST(req: NextRequest) {
                     return NextResponse.json({ error: `Insufficient stock for ${product.name}` }, { status: 400 });
                 }
 
+                // Non-blocking variant validation: if product defines variants, ensure a matching selection was provided
+                try {
+                    const rawVariants = (product as unknown as { variants?: unknown }).variants;
+                    if (Array.isArray(rawVariants) && rawVariants.length > 0) {
+                        const defs = rawVariants as Array<{ name: string; values: string[] }>;
+                        const chosen = item.selectedVariants as Record<string, string> | null | undefined;
+                        // Find required-like enforcement: for fashion/size variants, require at least one selection
+                        // If product has variants but client sent nothing, return helpful error (still non-blocking for other products)
+                        const variantKeys = defs.map((d) => (d.name || "").toLowerCase().trim()).filter(Boolean);
+                        const hasAnySelection = chosen && Object.keys(chosen).length > 0;
+                        if (!hasAnySelection) {
+                            // Check if any variant looks like size (common required for fashion) — enforce for those categories
+                            const looksLikeFashion = variantKeys.includes("size");
+                            if (looksLikeFashion) {
+                                return NextResponse.json(
+                                    {
+                                        error: `Please select a size for "${product.name}" before ordering. Available: ${defs
+                                            .find((d) => (d.name || "").toLowerCase().trim() === "size")
+                                            ?.values.join(", ")}`,
+                                        code: "VARIANT_REQUIRED",
+                                        productId: product.id,
+                                    },
+                                    { status: 400 }
+                                );
+                            }
+                        }
+                        if (chosen) {
+                            for (const def of defs) {
+                                const key = (def.name || "").toLowerCase().trim();
+                                // Accept both lower-case key and original case
+                                const chosenVal = chosen[key] ?? chosen[def.name] ?? chosen[def.name?.toLowerCase()];
+                                if (chosenVal) {
+                                    const allowed = Array.isArray(def.values) ? def.values : [];
+                                    if (allowed.length > 0 && !allowed.includes(chosenVal)) {
+                                        return NextResponse.json(
+                                            {
+                                                error: `Invalid variant "${chosenVal}" for ${def.name} on "${product.name}". Allowed: ${allowed.join(", ")}`,
+                                                code: "VARIANT_INVALID",
+                                                productId: product.id,
+                                            },
+                                            { status: 400 }
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    // non-blocking: ignore validation errors and allow order to proceed
+                }
+
                 const itemSubtotal = product.price * item.quantity;
                 subtotal += itemSubtotal;
                 orderItems.push({

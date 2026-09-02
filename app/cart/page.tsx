@@ -81,25 +81,36 @@ export default function CartPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         {/* Cart Items */}
         <div className="space-y-4 lg:col-span-2">
-          {items.map((item) => (
-            <CartItemComponent
-              key={item.productId}
-              id={item.productId}
-              name={item.name}
-              price={item.price}
-              originalPrice={item.originalPrice}
-              discountPercent={item.discountPercent}
-              image={item.image}
-              vendorName={item.vendorName}
-              quantity={item.quantity}
-              stock={item.stock}
-              onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty)}
-              onRemove={() => {
-                removeItem(item.productId);
-                message.success(`${item.name} removed from cart`);
-              }}
-            />
-          ))}
+          {items.map((item) => {
+            const variantKey =
+              item.selectedVariants && Object.keys(item.selectedVariants).length > 0
+                ? Object.keys(item.selectedVariants)
+                    .sort()
+                    .map((k) => `${k}=${item.selectedVariants?.[k]}`)
+                    .join("|")
+                : item.variant || "";
+            return (
+              <CartItemComponent
+                key={`${item.productId}::${variantKey}`}
+                id={item.productId}
+                name={item.name}
+                price={item.price}
+                originalPrice={item.originalPrice}
+                discountPercent={item.discountPercent}
+                image={item.image}
+                vendorName={item.vendorName}
+                quantity={item.quantity}
+                stock={item.stock}
+                variant={item.variant}
+                selectedVariants={item.selectedVariants ?? null}
+                onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty, item.selectedVariants ?? null)}
+                onRemove={() => {
+                  removeItem(item.productId, item.selectedVariants ?? undefined);
+                  message.success(`${item.name} removed from cart`);
+                }}
+              />
+            );
+          })}
         </div>
 
         {/* Order Summary */}

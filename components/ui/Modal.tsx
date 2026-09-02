@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
+import { lockScroll, unlockScroll } from "@/lib/utils/scrollLock";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -47,12 +48,12 @@ export function Modal({
 
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
+      lockScroll();
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
+      if (isOpen) unlockScroll();
     };
   }, [isOpen, onClose]);
 

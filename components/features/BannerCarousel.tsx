@@ -32,6 +32,7 @@ import {
   trackBannerClick,
   type BannerTrackingSource,
 } from "@/lib/tracking/bannerTracking";
+import { lockScroll, unlockScroll } from "@/lib/utils/scrollLock";
 
 // ─── Public types ─────────────────────────────────────────────────
 
@@ -214,13 +215,10 @@ export function BannerActionModal({ banner, onClose, trackingSource = "hero-moda
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Prevent body scroll while open
+  // Prevent body scroll while open (non-blocking, ref-counted)
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    lockScroll();
+    return () => unlockScroll();
   }, []);
 
   return (

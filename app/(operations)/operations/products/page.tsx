@@ -31,6 +31,11 @@ interface VendorOption {
   storeName: string;
 }
 
+interface ProductVariantFormEntry {
+  name: string;
+  values: string; // comma-separated in form
+}
+
 interface ProductFormValues {
   vendorId?: string;
   name: string;
@@ -42,6 +47,7 @@ interface ProductFormValues {
   discount?: number;
   stock: number;
   isActive: boolean;
+  variants?: ProductVariantFormEntry[];
 }
 
 interface AuthMeResponse {
@@ -90,6 +96,18 @@ export default function OperationsProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState("");
   const [additionalImageUrls, setAdditionalImageUrls] = useState<string[]>([]);
+  // Config-driven variant preset helper (non-blocking, falls back to defaults)
+  const applySizePreset = () => {
+    const current = form.getFieldValue("variants") as ProductVariantFormEntry[] | undefined;
+    const hasSize = Array.isArray(current) && current.some((v) => (v.name || "").toLowerCase().trim() === "size");
+    if (hasSize) {
+      message.info("Size variant already exists");
+      return;
+    }
+    const next: ProductVariantFormEntry[] = [...(Array.isArray(current) ? current : []), { name: "Size", values: "M, L, XL, XXL" }];
+    form.setFieldsValue({ variants: next });
+    message.success("Size preset added (M, L, XL, XXL) — edit as needed");
+  };
 
   const [form] = Form.useForm<ProductFormValues>();
   const selectedVendorId = Form.useWatch("vendorId", form);
@@ -276,6 +294,12 @@ export default function OperationsProductsPage() {
     const isEditDraft = draft?.editingProductId === product.id;
 
     setEditingProduct(product);
+    const variantEntries: ProductVariantFormEntry[] | undefined = Array.isArray((product as unknown as { variants?: unknown }).variants)
+      ? ((product as unknown as { variants: Array<{ name: string; values: string[] }> }).variants || []).map((v) => ({
+          name: v.name,
+          values: Array.isArray(v.values) ? v.values.join(", ") : "",
+        }))
+      : undefined;
     const baseValues: Partial<ProductFormValues> = {
       vendorId: product.vendorId,
       name: product.name,
@@ -287,6 +311,7 @@ export default function OperationsProductsPage() {
       discount: product.discount || undefined,
       stock: product.stock,
       isActive: product.isActive,
+      variants: variantEntries,
     };
     const baseAdditionalImages = (
       Array.isArray(product.images)
@@ -333,6 +358,22 @@ export default function OperationsProductsPage() {
 
     setSubmitting(true);
     try {
+      // Build variants array config-driven: comma-separated values -> array; filter empty
+      const variants =
+        Array.isArray(values.variants) && values.variants.length > 0
+          ? values.variants
+              .map((entry) => {
+                const name = (entry?.name || "").trim();
+                const rawValues = (entry?.values || "").trim();
+                const vals = rawValues
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean);
+                if (!name || vals.length === 0) return null;
+                return { name, values: vals };
+              })
+              .filter((v): v is { name: string; values: string[] } => Boolean(v))
+          : undefined;
       const payload = {
         vendorId: scopedVendorId,
         name: values.name.trim(),
@@ -350,6 +391,7 @@ export default function OperationsProductsPage() {
         mainImage,
         images: buildImageArray(mainImage, additionalImageUrls).slice(0, MAX_PRODUCT_IMAGES),
         isActive: Boolean(values.isActive),
+        variants: variants && variants.length > 0 ? variants : null,
       };
 
       const endpoint = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
@@ -738,6 +780,50 @@ export default function OperationsProductsPage() {
               {additionalImageUrls.length}/{MAX_ADDITIONAL_IMAGES} additional images selected.
             </p>
           </Form.Item>
+
+          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-ds-text-primary">Product Variations (config-driven)</span>
+              <Button size="small" type="default" onClick={applySizePreset}>
+                Add Size Preset (M/L/XL/XXL)
+              </Button>
+            </div>
+            <p className="mb-3 text-xs text-ds-text-tertiary">
+              Variations are optional and config-driven. For T-shirts set Size values (e.g. M, L, XL, XXL). You can also add Color or other options. Leave empty if not needed — saves as no variants (non-blocking).
+            </p>
+            <Form.List name="variants">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="mb-2 flex gap-2">
+                      <Form.Item
+                        {...restField}
+                        name={[name, "name"]}
+                        rules={[{ required: true, message: "Name required" }]}
+                        className="mb-0 flex-1"
+                      >
+                        <Input placeholder="Variant name (e.g. Size)" />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, "values"]}
+                        rules={[{ required: true, message: "Values required" }]}
+                        className="mb-0 flex-[2]"
+                      >
+                        <Input placeholder="Comma-separated values (e.g. M, L, XL, XXL)" />
+                      </Form.Item>
+                      <Button danger onClick={() => remove(name)} size="small">
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="dashed" onClick={() => add({ name: "", values: "" })} block size="small" icon={<PlusOutlined />}>
+                    Add Variation
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </div>
 
           <Form.Item name="isActive" label="Active Listing" valuePropName="checked">
             <Switch />

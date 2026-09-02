@@ -239,6 +239,8 @@ async function sendOrderTemplateEmail(params: {
             productName: true,
             quantity: true,
             price: true,
+            selectedVariants: true,
+            productImage: true,
           },
         },
         vendor: {
@@ -266,16 +268,25 @@ async function sendOrderTemplateEmail(params: {
 
   const items =
     order && order.items.length > 0
-      ? order.items.map((item) => ({
-        name: item.productName,
-        quantity: item.quantity,
-        price: item.price,
-      }))
+      ? order.items.map((item) => {
+          const sv =
+            item.selectedVariants && typeof item.selectedVariants === "object" && !Array.isArray(item.selectedVariants)
+              ? (item.selectedVariants as Record<string, string>)
+              : null;
+          return {
+            name: item.productName,
+            quantity: item.quantity,
+            price: item.price,
+            selectedVariants: sv,
+            productImage: typeof item.productImage === "string" ? item.productImage : undefined,
+          };
+        })
       : [
         {
           name: toStringValue(metadata.itemLabel, 'Order items'),
           quantity: Math.max(1, toNumberValue(metadata.totalQuantity, toNumberValue(metadata.itemCount, 1))),
           price: total,
+          selectedVariants: null,
         },
       ];
 
