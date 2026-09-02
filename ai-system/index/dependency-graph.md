@@ -1,7 +1,8 @@
 # Dependency Graph
 
-> **last-updated-by:** update-ai-system.md (2026-08-11)
-> **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation and Prisma-first runtime cleanup.
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-verified-against-code:** 2026-08-20
+> **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation, Prisma-first runtime (11 migrations up to date), checkout proof enforcement, mutation bus, and CIS persistence.
 
 ---
 
@@ -135,10 +136,30 @@ components/features/PublicContentAdminPanel.tsx
   -> app/api/admin/public-content (fetch/mutation)
 
 components/features/blog/BlogAdminPanel.tsx
-  -> components/features/content/StructuredContentEditor.tsx (allowedTypes all five)
-  -> lib/content/structuredSections.ts (serialize/parse/build/strip/htmlToFallback)
-  -> lib/config/blog.ts (statuses, slugify, estimateReadTime)
-  -> app/api/admin/blog (fetch/mutation)
+   -> components/features/content/StructuredContentEditor.tsx (allowedTypes all five)
+   -> lib/content/structuredSections.ts (serialize/parse/build/strip/htmlToFallback)
+   -> lib/config/blog.ts (statuses, slugify, estimateReadTime)
+   -> app/api/admin/blog (fetch/mutation)
+
+app/checkout/page.tsx (checkout proof-of-payment enforcement, Session 99)
+   -> lib/hooks/useSmartResource (payment config, wallet summary, catalog reconcile)
+   -> components/ui/ImageUpload (payment-proof upload)
+   -> app/api/orders (POST proofOfTransfer payload + PROOF_OF_PAYMENT_REQUIRED guard)
+   -> lib/config/payments + PLATFORM_DEFAULTS.PAYMENT_NOTICE
+
+app/api/orders/route.ts (proof enforcement + wallet + gateway verify)
+   -> lib/db/prisma (ProofOfTransfer create, order transaction)
+   -> lib/services/payments (verifyPayment, getPaymentFallbackTelemetry)
+   -> lib/services/commerceConfig (getCommerceLifecycleConfig)
+
+lib/data-runtime/mutationBus.ts
+   -> lib/hooks/useSmartResource (invalidateOn subscription)
+   -> app/api/* mutation handlers (emitDataMutated)
+
+app/api/cis/status + app/api/cis/webhook
+   -> lib/config/cis.ts (env normalization + signature verify)
+   -> lib/data/cisIdentity.ts (CisIdentity / CisWebhookEvent persistence)
+   -> prisma/schema.prisma (CisIdentity, CisWebhookEvent)
 ```
 
 ---

@@ -1,8 +1,8 @@
 # Repository Map
 
-> **last-updated-by:** update-ai-system.md (2026-08-13)
-> **last-updated-at:** 2026-08-13T00:00:00Z
-> **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`) and Prisma-first runtime behavior.
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-updated-at:** 2026-08-20T00:00:00Z
+> **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`), Prisma-first runtime (11 migrations, schema up to date), checkout proof-of-payment enforcement, mutation bus, and CIS handshake surface.
 
 ---
 
@@ -35,9 +35,10 @@ harvesthub-reboot/
 ├── lib/                               → Core runtime logic, adapters, services, and utilities
 │   ├── analytics/                     → Banner event aggregation/metrics helpers
 │   ├── api/                           → Shared API response/handler wrappers
-│   ├── config/                        → Typed env + feature configuration
+│   ├── config/                        → Typed env + feature configuration (incl. cis.ts, payments.ts)
 │   ├── content/                       → Pure structured-section model + serializer/parser + tests
 │   ├── data/                          → Data facade/adapters and fetch helpers
+│   ├── data-runtime/                  → Cross-resource mutation bus + useSmartResource invalidation
 │   ├── db/                            → Prisma client + transaction helpers
 │   ├── rbac/                          → Route policy and permission logic
 │   ├── schemas/                       → Zod schemas

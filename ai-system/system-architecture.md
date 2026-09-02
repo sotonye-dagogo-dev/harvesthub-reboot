@@ -1,7 +1,8 @@
 # System Architecture
 
-> **last-updated-by: ai-system v3 upgrade (2026-08-13)
-> **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a mock data layer to simulate a backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable.
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-verified-against-code:** 2026-08-20
+> **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a Prisma Postgres backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable. All 11 Prisma migrations are applied and `migrate status` reports up to date (baselined via `migrate resolve` in Session 98).
 
 ---
 
@@ -42,6 +43,14 @@
 - **Banner/Ad Performance Tracking & Analytics:** Banner events (IMPRESSION / CLICK / CONVERSION) are tracked end-to-end. Client surfaces (`TopAdBanner`, `BannerCarousel` hero + modal, `HomeContent` sidebar rail) emit fire-and-forget events via `lib/tracking/bannerTracking.ts` (stable localStorage `visitorId`, `navigator.sendBeacon` with keepalive-fetch fallback, per-session impression dedupe). Events hit the public, IP-rate-limited `PATCH|POST /api/banners/[id]` endpoint, which writes a `BannerEvent` row (authenticated user resolved from session when present) and increments the matching denormalized counter on `Banner` (`impressionCount` / `clickCount` / `conversionCount`). Admin analytics read from `GET /api/admin/analytics/banners` (`days`/`bannerId` filters) and aggregate via `lib/analytics/bannerAnalytics.ts` (total/unique/authenticated/anonymous splits + CTR/CR). Admin surfaces: operations dashboard metric cards + quick action, and a "Banner & Ad Performance" section in `AnalyticsFeature.tsx` fed by `getBannerAnalyticsClient`.
 
 - **Universal Structured Content Editor:** All no-HTML authoring (public content pages and blog posts) shares one pure section model (`lib/content/structuredSections.ts`: `SectionType` = TEXT/HERO/CALLOUT/LIST/QUOTE, `ContentSection`, `createSection`, `serializeSectionsToHtml`, `parseSectionsFromMetadata`, `buildSectionMetadata`, `stripSectionMetadata`, `sectionsToPlainText`, `htmlToFallbackSection`) and one controlled client editor (`components/features/content/StructuredContentEditor.tsx`: `sections` + `onSectionsChange`, configurable `allowedTypes`, `mediaFolderType`, `minSections`, `showMedia`, `showButtons`; reuses `ui` primitives + `openActionConfirm`/`ActionConfirmPresets`). Content is stored twice per record: a generated HTML `body` (safe, escaped, `pc-*` wrapper classes, `\n`→`<br />`) for frontend rendering, and the structured `sections` array inside `metadata` (`editorVersion: 3`, `generatedAt`, `fallbackContract`) so editors round-trip without HTML knowledge. `PublicContentAdminPanel` exposes TEXT/HERO/CALLOUT only (behavior unchanged); `BlogAdminPanel` exposes all five types and keeps SEO/featured/author/status fields, with `metadata` = custom user JSON merged over `buildSectionMetadata(sections)` (reserved keys win, sections block stripped from the editable JSON field). Legacy raw-HTML blog posts flatten to a single TEXT section on edit via `htmlToFallbackSection` — no data migration.
+
+- **Checkout Proof-of-Payment Enforcement (Session 99):** `BANK_TRANSFER_PROOF` is the only bank-transfer path. `app/checkout/page.tsx` enforces `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled`, disables `WALLET` when `!paymentsEnabled`, and forces `BANK_TRANSFER_PROOF` default while payments are disabled. The proof UI (`ImageUpload` `payment-proof` + amount + optional bankReference) is required before `POST /api/orders`; the server returns `400 PROOF_OF_PAYMENT_REQUIRED` without valid proof and creates a `ProofOfTransfer` (status PENDING) per order inside the transaction. No "Pay Later" bypass remains. `PLATFORM_DEFAULTS.PAYMENT_NOTICE` documents the flow.
+
+- **Cross-Resource Mutation Bus:** `lib/data-runtime/mutationBus.ts` (`emitDataMutated` / `useDataMutationInvalidation` on `myharvesthub:data-mutated`) provides optimistic cross-resource invalidation. `useSmartResource` exposes `invalidateOn` so dashboard/analytics/store-settings recompute after operations CRUD without manual reload.
+
+- **CIS Federation (Additive):** `lib/config/cis.ts` + `lib/data/cisIdentity.ts` expose CIS env/config plumbing. `GET /api/cis/status` reports readiness; `POST /api/cis/webhook` verifies signed payloads and persists `CisIdentity` + `CisWebhookEvent` (no local user mutation). Prisma models `CisIdentity`/`CisWebhookEvent` (migration `20260519151635_cis_identity_persistence`).
+
+- **Campus as First-Class Field:** `User.campus` (`Campus` enum, nullable) and `Address.campus` propagate through registration (`app/api/auth/register` + `app/signup/components/UserInfo`), profile (`app/api/users/[id]/profile` + `ProfilePage`), address CRUD (`AddressForm`), and checkout `deliveryAddress`. Migration `20260818000000_add_user_campus`.
 
 ---
 

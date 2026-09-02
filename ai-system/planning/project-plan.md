@@ -1,6 +1,7 @@
 # Project Plan
 
-> **last-updated-by:** update-ai-system.md (2026-07-12)
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-verified-against-code:** 2026-08-20
 > **Overview:** A phased roadmap for MyHarvestHub that guides work from foundational infrastructure through core product functionality to launch readiness. Update as progress is made.
 
 ---

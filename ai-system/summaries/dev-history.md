@@ -1,7 +1,7 @@
 # Development History
 
-> **last-updated-by:** update-ai-system.md (2026-08-11)
-> **last-updated-at:** 2026-08-11T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-updated-at:** 2026-08-20T00:00:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -23,6 +23,23 @@
 **Next Sprint Focus:**
 [What comes next]
 ```
+
+## 2026-08-20 — Checkout Proof-of-Payment Enforcement for Bank Transfer (Session 99)
+
+**Summary:**
+Closed the checkout gap where a buyer could place an order without uploading proof of payment (and without any real payment process). With payment processing enabled all three methods (bank-transfer proof compulsory + Paystack card + wallet) are available; with payment processing disabled the bank-transfer proof remains compulsory and "Pay Later" is removed. Server now enforces `PROOF_OF_PAYMENT_REQUIRED` and persists a `ProofOfTransfer` (PENDING) per order for vendor verification.
+
+**Completed:**
+- `app/checkout/page.tsx` — added proof-of-payment upload section (`ImageUpload` payment-proof + amount + bankReference) for `BANK_TRANSFER_PROOF`, validated before placing order, `proofOfTransfer` sent to `POST /api/orders`; forced `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled`, disabled `WALLET` when `!paymentsEnabled`, forced default to `BANK_TRANSFER_PROOF`; removed "Pay Later" / "Upload Proof Later" flows; updated notices + `PLATFORM_DEFAULTS.PAYMENT_NOTICE`.
+- `app/api/orders/route.ts` — returns `400 PROOF_OF_PAYMENT_REQUIRED` for `BANK_TRANSFER_PROOF` without valid proof; creates `ProofOfTransfer` per order inside the transaction; audit note records "proof uploaded + awaiting vendor verification".
+- Tests: 3 new bank-transfer-proof paths in `app/api/orders/__tests__/route.payment-smoke.test.ts` (missing proof → 400, missing amount → 400, success creates order + proof).
+
+**Key Changes:**
+- No checkout order can be placed via bank transfer without a receipt image + amount; every such order carries a PENDING proof for the vendor to verify.
+- `app/api/orders/route.ts:266` + `app/checkout/page.tsx:229` enforce the invariant client + server side.
+
+**Next Sprint Focus:**
+Monitor vendor proof verification UX and consider stale-proof cleanup if orphaned proofs accumulate; no migration needed (ProofOfTransfer already exists).
 
 ## 2026-08-19 — Login P2022 Fix + SSL Warning Remediation (Session 98)
 
