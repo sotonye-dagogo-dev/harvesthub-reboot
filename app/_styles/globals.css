@@ -365,34 +365,51 @@
 }
 
 /* ============================================================================
-    SCROLL FIXES — smooth page scroll + isolated Select dropdown scroll
+    SCROLL FIXES — isolated Select dropdown scroll + smooth page scroll
     Addresses abnormal scroll behavior when interacting with Select inputs.
-    All fixes are non-blocking: no layout-breaking overflow locks on html/body.
+    - html/body keep normal page scroll (no permanent overscroll lock)
+    - ant-select dropdown scroll is contained so it never hijacks page scroll
+    - All fixes are non-blocking: no layout-breaking overflow locks on html/body.
     ============================================================================ */
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* Allow page to scroll even when Select dropdowns are open */
     overflow-x: hidden;
-    overscroll-behavior-y: contain;
+    /* Keep default overscroll so page scroll is never trapped by dropdowns */
+    overscroll-behavior-y: auto;
   }
   body {
-    /* Never lock body permanently; scroll-lock is applied only via JS utility */
     overflow-x: hidden;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
+    /* Improve scroll smoothness on mobile without blocking */
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 @layer utilities {
   /* Isolate Select dropdown scroll so page scroll is not hijacked */
+  .ant-select-dropdown {
+    overscroll-behavior: contain;
+    /* Ensure dropdown does not capture page scroll at boundaries */
+    touch-action: pan-y;
+  }
   .ant-select-dropdown .rc-virtual-list-holder {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     max-height: 256px !important;
     overflow-y: auto !important;
+    /* Fix Chrome/Edge scroll chaining inside virtual list */
+    overscroll-behavior-y: contain;
   }
-  .ant-select-dropdown {
+  .ant-select-dropdown .rc-virtual-list-holder-inner {
     overscroll-behavior: contain;
+  }
+  /* General: prevent fixed overlays from trapping behind scroll */
+  .ant-select-dropdown,
+  .ant-picker-dropdown,
+  .ant-dropdown {
+    max-height: none;
   }
 }
 

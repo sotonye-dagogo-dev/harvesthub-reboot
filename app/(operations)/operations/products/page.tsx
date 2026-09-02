@@ -96,8 +96,11 @@ export default function OperationsProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState("");
   const [additionalImageUrls, setAdditionalImageUrls] = useState<string[]>([]);
+  // Per-product sizing toggle: when disabled, variants saved as [] (explicitly hide Size dropdown)
+  const [sizingEnabled, setSizingEnabled] = useState(false);
   // Config-driven variant preset helper (non-blocking, falls back to defaults)
   const applySizePreset = () => {
+    if (!sizingEnabled) setSizingEnabled(true);
     const current = form.getFieldValue("variants") as ProductVariantFormEntry[] | undefined;
     const hasSize = Array.isArray(current) && current.some((v) => (v.name || "").toLowerCase().trim() === "size");
     if (hasSize) {
@@ -286,6 +289,9 @@ export default function OperationsProductsPage() {
     setAdditionalImageUrls(
       isCreateDraft ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES) : []
     );
+    // Sizing disabled by default for new products; admin can enable and add Size preset
+    const hasVariantsInDraft = Array.isArray((draft?.values as ProductFormValues | undefined)?.variants) && (draft?.values as ProductFormValues).variants!.length > 0;
+    setSizingEnabled(isCreateDraft ? !!hasVariantsInDraft : false);
     setModalOpen(true);
   };
 
@@ -294,12 +300,19 @@ export default function OperationsProductsPage() {
     const isEditDraft = draft?.editingProductId === product.id;
 
     setEditingProduct(product);
-    const variantEntries: ProductVariantFormEntry[] | undefined = Array.isArray((product as unknown as { variants?: unknown }).variants)
-      ? ((product as unknown as { variants: Array<{ name: string; values: string[] }> }).variants || []).map((v) => ({
+    const rawVariants = (product as unknown as { variants?: unknown }).variants;
+    // Array.isArray([]) with length 0 means explicitly disabled (per-product toggle off)
+    // null/undefined means fallback to category config (e.g. Fashion shows Size)
+    const isExplicitDisabled = Array.isArray(rawVariants) && (rawVariants as unknown[]).length === 0;
+    const variantEntries: ProductVariantFormEntry[] | undefined = Array.isArray(rawVariants) && (rawVariants as Array<{ name: string; values: string[] }>).length > 0
+      ? ((rawVariants as Array<{ name: string; values: string[] }>).map((v) => ({
           name: v.name,
           values: Array.isArray(v.values) ? v.values.join(", ") : "",
-        }))
+        })))
       : undefined;
+    // Draft overrides explicit state
+    const draftVariants = (draft?.values as ProductFormValues | undefined)?.variants;
+    const draftHasVariants = Array.isArray(draftVariants) && draftVariants.length > 0;
     const baseValues: Partial<ProductFormValues> = {
       vendorId: product.vendorId,
       name: product.name,
@@ -328,6 +341,17 @@ export default function OperationsProductsPage() {
         ? (draft?.additionalImageUrls || []).slice(0, MAX_ADDITIONAL_IMAGES)
         : baseAdditionalImages
     );
+    if (isEditDraft && draftHasVariants) {
+      setSizingEnabled(true);
+    } else if (isEditDraft) {
+      // Respect draft empty vs product explicit disabled
+      const draftVariantsEmpty = Array.isArray(draftVariants) && draftVariants.length === 0;
+      if (draftVariantsEmpty) setSizingEnabled(false);
+      else if (isExplicitDisabled) setSizingEnabled(false);
+      else setSizingEnabled(!!variantEntries && variantEntries.length > 0);
+    } else {
+      setSizingEnabled(!!variantEntries && variantEntries.length > 0);
+    }
     setModalOpen(true);
   };
 
@@ -336,6 +360,7 @@ export default function OperationsProductsPage() {
     setEditingProduct(null);
     setMainImageUrl("");
     setAdditionalImageUrls([]);
+    setSizingEnabled(false);
     form.resetFields();
   };
 
@@ -358,22 +383,27 @@ export default function OperationsProductsPage() {
 
     setSubmitting(true);
     try {
-      // Build variants array config-driven: comma-separated values -> array; filter empty
-      const variants =
-        Array.isArray(values.variants) && values.variants.length > 0
-          ? values.variants
-              .map((entry) => {
-                const name = (entry?.name || "").trim();
-                const rawValues = (entry?.values || "").trim();
-                const vals = rawValues
-                  .split(",")
-                  .map((v) => v.trim())
-                  .filter(Boolean);
-                if (!name || vals.length === 0) return null;
-                return { name, values: vals };
-              })
-              .filter((v): v is { name: string; values: string[] } => Boolean(v))
-          : undefined;
+      // Per-product sizing toggle: when disabled, save empty array to explicitly hide Size dropdown
+      let variants: { name: string; values: string[] }[] | null | [] = null;
+      if (!sizingEnabled) {
+        variants = [];
+      } else if (Array.isArray(values.variants) && values.variants.length > 0) {
+        const built = values.variants
+          .map((entry) => {
+            const name = (entry?.name || "").trim();
+            const rawValues = (entry?.values || "").trim();
+            const vals = rawValues
+              .split(",")
+              .map((v) => v.trim())
+              .filter(Boolean);
+            if (!name || vals.length === 0) return null;
+            return { name, values: vals };
+          })
+          .filter((v): v is { name: string; values: string[] } => Boolean(v));
+        variants = built.length > 0 ? built : null;
+      } else {
+        variants = null;
+      }
       const payload = {
         vendorId: scopedVendorId,
         name: values.name.trim(),
@@ -391,7 +421,7 @@ export default function OperationsProductsPage() {
         mainImage,
         images: buildImageArray(mainImage, additionalImageUrls).slice(0, MAX_PRODUCT_IMAGES),
         isActive: Boolean(values.isActive),
-        variants: variants && variants.length > 0 ? variants : null,
+        variants,
       };
 
       const endpoint = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
@@ -784,45 +814,66 @@ export default function OperationsProductsPage() {
           <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-ds-text-primary">Product Variations (config-driven)</span>
-              <Button size="small" type="default" onClick={applySizePreset}>
-                Add Size Preset (M/L/XL/XXL)
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-ds-text-secondary">Sizing:</span>
+                <Switch
+                  checked={sizingEnabled}
+                  onChange={(checked) => {
+                    setSizingEnabled(checked);
+                    if (!checked) {
+                      form.setFieldsValue({ variants: [] });
+                    }
+                  }}
+                  checkedChildren="On"
+                  unCheckedChildren="Off"
+                  aria-label="Toggle product sizing"
+                />
+                <Button size="small" type="default" onClick={applySizePreset} disabled={!sizingEnabled}>
+                  Add Size Preset (M/L/XL/XXL)
+                </Button>
+              </div>
             </div>
             <p className="mb-3 text-xs text-ds-text-tertiary">
-              Variations are optional and config-driven. For T-shirts set Size values (e.g. M, L, XL, XXL). You can also add Color or other options. Leave empty if not needed — saves as no variants (non-blocking).
+              Turn sizing on for T-shirts (Size M, L, XL, XXL) or off for items like Reusable Towel. When off, the Size dropdown is hidden and Add to Cart works without a size. When on, customers can buy multiple sizes at once (M×1, L×1, XL×1) as separate cart lines.
             </p>
-            <Form.List name="variants">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="mb-2 flex gap-2">
-                      <Form.Item
-                        {...restField}
-                        name={[name, "name"]}
-                        rules={[{ required: true, message: "Name required" }]}
-                        className="mb-0 flex-1"
-                      >
-                        <Input placeholder="Variant name (e.g. Size)" />
-                      </Form.Item>
-                      <Form.Item
-                        {...restField}
-                        name={[name, "values"]}
-                        rules={[{ required: true, message: "Values required" }]}
-                        className="mb-0 flex-[2]"
-                      >
-                        <Input placeholder="Comma-separated values (e.g. M, L, XL, XXL)" />
-                      </Form.Item>
-                      <Button danger onClick={() => remove(name)} size="small">
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="dashed" onClick={() => add({ name: "", values: "" })} block size="small" icon={<PlusOutlined />}>
-                    Add Variation
-                  </Button>
-                </>
-              )}
-            </Form.List>
+            {sizingEnabled ? (
+              <Form.List name="variants">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="mb-2 flex gap-2">
+                        <Form.Item
+                          {...restField}
+                          name={[name, "name"]}
+                          rules={[{ required: true, message: "Name required" }]}
+                          className="mb-0 flex-1"
+                        >
+                          <Input placeholder="Variant name (e.g. Size)" />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[name, "values"]}
+                          rules={[{ required: true, message: "Values required" }]}
+                          className="mb-0 flex-[2]"
+                        >
+                          <Input placeholder="Comma-separated values (e.g. M, L, XL, XXL)" />
+                        </Form.Item>
+                        <Button danger onClick={() => remove(name)} size="small">
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button type="dashed" onClick={() => add({ name: "", values: "" })} block size="small" icon={<PlusOutlined />}>
+                      Add Variation
+                    </Button>
+                  </>
+                )}
+              </Form.List>
+            ) : (
+              <p className="rounded-ds-sm bg-ds-surface-base p-2 text-xs text-ds-text-tertiary">
+                Sizing is disabled for this product — the Size selector will not appear on the product page.
+              </p>
+            )}
           </div>
 
           <Form.Item name="isActive" label="Active Listing" valuePropName="checked">
