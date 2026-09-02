@@ -1,9 +1,9 @@
 # Development Task Queue
 
 > **Metadata**
-> - last-updated-by: ai-system v3 upgrade (task-queue coupling marker added)
-> - last-verified-against-code: 2026-08-13
-> - last-synced: 2026-08-19 — Session 98 (login P2022 fix + SSL warning) applied; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - last-updated-by: update-ai-system.md (2026-08-20)
+> - last-verified-against-code: 2026-08-20
+> - last-synced: 2026-08-20 — Session 99 (checkout proof-of-payment enforcement) applied; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
 > - staleness-policy: re-verify before each session
 
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
@@ -21,6 +21,18 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 | `[M]` | Medium — 3-6 files across related modules | execute-feature.md |
 | `[L]` | Large — multi-module, architecture-aware | execute-feature.md (deep sync chain) |
 | `[XL]` | Very large — cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
+
+---
+
+## Session 99 — Checkout Proof-of-Payment Enforcement for Bank Transfer (2026-08-20)
+
+> **Section summary:** Closed the checkout gap where a buyer could place an order without uploading proof of payment — with payment processing enabled, bank transfer (proof compulsory before order placement, validation left to vendor) + Paystack + wallet are all available; with payment processing disabled, the bank-transfer proof remains compulsory with no "Pay Later" bypass. Server enforces `PROOF_OF_PAYMENT_REQUIRED` and persists a `ProofOfTransfer` PENDING per order.
+
+- [x] `app/checkout/page.tsx` — proof-of-payment upload section (`ImageUpload` payment-proof + amount + optional bank reference) for `BANK_TRANSFER_PROOF`, validated before placing order; `proofOfTransfer` payload sent to `POST /api/orders`; `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled`, `WALLET` disabled when `!paymentsEnabled`, default forced to `BANK_TRANSFER_PROOF`; "Pay Later" / "Upload Proof Later" removed; notices + `PLATFORM_DEFAULTS.PAYMENT_NOTICE` updated.
+- [x] `app/api/orders/route.ts` — returns `PROOF_OF_PAYMENT_REQUIRED` (400) for `BANK_TRANSFER_PROOF` without valid proof; creates `ProofOfTransfer` (PENDING) per order inside the transaction; audit note records proof awaiting verification.
+- [x] Tests — 3 new bank-transfer-proof paths in `app/api/orders/__tests__/route.payment-smoke.test.ts`.
+- [x] QA gate — vitest 107 files / 501 passed / 32 skipped; tsc clean (changed files); lint clean; build exit 0.
+- [x] Sync ai-system docs (session-log, dev-history, task-queue, repo-map, dependency-graph, system-architecture) and clear `in-progress.md`.
 
 ---
 

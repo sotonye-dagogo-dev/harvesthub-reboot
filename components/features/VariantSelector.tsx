@@ -51,14 +51,17 @@ export default function VariantSelector({
   }, []);
 
   const definitions: VariationDefinition[] = useMemo(() => {
-    // Product-specific variants take precedence when present and non-empty
-    if (Array.isArray(productVariants) && productVariants.length > 0) {
+    // Per-product toggle: when productVariants is an array (even empty), it is the source of truth.
+    // Empty array means sizing intentionally disabled for this product → hide selector.
+    if (Array.isArray(productVariants)) {
+      if (productVariants.length === 0) return [];
       try {
         return productVariantsToDefinitions(productVariants);
       } catch {
         // fallback to category config (non-blocking)
       }
     }
+    // When productVariants is null/undefined, fall back to category-driven config (e.g. Fashion → Size)
     const cfg = externalConfig ?? DEFAULT_VARIATION_CONFIG;
     return getVariationsForCategory(category, cfg);
   }, [category, productVariants, externalConfig]);

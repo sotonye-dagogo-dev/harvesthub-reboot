@@ -1,7 +1,7 @@
 # Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-08-13)
-> **last-updated-at:** 2026-08-13T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-08-20)
+> **last-updated-at:** 2026-08-20T00:00:00Z
 > **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
@@ -187,3 +187,25 @@ To target the dev DB, preload `DIRECT_URL`/`DATABASE_URL` from `.env.local` into
 
 **Apply When:**
 Running schema-sync/reset or data-verification commands against multiple environments in this repo.
+
+## db push-Managed History Needs Baselining Before migrate deploy Is Safe
+
+**Context:**
+The DB was originally built with `prisma db push` (Session 89), so the 11 migrations in `prisma/migrations` had no rows in `_prisma_migrations`. Session 97's `20260818000000_add_user_campus` existed in schema + generated client but was never applied to the live DB, causing every `user.findUnique` with `campus` (login) to fail with P2022. Session 98 fixed it with a live `db push` + `prisma migrate resolve --applied` for all 11 migrations so Vercel's `prisma migrate deploy` becomes a no-op.
+
+**What We Learned:**
+If any DB was built with `db push`, `migrate deploy` will try to replay migrations against an already-populated schema unless the history is baselined. Use `prisma migrate diff --from-config-datasource --to-schema` to confirm drift (in this case only `users.campus`), `prisma db push` to converge, then `prisma migrate resolve --applied` for each migration in chronological order; `migrate status` must report "Database schema is up to date!" on both Vercel's deploy hook path and local.
+
+**Apply When:**
+Any schema change after a `db push`-based DB exists; before marking a migration PR as deploy-safe.
+
+## Bank Transfer Orders Must Carry Proof-of-Payment Before Persistence
+
+**Context:**
+Checkout allowed an order to be placed with `BANK_TRANSFER_PROOF` and no receipt image/amount — neither client nor server enforced it — and a payments-disabled bypass ("Pay Later" / "Upload Proof Later") created orders with no payment evidence at all.
+
+**What We Learned:**
+Enforce the invariant on both sides: client validates `proofImageUrl` + `proofAmount` before `POST /api/orders`, and the server returns `PROOF_OF_PAYMENT_REQUIRED` (400) and only creates a `ProofOfTransfer` (PENDING) per order inside the same transaction. When `!paymentsEnabled` force `BANK_TRANSFER_PROOF` (`bankTransferAvailable = fallback || !paymentsEnabled`), disable `WALLET`, and remove the pay-later path so every bank-transfer order has verifiable evidence awaiting vendor confirmation.
+
+**Apply When:**
+Adding or changing off-platform payment methods where order creation must not be separable from payment evidence.

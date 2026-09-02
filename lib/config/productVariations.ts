@@ -111,20 +111,6 @@ export const DEFAULT_VARIATION_CONFIG: ProductVariationConfig = {
       vendorCategories: [VendorCategory.FASHION],
       variations: DEFAULT_FASHION_VARIATIONS,
     },
-    // Global fallback for any product that opts into variations
-    {
-      categories: [],
-      variations: [
-        {
-          key: "size",
-          label: "Size",
-          type: "select",
-          required: false,
-          values: SIZE_VALUES,
-          placeholder: "Select size",
-        },
-      ],
-    },
   ],
 };
 
@@ -136,14 +122,12 @@ export function getVariationsForCategory(
   category: string | null | undefined,
   config: ProductVariationConfig = DEFAULT_VARIATION_CONFIG
 ): VariationDefinition[] {
-  if (!category) {
-    const fallback = config.categories.find((c) => c.categories.length === 0);
-    return fallback?.variations ?? [];
-  }
+  if (!category) return [];
   const direct = config.categories.find((c) => c.categories.includes(category));
   if (direct) return direct.variations;
-  const fallback = config.categories.find((c) => c.categories.length === 0);
-  return fallback?.variations ?? [];
+  // No global fallback: products without category-specific config expose no variations
+  // unless per-product variants are defined (handled by caller).
+  return [];
 }
 
 export function isVariationRequiredForCategory(
