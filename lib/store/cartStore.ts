@@ -13,7 +13,10 @@ export interface CartItem {
     vendorName: string;
     quantity: number;
     stock: number;
+    /** @deprecated use selectedVariants */
     variant?: string;
+    /** Config-driven variants, e.g. { size: "M", color: "Red" } */
+    selectedVariants?: Record<string, string> | null;
     isService?: boolean;
 }
 
@@ -82,15 +85,30 @@ const recalculateTotals = (items: CartItem[]) => ({
     totalPrice: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
 });
 
+function canonicalVariantKey(v: Record<string, string> | null | undefined): string {
+    if (!v || Object.keys(v).length === 0) return "";
+    return Object.keys(v)
+        .sort()
+        .map((k) => `${k}=${v[k]}`)
+        .join("|");
+}
+
+function isSameCartLine(a: CartItem, b: Pick<CartItem, "productId" | "selectedVariants" | "variant">): boolean {
+    if (a.productId !== b.productId) return false;
+    const aKey = canonicalVariantKey(a.selectedVariants) || a.variant || "";
+    const bKey = canonicalVariantKey(b.selectedVariants) || (b as CartItem).variant || "";
+    return aKey === bKey;
+}
+
 interface CartStore {
     items: CartItem[];
     totalItems: number;
     totalPrice: number;
     addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
-    removeItem: (productId: string) => void;
+    updateQuantity: (productId: string, quantity: number, selectedVariants?: Record<string, string> | null) => void;
+    removeItem: (productId: string, selectedVariants?: Record<string, string> | null) => void;
     clearCart: () => void;
-    getItem: (productId: string) => CartItem | undefined;
+    getItem: (productId: string, selectedVariants?: Record<string, string> | null) => CartItem | undefined;
     reconcileWithCatalog: (catalog: CartCatalogProduct[]) => {
         removedCount: number;
         adjustedCount: number;
@@ -105,7 +123,10 @@ export const useCart = create<CartStore>()(
             totalPrice: 0,
 
             addItem: (item) => {
-                const existingItem = get().items.find((i) => i.productId === item.productId);
+                // Normalize variant: keep both variant string and selectedVariants map for backwards compat
+                const normalizedSelected = (item as CartItem).selectedVariants ?? (item.variant ? { value: item.variant } : null);
+                const compareTarget = { productId: item.productId, selectedVariants: normalizedSelected, variant: item.variant };
+                const existingItem = get().items.find((i) => isSameCartLine(i, compareTarget));
                 const service = isServiceItem(item);
 
                 if (existingItem) {
@@ -117,9 +138,7 @@ export const useCart = create<CartStore>()(
 
                     set((state) => {
                         const newItems = state.items.map((i) =>
-                            i.productId === item.productId
-                                ? { ...i, quantity: limitedQuantity }
-                                : i
+                            isSameCartLine(i, compareTarget) ? { ...i, quantity: limitedQuantity } : i
                         );
                         const { totalItems, totalPrice } = recalculateTotals(newItems);
 
@@ -128,6 +147,7 @@ export const useCart = create<CartStore>()(
                 } else {
                     const newItem: CartItem = {
                         ...item,
+                        selectedVariants: normalizedSelected ?? null,
                         quantity: service ? 1 : Math.min(item.quantity || 1, item.stock),
                         isService: service,
                     };
@@ -141,10 +161,15 @@ export const useCart = create<CartStore>()(
                 }
             },
 
-            updateQuantity: (productId, quantity) => {
+            updateQuantity: (productId, quantity, selectedVariants) => {
                 set((state) => {
+                    const target = { productId, selectedVariants: selectedVariants ?? null, variant: undefined };
+                    const hasVariantFilter = selectedVariants !== undefined;
                     const newItems = state.items.map((item) => {
-                        if (item.productId !== productId) return item;
+                        const matches = hasVariantFilter
+                            ? isSameCartLine(item, target)
+                            : item.productId === productId;
+                        if (!matches) return item;
                         // Services always stay at quantity 1
                         if (isServiceItem(item)) return item;
                         return { ...item, quantity: Math.min(Math.max(1, quantity), item.stock) };
@@ -155,9 +180,14 @@ export const useCart = create<CartStore>()(
                 });
             },
 
-            removeItem: (productId) => {
+            removeItem: (productId, selectedVariants) => {
                 set((state) => {
-                    const newItems = state.items.filter((item) => item.productId !== productId);
+                    const hasVariantFilter = selectedVariants !== undefined;
+                    const target = { productId, selectedVariants: selectedVariants ?? null, variant: undefined };
+                    const newItems = state.items.filter((item) => {
+                        if (hasVariantFilter) return !isSameCartLine(item, target);
+                        return item.productId !== productId;
+                    });
                     const { totalItems, totalPrice } = recalculateTotals(newItems);
 
                     return { items: newItems, totalItems, totalPrice };
@@ -168,7 +198,12 @@ export const useCart = create<CartStore>()(
                 set({ items: [], totalItems: 0, totalPrice: 0 });
             },
 
-            getItem: (productId) => {
+            getItem: (productId, selectedVariants) => {
+                if (selectedVariants !== undefined) {
+                    return get().items.find((item) =>
+                        isSameCartLine(item, { productId, selectedVariants: selectedVariants ?? null, variant: undefined })
+                    );
+                }
                 return get().items.find((item) => item.productId === productId);
             },
 

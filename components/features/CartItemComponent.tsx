@@ -16,6 +16,7 @@ interface CartItemProps {
   vendorName: string;
   stock: number;
   variant?: string;
+  selectedVariants?: Record<string, string> | null;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemove: (id: string) => void;
 }
@@ -30,9 +31,19 @@ export function CartItemComponent({
   image,
   vendorName,
   stock,
+  variant,
+  selectedVariants,
   onUpdateQuantity,
   onRemove,
 }: CartItemProps) {
+  const variantLabel =
+    selectedVariants && Object.keys(selectedVariants).length > 0
+      ? Object.entries(selectedVariants)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ")
+      : variant
+        ? variant
+        : null;
   const handleDecrease = () => {
     if (quantity > 1) {
       onUpdateQuantity(id, quantity - 1);
@@ -54,6 +65,11 @@ export function CartItemComponent({
       <div className="flex-1">
         <h3 className="font-medium text-ds-text-primary">{name}</h3>
         <p className="text-sm text-ds-text-secondary">{vendorName}</p>
+        {variantLabel ? (
+          <p className="mt-1 text-xs font-medium text-ds-text-brand" aria-label="Selected variant">
+            {variantLabel}
+          </p>
+        ) : null}
         <div className="mt-2">
           <p className="text-lg font-semibold text-ds-text-brand">{formatCurrency(price)}</p>
           {typeof originalPrice === "number" && originalPrice > price ? (

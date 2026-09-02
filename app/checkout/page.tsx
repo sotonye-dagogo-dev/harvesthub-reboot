@@ -100,14 +100,17 @@ export default function CheckoutPage() {
           if (!key) return map;
 
           const existing = map.get(key) || [];
+          // Prefer selectedVariants map; fallback to legacy variant string for compat (non-blocking)
+          const sv = (item as { selectedVariants?: Record<string, string> | null; variant?: string }).selectedVariants;
+          const selectedVariants = sv && Object.keys(sv).length > 0 ? sv : item.variant ? { value: item.variant } : undefined;
           existing.push({
             productId: item.productId,
             quantity: item.quantity,
-            selectedVariants: item.variant ? { value: item.variant } : undefined,
+            selectedVariants,
           });
           map.set(key, existing);
           return map;
-        }, new Map<string, Array<{ productId: string; quantity: number; selectedVariants?: { value: string } }>>())
+        }, new Map<string, Array<{ productId: string; quantity: number; selectedVariants?: Record<string, string> }>>())
       ).map(([groupVendorId, groupItems]) => ({
         vendorId: groupVendorId,
         items: groupItems,
@@ -731,9 +734,17 @@ export default function CheckoutPage() {
               Order Items ({items.length})
             </h2>
             <div className="space-y-3">
-              {items.map((item) => (
+              {items.map((item) => {
+                const sv = (item as { selectedVariants?: Record<string, string> | null; variant?: string }).selectedVariants;
+                const variantLabel = sv && Object.keys(sv).length > 0
+                  ? Object.entries(sv).map(([k, v]) => `${k}: ${v}`).join(", ")
+                  : item.variant
+                    ? item.variant
+                    : null;
+                const itemKey = `${item.productId}::${variantLabel ?? ""}::${item.vendorId}`;
+                return (
                 <div
-                  key={item.productId}
+                  key={itemKey}
                   className="flex items-center gap-4 border-b border-ds-border-base pb-3 last:border-0"
                 >
                   <Image
@@ -755,6 +766,9 @@ export default function CheckoutPage() {
                     <div className="text-sm text-ds-text-secondary">
                       {item.vendorName} · {item.isService ? "Booking" : `Qty: ${item.quantity}`}
                     </div>
+                    {variantLabel ? (
+                      <div className="mt-0.5 text-xs font-medium text-ds-text-brand">{variantLabel}</div>
+                    ) : null}
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-ds-text-primary">
@@ -772,7 +786,8 @@ export default function CheckoutPage() {
                     ) : null}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
 
