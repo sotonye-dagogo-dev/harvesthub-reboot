@@ -5121,3 +5121,36 @@ users, upload feedback, global toast tightening, and auto-updating dashboard/sto
 **Validation:**
 - `npx tsc --noEmit` ✅ · `npm run lint` ✅ (2 pre-existing warnings) · `npx vitest run` ✅ (107
   files / 498 passed / 32 skipped) · `npm run build` ✅
+
+## Session 100 — Email verification hardening + help-center fallbacks — 2026-09-05
+
+**Goal:**
+Resolve user-reported verification loop (clicking emailed link redirects to /verify-email instead of /login with token-expired error that persists through resend) and add hardcoded config-fallbacks for help-center sub-pages with buyer/vendor guides.
+
+**Completed:**
+- **Route/middleware** — Added `/verify-email` and `/reset-password` to `lib/rbac/routeConfig.ts` (public). `middleware.ts` now exempts unverified users from authRoute dashboard redirect for login/verify, expands verifyingAllowed to include forgot/reset password APIs, and preserves email hint on force-redirect to /verify-email.
+- **Verify API** — `app/api/auth/verify-email/route.ts` normalizes token (trim+decodeURIComponent), returns codes INVALID_TOKEN/TOKEN_EXPIRED/ALREADY_VERIFIED with redirectTo, handles idempotent already-verified re-click, and refreshes stale unverified JWT in-place via generateTokenPair+setAuthCookies when accessToken matches the verified user.
+- **Email link** — `lib/services/email.ts` `sendVerifyEmail` now builds `…/verify-email?token=encodeURIComponent(token)&email=encodeURIComponent(to)` so the page can prefill and the API can return ALREADY_VERIFIED guidance.
+- **Verify page** — `app/verify-email/page.tsx` sends token+email, consumes error codes into specific cards (including ALREADY_VERIFIED → login link and TOKEN_EXPIRED → resend hint), supports refreshedSession, and keeps countdown redirect to /login?verified=1.
+- **Help fallbacks** — `lib/config/siteContent.ts` adds `helpArticleFallbacks` (6 topics: orders, payments, locations, account, products, contact) with concise directives/tips for both buyers and vendors (order lifecycle with ProofOfTransfer PENDING audit trail, wallet/Paystack amount validation, campus/pickup services, 24h verification & session hygiene, variants/reviews/tracking, static contact + WhatsApp continuation). `app/help/[slug]/page.tsx` renders fallback when PublicContent `help-{slug}` is absent.
+- **Sync** — Ran `npm run build` (pass, 31s), `npx vitest run` (108 files / 503 passed), tsc/lint clean except pre-existing 2 warnings. Updated `ai-system/summaries/dev-history.md`, `ai-system/index/repo-map.md`, `ai-system/system-architecture.md`, `ai-system/planning/project-plan.md`.
+
+**Files Modified:**
+- `lib/rbac/routeConfig.ts`
+- `middleware.ts`
+- `app/api/auth/verify-email/route.ts`
+- `lib/services/email.ts`
+- `app/verify-email/page.tsx`
+- `lib/config/siteContent.ts`
+- `app/help/[slug]/page.tsx`
+- `ai-system/summaries/dev-history.md`
+- `ai-system/index/repo-map.md`
+- `ai-system/system-architecture.md`
+- `ai-system/planning/project-plan.md`
+- `ai-system/checkpoints/session-log.md`
+
+**Validation:**
+- `npx tsc --noEmit` (pre-fix lint prefer-const fixed) → pass
+- `npm run build` ✅
+- `npx vitest run` ✅ (108 passed, 503 tests)
+

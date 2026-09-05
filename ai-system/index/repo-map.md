@@ -1,8 +1,8 @@
 # Repository Map
 
-> **last-updated-by:** update-ai-system.md (2026-08-20)
-> **last-updated-at:** 2026-08-20T00:00:00Z
-> **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`), Prisma-first runtime (11 migrations, schema up to date), checkout proof-of-payment enforcement, mutation bus, and CIS handshake surface.
+> **last-updated-by:** update-ai-system.md (2026-09-05)
+> **last-updated-at:** 2026-09-05T00:00:00Z
+> **Overview:** Current folder topology for MyHarvestHub. This map is synchronized to the canonical operations-route architecture (`/operations/*`), Prisma-first runtime (11 migrations, schema up to date), checkout proof-of-payment enforcement, mutation bus, CIS handshake surface, hardened email verification (verify-email public route + JWT refresh), and help-center config fallbacks.
 
 ---
 

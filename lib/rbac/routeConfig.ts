@@ -52,6 +52,8 @@ export const routeConfig: RouteConfig[] = [
     { path: '/signup/account-info', labelKey: 'signup', featureKey: 'auth-signup-account-info', public: true },
     { path: '/signup/security-info', labelKey: 'signup', featureKey: 'auth-signup-security-info', public: true },
     { path: '/signup-success', labelKey: 'signupSuccess', featureKey: 'auth-signup-success', public: true },
+    { path: '/verify-email', labelKey: 'verifyEmail', featureKey: 'auth-verify-email', public: true },
+    { path: '/reset-password', labelKey: 'resetPassword', featureKey: 'auth', public: true },
     { path: '/forgot-password', labelKey: 'forgotPassword', featureKey: 'auth', public: true },
     { path: '/help', labelKey: 'help', featureKey: 'support', public: true },
     { path: '/contact', labelKey: 'contact', featureKey: 'support', public: true },

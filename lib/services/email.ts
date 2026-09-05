@@ -124,7 +124,7 @@ const getAppUrl = () =>
 export async function sendVerifyEmail(to: string, firstName: string, verificationToken: string) {
   const { VerifyEmail } = await import('@/lib/emails/VerifyEmail');
   const appUrl = getAppUrl();
-  const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(verificationToken)}&email=${encodeURIComponent(to)}`;
 
   return sendEmail({
     to,
