@@ -1,7 +1,7 @@
 # Development History
 
-> **last-updated-by:** update-ai-system.md (2026-08-20)
-> **last-updated-at:** 2026-08-20T00:00:00Z
+> **last-updated-by:** update-ai-system.md (2026-09-05)
+> **last-updated-at:** 2026-09-05T00:00:00Z
 > **Overview:** Chronological log of completed development work. Each sprint ends with a summary entry. Agents add entries after completing tasks. Useful for understanding what has been built and when decisions were made.
 
 ---
@@ -2550,6 +2550,28 @@ Completed the off-platform payment gap by exposing vendor bank details (collecte
 - New file: `app/api/vendors/[id]/bank-details/route.ts`
 - Modified: `app/checkout/page.tsx`, `app/api/vendors/me/store-settings/route.ts`, `components/features/StoreSettingsPage.tsx`, `app/orders/[id]/page.tsx`
 
-**Next Sprint Focus:**
+ **Next Sprint Focus:**
 - Consider adding a dedicated `bankDetails` field on the Vendor model (instead of nested in `businessVerification` JSON)
 - Add notification to vendors when proof of payment is uploaded by a customer
+
+## 2026-09-05 — Email Verification Hardening + Help Center Fallbacks (Session 100)
+
+**Summary:**
+Fixed the reported email-verification loop where clicking the emailed link showed 'token expired' and resend appeared broken, landing users on /verify-email instead of /login. Added normalized token handling, explicit error codes (TOKEN_EXPIRED/INVALID_TOKEN/ALREADY_VERIFIED), stale-JWT session refresh in-place, and middleware/routeConfig fixes to preserve query params and allow unverified users to reach /login and /verify-email without redirect loops. Added hardcoded config-fallbacks for all help-center sub-pages so /help/* remains useful without admin-published PublicContent, with buyer/vendor directives covering orders, payments, locations, account/security, products/vendors, and contact.
+
+**Completed:**
+- `lib/rbac/routeConfig.ts` — added `/verify-email` (public) and `/reset-password` (public) to route policy so middleware respects them explicitly.
+- `middleware.ts` — allow unverified users to reach /login and /verify-email without dashboard redirect; verify-gate now preserves email hint and includes /forgot-password and /reset-password in allowed list.
+- `app/api/auth/verify-email/route.ts` — normalize/decode token, handle INVALID_TOKEN/TOKEN_EXPIRED/ALREADY_VERIFIED codes with email hint, return redirectTo `/login?verified=1`, clear stale idempotent re-clicks, refresh JWT in-place via generateTokenPair+setAuthCookies when caller presents same-user accessToken.
+- `lib/services/email.ts` — `sendVerifyEmail` now encodes token and appends `&email=` so the page can prefill and the API can give ALREADY_VERIFIED guidance; verificationUrl uses encodeURIComponent.
+- `app/verify-email/page.tsx` — send token+email, display code-specific error cards, handle refreshedSession, add TOKEN_EXPIRED already-verified UX and resend guidance.
+- `lib/config/siteContent.ts` — added `helpArticleFallbacks` (6 topics) with concise buyer/vendor directives, tips, and guides (orders lifecycle + proof-of-transfer PENDING verification, payments/wallet/Paystack amount validation, locations/pickup services, account/email-verification 24h flow and session hygiene, products/vendors variants/reviews/tracking, contact static channels + WhatsApp continuation).
+- `app/help/[slug]/page.tsx` — consume fallback when `getPublicContentBySlug('help-{slug}')` is empty, render fallback body with whitespace-pre-wrap and admin-replacement notice.
+
+**Key Changes:**
+- Verification flow now redirects to login on success, differentiates expired vs invalid links, and reliably supports resend without stale state.
+- Help sub-pages are non-empty by default via config fallback; admin PublicContent (slug `help-{slug}` PUBLISHED) automatically overrides when present.
+
+**Next Sprint Focus:**
+- Monitor email deliverability (Resend API key + enableEmail flag) and consider extending token TTL beyond 24h if operational data shows clicks beyond window.
+- Add regression tests for verify-email token codes and help fallback rendering.

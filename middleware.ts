@@ -100,8 +100,13 @@ export async function middleware(request: NextRequest) {
 
     // Allow public routes for everyone
     if (routePolicy?.public) {
-        // If authenticated user tries to access auth routes (login/register only), redirect to dashboard
+        // If authenticated user tries to access auth routes (login/register only), redirect to dashboard.
+        // However, unverified users should remain able to reach verification/login flows to complete signup.
         if (user && routePolicy.authRoute) {
+            // Do not force unverified users away from verification and login.
+            if (user.emailVerified === false && (pathname === "/login" || pathname === "/verify-email" || pathname.startsWith("/verify-email") || pathname.startsWith("/signup"))) {
+                return NextResponse.next();
+            }
             return NextResponse.redirect(new URL(getDashboardRoute(user.role), request.url));
         }
         return NextResponse.next();
@@ -123,10 +128,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // If email is not yet verified, route to verify page (except verification and auth routes)
-    const verifyingAllowed = ["/verify-email", "/api/auth/verify-email", "/api/auth/resend-verification", "/signup", "/signup-success", "/login", "/api/auth/login", "/api/auth/register"];
+    const verifyingAllowed = ["/verify-email", "/api/auth/verify-email", "/api/auth/resend-verification", "/signup", "/signup-success", "/login", "/api/auth/login", "/api/auth/register", "/forgot-password", "/reset-password", "/api/auth/forgot-password", "/api/auth/reset-password"];
 
     if (user && user.emailVerified === false && !verifyingAllowed.some((p) => pathname === p || pathname.startsWith(p))) {
-        return NextResponse.redirect(new URL("/verify-email", request.url));
+        // Preserve email hint if available via JWT email so the verify page can prefill.
+        const verifyUrl = new URL("/verify-email", request.url);
+        if (user.email) {
+            verifyUrl.searchParams.set("email", user.email);
+        }
+        return NextResponse.redirect(verifyUrl);
     }
 
     return NextResponse.next();

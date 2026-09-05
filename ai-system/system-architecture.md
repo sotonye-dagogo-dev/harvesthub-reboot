@@ -1,7 +1,7 @@
 # System Architecture
 
-> **last-updated-by:** update-ai-system.md (2026-08-20)
-> **last-verified-against-code:** 2026-08-20
+> **last-updated-by:** update-ai-system.md (2026-09-05)
+> **last-verified-against-code:** 2026-09-05
 > **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a Prisma Postgres backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable. All 11 Prisma migrations are applied and `migrate status` reports up to date (baselined via `migrate resolve` in Session 98).
 
 ---
@@ -51,6 +51,10 @@
 - **CIS Federation (Additive):** `lib/config/cis.ts` + `lib/data/cisIdentity.ts` expose CIS env/config plumbing. `GET /api/cis/status` reports readiness; `POST /api/cis/webhook` verifies signed payloads and persists `CisIdentity` + `CisWebhookEvent` (no local user mutation). Prisma models `CisIdentity`/`CisWebhookEvent` (migration `20260519151635_cis_identity_persistence`).
 
 - **Campus as First-Class Field:** `User.campus` (`Campus` enum, nullable) and `Address.campus` propagate through registration (`app/api/auth/register` + `app/signup/components/UserInfo`), profile (`app/api/users/[id]/profile` + `ProfilePage`), address CRUD (`AddressForm`), and checkout `deliveryAddress`. Migration `20260818000000_add_user_campus`.
+
+- **Email Verification Hardening (Session 100):** `app/verify-email/page.tsx` auto-posts `token+email` to `POST /api/auth/verify-email`, which normalizes/decodeURIComponent, differentiates `TOKEN_EXPIRED`/`INVALID_TOKEN`/`ALREADY_VERIFIED`, and refreshes a stale unverified JWT via `generateTokenPair+setAuthCookies` so middleware stops forcing `/verify-email`. `lib/services/email.sendVerifyEmail` encodes `token+&email=`; `lib/rbac/routeConfig.ts` now declares `/verify-email` and `/reset-password` as public; `middleware.ts` preserves email hint on force-redirect and exempts unverified users from the authRoute dashboard redirect for login/verify flows.
+
+- **Help Center Config Fallbacks (Session 100):** `lib/config/siteContent.ts` exports `helpArticleFallbacks` for `/help/{orders,payments,locations,account,products,contact}`. Each fallback carries buyer+vendor directives (orders lifecycle & proof PENDING verification, payments wallet/Paystack amount validation, locations/campus pickup services, account 24h verification & session hygiene, products variants/reviews/tracking, contact static channels + WhatsApp continuation). `app/help/[slug]/page.tsx` renders `helpArticleFallbacks[slug]` when `PublicContent` `help-{slug}` is absent; admin-published content overrides automatically.
 
 ---
 
