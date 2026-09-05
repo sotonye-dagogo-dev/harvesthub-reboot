@@ -44,15 +44,18 @@ export default function VerifyEmailPage() {
     }
   }, [emailFromQuery]);
 
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+
   useEffect(() => {
     if (!token) return;
     setStatus("loading");
+    setErrorCode(null);
     (async () => {
       try {
         const res = await fetch("/api/auth/verify-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token, email: emailFromQuery || email || undefined }),
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -64,16 +67,29 @@ export default function VerifyEmailPage() {
               : "/login?verified=1";
           const continuation = continuationFromQuery || getPendingAuthRedirect() || "";
           setRedirectPath(withLoginContinuation(baseRedirect, continuation));
+          if (data.refreshedSession) {
+            // Session was upgraded in-place; middleware will now allow dashboard navigation
+          }
         } else {
           setStatus("error");
-          setMessage(data.error || "Verification failed.");
+          setErrorCode(typeof data.code === "string" ? data.code : null);
+          if (data.code === "ALREADY_VERIFIED" || data.alreadyVerified) {
+            setMessage(data.error || "Your email is already verified. You can sign in now.");
+          } else if (data.code === "TOKEN_EXPIRED") {
+            setMessage(data.error || "This verification link has expired. Please request a new link below.");
+          } else if (data.code === "INVALID_TOKEN") {
+            setMessage(data.error || "This verification link is invalid or has already been used. Please request a new one.");
+          } else {
+            setMessage(data.error || "Verification failed.");
+          }
         }
       } catch (err) {
         setStatus("error");
+        setErrorCode("NETWORK_ERROR");
         setMessage((err instanceof Error && err.message) || "Network error");
       }
     })();
-  }, [continuationFromQuery, router, token]);
+  }, [continuationFromQuery, email, emailFromQuery, router, token]);
 
   useEffect(() => {
     if (status !== "success") {
@@ -177,7 +193,19 @@ export default function VerifyEmailPage() {
           </Link>
         </div>
       )}
-      {status === "error" && <p className="mb-4 text-red-500">{message}</p>}
+      {status === "error" && (
+        <div className="mb-4 rounded-ds-md border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/30">
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">{message}</p>
+          {errorCode === "TOKEN_EXPIRED" && (
+            <p className="mt-1 text-sm text-ds-text-secondary">We issued a new link on demand — check your inbox (and spam folder) after resending below.</p>
+          )}
+          {(errorCode === "ALREADY_VERIFIED" || message.toLowerCase().includes("already verified")) && (
+            <p className="mt-2">
+              <Link href="/login?verified=1" className="text-sm font-medium text-ds-text-brand hover:underline">Go to Login →</Link>
+            </p>
+          )}
+        </div>
+      )}
       {!token && (
         <p className="text-ds-text-secondary mb-4">
           No verification token found in the URL. If you didn&apos;t receive an email, confirm the
