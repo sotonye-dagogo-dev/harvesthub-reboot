@@ -34,6 +34,15 @@ export const DEFAULT_EMAIL_TEMPLATES: Record<string, EmailTemplateDefinition> = 
       "Hi {{reporterName}},\n\nThank you for reporting “{{title}}”. Our team has resolved the issue.\n\nSummary: {{adminNotes}}\n\nIf you still experience this, reply to this email or submit a new report at {{appUrl}}/bug-report.\n\n— MyHarvestHub Support",
     variables: ["reporterName", "title", "adminNotes", "appUrl"],
   },
+  "bug-status-update": {
+    key: "bug-status-update",
+    label: "Bug Report Status Update",
+    description: "Sent when a bug report status changes (Open → In Progress → Resolved → Closed).",
+    defaultSubject: "Update on your report “{{title}}” — now {{nextStatus}}",
+    defaultBody:
+      "Hi {{reporterName}},\n\nYour report “{{title}}” is now {{nextStatus}} (was {{prevStatus}}).\n\nNote: {{adminNotes}}\n\nView or reply at {{appUrl}}/bug-report\n\n— MyHarvestHub Support",
+    variables: ["reporterName", "title", "prevStatus", "nextStatus", "adminNotes", "appUrl"],
+  },
   "verify-email": {
     key: "verify-email",
     label: "Verify Email",

@@ -70,41 +70,103 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         const body = await req.json();
         const data: Record<string, unknown> = {};
         const metadata = (report.metadata as Record<string, unknown> | null) || {};
-        if (body.status !== undefined && typeof body.status === 'string') {
-            data.status = body.status.toUpperCase();
+
+        const ALLOWED_STATUSES = new Set(Object.values(BugReportStatus).map((v) => String(v).toUpperCase()));
+
+        let nextRawStatus: string | null = null;
+        if (body.status !== undefined) {
+            if (typeof body.status !== 'string' || body.status.trim().length === 0) {
+                return apiError('Invalid status', 400);
+            }
+            nextRawStatus = body.status.trim().toUpperCase();
+            if (nextRawStatus === null || !ALLOWED_STATUSES.has(nextRawStatus)) {
+                return apiError(`Invalid status. Allowed: ${Array.from(ALLOWED_STATUSES).join(', ')}`, 400);
+            }
+            data.status = nextRawStatus;
         }
+
+        let nextAdminNotes: string | null = null;
         if (body.adminNotes !== undefined) {
-            data.metadata = { ...metadata, adminNotes: body.adminNotes };
+            if (body.adminNotes !== null && typeof body.adminNotes !== 'string') {
+                return apiError('adminNotes must be a string or null', 400);
+            }
+            const trimmed = typeof body.adminNotes === 'string' ? body.adminNotes.trim() : null;
+            // sanitize: limit to 2000 chars, strip control chars
+            const sanitized = trimmed ? trimmed.slice(0, 2000).replace(/[\u0000-\u001F\u007F]/g, '') : trimmed;
+            nextAdminNotes = sanitized && sanitized.length > 0 ? sanitized : null;
+            data.metadata = { ...metadata, adminNotes: nextAdminNotes };
         } else if (body.metadata !== undefined) {
-            data.metadata = body.metadata;
+            // allow raw metadata only if it is an object; sanitize adminNotes inside
+            if (body.metadata && typeof body.metadata === 'object' && !Array.isArray(body.metadata)) {
+                const incoming = body.metadata as Record<string, unknown>;
+                const incomingNotes = typeof incoming.adminNotes === 'string' ? incoming.adminNotes.trim().slice(0, 2000) : null;
+                data.metadata = { ...metadata, ...incoming, ...(incomingNotes !== null ? { adminNotes: incomingNotes } : {}) };
+                nextAdminNotes = typeof (data.metadata as Record<string, unknown>).adminNotes === 'string' ? String((data.metadata as Record<string, unknown>).adminNotes) : null;
+            }
+        }
+
+        // If no change submitted, return current
+        if (Object.keys(data).length === 0) {
+            return apiError('No update fields provided', 400);
         }
 
         const updated = await prisma.bugReport.update({ where: { id }, data });
         const updatedMetadata = (updated.metadata as Record<string, unknown> | null) || {};
 
-        // Automated email flow for resolved bugs — non-blocking, fire-and-forget
+        // ── Automated email flow for status changes (non-blocking, tightened) ──
         const prevStatus = String(report.status).toUpperCase();
         const nextStatus = String(updated.status).toUpperCase();
-        if (nextStatus === BugReportStatus.RESOLVED && prevStatus !== BugReportStatus.RESOLVED) {
+        const statusChanged = prevStatus !== nextStatus;
+        const adminNotesForEmail = typeof updatedMetadata.adminNotes === 'string' ? (updatedMetadata.adminNotes as string) : nextAdminNotes;
+
+        if (statusChanged) {
           try {
-            const reporterEmail =
-              typeof updatedMetadata.email === 'string' && updatedMetadata.email.trim().length > 0
-                ? updatedMetadata.email.trim()
-                : report.userId
-                  ? (await prisma.user.findUnique({ where: { id: report.userId }, select: { email: true, firstName: true } }).catch(() => null))?.email ?? null
-                  : null;
+            // Resolve reporter contact: prefer metadata.email, fallback to user row
+            let reporterEmail: string | null = null;
+            let reporterName: string | undefined = undefined;
+            const metaEmail = typeof updatedMetadata.email === 'string' ? updatedMetadata.email.trim() : '';
+            if (metaEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(metaEmail)) {
+              reporterEmail = metaEmail.toLowerCase();
+            }
+            if (!reporterEmail && report.userId) {
+              const dbUser = await prisma.user.findUnique({ where: { id: report.userId }, select: { email: true, firstName: true } }).catch(() => null);
+              if (dbUser?.email) {
+                reporterEmail = dbUser.email.trim().toLowerCase();
+                reporterName = dbUser.firstName ?? undefined;
+              }
+            } else if (report.userId) {
+              // if metaEmail was used, still try to get name
+              const dbUser = await prisma.user.findUnique({ where: { id: report.userId }, select: { firstName: true } }).catch(() => null);
+              reporterName = dbUser?.firstName ?? undefined;
+            }
+            // If unauthenticated reporter and no userId, try reporterName from metadata if present
+            if (!reporterName && typeof (updatedMetadata as Record<string, unknown>).reporterName === 'string') {
+              reporterName = String((updatedMetadata as Record<string, unknown>).reporterName);
+            }
+
             if (reporterEmail) {
-              const reporter = report.userId ? await prisma.user.findUnique({ where: { id: report.userId }, select: { firstName: true } }).catch(() => null) : null;
-              const { sendBugResolvedEmail } = await import('@/lib/services/email');
-              // Do not await blocking — but we await with catch so not to break API
-              await sendBugResolvedEmail(reporterEmail, {
-                reporterName: reporter?.firstName ?? undefined,
-                title: updated.title,
-                adminNotes: typeof updatedMetadata.adminNotes === 'string' ? updatedMetadata.adminNotes : null,
-              }).catch((e) => console.error('[bug-report] resolved email failed', e));
+              if (nextStatus === BugReportStatus.RESOLVED) {
+                const { sendBugResolvedEmail } = await import('@/lib/services/email');
+                await sendBugResolvedEmail(reporterEmail, {
+                  reporterName,
+                  title: updated.title,
+                  adminNotes: adminNotesForEmail,
+                }).catch((e) => console.error('[bug-report] resolved email failed', e));
+              } else {
+                const { sendBugStatusUpdateEmail } = await import('@/lib/services/email');
+                await sendBugStatusUpdateEmail(reporterEmail, {
+                  reporterName,
+                  title: updated.title,
+                  prevStatus,
+                  nextStatus,
+                  adminNotes: adminNotesForEmail,
+                }).catch((e) => console.error('[bug-report] status-update email failed', e));
+              }
+            } else {
+              console.warn(`[bug-report] status ${prevStatus}→${nextStatus} for ${updated.id} has no reporter email — skipping email`);
             }
           } catch (e) {
-            console.error('[bug-report] resolved email flow error', e);
+            console.error('[bug-report] status email flow error', e);
           }
         }
 

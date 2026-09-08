@@ -9,7 +9,7 @@ import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/d
 import { getSafeImageUrl } from "@/lib/utils/images";
 import { estimateReadTime, BLOG_ROUTES } from "@/lib/config/blog";
 import { BlogShareButtons } from "@/components/features/blog/BlogShareButtons";
-import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import BlogBodyRenderer from "@/components/ui/BlogBodyRenderer";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -157,7 +157,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         ) : null}
 
         <div className="mt-8">
-          <MarkdownRenderer content={post.body} />
+          <BlogBodyRenderer content={post.body} />
         </div>
 
         {post.tags && post.tags.length > 0 ? (
