@@ -14,7 +14,7 @@ export function WelcomeEmail({ firstName, role }: WelcomeEmailProps) {
   return (
     <EmailLayout
       previewText="Welcome to MyHarvestHub!"
-      heading={`Welcome to MyHarvestHub${role === "VENDOR" ? " 🏪" : ""}`}
+      heading={`Welcome to MyHarvestHub${role === "VENDOR" ? " — Vendor" : ""}`}
     >
       <Text style={styles.paragraph}>Hi {firstName},</Text>
       <Text style={styles.paragraph}>

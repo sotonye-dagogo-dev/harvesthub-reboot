@@ -31,9 +31,11 @@ type OrderItem = {
   id: string;
   productId: string;
   productName: string;
+  productImage?: string;
   quantity: number;
   price: number;
   subtotal: number;
+  selectedVariants?: Record<string, string> | null;
 };
 
 type ProofOfTransferRecord = {
@@ -623,26 +625,37 @@ export default function OrderDetailPage() {
       <Card>
         <h2 className="text-lg font-semibold text-ds-text-primary">Order Items</h2>
         <div className="mt-4 space-y-3">
-          {(order.items ?? []).map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between gap-4 border-b border-ds-border-base pb-3 last:border-0"
-            >
-              <div>
-                <p className="font-medium text-ds-text-primary">{item.productName}</p>
-                <p className="text-xs text-ds-text-secondary">Qty: {item.quantity}</p>
+          {(order.items ?? []).map((item) => {
+            const variantLabel =
+              item.selectedVariants && typeof item.selectedVariants === "object" && Object.keys(item.selectedVariants).length > 0
+                ? Object.entries(item.selectedVariants as Record<string, string>)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(", ")
+                : null;
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-4 border-b border-ds-border-base pb-3 last:border-0"
+              >
+                <div>
+                  <p className="font-medium text-ds-text-primary">{item.productName}</p>
+                  <p className="text-xs text-ds-text-secondary">Qty: {item.quantity}</p>
+                  {variantLabel ? (
+                    <p className="mt-0.5 text-xs font-medium text-ds-text-brand">{variantLabel}</p>
+                  ) : null}
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-ds-text-brand">{formatCurrency(item.subtotal)}</p>
+                  <Link
+                    href={`/products/${item.productId}`}
+                    className="text-xs text-ds-text-brand hover:underline"
+                  >
+                    View product / Leave review
+                  </Link>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-ds-text-brand">{formatCurrency(item.subtotal)}</p>
-                <Link
-                  href={`/products/${item.productId}`}
-                  className="text-xs text-ds-text-brand hover:underline"
-                >
-                  View product / Leave review
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           <div className="pt-2 text-right">
             <p className="text-sm text-ds-text-secondary">
               Delivery: {formatStatusLabel(order.deliveryMethod)}

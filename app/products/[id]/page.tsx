@@ -8,10 +8,12 @@ import { formatCurrency } from "@/lib/utils";
 import { getFirstValidImageUrl, getSafeImageUrl } from "@/lib/utils/images";
 import { prisma } from "@/lib/db/prisma";
 import { SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Store, Truck, RefreshCw, ShieldCheck, Star } from "lucide-react";
 import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/dynamicMetadata";
 import { buildProductWhatsAppMessage } from "@/lib/utils/whatsappIntent";
 import ProductDetailActions from "@/components/features/ProductDetailActions";
+import ProductImageGallery from "@/components/features/ProductImageGallery";
+import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -206,17 +208,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base">
-          <div className="relative aspect-square">
-            {image ? (
-              <Image src={image} alt={productName} fill className="object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-ds-surface-sunken text-ds-text-secondary">
-                No image available
-              </div>
-            )}
-          </div>
-        </div>
+        <ProductImageGallery images={(product.images as string[]) ?? []} alt={productName} />
 
         <div>
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Product status badges">
@@ -281,9 +273,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
           />
 
-          <p className="mt-4 text-ds-text-secondary">
-            {product.description || "No description available for this product yet."}
-          </p>
+          <div className="mt-4">
+            <MarkdownRenderer content={product.description || "No description available for this product yet."} />
+          </div>
 
           <p className="mt-4 text-sm text-ds-text-secondary">
             Stock: {productStock > 0 ? productStock : "Out of stock"}
@@ -327,7 +319,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   </p>
                 )}
                 {product.vendor.campus && (
-                  <p className="mt-1 text-sm text-ds-text-secondary">📍 {product.vendor.campus}</p>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-ds-text-secondary">
+                    <Store className="h-3.5 w-3.5" /> {product.vendor.campus}
+                  </p>
                 )}
                 {product.vendor.storeDescription && (
                   <p className="mt-2 text-sm text-ds-text-secondary line-clamp-3">
@@ -339,8 +333,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 {vendorAvgRating ? (
                   <div className="text-right">
                     <p className="text-xs text-ds-text-secondary">Vendor Rating</p>
-                    <p className="font-bold text-ds-text-primary">
-                      ⭐ {Number(vendorAvgRating).toFixed(1)}
+                    <p className="flex items-center justify-end gap-1 font-bold text-ds-text-primary">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {Number(vendorAvgRating).toFixed(1)}
                     </p>
                   </div>
                 ) : null}
@@ -362,7 +356,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🏪</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
+                <Store className="h-4 w-4" />
+              </span>
               <div>
                 <p className="font-semibold text-ds-text-primary">Church Pickup</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
@@ -374,7 +370,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
           <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🚚</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
+                <Truck className="h-4 w-4" />
+              </span>
               <div>
                 <p className="font-semibold text-ds-text-primary">Home Delivery</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
@@ -386,7 +384,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
           <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🔄</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
+                <RefreshCw className="h-4 w-4" />
+              </span>
               <div>
                 <p className="font-semibold text-ds-text-primary">Returns &amp; Cancellations</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">
@@ -398,7 +398,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
           <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🛡️</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
               <div>
                 <p className="font-semibold text-ds-text-primary">Buyer Protection</p>
                 <p className="mt-1 text-sm text-ds-text-secondary">

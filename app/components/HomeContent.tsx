@@ -536,8 +536,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
         {dealsProducts.length > 0 && (
           <section className="mb-4">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                🔥 Hot Deals
+              <h2 className="flex items-center gap-2 text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs">%</span> Hot Deals
               </h2>
               <Link
                 href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}

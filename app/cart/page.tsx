@@ -14,7 +14,7 @@ import { getProductsClient } from "@/lib/data/clientDataFetchers";
 export const dynamic = "force-dynamic";
 
 export default function CartPage() {
-  const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart, reconcileWithCatalog } =
+  const { items, totalItems, totalPrice, updateQuantity, updateVariants, removeItem, clearCart, reconcileWithCatalog } =
     useCart();
   const { productDiscountTotal } = getCartPricingBreakdown(items);
 
@@ -104,6 +104,11 @@ export default function CartPage() {
                 variant={item.variant}
                 selectedVariants={item.selectedVariants ?? null}
                 onUpdateQuantity={(_, qty) => updateQuantity(item.productId, qty, item.selectedVariants ?? null)}
+                onUpdateVariants={(pid, prev, next) => {
+                  const ok = updateVariants(pid, prev, next);
+                  if (ok) message.success("Variant updated");
+                  else message.error("Unable to update variant (duplicate or invalid)");
+                }}
                 onRemove={() => {
                   removeItem(item.productId, item.selectedVariants ?? undefined);
                   message.success(`${item.name} removed from cart`);

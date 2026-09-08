@@ -40,6 +40,7 @@ const labelMap: Record<string, string> = {
     adminBanners: 'Banners',
     adminAds: 'Ads',
     adminBugReports: 'Bug Reports',
+    adminEmailTemplates: 'Email Templates',
     adminSettings: 'Settings',
     adminVendorContent: 'Marketing Review',
     vendorMarketingContent: 'Marketing Content',

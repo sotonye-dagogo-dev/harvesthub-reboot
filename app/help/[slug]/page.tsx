@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { helpCenterConfig, helpArticleFallbacks } from "@/lib/config/siteContent";
 import { getPublicContentBySlug } from "@/lib/data/publicContent";
+import HelpSandbox from "@/components/help/HelpSandbox";
 
 interface HelpTopicPageProps {
   params: Promise<{ slug: string }>;
@@ -36,7 +37,7 @@ export default async function HelpTopicPage({ params }: HelpTopicPageProps) {
           </pre>
           {!content?.body && fallback && (
             <p className="mt-6 border-t border-ds-border-base pt-4 text-xs text-ds-text-placeholder">
-              This guide is the built-in help fallback. An admin-published article (PublicContent slug `help-{slug}`) will replace it automatically when available.
+              This guide is the built-in fallback. An admin-published article (slug `help-{slug}`) will replace it automatically when available.
             </p>
           )}
         </article>
@@ -50,6 +51,9 @@ export default async function HelpTopicPage({ params }: HelpTopicPageProps) {
           </p>
         </div>
       )}
+      <div className="mt-6">
+        <HelpSandbox slug={slug} />
+      </div>
     </div>
   );
 }

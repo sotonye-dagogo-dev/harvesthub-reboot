@@ -9,6 +9,7 @@ import { buildDynamicEntityMetadata, resolveCanonicalBaseUrl } from "@/lib/seo/d
 import { getSafeImageUrl } from "@/lib/utils/images";
 import { estimateReadTime, BLOG_ROUTES } from "@/lib/config/blog";
 import { BlogShareButtons } from "@/components/features/blog/BlogShareButtons";
+import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -155,10 +156,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         ) : null}
 
-        <div
-          className="prose prose-lg mt-8 max-w-none text-ds-text-primary dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: post.body }}
-        />
+        <div className="mt-8">
+          <MarkdownRenderer content={post.body} />
+        </div>
 
         {post.tags && post.tags.length > 0 ? (
           <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-ds-border-base pt-6">
