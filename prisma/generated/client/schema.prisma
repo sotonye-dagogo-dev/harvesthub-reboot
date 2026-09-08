@@ -1387,3 +1387,21 @@ model ProductVariationConfig {
 
   @@map("product_variation_configs")
 }
+
+// ── Email Template Configuration (admin-editable, config-driven) ──────────
+// One row per template key (e.g., order-confirmation, bug-resolved). Admin can edit
+// subject/body via operations UI; fallback defaults live in code when DB row missing.
+model EmailTemplate {
+  id        String  @id @default(cuid())
+  key       String  @unique
+  subject   String
+  body      String
+  variables Json    @default("[]")
+  isActive  Boolean @default(true)
+  updatedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_templates")
+}
