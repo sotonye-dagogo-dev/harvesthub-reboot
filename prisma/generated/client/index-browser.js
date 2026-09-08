@@ -716,6 +716,18 @@ exports.Prisma.ProductVariationConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EmailTemplateScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  subject: 'subject',
+  body: 'body',
+  variables: 'variables',
+  isActive: 'isActive',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1127,7 +1139,8 @@ exports.Prisma.ModelName = {
   VendorContent: 'VendorContent',
   BlogPost: 'BlogPost',
   BlogConfig: 'BlogConfig',
-  ProductVariationConfig: 'ProductVariationConfig'
+  ProductVariationConfig: 'ProductVariationConfig',
+  EmailTemplate: 'EmailTemplate'
 };
 
 /**
