@@ -314,7 +314,7 @@ export async function sendBugResolvedEmail(to: string, data: { reporterName?: st
     const tpl = (await prisma.emailTemplate.findUnique({ where: { key: 'bug-resolved' } }).catch(() => null)) as unknown as { subject?: string } | null;
     if (tpl?.subject) {
       const { renderTemplateString } = await import('@/lib/config/emailTemplates');
-      subject = renderTemplateString(tpl.subject, { title: data.title });
+      subject = renderTemplateString(tpl.subject, { title: data.title, reporterName: data.reporterName ?? 'there', adminNotes: data.adminNotes ?? '' });
     }
   } catch {}
   return sendEmail({
@@ -322,5 +322,50 @@ export async function sendBugResolvedEmail(to: string, data: { reporterName?: st
     subject,
     react: React.createElement(BugResolved, { reporterName: data.reporterName, title: data.title, adminNotes: data.adminNotes, appUrl }),
     tags: [{ name: 'category', value: 'bug-resolved' }],
+  });
+}
+
+export async function sendBugStatusUpdateEmail(
+  to: string,
+  data: { reporterName?: string; title: string; prevStatus: string; nextStatus: string; adminNotes?: string | null }
+) {
+  const { BugStatusUpdate } = await import('@/lib/emails/BugStatusUpdate');
+  const appUrl = getAppUrl();
+  let subject = `Update on your report “${data.title}” — now ${data.nextStatus}`;
+  try {
+    const tpl = (await prisma.emailTemplate.findUnique({ where: { key: 'bug-status-update' } }).catch(() => null)) as unknown as { subject?: string } | null;
+    if (tpl?.subject) {
+      const { renderTemplateString } = await import('@/lib/config/emailTemplates');
+      subject = renderTemplateString(tpl.subject, {
+        title: data.title,
+        reporterName: data.reporterName ?? 'there',
+        prevStatus: data.prevStatus,
+        nextStatus: data.nextStatus,
+        adminNotes: data.adminNotes ?? '',
+        appUrl,
+      });
+    }
+  } catch {}
+  // fallback to bug-resolved template if status-update template missing and next is RESOLVED
+  if (data.nextStatus.toUpperCase() === 'RESOLVED') {
+    try {
+      const tpl2 = (await prisma.emailTemplate.findUnique({ where: { key: 'bug-resolved' } }).catch(() => null)) as unknown as { subject?: string } | null;
+      if (tpl2?.subject && subject.includes('now')) {
+        // keep status-update subject when custom bug-resolved exists but we already resolved subject
+      }
+    } catch {}
+  }
+  return sendEmail({
+    to,
+    subject,
+    react: React.createElement(BugStatusUpdate, {
+      reporterName: data.reporterName,
+      title: data.title,
+      prevStatus: data.prevStatus,
+      nextStatus: data.nextStatus,
+      adminNotes: data.adminNotes,
+      appUrl,
+    }),
+    tags: [{ name: 'category', value: 'bug-status-update' }, { name: 'from', value: data.prevStatus }, { name: 'to', value: data.nextStatus }],
   });
 }
