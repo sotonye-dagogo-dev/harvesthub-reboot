@@ -2575,3 +2575,32 @@ Fixed the reported email-verification loop where clicking the emailed link showe
 **Next Sprint Focus:**
 - Monitor email deliverability (Resend API key + enableEmail flag) and consider extending token TTL beyond 24h if operational data shows clicks beyond window.
 - Add regression tests for verify-email token codes and help fallback rendering.
+
+## 2026-09-08 — Tightening: Favicon/Logo, Gallery Film-Strip, Home Layout, Markdown Formatting (Session 102)
+
+**Summary:**
+Executed the tightening directive: switched favicon to the MyHarvestHub logo with rounded navbar branding, hardened the product image gallery to a DS-compliant film-strip slider with smooth translate-track, swipe/keyboard, and theme-aware controls, fixed home banner deck to center/expand the hero when no side banners exist while preserving aspect ratio (object-cover, max-w-5xl), made the home/product description area scrollable with overflow containment to avoid excess whitespace below the viewer on desktop, and closed the markdown formatting gap end-to-end (storage remains plain TEXT, rendering via sanitized MarkdownRenderer supports headings, bold/italic, code, links, blockquotes, and bullet/numbered lists including •·, non-breaking).
+
+**Completed:**
+- `app/layout.tsx` — added `metadata.icons` pointing to `/myharvesthublogo.png` + icons set (icon/apple/shortcut), `app/favicon.ico` copied from logo for Vercel static handling; `public/favicon.ico` also synced.
+- `components/layout/Header.tsx:166` — logo wrapper now `overflow-hidden rounded-full border border-ds-border-subtle bg-ds-surface-base` + image `object-cover rounded-full` (DS-compliant, theme-aware).
+- `components/features/ProductImageGallery.tsx` — rewrote to film-strip track (`translateX(-index*100%)` duration-500 ease-in-out), DS tokens for nav/dots (`bg-ds-surface-base/90 border-ds-border-base text-ds-text-primary` with dark variants, `focus-visible:ring-ds-focus-ring`), thumbnail strip `scrollbar-thin overscroll-x-contain`, swipe + keyboard + lightbox track reuse.
+- `components/features/BannerCarousel.tsx:332` + `components/features/TopAdBanner.tsx:149` + `app/components/HomeContent.tsx:291` — switched `object-fill` to `object-cover` (TopAdBanner also `object-center`) to preserve aspect ratio without stretch.
+- `app/components/HomeContent.tsx:268` — hero deck now `lg:col-span-12 flex justify-center` with inner `max-w-5xl` when `activeSidebarBanners.length === 0`; sidebar rail remains as before when present.
+- `components/features/TopAdBanner.tsx:142` — strip now `mx-auto max-w-6xl` centrally placed, preserves `aspect-[64/10]` without breaking changes.
+- `app/products/[id]/page.tsx:276` — description wrapped in `max-h-[320px] lg:max-h-[360px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin` + `Description` heading, rendered via `MarkdownRenderer`.
+- `components/ui/MarkdownRenderer.tsx:69` — extended unordered-list regex to `^[-*•·]\s+(.+)$`u to handle pasted bullet chars persisting as lists.
+- `app/(operations)/operations/products/page.tsx:703` — description `Textarea rows=5 maxLength 2000` + `extra` markdown cheat-sheet, storage unchanged (`String` TEXT).
+- `app/become-vendor/page.tsx:154` + `app/signup/components/StoreInfo.tsx:206` + `lib/schemas/auth.schemas.ts:109` — storeDescription now `max 2000` with markdown hint, non-breaking.
+- `app/vendors/[id]/page.tsx:1,395` — vendor About now `MarkdownRenderer` inside scrollable `max-h-[320px]` DS container, import added.
+- Build: `npm run build` ✅ (no type errors; sitemap warnings only).
+
+**Key Changes:**
+- Favicon/logo are now logo-derived and rounded everywhere via DS border/subtle tokens.
+- Gallery transitions are film-strip smooth and DS-compliant across light/dark themes.
+- Home hero no longer leaves a 4-col gap when sidebar ads are empty; top strip stays centered with preserved aspect ratio.
+- Product/vendor description markdown persists end-to-end (edit → String storage → sanitized MarkdownRenderer render) without migration.
+
+**Next Sprint Focus:**
+- Consider adding a markdown preview toggle in the operations product form and extending structured-blogs TEXT blocks to optionally parse markdown (currently TEXT uses escaped + `<br />`).
+- Monitor Cloudinary upload orphan cleanup backlog and help-center sandbox/playground content polish.

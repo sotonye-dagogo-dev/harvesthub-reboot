@@ -7,6 +7,14 @@ import { Providers } from "@/app/providers";
 export const metadata = {
   title: "MyHarvestHub",
   description: "Next-gen agriculture e-commerce for campus vendors and buyers",
+  icons: {
+    icon: [
+      { url: "/myharvesthublogo.png", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/myharvesthublogo.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/myharvesthublogo.png",
+  },
 };
 
 export const dynamic = "force-dynamic";

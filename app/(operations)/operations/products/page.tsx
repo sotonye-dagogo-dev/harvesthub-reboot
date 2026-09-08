@@ -704,8 +704,13 @@ export default function OperationsProductsPage() {
             name="description"
             label="Description"
             rules={[{ required: true, message: "Description is required" }]}
+            extra={
+              <span className="text-xs text-ds-text-tertiary">
+                Markdown supported: **bold**, *italic*, `code`, [link](https://…), headings (#, ##), bullet lists (- or * or •), numbered lists (1.), blockquotes (&gt;). Stored as plain text — non-breaking.
+              </span>
+            }
           >
-            <Input.TextArea rows={3} maxLength={1200} />
+            <Input.TextArea rows={5} maxLength={2000} showCount placeholder={"Describe the product...\n\nExample:\n- Fresh farm produce\n- **Bold** details\n- 1. Numbered step"} />
           </Form.Item>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

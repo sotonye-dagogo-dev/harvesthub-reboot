@@ -263,13 +263,21 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
 
   return (
     <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
-      {/* Hero + Side Banner Deck */}
+      {/* Hero + Side Banner Deck — when no side banners, hero is centered and expands to occupy extra space while preserving aspect ratio */}
       {(activeBanners.length > 0 || activeSidebarBanners.length > 0) && (
         <section className="container mx-auto px-4 py-3">
           <div className="grid min-w-0 gap-2 lg:grid-cols-12">
             {activeBanners.length > 0 && (
-              <div className="min-w-0 lg:col-span-8">
-                <BannerCarousel banners={activeBanners} autoPlay />
+              <div
+                className={
+                  activeSidebarBanners.length === 0
+                    ? "min-w-0 lg:col-span-12 flex justify-center"
+                    : "min-w-0 lg:col-span-8"
+                }
+              >
+                <div className={activeSidebarBanners.length === 0 ? "w-full max-w-5xl" : "w-full"}>
+                  <BannerCarousel banners={activeBanners} autoPlay />
+                </div>
               </div>
             )}
             {activeSidebarBanners.length > 0 && (
@@ -293,7 +301,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                             src={banner.imageUrl}
                             alt={normalizeBannerText(banner.title) || "Sidebar banner"}
                             fill
-                            className="object-fill"
+                            className="object-cover"
                             sizes={sidebarImageSizes}
                           />
                         </div>
@@ -334,7 +342,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                             src={banner.imageUrl}
                             alt={normalizeBannerText(banner.title) || "Sidebar banner"}
                             fill
-                            className="object-fill"
+                            className="object-cover"
                             sizes={sidebarImageSizes}
                           />
                         </div>

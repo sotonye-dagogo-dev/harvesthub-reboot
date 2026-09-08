@@ -164,12 +164,12 @@ export function Header() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="relative h-8 w-8 flex-shrink-0">
+            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-ds-border-subtle bg-ds-surface-base">
               <Image
                 src="/myharvesthublogo.png"
                 alt="MyHarvestHub"
                 fill
-                className="object-contain"
+                className="object-cover rounded-full"
               />
             </div>
             <span className="hidden sm:block text-xl font-bold text-ds-text-primary">

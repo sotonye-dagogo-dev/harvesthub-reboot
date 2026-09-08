@@ -66,12 +66,12 @@ export default function MarkdownRenderer({ content }: { content: string }) {
       blocks.push(React.createElement(`h${level}`, { key: `h-${idx}`, className: `mt-3 ${cls}`, dangerouslySetInnerHTML: { __html: inlineFormat(text) } }));
       return;
     }
-    // unordered list
-    const ulMatch = trimmed.match(/^[-*]\s+(.+)$/);
+    // unordered list — supports -, *, • (U+2022), · (U+00B7)
+    const ulMatch = trimmed.match(/^[-*•·]\s+(.+)$/u);
     if (ulMatch) {
       if (listType && listType !== "ul") flushList();
       listType = "ul";
-      listBuffer.push(ulMatch[1]!);
+      listBuffer.push(ulMatch[1]!.trim());
       return;
     }
     const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);

@@ -25,6 +25,7 @@ import {
   Info,
 } from "lucide-react";
 import { formatCampus, formatVendorCategory, formatPosition } from "@/lib/utils/format";
+import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 
 interface VendorDetailPageProps {
   params: Promise<{ id: string }>;
@@ -398,7 +399,9 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                             <Info className="h-5 w-5" />
                             About {vendor.storeName}
                           </h3>
-                          <p className="text-ds-text-secondary">{vendor.storeDescription}</p>
+                          <div className="max-h-[320px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin">
+                            <MarkdownRenderer content={vendor.storeDescription} />
+                          </div>
                         </div>
                       )}
 
