@@ -334,7 +334,7 @@ function Slide({ banner, isActive }: SlideProps) {
           src={banner.image}
           alt={banner.title}
           fill
-          className="object-fill"
+          className="object-cover"
           priority={isActive}
           sizes="100vw"
         />

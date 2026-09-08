@@ -151,11 +151,15 @@ export default function BecomeVendorPage() {
             <Input placeholder="e.g. Harvest Fresh Foods" maxLength={100} />
           </Form.Item>
 
-          <Form.Item label="Store Description" name="storeDescription">
+          <Form.Item
+            label="Store Description"
+            name="storeDescription"
+            extra={<span className="text-xs text-ds-text-tertiary">Markdown supported: **bold**, bullet lists (-, *, •), headings.</span>}
+          >
             <Input.TextArea
-              placeholder="What do you sell and who do you serve?"
+              placeholder={"What do you sell and who do you serve?\n\nExample:\n- Fresh farm produce\n- **Quality** assured"}
               rows={4}
-              maxLength={500}
+              maxLength={2000}
               showCount
             />
           </Form.Item>
