@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { UserType, FormComponentProps } from "@/app/types";
-import { ShoppingBag, Store } from "lucide-react";
+import { ShoppingBag, Store, Check } from "lucide-react";
 
 interface UserOption {
   name: UserType;
@@ -89,19 +89,7 @@ export default function UserSelect({ onNext, updateFormData, formData }: FormCom
               {/* Selected Indicator */}
               {isSelected && (
                 <div className="absolute right-4 top-4 rounded-ds-full bg-ds-brand-primary p-1">
-                  <svg
-                    className="h-4 w-4 text-ds-text-inverse"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check className="h-4 w-4 text-white" />
                 </div>
               )}
             </button>

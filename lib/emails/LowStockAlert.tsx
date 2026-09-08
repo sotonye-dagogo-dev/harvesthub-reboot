@@ -20,7 +20,7 @@ export function LowStockAlert({ firstName, storeName, products }: LowStockAlertP
   return (
     <EmailLayout
       previewText={`Low stock alert: ${products.length} product${products.length > 1 ? "s" : ""} running low`}
-      heading="Low Stock Alert ⚠️"
+      heading="Low Stock Alert"
     >
       <Text style={styles.paragraph}>Hi {firstName},</Text>
       <Text style={styles.paragraph}>

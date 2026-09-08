@@ -33,6 +33,7 @@ export const routeConfig: RouteConfig[] = [
     { path: '/operations/banners', labelKey: 'adminBanners', featureKey: 'operations-banners', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/ads', labelKey: 'adminAds', featureKey: 'operations-ads', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/bug-reports', labelKey: 'adminBugReports', featureKey: 'operations-bug-reports', public: false, roles: [UserRole.ADMIN] },
+    { path: '/operations/email-templates', labelKey: 'adminEmailTemplates', featureKey: 'operations-email-templates', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/settings', labelKey: 'adminSettings', featureKey: 'operations-settings', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/vendor-content', labelKey: 'adminVendorContent', featureKey: 'operations-vendor-content', public: false, roles: [UserRole.ADMIN] },
     { path: '/operations/marketing-content', labelKey: 'vendorMarketingContent', featureKey: 'operations-marketing-content', public: false, roles: [UserRole.VENDOR, UserRole.ADMIN] },

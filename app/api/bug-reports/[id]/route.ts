@@ -81,6 +81,33 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
         const updated = await prisma.bugReport.update({ where: { id }, data });
         const updatedMetadata = (updated.metadata as Record<string, unknown> | null) || {};
+
+        // Automated email flow for resolved bugs — non-blocking, fire-and-forget
+        const prevStatus = String(report.status).toUpperCase();
+        const nextStatus = String(updated.status).toUpperCase();
+        if (nextStatus === BugReportStatus.RESOLVED && prevStatus !== BugReportStatus.RESOLVED) {
+          try {
+            const reporterEmail =
+              typeof updatedMetadata.email === 'string' && updatedMetadata.email.trim().length > 0
+                ? updatedMetadata.email.trim()
+                : report.userId
+                  ? (await prisma.user.findUnique({ where: { id: report.userId }, select: { email: true, firstName: true } }).catch(() => null))?.email ?? null
+                  : null;
+            if (reporterEmail) {
+              const reporter = report.userId ? await prisma.user.findUnique({ where: { id: report.userId }, select: { firstName: true } }).catch(() => null) : null;
+              const { sendBugResolvedEmail } = await import('@/lib/services/email');
+              // Do not await blocking — but we await with catch so not to break API
+              await sendBugResolvedEmail(reporterEmail, {
+                reporterName: reporter?.firstName ?? undefined,
+                title: updated.title,
+                adminNotes: typeof updatedMetadata.adminNotes === 'string' ? updatedMetadata.adminNotes : null,
+              }).catch((e) => console.error('[bug-report] resolved email failed', e));
+            }
+          } catch (e) {
+            console.error('[bug-report] resolved email flow error', e);
+          }
+        }
+
         return apiSuccess({
             report: {
                 id: updated.id,

@@ -88,12 +88,12 @@ export default function ContactPage() {
           <div className="mt-8 rounded-ds-md bg-ds-brand-surface p-6 dark:bg-ds-brand-subtle">
             <h3 className="mb-4 font-semibold text-ds-text-primary">Our Locations</h3>
             <div className="space-y-2 text-sm text-ds-text-secondary">
-              <p>📍 Lekki (Headquarters)</p>
-              <p>📍 Lekki</p>
-              <p>📍 Victoria Island</p>
-              <p>📍 Ikeja</p>
-              <p>📍 Festac</p>
-              <p>📍 Ajah</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Lekki (Headquarters)</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Lekki</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Victoria Island</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Ikeja</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Festac</p>
+              <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ds-text-brand" /> Ajah</p>
             </div>
           </div>
         </div>

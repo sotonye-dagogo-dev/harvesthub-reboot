@@ -618,7 +618,7 @@ export default function ProfilePage() {
               <div>
                 <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
                   Email Address
-                  <span className="ml-2 text-xs text-ds-text-tertiary">(Cannot be changed)</span>
+                  <span className="ml-2 text-xs text-ds-text-tertiary">(Can&apos;t edit here — visit Security page to change email)</span>
                 </label>
                 <CustomInput
                   value={formData.email}
