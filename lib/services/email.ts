@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Resend } from 'resend';
 import { env, featureFlags } from '@/lib/config';
 import { createEmailDeliveryLog, updateEmailDeliveryLog } from '@/lib/services/emailDeliveryLog';
+import { prisma } from '@/lib/db/prisma';
 
 let resend: Resend | null = null;
 try {
@@ -302,5 +303,24 @@ export async function sendLowStockAlertEmail(to: string, data: any) {
     subject: `Low stock alert: ${count} product${count > 1 ? 's' : ''} need attention`,
     react: React.createElement(LowStockAlert, { ...data }),
     tags: [{ name: 'category', value: 'low-stock' }],
+  });
+}
+
+export async function sendBugResolvedEmail(to: string, data: { reporterName?: string; title: string; adminNotes?: string | null }) {
+  const { BugResolved } = await import('@/lib/emails/BugResolved');
+  const appUrl = getAppUrl();
+  let subject = `Your report “${data.title}” has been resolved`;
+  try {
+    const tpl = (await prisma.emailTemplate.findUnique({ where: { key: 'bug-resolved' } }).catch(() => null)) as unknown as { subject?: string } | null;
+    if (tpl?.subject) {
+      const { renderTemplateString } = await import('@/lib/config/emailTemplates');
+      subject = renderTemplateString(tpl.subject, { title: data.title });
+    }
+  } catch {}
+  return sendEmail({
+    to,
+    subject,
+    react: React.createElement(BugResolved, { reporterName: data.reporterName, title: data.title, adminNotes: data.adminNotes, appUrl }),
+    tags: [{ name: 'category', value: 'bug-resolved' }],
   });
 }

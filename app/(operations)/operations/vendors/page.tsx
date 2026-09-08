@@ -288,7 +288,7 @@ export default function OperationsVendorsPage() {
       title: "Rating",
       key: "rating",
       render: (_: unknown, record: Vendor) => (
-        <span>{(record.analytics?.averageRating || 0).toFixed(1)} ⭐</span>
+        <span className="inline-flex items-center gap-1">{(record.analytics?.averageRating || 0).toFixed(1)} <span aria-hidden>★</span></span>
       ),
     },
     {

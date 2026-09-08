@@ -24,7 +24,7 @@ export function VendorApproval({
           ? `Your store "${storeName}" has been approved!`
           : `Update on your store "${storeName}" application`
       }
-      heading={approved ? "Store Approved! 🎉" : "Application Update"}
+      heading={approved ? "Store Approved!" : "Application Update"}
     >
       <Text style={styles.paragraph}>Hi {firstName},</Text>
 

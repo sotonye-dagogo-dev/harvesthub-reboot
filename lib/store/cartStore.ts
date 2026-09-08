@@ -106,6 +106,7 @@ interface CartStore {
     totalPrice: number;
     addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
     updateQuantity: (productId: string, quantity: number, selectedVariants?: Record<string, string> | null) => void;
+    updateVariants: (productId: string, prevVariants: Record<string, string> | null, nextVariants: Record<string, string> | null) => boolean;
     removeItem: (productId: string, selectedVariants?: Record<string, string> | null) => void;
     clearCart: () => void;
     getItem: (productId: string, selectedVariants?: Record<string, string> | null) => CartItem | undefined;
@@ -178,6 +179,43 @@ export const useCart = create<CartStore>()(
 
                     return { items: newItems, totalItems, totalPrice };
                 });
+            },
+
+            updateVariants: (productId, prevVariants, nextVariants) => {
+                const prevKey = canonicalVariantKey(prevVariants);
+                const nextKey = canonicalVariantKey(nextVariants);
+                if (prevKey === nextKey) return false;
+                let merged = false;
+                let success = false;
+                set((state) => {
+                    const idx = state.items.findIndex((i) =>
+                        isSameCartLine(i, { productId, selectedVariants: prevVariants ?? null, variant: undefined })
+                    );
+                    if (idx === -1) return state;
+                    const existingLine = state.items.find((i) =>
+                        isSameCartLine(i, { productId, selectedVariants: nextVariants ?? null, variant: undefined })
+                    );
+                    let newItems: CartItem[];
+                    if (existingLine) {
+                        // Merge quantities (capped by stock)
+                        const current = state.items[idx]!;
+                        const mergedQty = Math.min(existingLine.quantity + current.quantity, current.stock);
+                        newItems = state.items.filter((_, j) => j !== idx).map((i) =>
+                            isSameCartLine(i, { productId, selectedVariants: nextVariants ?? null, variant: undefined })
+                                ? { ...i, quantity: mergedQty, selectedVariants: nextVariants ?? null, variant: nextVariants ? Object.values(nextVariants)[0] : undefined }
+                                : i
+                        );
+                        merged = true;
+                    } else {
+                        newItems = state.items.map((i, j) =>
+                            j === idx ? { ...i, selectedVariants: nextVariants ?? null, variant: nextVariants ? Object.values(nextVariants)[0] : undefined } : i
+                        );
+                    }
+                    const { totalItems, totalPrice } = recalculateTotals(newItems);
+                    success = true;
+                    return { items: newItems, totalItems, totalPrice };
+                });
+                return success;
             },
 
             removeItem: (productId, selectedVariants) => {

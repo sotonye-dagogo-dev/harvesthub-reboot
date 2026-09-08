@@ -18,6 +18,7 @@ interface CartItemProps {
   variant?: string;
   selectedVariants?: Record<string, string> | null;
   onUpdateQuantity: (id: string, quantity: number) => void;
+  onUpdateVariants?: (id: string, prev: Record<string, string> | null, next: Record<string, string> | null) => void;
   onRemove: (id: string) => void;
 }
 
@@ -34,6 +35,7 @@ export function CartItemComponent({
   variant,
   selectedVariants,
   onUpdateQuantity,
+  onUpdateVariants,
   onRemove,
 }: CartItemProps) {
   const variantLabel =
@@ -44,6 +46,7 @@ export function CartItemComponent({
       : variant
         ? variant
         : null;
+  const hasVariants = selectedVariants && Object.keys(selectedVariants).length > 0;
   const handleDecrease = () => {
     if (quantity > 1) {
       onUpdateQuantity(id, quantity - 1);
@@ -69,6 +72,27 @@ export function CartItemComponent({
           <p className="mt-1 text-xs font-medium text-ds-text-brand" aria-label="Selected variant">
             {variantLabel}
           </p>
+        ) : null}
+        {hasVariants && onUpdateVariants ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {Object.entries(selectedVariants as Record<string, string>).map(([k, v]) => (
+              <span key={k} className="inline-flex items-center gap-1 rounded-full border border-ds-border-base bg-ds-surface-sunken px-2 py-0.5 text-xs">
+                <span className="font-medium">{k}:</span>
+                <select
+                  value={v}
+                  onChange={(e) => {
+                    const next = { ...(selectedVariants as Record<string, string>), [k]: e.target.value };
+                    onUpdateVariants(id, selectedVariants ?? null, next);
+                  }}
+                  className="bg-transparent text-xs text-ds-text-primary focus:outline-none"
+                  aria-label={`Change ${k}`}
+                >
+                  {/* Provide current value plus common values; free text fallback via input handled by key; for MVP show current */}
+                  <option value={v}>{v}</option>
+                </select>
+              </span>
+            ))}
+          </div>
         ) : null}
         <div className="mt-2">
           <p className="text-lg font-semibold text-ds-text-brand">{formatCurrency(price)}</p>
