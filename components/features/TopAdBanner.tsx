@@ -135,12 +135,12 @@ export function TopAdBanner() {
   const hasImage = !!banner.imageUrl;
   const ariaLabel = (banner.title || "").trim() || "Top advertisement banner";
 
-  // ── Inner strip markup ─────────────────────────────────────────
+  // ── Inner strip markup — centrally placed, preserves aspect ratio via object-cover
   const stripContent = (
     <div
       data-testid="top-ad-strip"
       className={cn(
-        "relative flex aspect-[64/10] min-h-[28px] max-h-[44px] w-full items-center justify-between gap-1 overflow-hidden px-2 text-xs",
+        "relative mx-auto flex aspect-[64/10] min-h-[28px] max-h-[44px] w-full max-w-6xl items-center justify-between gap-1 overflow-hidden px-2 text-xs",
         !hasImage && themeClasses.bg,
         themeClasses.text
       )}
@@ -150,7 +150,7 @@ export function TopAdBanner() {
       {/* Background image (when available) */}
       {hasImage && (
         <>
-          <Image src={banner.imageUrl} alt="" fill className="object-fill" sizes="100vw" priority />
+          <Image src={banner.imageUrl} alt="" fill className="object-cover object-center" sizes="100vw" priority />
           <div className="absolute inset-0 bg-black/15" />
         </>
       )}

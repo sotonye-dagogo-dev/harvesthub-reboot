@@ -273,7 +273,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
           />
 
-          <div className="mt-4">
+          <div className="mt-4 max-h-[320px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin lg:max-h-[360px]">
+            <h3 className="mb-2 text-sm font-semibold text-ds-text-primary">Description</h3>
             <MarkdownRenderer content={product.description || "No description available for this product yet."} />
           </div>
 

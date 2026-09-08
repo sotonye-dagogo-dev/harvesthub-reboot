@@ -106,7 +106,7 @@ export const registerVendorSchema = z
 
         // Vendor fields
         storeName: z.string().min(3, 'Store name must be at least 3 characters').trim(),
-        storeDescription: z.string().max(500, 'Description must not exceed 500 characters').optional(),
+        storeDescription: z.string().max(2000, 'Description must not exceed 2000 characters').optional(),
         storeCategory: z.nativeEnum(VendorCategory, {
             errorMap: () => ({ message: 'Please select a store category' }),
         }),

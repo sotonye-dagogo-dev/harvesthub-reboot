@@ -208,12 +208,13 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           label={
             <span className="text-ds-text-primary font-medium">Store Description (Optional)</span>
           }
+          extra={<span className="text-xs text-ds-text-tertiary">Markdown supported: **bold**, bullet lists (-, *, •)</span>}
         >
           <Input.TextArea
-            rows={3}
-            placeholder="Brief description of your store and products..."
+            rows={4}
+            placeholder={"Brief description of your store and products...\n- Fresh farm produce\n- **Quality** assured"}
             className="rounded-ds-md"
-            maxLength={200}
+            maxLength={2000}
             showCount
           />
         </Form.Item>
