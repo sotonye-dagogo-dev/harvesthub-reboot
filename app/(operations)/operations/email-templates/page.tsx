@@ -74,7 +74,7 @@ export default function EmailTemplatesPage() {
                   <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject with {{variables}}" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">Body (use {{variable}} placeholders)</label>
+                  <label className="mb-1 block text-xs font-medium text-ds-text-secondary">Body (use {"{{variable}}"} placeholders)</label>
                   <Input.TextArea rows={6} value={body} onChange={(e) => setBody(e.target.value)} />
                 </div>
                 <div className="flex gap-2">
