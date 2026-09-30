@@ -41,50 +41,50 @@ risk); no Google Maps by default (`serviceGeoMapEnabled=false`); no WebSocket/gR
 — visibility-gated polling behind an isolated transport module); "I will…" title rule is helper text,
 not a validator; late-delivery auto-refund routes through the existing refund flow.
 
-- [ ] **T1 `[M]` Option lists — admin-editable + hardened fallbacks** (deps: none) *(requested
+- [x] **T1 `[M]` Option lists — admin-editable + hardened fallbacks** (deps: none) *(requested
       modification; does not exist yet)*
-      - [ ] `prisma/schema.prisma` — new `enum OptionListTier { DISPLAY FREEFORM }` + `model OptionList`
+      - [x] `prisma/schema.prisma` — new `enum OptionListTier { DISPLAY FREEFORM }` + `model OptionList`
             (`key @unique`, `tier`, `options Json`, `isActive`, `updatedBy`, timestamps,
             `@@map("option_lists")`); `npm run db:push` + `npm run db:generate` per the DB-sync decision.
-      - [ ] `lib/config/optionLists.ts` — typed `OPTION_LIST_KEYS`, `OPTION_LIST_FALLBACKS`
+      - [x] `lib/config/optionLists.ts` — typed `OPTION_LIST_KEYS`, `OPTION_LIST_FALLBACKS`
             (campus, vendor/product categories, subcategories, listing types, service
             categories/locations/rate-types/tiers, service attributes, requirement-field types,
             service milestones, delivery zones, pickup services, positions), option-row type,
             `resolveOptionLabel(key, value)` → `label ?? value ?? ""`.
-      - [ ] `lib/services/optionLists.ts` — `getOptionList(key)`: DB → shape-validate → merge over
+      - [x] `lib/services/optionLists.ts` — `getOptionList(key)`: DB → shape-validate → merge over
             fallback → **catch → fallback → never throws**; `upsertOptionList`; cache + invalidation.
-      - [ ] `lib/hooks/useOptionList.ts` + `components/ui/OptionListSelect.tsx` (explicit
+      - [x] `lib/hooks/useOptionList.ts` + `components/ui/OptionListSelect.tsx` (explicit
             empty-state when both DB and fallback are empty — never crashes).
-      - [ ] Routes: `app/api/config/option-lists/route.ts`, `.../option-lists/[key]/route.ts`
+      - [x] Routes: `app/api/config/option-lists/route.ts`, `.../option-lists/[key]/route.ts`
             (404 `OPTION_LIST_NOT_FOUND` envelope for unregistered keys),
             `app/api/admin/option-lists/route.ts` + `[key]/route.ts` (ADMIN + PUT validation/bounds).
-      - [ ] `app/(operations)/operations/option-lists/page.tsx` admin editor (DISPLAY: label /
+      - [x] `app/(operations)/operations/option-lists/page.tsx` admin editor (DISPLAY: label /
             reorder / hide; FREEFORM: + add/remove); register in `lib/rbac/routeConfig.ts`,
             `lib/navigation.ts` `labelMap`, `components/layout/Sidebar.tsx` `ADMIN_LINK_ORDER` + `iconMap`.
-      - [ ] Migrate select consumers to the layer (identical defaults): signup `UserInfo`/`StoreInfo`,
+      - [x] Migrate select consumers to the layer (identical defaults): signup `UserInfo`/`StoreInfo`,
             `AddressForm`, `ProfilePage`, delivery/pickup option rendering.
-      - [ ] Tests: DB-down, missing row, unregistered key, empty options, unknown stored value,
+      - [x] Tests: DB-down, missing row, unregistered key, empty options, unknown stored value,
             admin PUT rejects malformed/oversized JSON. **Hard rule: server-side validation always
             uses the code/Prisma enum key set — admins can hide a value, never inject one.**
-      - [ ] `npm run audit:dead-links`; `tsc` / `lint` / `vitest` / `build` green.
+      - [x] `npm run audit:dead-links`; `tsc` / `lint` / `vitest` / `build` green.
 
-- [ ] **T2 `[M]` Service data contract + server validation + signup persistence fix** (deps: T1)
-      - [ ] `lib/schemas/service.schemas.ts` — Zod for `serviceDetails` (packages 1|3 tiers
+- [x] **T2 `[M]` Service data contract + server validation + signup persistence fix** (deps: T1)
+      - [x] `lib/schemas/service.schemas.ts` — Zod for `serviceDetails` (packages 1|3 tiers
             BASIC/STANDARD/PREMIUM, extras, attributes, weekly availability slots, requirement
             fields `TEXT|SELECT|FILE`, media, ≤1,200-char description) + per-step slice schemas.
-      - [ ] `lib/config/serviceFulfillment.ts` — limits (title 80, package title 30 / desc 100,
+      - [x] `lib/config/serviceFulfillment.ts` — limits (title 80, package title 30 / desc 100,
             delivery 1–90 d, revisions 0/unlimited, 5 images / 2 PDFs / 1 video, 50 MB / 60 s),
             `SERVICE_TIER_KEYS`, `SERVICE_MILESTONES` fallback, `orderRoomPollMs` (10 000),
             countdown warning hours (12), `serviceGeoMapEnabled`.
-      - [ ] `app/api/products/route.ts` + `app/api/products/[id]/route.ts` — validate `serviceDetails`
+      - [x] `app/api/products/route.ts` + `app/api/products/[id]/route.ts` — validate `serviceDetails`
             when `listingType=SERVICE`; SERVICE-aware create defaults (stock → `SERVICE_UNLIMITED_STOCK`,
             price → base package price); **verify public GET excludes `isActive=false` drafts**.
-      - [ ] **Signup bug fix** — persist `serviceCategory`/`serviceLocation` (collected in
+      - [x] **Signup bug fix** — persist `serviceCategory`/`serviceLocation` (collected in
             `StoreInfo` but currently dropped): `Vendor.serviceCategory ServiceCategory?` +
             `Vendor.serviceLocation ServiceLocation?` columns, payload in
             `app/signup/security-info/page.tsx`, validation + write in `app/api/auth/register/route.ts`
             (and `convert-to-vendor`).
-      - [ ] Tests: valid/invalid `serviceDetails`, service create defaults, draft hidden from public
+      - [x] Tests: valid/invalid `serviceDetails`, service create defaults, draft hidden from public
             list, signup persists service fields.
 
 - [ ] **T3 `[L]` Service listing wizard (5 steps) + database-side drafts** (deps: T1, T2)

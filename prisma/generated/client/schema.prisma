@@ -193,6 +193,9 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+  AWAITING_REQUIREMENTS
+  IN_PROGRESS
+  IN_REVIEW
 }
 
 enum PaymentStatus {
@@ -340,6 +343,12 @@ enum NotificationType {
   LOW_STOCK
   NEW_PRODUCT
   PROMOTION
+  SERVICE_REQUIREMENTS_REQUESTED
+  SERVICE_REQUIREMENTS_SUBMITTED
+  SERVICE_DELIVERED
+  SERVICE_RELEASED
+  SERVICE_REVISION_REQUESTED
+  SERVICE_REQUIREMENTS_TIMEOUT
 }
 
 enum ListingType {
@@ -542,6 +551,10 @@ model Vendor {
   storeLogo          String?
   storeBanner        String?
 
+  // Service provider profile (collected at signup; persisted as of 2026-09-29)
+  serviceCategory ServiceCategory?
+  serviceLocation ServiceLocation?
+
   // Structured JSON fields
   businessVerification Json?
   storeSettings        Json  @default("{\"allowsPickup\":true,\"allowsDelivery\":false,\"pickupServices\":[],\"deliveryZones\":[]}")
@@ -680,6 +693,7 @@ model Order {
   items            OrderItem[]
   transactions     Transaction[]
   proofOfTransfers ProofOfTransfer[]
+  messages         OrderMessage[]
 
   @@index([buyerId])
   @@index([vendorId])
@@ -699,6 +713,14 @@ model OrderItem {
   selectedVariants Json?
   price            Float
   subtotal         Float
+
+  // Service fulfilment (additive — PRODUCT rows leave these null / defaulted)
+  listingType             ListingType @default(PRODUCT)
+  serviceConfig           Json?
+  requirementAnswers      Json?
+  requirementsSubmittedAt DateTime?
+  deadlineAt              DateTime?
+  revisionsRemaining      Int?
 
   // Relations
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -926,19 +948,24 @@ model CommissionConfig {
 }
 
 model CommerceLifecycleConfig {
-  id                            String   @id @default(cuid())
-  key                           String   @unique @default("default")
-  autoConfirmEnabled            Boolean  @default(true)
-  autoConfirmHours              Int      @default(48)
-  refundWindowHours             Int      @default(72)
-  withdrawalSettlementHoldHours Int      @default(72)
-  paymentsEnabled               Boolean  @default(true)
-  commissionDefaultRate         Float    @default(0.05)
-  commissionPremiumRate         Float    @default(0.03)
-  minOrderAmount                Float    @default(500)
-  maxBookingAdvanceDays         Int      @default(60)
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @updatedAt
+  id                                 String   @id @default(cuid())
+  key                                String   @unique @default("default")
+  autoConfirmEnabled                 Boolean  @default(true)
+  autoConfirmHours                   Int      @default(48)
+  refundWindowHours                  Int      @default(72)
+  withdrawalSettlementHoldHours      Int      @default(72)
+  paymentsEnabled                    Boolean  @default(true)
+  commissionDefaultRate              Float    @default(0.05)
+  commissionPremiumRate              Float    @default(0.03)
+  minOrderAmount                     Float    @default(500)
+  maxBookingAdvanceDays              Int      @default(60)
+  // Service order lifecycle windows (defaults match today's non-service behaviour)
+  serviceRequirementsTimeoutHours    Int      @default(48)
+  serviceAutoApproveHours            Int      @default(72)
+  serviceCountdownWarningHours       Int      @default(12)
+  serviceSettlementCommissionEnabled Boolean  @default(false)
+  createdAt                          DateTime @default(now())
+  updatedAt                          DateTime @updatedAt
 
   @@map("commerce_lifecycle_configs")
 }
@@ -1404,4 +1431,49 @@ model EmailTemplate {
   updatedAt DateTime @updatedAt
 
   @@map("email_templates")
+}
+
+// ─── Option Lists (admin-editable dropdown/select option sets) ────────────────
+// DISPLAY   = fixed set (labels/order/hidden only — values come from the code
+//             or Prisma enum key set and can never be injected by an admin)
+// FREEFORM  = admin may add/remove options (unregistered keys are rejected 404)
+enum OptionListTier {
+  DISPLAY
+  FREEFORM
+}
+
+model OptionList {
+  id        String         @id @default(cuid())
+  key       String         @unique
+  tier      OptionListTier @default(DISPLAY)
+  options   Json           @default("[]")
+  isActive  Boolean        @default(true)
+  updatedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("option_lists")
+}
+
+// ─── Order Room (buyer ↔ seller thread on a single order) ─────────────────────
+// Serverless stack has no WebSocket infra: the room reads this table through
+// visibility-gated polling (lib/services/orderRoomTransport.ts).
+model OrderMessage {
+  id             String    @id @default(cuid())
+  orderId        String
+  senderId       String
+  senderRole     String
+  body           String
+  attachmentUrl  String?
+  attachmentName String?
+  readAt         DateTime?
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("order_messages")
 }

@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCartPricingBreakdown, useCart } from "@/lib/store/cartStore";
+import {
+  getCartPricingBreakdown,
+  resolveCheckoutDeliveryRules,
+  useCart,
+} from "@/lib/store/cartStore";
+import { resolveOptionLabel } from "@/lib/config/optionLists";
 import { Button, Card } from "@/components/ui";
 import { AddressForm } from "@/components/features";
 import { formatCurrency } from "@/lib/utils";
@@ -16,6 +21,8 @@ import {
   Info,
   CalendarClock,
   Ticket,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
@@ -77,7 +84,16 @@ export default function CheckoutPage() {
   } | null>(null);
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
 
-  const hasServiceItems = useMemo(() => items.some((item) => item.isService), [items]);
+  // Single source of truth for service-vs-product checkout decisions:
+  // delivery fee, address requirement and the deliveryMethod/pickupDetails
+  // values sent to POST /api/orders.
+  const deliveryRules = useMemo(
+    () => resolveCheckoutDeliveryRules(items, deliveryMethod, pickupService),
+    [items, deliveryMethod, pickupService]
+  );
+  const hasServiceItems = deliveryRules.hasServiceItems;
+  const serviceOnly = deliveryRules.serviceOnly;
+  const hasOnSiteService = deliveryRules.hasOnSiteService;
   const hasMultipleVendors = useMemo(() => {
     const vendorIds = new Set(items.map((item) => item.vendorId).filter(Boolean));
     return vendorIds.size > 1;
@@ -87,7 +103,7 @@ export default function CheckoutPage() {
     [items]
   );
   const vendorCount = Math.max(1, vendorIds.length);
-  const deliveryFee = deliveryMethod === "DELIVERY" ? 1500 * vendorCount : 0;
+  const deliveryFee = deliveryRules.deliveryFee;
   const { productDiscountTotal } = useMemo(() => getCartPricingBreakdown(items), [items]);
   const voucherDiscount = appliedVoucher?.discount ?? 0;
   const total = totalPrice + deliveryFee - voucherDiscount;
@@ -107,10 +123,28 @@ export default function CheckoutPage() {
             productId: item.productId,
             quantity: item.quantity,
             selectedVariants,
+            // Service lines carry their purchased package so the server can
+            // price and snapshot them (T5). Unknown fields are ignored by the
+            // current API, so this is backwards-compatible.
+            ...(item.isService
+              ? {
+                  listingType: "SERVICE" as const,
+                  ...(item.selectedPackage ? { selectedPackage: item.selectedPackage } : {}),
+                }
+              : {}),
           });
           map.set(key, existing);
           return map;
-        }, new Map<string, Array<{ productId: string; quantity: number; selectedVariants?: Record<string, string> }>>())
+        }, new Map<
+          string,
+          Array<{
+            productId: string;
+            quantity: number;
+            selectedVariants?: Record<string, string>;
+            listingType?: "SERVICE";
+            selectedPackage?: NonNullable<typeof items[number]["selectedPackage"]>;
+          }>
+        >())
       ).map(([groupVendorId, groupItems]) => ({
         vendorId: groupVendorId,
         items: groupItems,
@@ -419,8 +453,12 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-    if (deliveryMethod === "DELIVERY" && !selectedAddress) {
-      message.error("Please select or add a delivery address");
+    if (deliveryRules.requiresDeliveryAddress && !selectedAddress) {
+      message.error(
+        hasOnSiteService && deliveryMethod !== "DELIVERY"
+          ? "Please select or add an address for the on-site service"
+          : "Please select or add a delivery address"
+      );
       return;
     }
 
@@ -495,7 +533,7 @@ export default function CheckoutPage() {
               source: "checkout",
               itemCount: items.length,
               vendorCount,
-              deliveryMethod,
+              deliveryMethod: deliveryRules.deliveryMethod,
             },
             onSuccess: (result) => resolve(result.reference),
             onClose: () => reject(new Error("Payment popup closed before completion.")),
@@ -579,14 +617,9 @@ export default function CheckoutPage() {
               : undefined,
           vendorOrders: vendorOrderPayload,
           paymentMethod,
-          deliveryMethod,
-          deliveryAddress: deliveryMethod === "DELIVERY" ? selectedAddress : null,
-          pickupDetails:
-            deliveryMethod === "PICKUP"
-              ? {
-                  pickupService,
-                }
-              : null,
+          deliveryMethod: deliveryRules.deliveryMethod,
+          deliveryAddress: deliveryRules.requiresDeliveryAddress ? selectedAddress ?? null : null,
+          pickupDetails: deliveryRules.pickupDetails,
           paymentGateway: paymentMethod === "CARD" ? "PAYSTACK" : undefined,
           paymentReference,
           paymentVerificationReference:
@@ -698,8 +731,14 @@ export default function CheckoutPage() {
           <div>
             <p className="text-sm font-medium text-ds-text-brand">Service Bookings Included</p>
             <p className="mt-1 text-xs text-ds-text-secondary">
-              Your order includes service bookings. The vendor will confirm your booking and reach
-              out to coordinate scheduling.
+              {serviceOnly
+                ? hasOnSiteService
+                  ? "This order is an on-site service. The vendor will come to your address to deliver it — add the address below."
+                  : "This order is a digital service. The vendor delivers the work directly and coordinates with you — no pickup or shipping needed."
+                : "Your order includes service bookings. The vendor will confirm your booking and reach out to coordinate scheduling."}
+            </p>
+            <p className="mt-1 text-xs text-ds-text-secondary">
+              The vendor may also ask you for the details listed on the service page before starting.
             </p>
           </div>
         </div>
@@ -764,8 +803,31 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <div className="text-sm text-ds-text-secondary">
-                      {item.vendorName} · {item.isService ? "Booking" : `Qty: ${item.quantity}`}
+                      {item.vendorName} ·{" "}
+                      {item.isService
+                        ? item.selectedPackage
+                          ? "Package"
+                          : "Booking"
+                        : `Qty: ${item.quantity}`}
                     </div>
+                    {item.isService && item.selectedPackage ? (
+                      <div className="mt-0.5 text-xs text-ds-text-secondary">
+                        {resolveOptionLabel("serviceTiers", item.selectedPackage.tier)} ·{" "}
+                        {item.selectedPackage.title} ·{" "}
+                        {item.selectedPackage.deliveryDays <= 1
+                          ? "delivered in 1 day"
+                          : `delivered in ${item.selectedPackage.deliveryDays} days`}
+                        {" · "}
+                        {item.serviceDeliveryMode === "ON_SITE"
+                          ? "on-site visit"
+                          : "delivered digitally"}
+                      </div>
+                    ) : null}
+                    {item.isService && item.selectedPackage?.extras?.length ? (
+                      <div className="mt-0.5 text-xs text-ds-text-tertiary">
+                        Extras: {item.selectedPackage.extras.map((extra) => extra.title).join(", ")}
+                      </div>
+                    ) : null}
                     {variantLabel ? (
                       <div className="mt-0.5 text-xs font-medium text-ds-text-brand">{variantLabel}</div>
                     ) : null}
@@ -794,79 +856,118 @@ export default function CheckoutPage() {
           {/* Delivery Method */}
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Delivery Method</h2>
-            <Radio.Group
-              value={deliveryMethod}
-              onChange={(e) => setDeliveryMethod(e.target.value)}
-              className="w-full space-y-3"
-            >
-              <Radio
-                value="PICKUP"
-                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
-                    <Store className="h-5 w-5" />
-                    Church Pickup
-                  </div>
-                  <div className="mt-1 text-sm text-ds-text-secondary">
-                    Pick up your order at church service
-                  </div>
-                </div>
-              </Radio>
-              <Radio
-                value="DELIVERY"
-                className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 font-medium text-ds-text-primary">
-                    <Truck className="h-5 w-5" />
-                    Home Delivery
-                  </div>
-                  <div className="mt-1 text-sm text-ds-text-secondary">
-                    Get your order delivered to your address
+            {serviceOnly ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 rounded-ds-md border border-ds-status-info-border bg-ds-status-info-bg p-4">
+                  {hasOnSiteService ? (
+                    <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
+                  ) : (
+                    <Globe className="mt-0.5 h-5 w-5 flex-shrink-0 text-ds-status-info" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-ds-status-info-text">
+                      {hasOnSiteService
+                        ? "On-site service — the vendor comes to you"
+                        : "Digital service — delivered directly"}
+                    </p>
+                    <p className="mt-1 text-xs text-ds-text-secondary">
+                      {hasOnSiteService
+                        ? "This service is rendered at your address, so we need it below to share with the vendor. Nothing is shipped and no delivery fee applies."
+                        : "This service is coordinated and delivered remotely by the vendor. Nothing is shipped, so there is no pickup slot or delivery fee."}
+                    </p>
                   </div>
                 </div>
-                <div className="font-semibold text-ds-text-brand">
-                  +{formatCurrency(deliveryFee)}
-                </div>
-              </Radio>
-            </Radio.Group>
-
-            {deliveryMethod === "PICKUP" && (
-              <div className="mt-4 space-y-2">
-                <label className="block text-sm font-medium text-ds-text-secondary">
-                  Select Pickup Time
-                </label>
+                {deliveryRules.requiresDeliveryAddress ? (
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-ds-text-secondary">
+                      Service Address
+                    </label>
+                    <AddressForm
+                      value={selectedAddress || {}}
+                      onChange={(address) => {
+                        setSelectedAddress(address);
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <>
                 <Radio.Group
-                  value={pickupService}
-                  onChange={(e) => setPickupService(e.target.value)}
-                  className="w-full space-y-2"
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e.target.value)}
+                  className="w-full space-y-3"
                 >
-                  {pickupOptions.map((option) => (
-                    <Radio
-                      key={option.value}
-                      value={option.value}
-                      className="flex w-full items-center justify-between rounded-ds-md border border-ds-border-base p-3"
-                    >
-                      <div>
-                        <div className="font-medium text-ds-text-primary">{option.label}</div>
-                        <div className="text-sm text-ds-text-secondary">{option.time}</div>
+                  <Radio
+                    value="PICKUP"
+                    className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 font-medium text-ds-text-primary">
+                        <Store className="h-5 w-5" />
+                        Church Pickup
                       </div>
-                    </Radio>
-                  ))}
+                      <div className="mt-1 text-sm text-ds-text-secondary">
+                        Pick up your order at church service
+                      </div>
+                    </div>
+                  </Radio>
+                  <Radio
+                    value="DELIVERY"
+                    className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 font-medium text-ds-text-primary">
+                        <Truck className="h-5 w-5" />
+                        Home Delivery
+                      </div>
+                      <div className="mt-1 text-sm text-ds-text-secondary">
+                        Get your order delivered to your address
+                      </div>
+                    </div>
+                    <div className="font-semibold text-ds-text-brand">
+                      +{formatCurrency(deliveryFee)}
+                    </div>
+                  </Radio>
                 </Radio.Group>
-              </div>
-            )}
 
-            {deliveryMethod === "DELIVERY" && (
-              <div className="mt-4">
-                <AddressForm
-                  value={selectedAddress || {}}
-                  onChange={(address) => {
-                    setSelectedAddress(address);
-                  }}
-                />
-              </div>
+                {deliveryMethod === "PICKUP" && (
+                  <div className="mt-4 space-y-2">
+                    <label className="block text-sm font-medium text-ds-text-secondary">
+                      Select Pickup Time
+                    </label>
+                    <Radio.Group
+                      value={pickupService}
+                      onChange={(e) => setPickupService(e.target.value)}
+                      className="w-full space-y-2"
+                    >
+                      {pickupOptions.map((option) => (
+                        <Radio
+                          key={option.value}
+                          value={option.value}
+                          className="flex w-full items-center justify-between rounded-ds-md border border-ds-border-base p-3"
+                        >
+                          <div>
+                            <div className="font-medium text-ds-text-primary">{option.label}</div>
+                            <div className="text-sm text-ds-text-secondary">{option.time}</div>
+                          </div>
+                        </Radio>
+                      ))}
+                    </Radio.Group>
+                  </div>
+                )}
+
+                {deliveryRules.requiresDeliveryAddress ? (
+                  <div className="mt-4">
+                    <AddressForm
+                      value={selectedAddress || {}}
+                      onChange={(address) => {
+                        setSelectedAddress(address);
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </>
             )}
           </Card>
 
@@ -1119,9 +1220,15 @@ export default function CheckoutPage() {
                 <span>Delivery Fee</span>
                 <span className="font-medium">{formatCurrency(deliveryFee)}</span>
               </div>
-              {deliveryMethod === "DELIVERY" && hasMultipleVendors ? (
+              {serviceOnly ? (
                 <p className="text-[11px] text-ds-text-tertiary">
-                  Delivery is applied per vendor package ({vendorCount} vendors).
+                  Services are delivered directly by the vendor — no shipping fee applies.
+                </p>
+              ) : null}
+              {deliveryRules.deliveryVendorCount > 1 ? (
+                <p className="text-[11px] text-ds-text-tertiary">
+                  Delivery is applied per vendor package ({deliveryRules.deliveryVendorCount}{" "}
+                  vendors).
                 </p>
               ) : null}
               {appliedVoucher && (

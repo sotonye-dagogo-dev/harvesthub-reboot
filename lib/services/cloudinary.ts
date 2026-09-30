@@ -89,6 +89,16 @@ export function getVendorContentFolder(vendorId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/vendor-content/${vendorId}`;
 }
 
+/** Service listing supporting documents (PDFs) for a vendor. */
+export function getServiceDocFolder(vendorId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/services/${vendorId}/docs`;
+}
+
+/** Service listing promo video (MP4) for a vendor. Stored as a `video` resource. */
+export function getServiceVideoFolder(vendorId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/services/${vendorId}/video`;
+}
+
 /**
  * True when a Cloudinary public_id belongs under the given folder scope.
  * Used to prevent deleting assets that were not uploaded by the requester.
@@ -175,7 +185,10 @@ export function resolveUploadParams(
         mime,
         ext,
         resourceType,
-        transformation: resourceType === 'raw' ? undefined : DEFAULT_TRANSFORMATION,
+        // Photos and PDFs are stored as image assets and keep the auto
+        // transformation; videos and raw files are uploaded untouched (Cloudinary
+        // does not accept image-style transformations for `video` uploads).
+        transformation: resourceType === 'image' ? DEFAULT_TRANSFORMATION : undefined,
     };
 }
 

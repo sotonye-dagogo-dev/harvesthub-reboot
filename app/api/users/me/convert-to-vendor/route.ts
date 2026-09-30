@@ -5,16 +5,25 @@ import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-lim
 import {
     CAMPUS_LOCATIONS,
     VENDOR_CATEGORIES,
+    SERVICE_CATEGORIES,
+    SERVICE_LOCATIONS,
     UserRole,
     VendorStatus,
     COMMISSION_RATES,
 } from '@/lib/constants';
-import type { Campus as PrismaCampus, VendorCategory as PrismaVendorCategory } from '@/prisma/generated/client';
+import type {
+    Campus as PrismaCampus,
+    VendorCategory as PrismaVendorCategory,
+    ServiceCategory as PrismaServiceCategory,
+    ServiceLocation as PrismaServiceLocation,
+} from '@/prisma/generated/client';
 import { generateTokenPair } from '@/lib/utils/jwt';
 import { setAuthCookies } from '@/lib/utils/cookies';
 
 const validCampusValues = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
 const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value));
+const validServiceCategoryValues: Set<string> = new Set(SERVICE_CATEGORIES.map((item) => String(item.value)));
+const validServiceLocationValues: Set<string> = new Set(SERVICE_LOCATIONS.map((item) => String(item.value)));
 
 type ConvertToVendorBody = {
     storeName?: string;
@@ -23,6 +32,8 @@ type ConvertToVendorBody = {
     campus?: string;
     whatsappNumber?: string;
     isChurchAffiliated?: boolean;
+    serviceCategory?: string;
+    serviceLocation?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -42,6 +53,8 @@ export async function POST(req: NextRequest) {
         const campus = body.campus;
         const whatsappNumber = body.whatsappNumber?.trim();
         const isChurchAffiliated = Boolean(body.isChurchAffiliated);
+        const serviceCategory = body.serviceCategory?.trim() || '';
+        const serviceLocation = body.serviceLocation?.trim() || '';
 
         if (!storeName || !category || !campus || !whatsappNumber) {
             return NextResponse.json(
@@ -63,6 +76,19 @@ export async function POST(req: NextRequest) {
 
         const parsedCategory = category as PrismaVendorCategory;
         const parsedCampus = campus as PrismaCampus;
+
+        if (serviceCategory && !validServiceCategoryValues.has(serviceCategory)) {
+            return NextResponse.json({ error: 'Invalid service category' }, { status: 400 });
+        }
+        if (serviceLocation && !validServiceLocationValues.has(serviceLocation)) {
+            return NextResponse.json({ error: 'Invalid service location' }, { status: 400 });
+        }
+        const parsedServiceCategory = serviceCategory
+            ? (serviceCategory as PrismaServiceCategory)
+            : null;
+        const parsedServiceLocation = serviceLocation
+            ? (serviceLocation as PrismaServiceLocation)
+            : null;
 
         if (currentUser.role === UserRole.ADMIN) {
             return NextResponse.json(
@@ -138,6 +164,8 @@ export async function POST(req: NextRequest) {
                     campus: parsedCampus,
                     whatsappNumber,
                     isChurchAffiliated,
+                    serviceCategory: parsedServiceCategory,
+                    serviceLocation: parsedServiceLocation,
                     status: VendorStatus.PENDING,
                     commissionRate: resolvedCommissionRate,
                 },
@@ -151,6 +179,8 @@ export async function POST(req: NextRequest) {
                     isChurchAffiliated,
                     status: VendorStatus.PENDING,
                     commissionRate: resolvedCommissionRate,
+                    serviceCategory: parsedServiceCategory,
+                    serviceLocation: parsedServiceLocation,
                     storeSettings: {
                         allowsPickup: true,
                         allowsDelivery: false,

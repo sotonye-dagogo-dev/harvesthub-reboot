@@ -14,10 +14,16 @@ export type FolderType =
     | 'ad'
     | 'payment-proof'
     | 'verification-doc'
-    | 'bug-report';
+    | 'bug-report'
+    | 'service-doc'
+    | 'service-video';
 
 export const IMAGE_UPLOAD_FORMATS = ['jpeg', 'jpg', 'png', 'webp'] as const;
 export const DOCUMENT_UPLOAD_FORMATS = ['jpeg', 'jpg', 'png', 'webp', 'pdf'] as const;
+/** Service listing supporting documents are PDF-only (portfolio / brief files). */
+export const PDF_UPLOAD_FORMATS = ['pdf'] as const;
+/** Service listing promo video. Duration is checked client-side before upload. */
+export const VIDEO_UPLOAD_FORMATS = ['mp4'] as const;
 
 /** Maximum upload sizes in MB per folder type. */
 export const MAX_UPLOAD_SIZE_MB: Record<FolderType, number> = {
@@ -30,12 +36,15 @@ export const MAX_UPLOAD_SIZE_MB: Record<FolderType, number> = {
     'payment-proof': 5,
     'verification-doc': 5,
     'bug-report': 5,
+    'service-doc': 5,
+    'service-video': 50,
 };
 
 /**
  * Formats accepted per folder type. Image-only folders stay image-only; document
  * folders (verification docs, payment proof, bug reports) also accept PDFs so a
  * certificate or receipt does not need to be converted to an image before upload.
+ * Service docs are PDF-only and the service video is MP4-only.
  */
 export const ALLOWED_UPLOAD_FORMATS: Record<FolderType, readonly string[]> = {
     product: IMAGE_UPLOAD_FORMATS,
@@ -47,6 +56,8 @@ export const ALLOWED_UPLOAD_FORMATS: Record<FolderType, readonly string[]> = {
     'payment-proof': DOCUMENT_UPLOAD_FORMATS,
     'verification-doc': DOCUMENT_UPLOAD_FORMATS,
     'bug-report': DOCUMENT_UPLOAD_FORMATS,
+    'service-doc': PDF_UPLOAD_FORMATS,
+    'service-video': VIDEO_UPLOAD_FORMATS,
 };
 
 /** Accept attribute string for `<input type="file">` used by the image uploader. */

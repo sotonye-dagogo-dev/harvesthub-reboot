@@ -33,6 +33,11 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     DELIVERED: [],
     CANCELLED: [],
     REFUNDED: [],
+    // Service orders — must stay in lockstep with STATUS_TRANSITIONS on the
+    // operations orders page (asserted by the transition-maps agreement test).
+    AWAITING_REQUIREMENTS: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
+    IN_PROGRESS: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
+    IN_REVIEW: [OrderStatus.DELIVERED, OrderStatus.IN_PROGRESS],
 };
 
 function isOrderStatus(value: string): value is OrderStatus {

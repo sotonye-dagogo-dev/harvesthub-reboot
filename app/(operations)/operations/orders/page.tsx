@@ -53,6 +53,11 @@ const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.DELIVERED]: [],
   [OrderStatus.CANCELLED]: [],
   [OrderStatus.REFUNDED]: [],
+  // Service orders — must stay in lockstep with VALID_TRANSITIONS in
+  // app/api/orders/[id]/status/route.ts (transition-maps agreement test).
+  [OrderStatus.AWAITING_REQUIREMENTS]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
+  [OrderStatus.IN_PROGRESS]: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
+  [OrderStatus.IN_REVIEW]: [OrderStatus.DELIVERED, OrderStatus.IN_PROGRESS],
 };
 
 function resolveDeliveryInfo(order: Pick<OrderLike, "deliveryAddress" | "pickupDetails">) {

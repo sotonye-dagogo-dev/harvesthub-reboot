@@ -685,14 +685,71 @@ export interface VendorStoreFormData {
 // SERVICE & BOOKING TYPES
 // ============================================================================
 
+export interface ServicePackageExtra {
+    title: string;
+    price: number;
+}
+
+export interface ServicePackage {
+    tier: 'BASIC' | 'STANDARD' | 'PREMIUM';
+    title: string;
+    description?: string;
+    price: number;
+    deliveryDays: number;
+    /** -1 = unlimited revisions. `null` on legacy rows → hide the revision UI. */
+    revisions?: number | null;
+    extras?: ServicePackageExtra[];
+}
+
+export interface ServiceRequirementField {
+    key: string;
+    label: string;
+    type: 'TEXT' | 'SELECT' | 'FILE';
+    options?: string[];
+    required?: boolean;
+}
+
+export interface ServiceMedia {
+    images: string[];
+    documents: string[];
+    video?: string | null;
+}
+
+export interface ServiceGeo {
+    address: string;
+    lat?: number;
+    lng?: number;
+    campus?: string;
+    landmark?: string;
+}
+
+/**
+ * `Product.serviceDetails` payload.
+ *
+ * Wizard-era fields are the primary shape; the booking-era fields are kept
+ * optional so rows written before the services feature still parse.
+ */
 export interface ServiceDetails {
-    serviceCategory: ServiceCategory;
-    rateType: ServiceRateType;
-    rate: number;
-    durationMinutes?: number | null;
-    location: ServiceLocation;
+    /** Wizard progress 0..4; present only while the listing is a draft. */
+    draftStep?: number;
+    deliveryMode?: 'DIGITAL' | 'ON_SITE';
+    shortDescription?: string;
+    description?: string;
+
+    packages?: ServicePackage[];
+    requirementFields?: ServiceRequirementField[];
+    media?: ServiceMedia;
+    geo?: ServiceGeo | null;
+
     availableSlots?: WeeklySlot[] | null;
-    requiresConsultation: boolean;
+
+    // Booking-era fields (legacy rows)
+    serviceCategory?: ServiceCategory;
+    rateType?: ServiceRateType;
+    rate?: number;
+    durationMinutes?: number | null;
+    location?: ServiceLocation;
+    requiresConsultation?: boolean;
     maxBookingsPerDay?: number | null;
 }
 
