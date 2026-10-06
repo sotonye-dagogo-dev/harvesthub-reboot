@@ -14,6 +14,7 @@ import {
     getBugReportFolder,
     getServiceDocFolder,
     getServiceVideoFolder,
+    getOrderAttachmentFolder,
 } from '@/lib/services/cloudinary';
 import { UserRole } from '@/lib/constants';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -37,6 +38,7 @@ const VALID_FOLDER_TYPES: FolderType[] = [
     'bug-report',
     'service-doc',
     'service-video',
+    'order-attachment',
 ];
 
 const BYTES_PER_MB = 1024 * 1024;
@@ -69,6 +71,8 @@ function resolveFolder(
             return vendorId ? getServiceDocFolder(vendorId) : null;
         case 'service-video':
             return vendorId ? getServiceVideoFolder(vendorId) : null;
+        case 'order-attachment':
+            return userId ? getOrderAttachmentFolder(userId) : null;
         default:
             return null;
     }

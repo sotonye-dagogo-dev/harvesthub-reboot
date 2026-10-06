@@ -14,6 +14,7 @@ import { buildProductWhatsAppMessage } from "@/lib/utils/whatsappIntent";
 import ProductDetailActions from "@/components/features/ProductDetailActions";
 import ProductImageGallery from "@/components/features/ProductImageGallery";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import { serviceListingEnabled } from "@/lib/config/features";
 import {
   ServiceDetailPanel,
   minServicePackagePrice,
@@ -215,7 +216,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const parsedServiceDetails =
     product.listingType === "SERVICE" ? parseServiceDetails(product.serviceDetails) : null;
   const serviceView =
-    parsedServiceDetails !== null && (parsedServiceDetails.packages?.length ?? 0) > 0;
+    serviceListingEnabled &&
+    parsedServiceDetails !== null &&
+    (parsedServiceDetails.packages?.length ?? 0) > 0;
   const serviceFromPrice =
     serviceView && parsedServiceDetails ? minServicePackagePrice(parsedServiceDetails) : null;
 

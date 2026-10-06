@@ -8,6 +8,7 @@ import {
 import { sendPushNotification } from '@/lib/services/push';
 import { NotificationType, Prisma } from '../../prisma/generated/client';
 import { resolveNotificationTemplate } from '@/lib/services/notificationTemplateResolver';
+import { NOTIFICATION_TEMPLATE_CONFIG } from '@/lib/config/notificationTemplates';
 
 interface DeliveryChannels {
   inApp?: boolean;
@@ -50,6 +51,12 @@ function shouldDeliverType(
     case 'PAYMENT_SUCCESS':
     case 'PAYMENT_FAILED':
     case 'DELIVERY_UPDATE':
+    case 'SERVICE_REQUIREMENTS_REQUESTED':
+    case 'SERVICE_REQUIREMENTS_SUBMITTED':
+    case 'SERVICE_DELIVERED':
+    case 'SERVICE_RELEASED':
+    case 'SERVICE_REVISION_REQUESTED':
+    case 'SERVICE_REQUIREMENTS_TIMEOUT':
       return preferences.orderUpdates;
     case 'PROMOTION':
     case 'NEW_PRODUCT':
@@ -124,6 +131,8 @@ function buildNotificationEmailDetails(metadata: Record<string, unknown>) {
   };
 
   addRow('Amount', toMetadataCurrency(metadata.amount));
+  addRow('Net payout', toMetadataCurrency(metadata.net));
+  addRow('Commission', toMetadataCurrency(metadata.commission));
   addRow('Reference', toMetadataString(metadata.reference));
   addRow('Gateway', toMetadataString(metadata.gateway));
   addRow('Order Number', toMetadataString(metadata.orderNumber));
@@ -427,11 +436,16 @@ export async function dispatchNotification(
         title: resolvedTemplate.title,
         message: resolvedTemplate.message,
         link: actionLink,
-        linkLabel: typeof resolvedTemplate.metadata.ctaLabel === 'string' ? resolvedTemplate.metadata.ctaLabel : undefined,
+        linkLabel:
+          typeof resolvedTemplate.metadata.ctaLabel === 'string' &&
+          resolvedTemplate.metadata.ctaLabel.trim().length > 0
+            ? resolvedTemplate.metadata.ctaLabel
+            : NOTIFICATION_TEMPLATE_CONFIG[type]?.ctaLabel,
         details: buildNotificationEmailDetails(resolvedTemplate.metadata),
         note: typeof resolvedTemplate.metadata.note === 'string' ? resolvedTemplate.metadata.note : undefined,
         emailSubject: resolvedTemplate.emailSubject,
         type,
+        metadata: metadataRecord,
       });
 
       emailSent = emailResult.success;

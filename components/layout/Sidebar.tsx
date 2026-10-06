@@ -27,6 +27,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { buildNav } from "@/lib/navigation";
+import { serviceListingEnabled } from "@/lib/config/features";
 import { UserRole } from "@/lib/constants";
 import { useNotifications } from "@/lib/contexts/NotificationContext";
 
@@ -78,6 +79,7 @@ function getSidebarLinks(type: "vendor" | "admin") {
   const navByPath = new Map(buildNav(role).map((item) => [item.path, item]));
 
   return orderedPaths
+    .filter((path) => path !== "/operations/services" || serviceListingEnabled)
     .map((path) => navByPath.get(path))
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 }

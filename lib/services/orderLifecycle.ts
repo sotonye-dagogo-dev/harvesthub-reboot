@@ -1,4 +1,5 @@
 import { Prisma, OrderStatus, PaymentStatus, TransactionStatus, TransactionType } from '@/prisma/generated/client';
+import { CATEGORY_COMMISSION_DEFAULTS, VendorCategory } from '@/lib/constants';
 
 export type StatusHistoryEntry = {
     status: string;
@@ -9,9 +10,36 @@ export type StatusHistoryEntry = {
 };
 
 export const ORDER_PAYOUT_REFERENCE_PREFIX = 'PAYOUT-ORDER-';
+export const ORDER_COMMISSION_REFERENCE_PREFIX = 'COMMISSION-ORDER-';
 
 export function getPayoutReference(orderId: string): string {
     return `${ORDER_PAYOUT_REFERENCE_PREFIX}${orderId}`;
+}
+
+export function getCommissionReference(orderId: string): string {
+    return `${ORDER_COMMISSION_REFERENCE_PREFIX}${orderId}`;
+}
+
+async function getServiceSettlementCommissionRate(
+    tx: Prisma.TransactionClient,
+    vendorCommissionRate: number | null | undefined
+): Promise<number | null> {
+    let commissionEnabled = false;
+    try {
+        const config = await tx.commerceLifecycleConfig.findUnique({
+            where: { key: 'default' },
+            select: { serviceSettlementCommissionEnabled: true },
+        });
+        commissionEnabled = Boolean(config?.serviceSettlementCommissionEnabled);
+    } catch {
+        commissionEnabled = false;
+    }
+
+    if (!commissionEnabled) return null;
+
+    return typeof vendorCommissionRate === 'number' && Number.isFinite(vendorCommissionRate)
+        ? vendorCommissionRate
+        : CATEGORY_COMMISSION_DEFAULTS[VendorCategory.SERVICES];
 }
 
 export function parseStatusHistory(input: Prisma.JsonValue | null): StatusHistoryEntry[] {
@@ -185,6 +213,8 @@ export type ReleaseOrderSettlementResult = {
     orderNumber?: string;
     payoutReference?: string | null;
     amount?: number;
+    commission?: number;
+    net?: number;
     buyerUserId?: string;
     vendorUserId?: string;
 };
@@ -209,7 +239,7 @@ export async function releaseOrderSettlement(
             completedAt: true,
             vendorId: true,
             buyer: { select: { userId: true } },
-            vendor: { select: { userId: true } },
+            vendor: { select: { userId: true, commissionRate: true } },
         },
     });
 
@@ -317,8 +347,18 @@ export async function releaseOrderSettlement(
         return { state: 'payout_locked', orderId: order.id, orderNumber: order.orderNumber };
     }
 
+    const commissionRate = await getServiceSettlementCommissionRate(
+        tx,
+        order.vendor.commissionRate
+    );
+    const gross = order.total;
+    const commissionAmount =
+        commissionRate === null ? 0 : Math.round(gross * commissionRate * 100) / 100;
+    const netAmount = Math.round((gross - commissionAmount) * 100) / 100;
+    const creditedAmount = commissionRate === null ? gross : netAmount;
+
     const balanceBefore = wallet.balance;
-    const balanceAfter = balanceBefore + order.total;
+    const balanceAfter = balanceBefore + creditedAmount;
 
     await tx.wallet.update({
         where: { id: wallet.id },
@@ -342,6 +382,34 @@ export async function releaseOrderSettlement(
             },
         },
     });
+
+    if (commissionRate !== null) {
+        const existingCommission = await tx.transaction.findFirst({
+            where: { orderId: order.id, type: TransactionType.COMMISSION },
+            select: { id: true },
+        });
+
+        if (!existingCommission) {
+            await tx.transaction.create({
+                data: {
+                    walletId: wallet.id,
+                    type: TransactionType.COMMISSION,
+                    amount: commissionAmount,
+                    balanceBefore: balanceAfter,
+                    balanceAfter: balanceAfter,
+                    status: TransactionStatus.COMPLETED,
+                    reference: getCommissionReference(order.id),
+                    description: `Settlement commission withheld for order ${order.orderNumber}`,
+                    metadata: {
+                        rate: commissionRate,
+                        gross,
+                        net: netAmount,
+                    },
+                    orderId: order.id,
+                },
+            });
+        }
+    }
 
     const nextHistory = appendStatusHistoryEntry(
         history,
@@ -374,6 +442,9 @@ export async function releaseOrderSettlement(
         orderNumber: order.orderNumber,
         payoutReference,
         amount: order.total,
+        ...(commissionRate !== null
+            ? { commission: commissionAmount, net: netAmount }
+            : {}),
         buyerUserId: order.buyer.userId,
         vendorUserId: order.vendor.userId,
     };

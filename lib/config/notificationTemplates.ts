@@ -117,7 +117,7 @@ export const NOTIFICATION_TEMPLATE_CONFIG: Record<NotificationType, Notification
   SERVICE_DELIVERED: {
     title: 'Delivery Ready for Review',
     body: 'Your order {{orderNumber}} is ready for review.',
-    ctaLabel: 'Review delivery',
+    ctaLabel: 'Accept & Release',
     defaultLink: '/orders',
     priority: 'high',
     mediaHint: 'delivery',

@@ -11,34 +11,37 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { UserRole } from '@/lib/constants';
+import { ORDER_STATUS_TRANSITIONS } from '@/lib/config/orderTransitions';
 import {
     appendStatusHistoryEntry,
     ensurePayoutHoldOnDelivery,
     parseStatusHistory,
 } from '@/lib/services/orderLifecycle';
+import { dispatchNotification } from '@/lib/services/notifications';
+import {
+    consumeRevisionBudget,
+    hasRevisionBudget,
+    isDeadlinePast,
+    isServiceItem,
+    orderIsServiceOnly,
+    readServiceConfig,
+    rearmDeadline,
+    getServiceDeliveryDays,
+} from '@/lib/services/serviceOrders';
 
 interface RouteContext {
     params: Promise<{ id: string }>;
 }
 
-// PROCESSING transitions branch by fulfilment mode:
-// - DELIVERY orders should progress to OUT_FOR_DELIVERY
-// - PICKUP orders should progress to READY_FOR_PICKUP
-const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-    PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-    CONFIRMED: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-    PROCESSING: [OrderStatus.READY_FOR_PICKUP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
-    READY_FOR_PICKUP: [OrderStatus.DELIVERED],
-    OUT_FOR_DELIVERY: [OrderStatus.DELIVERED],
-    DELIVERED: [],
-    CANCELLED: [],
-    REFUNDED: [],
-    // Service orders — must stay in lockstep with STATUS_TRANSITIONS on the
-    // operations orders page (asserted by the transition-maps agreement test).
-    AWAITING_REQUIREMENTS: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-    IN_PROGRESS: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
-    IN_REVIEW: [OrderStatus.DELIVERED, OrderStatus.IN_PROGRESS],
-};
+/**
+ * Transition graph shared with the operations orders page through
+ * `lib/config/orderTransitions.ts` — one source, structurally in lockstep.
+ * Cast boundary: the shared map is typed against the `lib/constants` mirror.
+ */
+const VALID_TRANSITIONS = ORDER_STATUS_TRANSITIONS as unknown as Record<
+    OrderStatus,
+    OrderStatus[]
+>;
 
 function isOrderStatus(value: string): value is OrderStatus {
     return Object.values(OrderStatus).includes(value as OrderStatus);
@@ -55,7 +58,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         const { id } = await context.params;
         const order = await prisma.order.findUnique({
             where: { id },
-            select: { id: true, vendorId: true, status: true },
+            select: { id: true, vendorId: true, buyerId: true, status: true },
         });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
@@ -63,9 +66,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             where: { userId: user.userId },
             select: { id: true },
         });
-        if (user.role !== UserRole.ADMIN && order.vendorId !== vendor?.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const isSeller = Boolean(vendor && order.vendorId === vendor.id);
 
         const body = await req.json().catch(() => ({}));
         const requestedStatusRaw =
@@ -78,6 +79,30 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
         }
         const requestedStatus = requestedStatusRaw as OrderStatus;
+
+        // Service revision path (PRD TC-003): the buyer pushes an in-review service
+        // order back to IN_PROGRESS. Everything else stays vendor/admin only.
+        // The buyer profile is only resolved for non-seller, non-admin callers.
+        let isOrderBuyer = false;
+        if (!isSeller && user.role !== UserRole.ADMIN) {
+            try {
+                const buyerProfile = await prisma.buyer.findUnique({
+                    where: { userId: user.userId },
+                    select: { id: true },
+                });
+                isOrderBuyer = Boolean(buyerProfile && buyerProfile.id === order.buyerId);
+            } catch {
+                isOrderBuyer = false;
+            }
+        }
+        const buyerRevision =
+            isOrderBuyer &&
+            order.status === OrderStatus.IN_REVIEW &&
+            requestedStatus === OrderStatus.IN_PROGRESS;
+
+        if (user.role !== UserRole.ADMIN && !isSeller && !buyerRevision) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         const txResult = await prisma.$transaction(async (tx) => {
             const currentOrder = await tx.order.findUnique({
@@ -92,6 +117,17 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                     paymentStatus: true,
                     total: true,
                     completedAt: true,
+                    items: {
+                        select: {
+                            id: true,
+                            listingType: true,
+                            serviceConfig: true,
+                            deadlineAt: true,
+                            revisionsRemaining: true,
+                        },
+                    },
+                    buyer: { select: { userId: true } },
+                    vendor: { select: { userId: true } },
                 },
             });
             if (!currentOrder) {
@@ -117,10 +153,21 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             let payoutReference: string | null = null;
             let payoutHeld = false;
 
-            if (
-                requestedStatus === OrderStatus.DELIVERED &&
-                currentOrder.paymentStatus === PaymentStatus.PAID
-            ) {
+            const serviceItems = (currentOrder.items ?? []).filter(isServiceItem);
+            const isServiceOrder = orderIsServiceOnly(currentOrder.items ?? []);
+            const isServiceSubmit = isServiceOrder && requestedStatus === OrderStatus.IN_REVIEW;
+            const isServiceRevision =
+                isServiceOrder &&
+                requestedStatus === OrderStatus.IN_PROGRESS &&
+                currentOrder.status === OrderStatus.IN_REVIEW;
+
+            // Service escrow: hold lands when the seller submits for review (plan: hold on
+            // IN_REVIEW) and again on DELIVERED for the product path. ensurePayoutHold is
+            // idempotent, so the second call is a no-op.
+            const shouldHoldPayout =
+                requestedStatus === OrderStatus.DELIVERED || isServiceSubmit;
+
+            if (shouldHoldPayout && currentOrder.paymentStatus === PaymentStatus.PAID) {
                 const payoutHold = await ensurePayoutHoldOnDelivery(tx, {
                     orderId: currentOrder.id,
                     orderNumber: currentOrder.orderNumber,
@@ -134,26 +181,50 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 payoutHeld = !payoutHold.skipped;
             }
 
+            const isLate = isServiceSubmit && isDeadlinePast(serviceItems[0]?.deadlineAt ?? null);
+            let nextDeadline: Date | null = null;
+            if (isServiceRevision) {
+                if (!hasRevisionBudget(serviceItems[0]?.revisionsRemaining)) {
+                    throw new Error('REVISION_EXHAUSTED');
+                }
+                nextDeadline = rearmDeadline(getServiceDeliveryDays(readServiceConfig(serviceItems[0])));
+            }
+
             const existingHistory = parseStatusHistory(currentOrder.statusHistory as Prisma.JsonValue);
             const nextHistory = appendStatusHistoryEntry(
                 existingHistory,
                 requestedStatus,
                 user.userId,
                 transitionNote ||
-                    `Order status updated to ${requestedStatus.toLowerCase().replace(/_/g, ' ')}.`,
+                    (isServiceSubmit
+                        ? 'Deliverable submitted for buyer review.'
+                        : isServiceRevision
+                            ? 'Buyer requested a revision; fulfilment clock re-armed.'
+                            : `Order status updated to ${requestedStatus.toLowerCase().replace(/_/g, ' ')}.`),
             );
             const nextHistoryWithSettlement =
-                requestedStatus === OrderStatus.DELIVERED && payoutHeld
+                shouldHoldPayout && payoutHeld
                     ? appendStatusHistoryEntry(
                         nextHistory,
                         'SETTLEMENT_HELD',
                         user.userId,
-                        'Settlement held pending buyer/system delivery confirmation.',
+                        requestedStatus === OrderStatus.IN_REVIEW
+                            ? 'Escrow hold placed on delivery submission pending buyer approval.'
+                            : 'Settlement held pending buyer/system delivery confirmation.',
                         {
                             payoutReference,
                         }
                     )
                     : nextHistory;
+            const nextHistoryWithLate = isLate
+                ? appendStatusHistoryEntry(
+                    nextHistoryWithSettlement,
+                    'LATE_DELIVERY',
+                    user.userId,
+                    'Deliverable submitted after the agreed deadline.',
+                    { deadlineAt: serviceItems[0]?.deadlineAt ?? null }
+                )
+                : nextHistoryWithSettlement;
             const shouldSetCompletedAt =
                 requestedStatus === OrderStatus.DELIVERED ||
                 requestedStatus === OrderStatus.CANCELLED ||
@@ -163,12 +234,22 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 where: { id: currentOrder.id },
                 data: {
                     status: requestedStatus,
-                    statusHistory: nextHistoryWithSettlement as Prisma.InputJsonValue,
+                    statusHistory: nextHistoryWithLate as Prisma.InputJsonValue,
                     completedAt: shouldSetCompletedAt
                         ? currentOrder.completedAt ?? new Date()
                         : currentOrder.completedAt,
                 },
             });
+
+            if (nextDeadline) {
+                await tx.orderItem.updateMany({
+                    where: { orderId: currentOrder.id, listingType: 'SERVICE' },
+                    data: {
+                        revisionsRemaining: consumeRevisionBudget(serviceItems[0]?.revisionsRemaining),
+                        deadlineAt: nextDeadline,
+                    },
+                });
+            }
 
             return {
                 kind: 'updated' as const,
@@ -176,6 +257,11 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 payoutCreated,
                 payoutReference,
                 payoutHeld,
+                isServiceSubmit,
+                isServiceRevision,
+                isLate,
+                buyerUserId: currentOrder.buyer?.userId ?? null,
+                vendorUserId: currentOrder.vendor?.userId ?? null,
             };
         });
 
@@ -186,6 +272,27 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
                 order: txResult.order,
                 payout: { created: false, reason: 'No-op transition; status already applied.' },
             });
+        }
+
+        if (txResult.kind === 'updated') {
+            if (txResult.isServiceSubmit && txResult.buyerUserId) {
+                void dispatchNotification({
+                    userId: txResult.buyerUserId,
+                    type: 'SERVICE_DELIVERED',
+                    title: 'Deliverable ready for review',
+                    message: `The seller submitted the deliverable for order ${txResult.order.orderNumber}.`,
+                    link: `/orders/${txResult.order.id}`,
+                }).catch(() => undefined);
+            }
+            if (txResult.isServiceRevision && txResult.vendorUserId) {
+                void dispatchNotification({
+                    userId: txResult.vendorUserId,
+                    type: 'SERVICE_REVISION_REQUESTED',
+                    title: 'Revision requested',
+                    message: `The buyer requested a revision on order ${txResult.order.orderNumber}.`,
+                    link: `/orders/${txResult.order.id}`,
+                }).catch(() => undefined);
+            }
         }
 
         return NextResponse.json({
@@ -208,6 +315,15 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         }
         if (error instanceof Error && error.message === 'ORDER_NOT_FOUND') {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+        if (error instanceof Error && error.message === 'REVISION_EXHAUSTED') {
+            return NextResponse.json(
+                {
+                    error: 'No revisions remaining on this order.',
+                    code: 'REVISION_EXHAUSTED',
+                },
+                { status: 409 },
+            );
         }
 
         console.error('PATCH /api/orders/[id]/status error:', error);

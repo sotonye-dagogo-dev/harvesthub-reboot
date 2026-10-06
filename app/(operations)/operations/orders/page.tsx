@@ -3,10 +3,11 @@
 import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DeliveryMethod, OrderStatus, UserRole } from "@/lib/constants";
+import { ORDER_STATUS_TRANSITIONS } from "@/lib/config/orderTransitions";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
-import { Button, SectionLoader } from "@/components/ui";
+import { Button, SectionLoader, StatusTag } from "@/components/ui";
 import Link from "next/link";
 import { Input, Modal, Select, Table, Tag, message } from "antd";
 import { useMemo, useState } from "react";
@@ -44,21 +45,31 @@ type OrdersTableRow = {
   sourceOrder: OrderLike;
 };
 
-const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-  [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-  [OrderStatus.PROCESSING]: [OrderStatus.READY_FOR_PICKUP, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
-  [OrderStatus.READY_FOR_PICKUP]: [OrderStatus.DELIVERED],
-  [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED],
-  [OrderStatus.DELIVERED]: [],
-  [OrderStatus.CANCELLED]: [],
-  [OrderStatus.REFUNDED]: [],
-  // Service orders — must stay in lockstep with VALID_TRANSITIONS in
-  // app/api/orders/[id]/status/route.ts (transition-maps agreement test).
-  [OrderStatus.AWAITING_REQUIREMENTS]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-  [OrderStatus.IN_PROGRESS]: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
-  [OrderStatus.IN_REVIEW]: [OrderStatus.DELIVERED, OrderStatus.IN_PROGRESS],
-};
+/**
+ * Transition graph — shared with the status API through
+ * `lib/config/orderTransitions.ts` (single source, cannot drift).
+ */
+const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = ORDER_STATUS_TRANSITIONS;
+
+/**
+ * Status filter options for the Status column. `STATUS_TRANSITIONS` above is
+ * compile-locked in lockstep with `app/api/orders/[id]/status/route.ts` and is
+ * deliberately untouched — the three service statuses are listed explicitly
+ * here so they stay filterable/renderable in the table.
+ */
+const ORDER_STATUS_FILTER_OPTIONS: OrderStatus[] = [
+  OrderStatus.PENDING,
+  OrderStatus.CONFIRMED,
+  OrderStatus.PROCESSING,
+  OrderStatus.READY_FOR_PICKUP,
+  OrderStatus.OUT_FOR_DELIVERY,
+  OrderStatus.DELIVERED,
+  OrderStatus.CANCELLED,
+  OrderStatus.REFUNDED,
+  OrderStatus.AWAITING_REQUIREMENTS,
+  OrderStatus.IN_PROGRESS,
+  OrderStatus.IN_REVIEW,
+];
 
 function resolveDeliveryInfo(order: Pick<OrderLike, "deliveryAddress" | "pickupDetails">) {
   const deliveryAddress =
@@ -279,13 +290,15 @@ export default function OperationsOrdersPage() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      filters: Object.values(OrderStatus).map((status) => ({
+      filters: ORDER_STATUS_FILTER_OPTIONS.map((status) => ({
         text: formatStatusLabel(status),
         value: status,
       })),
       onFilter: (value: boolean | Key, record: OrdersTableRow) =>
         record.status === String(value),
-      render: (value: string) => <Tag>{formatStatusLabel(value)}</Tag>,
+      render: (value: string) => (
+        <StatusTag domain="order" status={value} label={formatStatusLabel(value)} />
+      ),
     },
     {
       title: "Payment",

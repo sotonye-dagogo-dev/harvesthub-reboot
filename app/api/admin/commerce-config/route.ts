@@ -9,6 +9,56 @@ import {
     upsertCommerceLifecycleConfig,
 } from '@/lib/services/commerceConfig';
 
+type ServiceLifecycleFields = {
+    serviceRequirementsTimeoutHours: number;
+    serviceAutoApproveHours: number;
+    serviceCountdownWarningHours: number;
+    serviceSettlementCommissionEnabled: boolean;
+};
+
+const SERVICE_HOUR_BOUNDS = { min: 1, max: 720 } as const;
+
+function clampServiceHours(value: number, fallback: number): number {
+    if (!Number.isFinite(value)) return fallback;
+    return Math.min(SERVICE_HOUR_BOUNDS.max, Math.max(SERVICE_HOUR_BOUNDS.min, Math.round(value)));
+}
+
+async function getServiceLifecycleFields(): Promise<ServiceLifecycleFields> {
+    const row = await prisma.commerceLifecycleConfig.upsert({
+        where: { key: 'default' },
+        update: {},
+        create: {},
+        select: {
+            serviceRequirementsTimeoutHours: true,
+            serviceAutoApproveHours: true,
+            serviceCountdownWarningHours: true,
+            serviceSettlementCommissionEnabled: true,
+        },
+    });
+
+    return {
+        serviceRequirementsTimeoutHours: clampServiceHours(
+            row.serviceRequirementsTimeoutHours,
+            48
+        ),
+        serviceAutoApproveHours: clampServiceHours(row.serviceAutoApproveHours, 72),
+        serviceCountdownWarningHours: clampServiceHours(row.serviceCountdownWarningHours, 12),
+        serviceSettlementCommissionEnabled: Boolean(row.serviceSettlementCommissionEnabled),
+    };
+}
+
+function parseServiceHourField(body: Record<string, unknown>, field: string) {
+    if (body[field] === undefined) return { value: undefined as number | undefined, error: null };
+    const value = Number(body[field]);
+    if (!Number.isFinite(value) || value < SERVICE_HOUR_BOUNDS.min || value > SERVICE_HOUR_BOUNDS.max) {
+        return {
+            value: undefined as number | undefined,
+            error: `${field} must be between ${SERVICE_HOUR_BOUNDS.min} and ${SERVICE_HOUR_BOUNDS.max}`,
+        };
+    }
+    return { value: Math.round(value), error: null };
+}
+
 export async function GET(_req: NextRequest) {
     return withApiHandler('GET /api/admin/commerce-config', async () => {
         const user = await getCurrentUser();
@@ -19,8 +69,9 @@ export async function GET(_req: NextRequest) {
         if (!rl.success) return getRateLimitResponse(rl);
 
         const config = await getCommerceLifecycleConfig(prisma);
+        const serviceFields = await getServiceLifecycleFields();
 
-        return apiSuccess({ config });
+        return apiSuccess({ config: { ...config, ...serviceFields } });
     });
 }
 
@@ -51,6 +102,26 @@ export async function PUT(req: NextRequest) {
             body.maxBookingAdvanceDays === undefined
                 ? undefined
                 : Number(body.maxBookingAdvanceDays);
+
+        const requirementsTimeout = parseServiceHourField(body, 'serviceRequirementsTimeoutHours');
+        const autoApprove = parseServiceHourField(body, 'serviceAutoApproveHours');
+        const countdownWarning = parseServiceHourField(body, 'serviceCountdownWarningHours');
+
+        if (requirementsTimeout.error) return apiError(requirementsTimeout.error, 400);
+        if (autoApprove.error) return apiError(autoApprove.error, 400);
+        if (countdownWarning.error) return apiError(countdownWarning.error, 400);
+
+        if (
+            body.serviceSettlementCommissionEnabled !== undefined &&
+            typeof body.serviceSettlementCommissionEnabled !== 'boolean'
+        ) {
+            return apiError('serviceSettlementCommissionEnabled must be a boolean', 400);
+        }
+
+        const serviceSettlementCommissionEnabled =
+            body.serviceSettlementCommissionEnabled === undefined
+                ? undefined
+                : body.serviceSettlementCommissionEnabled;
 
         if (autoConfirmHours !== undefined && (!Number.isFinite(autoConfirmHours) || autoConfirmHours < 1 || autoConfirmHours > 240)) {
             return apiError('autoConfirmHours must be between 1 and 240', 400);
@@ -97,6 +168,31 @@ export async function PUT(req: NextRequest) {
             maxBookingAdvanceDays,
         });
 
-        return apiSuccess({ config });
+        const serviceFields: Partial<ServiceLifecycleFields> = {
+            ...(requirementsTimeout.value !== undefined
+                ? { serviceRequirementsTimeoutHours: requirementsTimeout.value }
+                : {}),
+            ...(autoApprove.value !== undefined
+                ? { serviceAutoApproveHours: autoApprove.value }
+                : {}),
+            ...(countdownWarning.value !== undefined
+                ? { serviceCountdownWarningHours: countdownWarning.value }
+                : {}),
+            ...(serviceSettlementCommissionEnabled !== undefined
+                ? { serviceSettlementCommissionEnabled }
+                : {}),
+        };
+
+        if (Object.keys(serviceFields).length > 0) {
+            await prisma.commerceLifecycleConfig.upsert({
+                where: { key: 'default' },
+                update: serviceFields,
+                create: serviceFields,
+            });
+        }
+
+        const serviceLifecycle = await getServiceLifecycleFields();
+
+        return apiSuccess({ config: { ...config, ...serviceLifecycle } });
     });
 }

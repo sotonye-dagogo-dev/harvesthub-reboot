@@ -67,6 +67,60 @@ export const DEFAULT_EMAIL_TEMPLATES: Record<string, EmailTemplateDefinition> = 
     defaultBody: "Hi {{firstName}},\n\nWelcome to MyHarvestHub! We're glad you're here.",
     variables: ["firstName", "vendorSuffix"],
   },
+  "SERVICE_REQUIREMENTS_REQUESTED": {
+    key: "SERVICE_REQUIREMENTS_REQUESTED",
+    label: "Service Requirements Requested",
+    description: "Sent to the buyer when a paid service order needs requirements before work starts.",
+    defaultSubject: "Requirements needed for order {{orderNumber}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nYour service order {{orderNumber}} needs a few details from you before the vendor can start.\n\nSubmit your requirements here: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "link"],
+  },
+  "SERVICE_REQUIREMENTS_SUBMITTED": {
+    key: "SERVICE_REQUIREMENTS_SUBMITTED",
+    label: "Service Requirements Submitted",
+    description: "Sent to the seller when the buyer submits the service requirements.",
+    defaultSubject: "Requirements submitted for order {{orderNumber}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nThe buyer submitted their requirements for order {{orderNumber}}. You can start work now.\n\nOpen the order: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "link"],
+  },
+  "SERVICE_DELIVERED": {
+    key: "SERVICE_DELIVERED",
+    label: "Service Delivered",
+    description: "Sent to the buyer when the seller submits delivery — includes the approve & release CTA.",
+    defaultSubject: "Order {{orderNumber}} delivered — review & release",
+    defaultBody:
+      "Hi {{firstName}},\n\nYour vendor delivered order {{orderNumber}}. Review the delivery and release the payment when you're happy with it.\n\nAccept & release: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "link"],
+  },
+  "SERVICE_RELEASED": {
+    key: "SERVICE_RELEASED",
+    label: "Service Settlement Released",
+    description: "Sent to the seller when settlement for a service order is released.",
+    defaultSubject: "Settlement released for order {{orderNumber}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nSettlement for order {{orderNumber}} has been released to your wallet.\n\nView your wallet: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "net", "link"],
+  },
+  "SERVICE_REVISION_REQUESTED": {
+    key: "SERVICE_REVISION_REQUESTED",
+    label: "Service Revision Requested",
+    description: "Sent to the seller when the buyer requests a revision in review.",
+    defaultSubject: "Revision requested on order {{orderNumber}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nThe buyer requested a revision on order {{orderNumber}}. Your deadline has been re-armed.\n\nOpen the order: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "link"],
+  },
+  "SERVICE_REQUIREMENTS_TIMEOUT": {
+    key: "SERVICE_REQUIREMENTS_TIMEOUT",
+    label: "Service Requirements Timeout",
+    description: "Sent to the seller when a buyer never submits service requirements before the timeout.",
+    defaultSubject: "Requirements timeout for order {{orderNumber}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nThe buyer has not submitted requirements for order {{orderNumber}} within the allowed window. You may cancel without penalty.\n\nOpen the order: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "orderNumber", "link"],
+  },
 };
 
 export function renderTemplateString(template: string, vars: Record<string, string>): string {

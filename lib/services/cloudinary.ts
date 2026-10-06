@@ -99,6 +99,11 @@ export function getServiceVideoFolder(vendorId: string): string {
     return `${CLOUDINARY_ROOT_FOLDER}/services/${vendorId}/video`;
 }
 
+/** Order-room chat + requirement FILE attachments, scoped to the uploader. */
+export function getOrderAttachmentFolder(userId: string): string {
+    return `${CLOUDINARY_ROOT_FOLDER}/orders/attachments/${userId}`;
+}
+
 /**
  * True when a Cloudinary public_id belongs under the given folder scope.
  * Used to prevent deleting assets that were not uploaded by the requester.

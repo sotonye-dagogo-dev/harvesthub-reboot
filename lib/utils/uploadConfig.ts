@@ -16,7 +16,8 @@ export type FolderType =
     | 'verification-doc'
     | 'bug-report'
     | 'service-doc'
-    | 'service-video';
+    | 'service-video'
+    | 'order-attachment';
 
 export const IMAGE_UPLOAD_FORMATS = ['jpeg', 'jpg', 'png', 'webp'] as const;
 export const DOCUMENT_UPLOAD_FORMATS = ['jpeg', 'jpg', 'png', 'webp', 'pdf'] as const;
@@ -38,6 +39,7 @@ export const MAX_UPLOAD_SIZE_MB: Record<FolderType, number> = {
     'bug-report': 5,
     'service-doc': 5,
     'service-video': 50,
+    'order-attachment': 5,
 };
 
 /**
@@ -58,6 +60,7 @@ export const ALLOWED_UPLOAD_FORMATS: Record<FolderType, readonly string[]> = {
     'bug-report': DOCUMENT_UPLOAD_FORMATS,
     'service-doc': PDF_UPLOAD_FORMATS,
     'service-video': VIDEO_UPLOAD_FORMATS,
+    'order-attachment': DOCUMENT_UPLOAD_FORMATS,
 };
 
 /** Accept attribute string for `<input type="file">` used by the image uploader. */
