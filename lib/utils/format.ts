@@ -59,6 +59,9 @@ export function formatOrderStatus(status: OrderStatus): string {
         DELIVERED: "Delivered",
         CANCELLED: "Cancelled",
         REFUNDED: "Refunded",
+        AWAITING_REQUIREMENTS: "Awaiting Requirements",
+        IN_PROGRESS: "In Progress",
+        IN_REVIEW: "In Review",
     };
     return statusMap[status] || status;
 }

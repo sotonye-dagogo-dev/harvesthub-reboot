@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Input, message, Modal } from "antd";
 import { emitWalletSync } from "@/lib/utils/walletSync";
+import { ServiceOrderRoom } from "@/components/features/services/ServiceOrderRoom";
 
 type OrderStatusHistoryEntry = {
   id?: string;
@@ -36,6 +37,13 @@ type OrderItem = {
   price: number;
   subtotal: number;
   selectedVariants?: Record<string, string> | null;
+  // Service fulfilment — `PRODUCT` rows leave these null / defaulted.
+  listingType?: string | null;
+  serviceConfig?: unknown;
+  requirementAnswers?: unknown;
+  requirementsSubmittedAt?: string | null;
+  deadlineAt?: string | null;
+  revisionsRemaining?: number | null;
 };
 
 type ProofOfTransferRecord = {
@@ -445,6 +453,7 @@ export default function OrderDetailPage() {
     [proofOfTransfers]
   );
   const canAcknowledgeProof = (user?.role === "VENDOR" || user?.role === "ADMIN") && pendingProofs.length > 0;
+  const hasServiceItems = (order?.items ?? []).some((item) => item.listingType === "SERVICE");
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8">Loading order details...</div>;
@@ -554,6 +563,10 @@ export default function OrderDetailPage() {
           </div>
         </Card>
       )}
+
+      {hasServiceItems ? (
+        <ServiceOrderRoom orderId={order.id} onOrderMutated={() => void loadOrder()} />
+      ) : null}
 
       {order.orderGroupId ? (
         <Card>

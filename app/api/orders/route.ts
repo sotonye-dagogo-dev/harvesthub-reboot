@@ -13,7 +13,9 @@ import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGatewa
 import { dispatchNotification } from '@/lib/services/notifications';
 import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
 import { getCommerceLifecycleConfig } from '@/lib/services/commerceConfig';
+import { isServiceItem, initialOrderStatus } from '@/lib/services/serviceOrders';
 import {
+    ListingType,
     PaymentMethod,
     PaymentStatus,
     Prisma,
@@ -25,6 +27,7 @@ type IncomingOrderItem = {
     productId: string;
     quantity: number;
     selectedVariants?: unknown;
+    selectedPackage?: unknown;
 };
 
 type IncomingVendorOrder = {
@@ -423,6 +426,7 @@ export async function POST(req: NextRequest) {
             subtotal: number;
             deliveryFee: number;
             total: number;
+            isServiceOnly: boolean;
             orderItems: {
                 product: { connect: { id: string } };
                 productName: string;
@@ -430,6 +434,11 @@ export async function POST(req: NextRequest) {
                 quantity: number;
                 price: number;
                 subtotal: number;
+                listingType: ListingType;
+                serviceConfig:
+                | Prisma.NullableJsonNullValueInput
+                | Prisma.InputJsonValue
+                | undefined;
                 selectedVariants:
                 | Prisma.NullableJsonNullValueInput
                 | Prisma.InputJsonValue
@@ -524,6 +533,28 @@ export async function POST(req: NextRequest) {
 
                 const itemSubtotal = product.price * item.quantity;
                 subtotal += itemSubtotal;
+
+                // Service snapshot (T5): lock the purchased tier + fulfilment contract onto
+                // the OrderItem so later revisions/timeout handling never re-reads live
+                // product data (the listing can change after purchase).
+                let serviceConfig: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined =
+                    Prisma.DbNull;
+                if (product.listingType === 'SERVICE') {
+                    const details = (product as unknown as {
+                        serviceDetails?: {
+                            packages?: Array<Record<string, unknown>>;
+                            requirementFields?: unknown;
+                        } | null;
+                    }).serviceDetails;
+                    const packages = Array.isArray(details?.packages) ? details.packages : [];
+                    const chosen = (item.selectedPackage ?? null) as Record<string, unknown> | null;
+                    const snapshot: Record<string, unknown> = {
+                        ...(chosen ?? packages[0] ?? {}),
+                        requirementFields: details?.requirementFields ?? [],
+                    };
+                    serviceConfig = snapshot as Prisma.InputJsonValue;
+                }
+
                 orderItems.push({
                     product: { connect: { id: product.id } },
                     productName: product.name,
@@ -531,6 +562,8 @@ export async function POST(req: NextRequest) {
                     quantity: item.quantity,
                     price: product.price,
                     subtotal: itemSubtotal,
+                    listingType: product.listingType,
+                    serviceConfig,
                     selectedVariants: item.selectedVariants
                         ? (item.selectedVariants as Prisma.InputJsonValue)
                         : Prisma.DbNull,
@@ -545,6 +578,7 @@ export async function POST(req: NextRequest) {
                 subtotal,
                 deliveryFee: deliveryFeePerOrder,
                 total: subtotal + deliveryFeePerOrder,
+                isServiceOnly: orderItems.every(isServiceItem),
                 orderItems,
             });
         }
@@ -654,6 +688,18 @@ export async function POST(req: NextRequest) {
                         orderGroupId,
                     },
                 ];
+                if (
+                    initialOrderStatus({
+                        isServiceOnly: prepared.isServiceOnly,
+                        paymentStatus,
+                    }) === 'AWAITING_REQUIREMENTS'
+                ) {
+                    statusHistory.push({
+                        status: 'AWAITING_REQUIREMENTS',
+                        timestamp: new Date().toISOString(),
+                        note: 'Paid service order — waiting on the buyer to submit requirements.',
+                    });
+                }
 
                 const newOrder = await tx.order.create({
                     data: {
@@ -666,6 +712,10 @@ export async function POST(req: NextRequest) {
                         paymentMethod,
                         paymentStatus,
                         deliveryMethod,
+                        status: initialOrderStatus({
+                            isServiceOnly: prepared.isServiceOnly,
+                            paymentStatus,
+                        }),
                         deliveryAddress: deliveryAddress || null,
                         pickupDetails: pickupDetails || null,
                         notes: composedOrderNotes,

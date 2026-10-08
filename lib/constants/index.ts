@@ -22,6 +22,10 @@ export enum OrderStatus {
     DELIVERED = 'DELIVERED',
     CANCELLED = 'CANCELLED',
     REFUNDED = 'REFUNDED',
+    // Service order lifecycle (2026-09-29 services feature)
+    AWAITING_REQUIREMENTS = 'AWAITING_REQUIREMENTS',
+    IN_PROGRESS = 'IN_PROGRESS',
+    IN_REVIEW = 'IN_REVIEW',
 }
 
 export enum PaymentStatus {
@@ -320,6 +324,12 @@ export enum NotificationType {
     LOW_STOCK = 'LOW_STOCK',
     NEW_PRODUCT = 'NEW_PRODUCT',
     PROMOTION = 'PROMOTION',
+    SERVICE_REQUIREMENTS_REQUESTED = 'SERVICE_REQUIREMENTS_REQUESTED',
+    SERVICE_REQUIREMENTS_SUBMITTED = 'SERVICE_REQUIREMENTS_SUBMITTED',
+    SERVICE_DELIVERED = 'SERVICE_DELIVERED',
+    SERVICE_RELEASED = 'SERVICE_RELEASED',
+    SERVICE_REVISION_REQUESTED = 'SERVICE_REVISION_REQUESTED',
+    SERVICE_REQUIREMENTS_TIMEOUT = 'SERVICE_REQUIREMENTS_TIMEOUT',
 }
 
 // ============================================================================
@@ -699,6 +709,10 @@ export const ORDER_STATUS_FLOW = {
     [OrderStatus.DELIVERED]: [OrderStatus.REFUNDED],
     [OrderStatus.CANCELLED]: [OrderStatus.REFUNDED],
     [OrderStatus.REFUNDED]: [],
+    // Service orders (buyer/seller driven — not the vendor fulfilment path)
+    [OrderStatus.AWAITING_REQUIREMENTS]: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
+    [OrderStatus.IN_PROGRESS]: [OrderStatus.IN_REVIEW, OrderStatus.CANCELLED],
+    [OrderStatus.IN_REVIEW]: [OrderStatus.DELIVERED, OrderStatus.IN_PROGRESS],
 } as const;
 
 // ============================================================================
@@ -833,6 +847,34 @@ export const BOOKING_STATUSES = [
 
 /** Sentinel value for services: they have no physical stock. */
 export const SERVICE_UNLIMITED_STOCK = 999999;
+
+// ============================================================================
+// SERVICE FULFILMENT DEFAULTS (fallbacks — admin may override via option lists)
+// ============================================================================
+
+/**
+ * Default order-room milestone labels. FREEFORM option list `serviceMilestones`
+ * overlays these; an empty list means "use these defaults".
+ */
+export const SERVICE_MILESTONES = [
+    { value: 'ORDERED', label: 'Ordered' },
+    { value: 'REQUIREMENTS_SUBMITTED', label: 'Requirements Submitted' },
+    { value: 'WORK_STARTED', label: 'Work Started' },
+    { value: 'IN_REVIEW', label: 'In Review' },
+    { value: 'COMPLETE', label: 'Complete' },
+] as const;
+
+/** Fallback requirement-attribute catalogue (FREEFORM list `serviceAttributes`). */
+export const DEFAULT_SERVICE_ATTRIBUTES = [
+    { key: 'CONTACT_NAME', label: 'Full name', group: 'Contact', type: 'TEXT' },
+    { key: 'CONTACT_PHONE', label: 'Phone number', group: 'Contact', type: 'TEXT' },
+    { key: 'CONTACT_EMAIL', label: 'Email address', group: 'Contact', type: 'TEXT' },
+    { key: 'SERVICE_ADDRESS', label: 'Service address', group: 'Location', type: 'TEXT' },
+    { key: 'PREFERRED_TIME', label: 'Preferred time slot', group: 'Location', type: 'TEXT' },
+    { key: 'PROJECT_BRIEF', label: 'Project brief', group: 'Project', type: 'TEXT' },
+    { key: 'REFERENCE_LINKS', label: 'Reference links', group: 'Project', type: 'TEXT' },
+    { key: 'BRAND_ASSETS', label: 'Logo / brand file', group: 'Files', type: 'FILE' },
+] as const;
 
 // ============================================================================
 // PLATFORM SETTINGS DEFAULTS

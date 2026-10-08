@@ -94,6 +94,8 @@ export default function SecurityInfoPage() {
           whatsappNumber: formData.whatsappNumber || formData.phoneNumber,
           position: formData.position ? (formData.position as Position) : undefined,
           isChurchAffiliated: formData.isChurchAffiliated || false,
+          serviceCategory: formData.serviceCategory,
+          serviceLocation: formData.serviceLocation,
           verificationDocuments: formData.verificationDocuments,
           idType: formData.idType,
           businessAddress: formData.businessAddress,

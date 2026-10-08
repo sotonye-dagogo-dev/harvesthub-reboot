@@ -155,6 +155,57 @@ type NotificationEmailDetail = {
   value: string;
 };
 
+type NotificationEmailSubjectContext = {
+  title: string;
+  message: string;
+  emailSubject?: string;
+  type?: string;
+  firstName?: string;
+  link?: string | null;
+  metadata?: Record<string, unknown>;
+};
+
+function buildNotificationSubjectVars(data: NotificationEmailSubjectContext): Record<string, string> {
+  const vars: Record<string, string> = {};
+
+  if (data.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata)) {
+    for (const [key, value] of Object.entries(data.metadata)) {
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        vars[key] = String(value);
+      }
+    }
+  }
+
+  vars.title = data.title;
+  vars.message = data.message;
+  vars.firstName = data.firstName ?? '';
+  vars.link = data.link ?? '';
+  vars.subject = data.emailSubject ?? '';
+
+  return vars;
+}
+
+export async function resolveNotificationEmailSubject(
+  data: NotificationEmailSubjectContext
+): Promise<string> {
+  const fallback = data.emailSubject || data.title;
+  if (!data.type) return fallback;
+
+  try {
+    const tpl = (await prisma.emailTemplate
+      .findUnique({ where: { key: data.type } })
+      .catch(() => null)) as unknown as { subject?: string | null } | null;
+    if (tpl?.subject) {
+      const { renderTemplateString } = await import('@/lib/config/emailTemplates');
+      return renderTemplateString(tpl.subject, buildNotificationSubjectVars(data));
+    }
+  } catch {
+    // Admin-edited subject unavailable — fall back to the caller subject.
+  }
+
+  return fallback;
+}
+
 export async function sendNotificationEmail(
   to: string,
   data: {
@@ -167,13 +218,16 @@ export async function sendNotificationEmail(
     details?: NotificationEmailDetail[];
     note?: string;
     type?: string;
+    metadata?: Record<string, unknown>;
   }
 ) {
   const { NotificationEmail } = await import('@/lib/emails/NotificationEmail');
 
+  const subject = await resolveNotificationEmailSubject(data);
+
   return sendEmail({
     to,
-    subject: data.emailSubject || data.title,
+    subject,
     react: React.createElement(NotificationEmail, {
       firstName: data.firstName,
       title: data.title,

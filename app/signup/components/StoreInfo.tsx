@@ -1,17 +1,11 @@
 "use client";
 
-import { Form, Input, Select, message } from "antd";
+import { Form, Input, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { FormComponentProps } from "@/app/types";
-import {
-  VENDOR_CATEGORIES,
-  CAMPUS_LOCATIONS,
-  POSITION_OPTIONS,
-  VendorCategory,
-  SERVICE_CATEGORIES,
-  SERVICE_LOCATIONS,
-} from "@/lib/constants";
+import { OptionListSelect } from "@/components/ui";
+import { VendorCategory } from "@/lib/constants";
 
 interface VendorInfoFields {
   storeName: string;
@@ -102,18 +96,11 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           label={<span className="text-ds-text-primary font-medium">Store Category</span>}
           rules={[{ required: true, message: "Please select a store category" }]}
         >
-          <Select
+          <OptionListSelect
+            listKey="vendorCategories"
             size="large"
             placeholder="Select your store category"
             className="rounded-ds-md"
-            options={VENDOR_CATEGORIES.map((cat) => ({
-              value: cat.value,
-              label: cat.label,
-            }))}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
             onChange={(value) => setIsServiceVendor(value === VendorCategory.SERVICES)}
           />
         </Form.Item>
@@ -126,18 +113,12 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
               label={<span className="text-ds-text-primary font-medium">Service Type</span>}
               rules={[{ required: true, message: "Please select your service type" }]}
             >
-              <Select
+              <OptionListSelect
+                listKey="serviceCategories"
                 size="large"
                 placeholder="What type of service do you offer?"
                 className="rounded-ds-md"
-                options={SERVICE_CATEGORIES.map((cat) => ({
-                  value: cat.value,
-                  label: `${cat.label}${cat.description ? ` — ${cat.description}` : ""}`,
-                }))}
-                showSearch
-                filterOption={(input, option) =>
-                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-                }
+                showDescription
               />
             </Form.Item>
 
@@ -146,14 +127,11 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
               label={<span className="text-ds-text-primary font-medium">Service Location</span>}
               rules={[{ required: true, message: "Please select where you render your service" }]}
             >
-              <Select
+              <OptionListSelect
+                listKey="serviceLocations"
                 size="large"
                 placeholder="Where do you render your service?"
                 className="rounded-ds-md"
-                options={SERVICE_LOCATIONS.map((loc) => ({
-                  value: loc.value,
-                  label: loc.label,
-                }))}
               />
             </Form.Item>
           </>
@@ -166,18 +144,11 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
           }
           rules={[{ required: true, message: "Please select your campus location" }]}
         >
-          <Select
+          <OptionListSelect
+            listKey="campus"
             size="large"
             placeholder="Select campus for product pickup"
             className="rounded-ds-md"
-            options={CAMPUS_LOCATIONS.map((campus) => ({
-              value: campus.value,
-              label: campus.label,
-            }))}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
           />
         </Form.Item>
 
@@ -187,19 +158,12 @@ export default function StoreInfo({ onNext, updateFormData, formData }: FormComp
             <span className="text-ds-text-primary font-medium">Position in Church (Optional)</span>
           }
         >
-          <Select
+          <OptionListSelect
+            listKey="positions"
             size="large"
             placeholder="Select your position"
             className="rounded-ds-md"
             allowClear
-            options={POSITION_OPTIONS.map((pos) => ({
-              value: pos.value,
-              label: pos.label,
-            }))}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
           />
         </Form.Item>
 

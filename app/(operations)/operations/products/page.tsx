@@ -141,7 +141,7 @@ export default function OperationsProductsPage() {
       return [];
     }
 
-    const params = new URLSearchParams({ limit: "100" });
+    const params = new URLSearchParams({ limit: "100", includeInactive: "true" });
     if (scopedVendorId) {
       params.set("vendorId", scopedVendorId);
     }
@@ -580,9 +580,19 @@ export default function OperationsProductsPage() {
       key: "actions",
       render: (_value, record) => (
         <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-            Edit
-          </Button>
+          {record.listingType === "SERVICE" ? (
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => router.push(`/operations/services?edit=${record.id}`)}
+            >
+              Edit service
+            </Button>
+          ) : (
+            <Button size="small" icon={<EditOutlined />} onClick={() => openEditModal(record)}>
+              Edit
+            </Button>
+          )}
           <Button
             size="small"
             danger

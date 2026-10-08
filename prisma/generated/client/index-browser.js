@@ -195,6 +195,8 @@ exports.Prisma.VendorScalarFieldEnum = {
   commissionRate: 'commissionRate',
   storeLogo: 'storeLogo',
   storeBanner: 'storeBanner',
+  serviceCategory: 'serviceCategory',
+  serviceLocation: 'serviceLocation',
   businessVerification: 'businessVerification',
   storeSettings: 'storeSettings',
   totalSales: 'totalSales',
@@ -282,7 +284,13 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   quantity: 'quantity',
   selectedVariants: 'selectedVariants',
   price: 'price',
-  subtotal: 'subtotal'
+  subtotal: 'subtotal',
+  listingType: 'listingType',
+  serviceConfig: 'serviceConfig',
+  requirementAnswers: 'requirementAnswers',
+  requirementsSubmittedAt: 'requirementsSubmittedAt',
+  deadlineAt: 'deadlineAt',
+  revisionsRemaining: 'revisionsRemaining'
 };
 
 exports.Prisma.AddressScalarFieldEnum = {
@@ -441,6 +449,10 @@ exports.Prisma.CommerceLifecycleConfigScalarFieldEnum = {
   commissionPremiumRate: 'commissionPremiumRate',
   minOrderAmount: 'minOrderAmount',
   maxBookingAdvanceDays: 'maxBookingAdvanceDays',
+  serviceRequirementsTimeoutHours: 'serviceRequirementsTimeoutHours',
+  serviceAutoApproveHours: 'serviceAutoApproveHours',
+  serviceCountdownWarningHours: 'serviceCountdownWarningHours',
+  serviceSettlementCommissionEnabled: 'serviceSettlementCommissionEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -728,6 +740,29 @@ exports.Prisma.EmailTemplateScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.OptionListScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  tier: 'tier',
+  options: 'options',
+  isActive: 'isActive',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderMessageScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  senderId: 'senderId',
+  senderRole: 'senderRole',
+  body: 'body',
+  attachmentUrl: 'attachmentUrl',
+  attachmentName: 'attachmentName',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -856,6 +891,28 @@ exports.VendorStatus = exports.$Enums.VendorStatus = {
   SUSPENDED: 'SUSPENDED'
 };
 
+exports.ServiceCategory = exports.$Enums.ServiceCategory = {
+  GROOMING: 'GROOMING',
+  BEAUTY_WELLNESS: 'BEAUTY_WELLNESS',
+  CREATIVE: 'CREATIVE',
+  DIGITAL: 'DIGITAL',
+  WRITING_TRANSLATION: 'WRITING_TRANSLATION',
+  TUTORING_COACHING: 'TUTORING_COACHING',
+  HOME_SERVICES: 'HOME_SERVICES',
+  FOOD_CATERING: 'FOOD_CATERING',
+  EVENTS: 'EVENTS',
+  FASHION_TAILORING: 'FASHION_TAILORING',
+  FITNESS: 'FITNESS',
+  CONSULTING: 'CONSULTING',
+  OTHER_SERVICE: 'OTHER_SERVICE'
+};
+
+exports.ServiceLocation = exports.$Enums.ServiceLocation = {
+  ON_SITE: 'ON_SITE',
+  REMOTE: 'REMOTE',
+  BOTH: 'BOTH'
+};
+
 exports.ProductCategory = exports.$Enums.ProductCategory = {
   MOBILE_DEVICES: 'MOBILE_DEVICES',
   MOBILE_ACCESSORIES: 'MOBILE_ACCESSORIES',
@@ -921,7 +978,10 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  AWAITING_REQUIREMENTS: 'AWAITING_REQUIREMENTS',
+  IN_PROGRESS: 'IN_PROGRESS',
+  IN_REVIEW: 'IN_REVIEW'
 };
 
 exports.PaymentStatus = exports.$Enums.PaymentStatus = {
@@ -1017,7 +1077,13 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   VENDOR_MESSAGE: 'VENDOR_MESSAGE',
   LOW_STOCK: 'LOW_STOCK',
   NEW_PRODUCT: 'NEW_PRODUCT',
-  PROMOTION: 'PROMOTION'
+  PROMOTION: 'PROMOTION',
+  SERVICE_REQUIREMENTS_REQUESTED: 'SERVICE_REQUIREMENTS_REQUESTED',
+  SERVICE_REQUIREMENTS_SUBMITTED: 'SERVICE_REQUIREMENTS_SUBMITTED',
+  SERVICE_DELIVERED: 'SERVICE_DELIVERED',
+  SERVICE_RELEASED: 'SERVICE_RELEASED',
+  SERVICE_REVISION_REQUESTED: 'SERVICE_REVISION_REQUESTED',
+  SERVICE_REQUIREMENTS_TIMEOUT: 'SERVICE_REQUIREMENTS_TIMEOUT'
 };
 
 exports.AvailabilityRequestStatus = exports.$Enums.AvailabilityRequestStatus = {
@@ -1100,6 +1166,11 @@ exports.BlogStatus = exports.$Enums.BlogStatus = {
   ARCHIVED: 'ARCHIVED'
 };
 
+exports.OptionListTier = exports.$Enums.OptionListTier = {
+  DISPLAY: 'DISPLAY',
+  FREEFORM: 'FREEFORM'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   CisIdentity: 'CisIdentity',
@@ -1140,7 +1211,9 @@ exports.Prisma.ModelName = {
   BlogPost: 'BlogPost',
   BlogConfig: 'BlogConfig',
   ProductVariationConfig: 'ProductVariationConfig',
-  EmailTemplate: 'EmailTemplate'
+  EmailTemplate: 'EmailTemplate',
+  OptionList: 'OptionList',
+  OrderMessage: 'OrderMessage'
 };
 
 /**

@@ -5154,3 +5154,101 @@ Resolve user-reported verification loop (clicking emailed link redirects to /ver
 - `npm run build` ✅
 - `npx vitest run` ✅ (108 passed, 503 tests)
 
+---
+
+## Session 101 — plan-feature: services (service-marketplace) enablement — 2026-09-29
+
+**Goal:**
+Run `commands/plan-feature.md` for the stakeholder service-marketplace request
+(`ai-system/artifacts/services-feature-request.pdf`). Convert the PDF to Markdown for analysis, treat
+it as a **feature request** rather than an authoritative PRD (it was authored without codebase
+knowledge), and produce a concrete, non-breaking, config-driven task queue that can be executed with
+`commands/execute-feature.md`. Planning only — no implementation code. `commands/generate-design-md.md`
+was also invoked for the design conformance reference.
+
+**Completed:**
+
+- **PDF → Markdown** — `uvx --with "markitdown[pdf]" markitdown` converted the PRD to
+  `ai-system/artifacts/services-feature-request.md` (registered approach per `tools/registry.md` →
+  markitdown row).
+- **Codebase recon** — confirmed `Services` is **already** an option everywhere it matters:
+  signup Store Category (`lib/constants/index.ts:471`, option 18/19),
+  `ProductCategory.SERVICES` browse chip (`lib/config/productDiscovery.ts:34`), and
+  `ListingType.SERVICE` (`prisma/schema.prisma:345`). Also confirmed `ListingType.SERVICE` is only
+  cosmetic today: `serviceDetails` is writable but never authored/read, `Booking` +
+  `components/features/BookingCalendar.tsx` are orphaned (no API, never mounted), services are
+  incorrectly charged the ₦1,500 delivery fee (`app/checkout/page.tsx:90`,
+  `app/api/orders/route.ts:441`), the signup `serviceCategory`/`serviceLocation` fields are silently
+  dropped, `TransactionType.COMMISSION` is never written, and no chat/WebSocket, escrow-for-services,
+  tiers, requirements or revision machinery exists.
+- **Scope reconciliation (pinch of salt)** — rejected the PRD's parallel `services` /
+  `service_packages` / `service_orders` Postgres DDL in favour of extending
+  `Product.listingType=SERVICE` + `Order`/`OrderItem`; rejected S3 (Cloudinary is the stack),
+  WebSocket/gRPC (serverless — visibility-gated polling behind an isolated transport), default
+  Google Maps (flag-gated) and ClamAV (deferred, documented residual risk); softened the "I will…"
+  title rule to helper text; routed late-delivery refunds through the existing refund flow.
+- **Plan document** — `planning/feature-plan-2026-09-29-services-marketplace.md`: feature summary,
+  scope-reconciliation table, architecture-impact matrix (every change additive or flag-gated),
+  new modules, 10-step end-to-end data flow, service `OrderStatus` state machine, design-system
+  conformance notes, the option-list contract, config keys, emails/notifications, 13 risks/edge
+  cases, dependency-ordered task list, and required architecture-doc updates.
+- **Requested modification (not yet built)** — admin-editable option lists with hardcoded fallbacks
+  and non-existence handling: new `OptionList` model with `DISPLAY` (label/order/hide only — enum
+  keys immutable) vs `FREEFORM` tiers, `getOptionList()` that never throws, `resolveOptionLabel()`,
+  empty-state rendering, server validation always against the code/Prisma key set, and an
+  `/operations/option-lists` admin editor.
+- **Design reference** — `design-references/service-listing-order-room/DESIGN.md` produced via
+  `commands/generate-design-md.md` + `skills/design-token-extraction/SKILL.md` from **supplied
+  markup** (no browsing tool needed — the reference is this repo): Tier 1/2 `ds-*` palette,
+  Geist type scale, spacing/radius/shadow/z tokens, card/notice/`StageTracker`/`StatusTag`/upload
+  patterns, and the responsive contract. `design-system.md` was **not** edited; no promotion
+  candidates flagged (tokens already come from the project's own Tier 1/2 layer).
+- **Task queue** — appended the dependency-ordered T1–T8 queue under
+  `## Feature Planning Queue (2026-09-29) — Services / Service-Marketplace Enablement [XL]` and
+  updated the `last-synced` metadata marker (this entry is the required §9 coupling trace for that
+  task-queue mutation).
+
+**Files Modified:**
+- `ai-system/artifacts/services-feature-request.md` (new — PDF conversion output)
+- `ai-system/design-references/service-listing-order-room/DESIGN.md` (new — generate-design-md)
+- `ai-system/planning/feature-plan-2026-09-29-services-marketplace.md` (new — plan-feature output)
+- `ai-system/planning/task-queue.md` (T1–T8 queue + `last-synced` marker)
+- `ai-system/checkpoints/session-log.md`
+
+**Validation:**
+- Planning-only session: no application code touched — `tsc`/`lint`/`vitest`/`build` not applicable.
+- Chain compliance: `plan-feature.md` → `checkpoints/session-log.md` ✅ (this entry);
+  `generate-design-md.md` → session-log ✅ (recorded above).
+- Task-queue coupling: `planning/task-queue.md` mutation has a matching session-log entry ✅.
+- No architecture change made — the required `update-ai-system.md` deep sync is deferred to task T8
+  at execution time, per `execute-feature.md` Step 5.
+
+
+---
+
+## Session 103 — Services Marketplace Round-Up + Final QA Gate — 2026-10-08
+
+**Goal:**
+Per `resume-session.md` + the "round up the final session" directive: reconcile checkpoint drift (in-progress claimed T3-partial/T4-pending vs repo reality), verify any leftover T8 work (flag gating, QA gate, docs sync), fix small leftovers, and close the session cleanly.
+
+**Drift check (`sync-context.md` equivalent):**
+- `git log`: 3 unmerged commits since base (`583b8ac` plan, `ad9c6c9` option-lists/wizard/storefront, `9531fed` lifecycle/order-room/commission) — all services work, none on main yet.
+- `in-progress.md` stale: claimed T3 PARTIAL with `wizardModel.ts:407` type error and T4–T8 pending. Reality: wizard + 5 steps + services page + storefront + lifecycle + order room + commission all present; `tsc` clean (error gone); `serviceListingEnabled` gating present in Sidebar, services page, product detail.
+- `task-queue.md` T1–T7 correctly `[x]`; only T8 `[ ]` was stale — now closed.
+- Verdict: minor-to-major doc drift, no code drift. Reconciled via docs (no architecture change), no `update-ai-system.md` re-plan needed.
+
+**Completed:**
+- Fixed last lint warning: removed unused `ServiceWizardValues` import in `components/features/services/steps/Media.tsx`.
+- Verified T8 gating in code (sidebar filter, DisabledNotice, storefront gate) and marked T8 done in `planning/task-queue.md`.
+- Full QA gate: `npx tsc --noEmit` ✅; `npm run lint` ✅ (pre-existing warnings only); `npx vitest run` ✅ 132 files / 729 passed / 32 skipped; `npm run build` ✅; `npm run audit:dead-links` ✅.
+- Docs sync: `system-architecture.md` (services bullet + 7 config rows), `memory/project-decisions.md` (services decision), `summaries/dev-history.md` (Session 103), `planning/task-queue.md` (T8 + last-synced), cleared `checkpoints/in-progress.md`.
+
+**Files Modified:**
+- `components/features/services/steps/Media.tsx`
+- `ai-system/planning/task-queue.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/summaries/dev-history.md`, `ai-system/checkpoints/session-log.md`, `ai-system/checkpoints/in-progress.md`
+
+**Next Task:**
+- Merge PR; on target envs run `db push` + migration baselining for the new services schema deltas (Session 98 pattern). Human call on wizard/StepTracker design-system promotion. Stale-asset orphan cleanup remains backlog.
+
+**Notes / Blockers:**
+- None blocking. Residual non-blocking risks: no antivirus, client-only video-duration check, mixed-cart single-status, orphan cleanup backlog.

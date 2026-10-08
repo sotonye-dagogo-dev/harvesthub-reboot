@@ -28,6 +28,7 @@ vi.mock("@/lib/hooks/useSmartResource", () => ({
 vi.mock("@/components/ui", () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   SectionLoader: () => <div>loading</div>,
+  StatusTag: ({ status, label }: any) => <span>{label ?? status}</span>,
 }));
 
 vi.mock("antd", () => ({

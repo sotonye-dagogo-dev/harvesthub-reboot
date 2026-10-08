@@ -2265,3 +2265,23 @@ consistent while keeping the Vercel deploy hook (`scripts/prisma-deploy-if-serve
 - The SSL mode on `DIRECT_URL` is explicitly `sslmode=verify-full` (not `require`) to keep the
   current verify-full semantics and avoid pg-connection-string v3 libpq-semantic drift (warning
   silenced).
+
+---
+
+**Decision:** Services marketplace extends `Product`/`Order`/`OrderItem` — no parallel service tables; order-room chat uses visibility-gated polling behind an isolated transport; option lists use DISPLAY (immutable enum keys, label/order/hide only) vs FREEFORM tiers; mixed carts take the product status path (`serviceKind = items.every(SERVICE)`); settlement commission is flag-gated default-off.
+**Date:** 2026-10-08
+**Made by:** AI implementation session (opencode, round-up)
+
+**Reason:**
+A second `services`/`service_orders` pipeline would fork payment, refund, payout, grouping and notification logic. The stack is serverless (no WS infra), so chat ships as polling behind `lib/services/orderRoomTransport.ts` for later WS/SSE swap. Postgres enums cannot be extended from JSON rows, so DISPLAY lists can never inject keys — server validation always uses code/Prisma enum sets. A single `Order` has one status, so mixed carts keep product behaviour with service line-item context. Commission writes the first-ever `COMMISSION` txn, so default-off preserves byte-identical settlement behaviour.
+
+**Alternatives Considered:**
+- Parallel service tables (rejected: forks lifecycle logic).
+- WebSocket chat now (rejected: no serverless WS infra).
+- Admin-injectable enum values (rejected: breaks Prisma enum contract).
+- Per-item order statuses (rejected: single-status Order model).
+
+**Implications:**
+- Google Maps preview stays behind `serviceGeoMapEnabled=false`; no antivirus (MIME/allowlist + size caps only, documented residual risk).
+- `serviceListingEnabled=false` hides nav/wizard/storefront panel; service-flagged products stay readable.
+- Late delivery writes idempotent `LATE` flag; refunds use the existing refund flow.

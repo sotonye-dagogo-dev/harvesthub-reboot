@@ -3,7 +3,7 @@
 > **Metadata**
 > - last-updated-by: update-ai-system.md (2026-08-20)
 > - last-verified-against-code: 2026-08-20
-> - last-synced: 2026-08-20 — Session 99 (checkout proof-of-payment enforcement) applied; subsequent task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - last-synced: 2026-10-08 — round-up (resume-session Session 103: T8 closed, in-progress cleared, see `checkpoints/session-log.md`); last code-synced 2026-10-08 — Services T1–T8 verified (tsc clean, vitest 132 files / 729 passed, build + dead-links green). All task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
 > - staleness-policy: re-verify before each session
 
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
@@ -21,6 +21,202 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 | `[M]` | Medium — 3-6 files across related modules | execute-feature.md |
 | `[L]` | Large — multi-module, architecture-aware | execute-feature.md (deep sync chain) |
 | `[XL]` | Very large — cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
+
+---
+
+## Feature Planning Queue (2026-09-29) — Services / Service-Marketplace Enablement `[XL]`
+
+> **Section summary:** plan-feature output for the stakeholder service-marketplace feature request
+> (`ai-system/artifacts/services-feature-request.pdf` → `.md`, treated as a feature request, not an
+> authoritative PRD). Full plan: `planning/feature-plan-2026-09-29-services-marketplace.md`.
+> Design conformance reference: `design-references/service-listing-order-room/DESIGN.md`.
+> Strategy: **extend** the existing `Product.listingType=SERVICE` + `Order`/`OrderItem` pipeline —
+> no parallel `services`/`service_orders` tables. Every behavioural change to a shared path is
+> additive or gated behind a config flag defaulting to today's behaviour. Run tasks in order via
+> `execute-feature.md` (each `[L]`/`[XL]` task requires the deep sync chain at close).
+
+**Scope reconciliation (pinch of salt — the request was written without codebase knowledge):** no
+parallel service tables; no S3 (Cloudinary is the stack); no ClamAV (deferred, documented residual
+risk); no Google Maps by default (`serviceGeoMapEnabled=false`); no WebSocket/gRPC (serverless stack
+— visibility-gated polling behind an isolated transport module); "I will…" title rule is helper text,
+not a validator; late-delivery auto-refund routes through the existing refund flow.
+
+- [x] **T1 `[M]` Option lists — admin-editable + hardened fallbacks** (deps: none) *(requested
+      modification; does not exist yet)*
+      - [x] `prisma/schema.prisma` — new `enum OptionListTier { DISPLAY FREEFORM }` + `model OptionList`
+            (`key @unique`, `tier`, `options Json`, `isActive`, `updatedBy`, timestamps,
+            `@@map("option_lists")`); `npm run db:push` + `npm run db:generate` per the DB-sync decision.
+      - [x] `lib/config/optionLists.ts` — typed `OPTION_LIST_KEYS`, `OPTION_LIST_FALLBACKS`
+            (campus, vendor/product categories, subcategories, listing types, service
+            categories/locations/rate-types/tiers, service attributes, requirement-field types,
+            service milestones, delivery zones, pickup services, positions), option-row type,
+            `resolveOptionLabel(key, value)` → `label ?? value ?? ""`.
+      - [x] `lib/services/optionLists.ts` — `getOptionList(key)`: DB → shape-validate → merge over
+            fallback → **catch → fallback → never throws**; `upsertOptionList`; cache + invalidation.
+      - [x] `lib/hooks/useOptionList.ts` + `components/ui/OptionListSelect.tsx` (explicit
+            empty-state when both DB and fallback are empty — never crashes).
+      - [x] Routes: `app/api/config/option-lists/route.ts`, `.../option-lists/[key]/route.ts`
+            (404 `OPTION_LIST_NOT_FOUND` envelope for unregistered keys),
+            `app/api/admin/option-lists/route.ts` + `[key]/route.ts` (ADMIN + PUT validation/bounds).
+      - [x] `app/(operations)/operations/option-lists/page.tsx` admin editor (DISPLAY: label /
+            reorder / hide; FREEFORM: + add/remove); register in `lib/rbac/routeConfig.ts`,
+            `lib/navigation.ts` `labelMap`, `components/layout/Sidebar.tsx` `ADMIN_LINK_ORDER` + `iconMap`.
+      - [x] Migrate select consumers to the layer (identical defaults): signup `UserInfo`/`StoreInfo`,
+            `AddressForm`, `ProfilePage`, delivery/pickup option rendering.
+      - [x] Tests: DB-down, missing row, unregistered key, empty options, unknown stored value,
+            admin PUT rejects malformed/oversized JSON. **Hard rule: server-side validation always
+            uses the code/Prisma enum key set — admins can hide a value, never inject one.**
+      - [x] `npm run audit:dead-links`; `tsc` / `lint` / `vitest` / `build` green.
+
+- [x] **T2 `[M]` Service data contract + server validation + signup persistence fix** (deps: T1)
+      - [x] `lib/schemas/service.schemas.ts` — Zod for `serviceDetails` (packages 1|3 tiers
+            BASIC/STANDARD/PREMIUM, extras, attributes, weekly availability slots, requirement
+            fields `TEXT|SELECT|FILE`, media, ≤1,200-char description) + per-step slice schemas.
+      - [x] `lib/config/serviceFulfillment.ts` — limits (title 80, package title 30 / desc 100,
+            delivery 1–90 d, revisions 0/unlimited, 5 images / 2 PDFs / 1 video, 50 MB / 60 s),
+            `SERVICE_TIER_KEYS`, `SERVICE_MILESTONES` fallback, `orderRoomPollMs` (10 000),
+            countdown warning hours (12), `serviceGeoMapEnabled`.
+      - [x] `app/api/products/route.ts` + `app/api/products/[id]/route.ts` — validate `serviceDetails`
+            when `listingType=SERVICE`; SERVICE-aware create defaults (stock → `SERVICE_UNLIMITED_STOCK`,
+            price → base package price); **verify public GET excludes `isActive=false` drafts**.
+      - [x] **Signup bug fix** — persist `serviceCategory`/`serviceLocation` (collected in
+            `StoreInfo` but currently dropped): `Vendor.serviceCategory ServiceCategory?` +
+            `Vendor.serviceLocation ServiceLocation?` columns, payload in
+            `app/signup/security-info/page.tsx`, validation + write in `app/api/auth/register/route.ts`
+            (and `convert-to-vendor`).
+      - [x] Tests: valid/invalid `serviceDetails`, service create defaults, draft hidden from public
+            list, signup persists service fields.
+
+- [x] **T3 `[L]` Service listing wizard (5 steps) + database-side drafts** (deps: T1, T2)
+      - [x] Generalise `app/signup/components/StageTracker.tsx` → `components/ui/StageTracker.tsx`
+            (`labels[]` prop, responsive `grid-cols-1 sm:grid-cols-3 lg:grid-cols-5`); keep the
+            signup path as a thin re-export (**non-breaking**).
+      - [x] `components/features/services/ServiceListingWizard.tsx` + `steps/{Basics,Packages,
+            Location,Media,Requirements}` and `ServicePackageMatrix`, `ServiceRequirementsBuilder`,
+            `ServiceAvailabilityGrid` (reuse/mount the orphaned `BookingCalendar` for slots).
+      - [x] `app/(operations)/operations/services/page.tsx` — full-page wizard at `?new` / `?edit=<id>`
+            + service listings table; register in `routeConfig.ts` / `navigation.ts` / `Sidebar.tsx`
+            (vendor **and** admin groups). Conditionally rendered behind `serviceListingEnabled`.
+      - [x] Drafts: `lib/utils/localDraft.ts` (new key, versioned) for instant recovery; each
+            validated step advances a server-side draft `Product` (`isActive=false`,
+            `serviceDetails.draftStep`); publish sets `isActive=true`, base package price, unlimited stock.
+      - [x] Uploads: extend `lib/utils/uploadConfig.ts` + `app/api/upload/route.ts` +
+            `lib/services/cloudinary.ts` with `service-doc` (PDF ×2, 5 MB) and `service-video`
+            (MP4 ×1, 50 MB, `resource_type: video`, client-side 60 s duration check); 5 images reuse
+            the existing `product` folder.
+      - [x] Step 3 conditional: rendered **only** for the PHYSICAL/on-site delivery type; geo
+            payloads rejected for digital services server-side (PRD TC-001); map preview gated by
+            `serviceGeoMapEnabled`.
+      - [x] `app/(operations)/operations/products/page.tsx` — service rows link to the wizard (no
+            duplication of CRUD); product flow untouched.
+      - [x] Tests: step validation, draft advance/restore, publish payload, TC-001 API rejection,
+            media limits, 320 px layout smoke.
+
+- [x] **T4 `[M]` Storefront, discovery & service-aware checkout** (deps: T2)
+      - [x] `components/features/services/ServiceDetailPanel.tsx` + `ServicePackagePicker.tsx` on
+            `app/products/[id]/page.tsx` — tier cards (price / delivery / revisions / extras),
+            availability, "what I need from you"; falls back to the plain product view when
+            `serviceDetails` is null (legacy listings).
+      - [x] Pass `isService`/`listingType` from `components/features/ProductsContent.tsx` into
+            `ProductCard` (currently never passed — service badge heuristic fails today).
+      - [x] Service-category filter on the live `components/features/FilterSidebar.tsx` when
+            `listingType=SERVICE` (the service panel in `ProductFiltersSidebar.tsx` is dead code —
+            either wire it or retire it).
+      - [x] `lib/store/cartStore.ts` — optional `CartItem.selectedPackage` (persisted; old carts
+            without it must still check out against `product.price`).
+      - [x] `app/checkout/page.tsx` + `app/api/orders/route.ts` — service-only carts: `deliveryFee = 0`
+            (**bug today: services are charged ₦1,500**), no delivery-address requirement, delivery
+            method collapsed to digital, notice copy updated; mixed carts keep product behaviour +
+            show an explicit notice.
+      - [x] Tests: package price carry-through, legacy cart compatibility, fee/address rules
+            (service-only vs mixed vs product), service filter + badge rendering.
+
+- [x] **T5 `[XL]` Service order lifecycle — requirements gate, fulfilment clock, revisions** (deps: T2, T4)
+      - [x] Schema: `enum OrderStatus` += `AWAITING_REQUIREMENTS`, `IN_PROGRESS`, `IN_REVIEW`
+            (Prisma + `lib/constants/index.ts` mirror); `enum NotificationType` += 6 service values;
+            `OrderItem` += `listingType ListingType @default(PRODUCT)`, `serviceConfig Json?`,
+            `requirementAnswers Json?`, `requirementsSubmittedAt DateTime?`, `deadlineAt DateTime?`,
+            `revisionsRemaining Int?`; `CommerceLifecycleConfig` += `serviceRequirementsTimeoutHours`
+            (48), `serviceAutoApproveHours` (72), `serviceCountdownWarningHours` (12),
+            `serviceSettlementCommissionEnabled` (false).
+      - [x] Compiler-forced mirrors: `lib/utils/format.ts` `formatOrderStatus`,
+            `components/ui/StatusTag.tsx` `ORDER_STATUS_COLORS`, `lib/config/notificationTemplates.ts`
+            (`Record<NotificationType,…>`), both transition maps.
+      - [x] `lib/services/serviceOrders.ts` — `orderHasServiceItems`, `orderIsServiceOnly`
+            (`serviceKind = items.every(SERVICE)` — documented single-status decision), deadline
+            computation, idempotent late detection.
+      - [x] `app/api/orders/route.ts` — seed `AWAITING_REQUIREMENTS` for paid service-only orders;
+            snapshot `serviceConfig` (purchased tier, price, deliveryDays, revisions, extras) and
+            `listingType` onto each `OrderItem`.
+      - [x] `app/api/orders/[id]/requirements/route.ts` (buyer) — validate required fields incl.
+            FILE attachments → persist answers → `AWAITING_REQUIREMENTS → IN_PROGRESS`,
+            `deadlineAt = now + deliveryDays·24h` → notify seller.
+      - [x] `app/api/orders/[id]/status/route.ts` — service branch: seller submit → `IN_REVIEW` +
+            `ensurePayoutHoldOnDelivery` (escrow ledger entry) + `LATE` flag when past deadline;
+            mirror in the client `STATUS_TRANSITIONS` (**keep the two maps in lockstep** — add a
+            test asserting they agree).
+      - [x] Revision action — `IN_REVIEW → IN_PROGRESS`, `revisionsRemaining -= 1`, re-arm deadline
+            (PRD TC-003).
+      - [x] `app/api/orders/[id]/confirm-delivery/route.ts` — accept service orders in `IN_REVIEW`:
+            transition to `DELIVERED` + release in one transaction; `app/api/orders/auto-confirm/route.ts`
+            uses `serviceAutoApproveHours` for service orders (idempotent, existing cron auth pattern).
+      - [x] `app/api/orders/service-fulfillment/route.ts` (cron sibling of auto-confirm) — 48 h
+            requirements timeout (`REQUIREMENTS_TIMEOUT` history + penalty-free cancel eligibility,
+            confirm the cancel path writes no negative reputation), late flags, service auto-approve.
+      - [x] Tests: full transition matrix (service + product unchanged), TC-001/002/003, deadline math,
+            idempotent replay of requirements/revision/release/late/timeout, legacy `null`
+            `revisionsRemaining`.
+
+- [x] **T6 `[L]` Order room UI** (deps: T5)
+      - [x] `lib/services/orderRoomTransport.ts` — visibility-gated polling (default 10 s, config),
+            isolated so WS/SSE can replace it later; documented decision (no WebSocket infra exists).
+      - [x] `components/features/services/ServiceOrderRoom.tsx` composed of `ServiceTimeline`
+            (milestones from the `serviceMilestones` option list), `ServiceRequirementsForm` (buyer),
+            `ServiceCountdown` (`--ds-status-error*` below threshold, always paired with text),
+            `OrderRoomChat` (`OrderMessage` model + `app/api/orders/[id]/messages` GET/POST,
+            participants only, attachments via a new `order-attachment` upload folder with
+            order-membership authorization), `ServiceDeliveryModal` (seller → `IN_REVIEW`),
+            `ServiceRevisionPanel` (buyer), approve CTA → existing confirm-delivery.
+      - [x] Mount in `app/orders/[id]/page.tsx` (shared buyer/vendor/admin page) gated on service
+            items; add service statuses to the operations orders table/filters.
+      - [x] `prisma/schema.prisma` — `model OrderMessage` (orderId FK + index, sender, body,
+            `attachments Json?`).
+      - [x] Tests: timeline states, requirements gating, countdown thresholds, chat auth (non-participant
+            rejected), delivery CTA visibility (seller-only), revision counter.
+
+- [x] **T7 `[M]` Settlement commission + service emails/notifications** (deps: T5)
+      - [x] `lib/services/orderLifecycle.ts` — optional commission split inside
+            `releaseOrderSettlement` behind `serviceSettlementCommissionEnabled` (default false →
+            byte-identical current behaviour): `commission = gross × rate` (vendor rate, falling back
+            to `CATEGORY_COMMISSION_DEFAULTS.SERVICES`), vendor credited `gross − commission`,
+            `TransactionType.COMMISSION` audit transaction with `metadata` (rate, gross, net) —
+            the first ever write of that enum value.
+      - [x] Admin UI: the four service lifecycle knobs in the existing **Service & Booking Settings**
+            section of `app/(operations)/operations/settings/page.tsx` via
+            `app/api/admin/commerce-config/route.ts`.
+      - [x] Notifications/emails: 6 `NOTIFICATION_TEMPLATE_CONFIG` entries + matching
+            `DEFAULT_EMAIL_TEMPLATES` keys; route through `dispatchNotification` gated by the
+            `orderUpdates` preference; add subject-override support to `sendNotificationEmail`
+            (mirroring `sendBugResolvedEmail`); dedicated React template only if `NotificationEmail`
+            cannot express the "Accept & Release" CTA.
+      - [x] Tests: commission math on/off, legacy no-flag release unchanged, template-completeness
+            (extend `lib/emails/__tests__/order-templates.test.tsx`), order-email routing.
+
+- [x] **T8 `[S]` Feature flag gating, docs sync, QA gate** (deps: T3–T7)
+      - [x] `serviceListingEnabled` (`lib/config/features.ts`) hides nav entry, wizard and storefront
+            panel when false while leaving existing service-flagged products readable.
+      - [x] Run the full QA gate: `npx prisma validate` → `npm run db:push` → `npm run db:generate` →
+            `npx tsc --noEmit` → `npm run lint` → `npx vitest run` → `npm run build` →
+            `npm run audit:dead-links`.
+      - [x] Deep sync (`update-ai-system.md`): `system-architecture.md` (new modules + Configuration
+            Points rows), `project-context.md` (service providers; deferred items → Out of Scope),
+            `memory/project-decisions.md` (extend-not-parallel-tables, polling-over-WebSocket,
+            option-list tiers with immutable enum keys, `serviceKind`, flag-gated commission),
+            `index/repo-map.md`, `index/dependency-graph.md`, `summaries/dev-history.md`.
+
+Notes: `design-system.md` must **not** be edited by agents — "multi-step wizard / StepTracker" is
+flagged only as a promotion candidate inside `design-references/service-listing-order-room/DESIGN.md`
+for a human to decide.
 
 ---
 

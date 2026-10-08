@@ -9,7 +9,9 @@ import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet, cacheInvalidatePattern } from '@/lib/cache/redis';
 import { productListKey } from '@/lib/cache/keys';
-import { UserRole } from '@/lib/constants';
+import { UserRole, SERVICE_UNLIMITED_STOCK } from '@/lib/constants';
+import { SERVICE_LIMITS } from '@/lib/config/serviceFulfillment';
+import { baseServicePrice, serviceDetailsSchema } from '@/lib/schemas/service.schemas';
 import type { Prisma } from '../../../prisma/generated/client';
 
 const isProvided = (value: unknown) => value !== null && value !== undefined && value !== '';
@@ -29,15 +31,45 @@ export async function GET(req: NextRequest) {
         const listingType = searchParams.get('listingType');
         const minPrice = searchParams.get('minPrice');
         const maxPrice = searchParams.get('maxPrice');
+        const includeInactive = searchParams.get('includeInactive') === 'true';
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
+        // Public list default: active rows only, so vendor drafts (service
+        // listings saved from the wizard, unpublished products) never leak.
+        let effectiveVendorId = vendorId;
+        let effectiveIsActive: boolean | undefined =
+            isActive === null || isActive === undefined || isActive === ''
+                ? true
+                : isActive === 'true';
+
+        if (includeInactive) {
+            const user = await getCurrentUser();
+            if (!user || (user.role !== UserRole.VENDOR && user.role !== UserRole.ADMIN)) {
+                return NextResponse.json(
+                    { error: 'Forbidden', code: 'INCLUDE_INACTIVE_FORBIDDEN' },
+                    { status: 403 }
+                );
+            }
+            if (user.role === UserRole.VENDOR) {
+                const vendor = await prismaAdapter.vendorDb.findByUserId(user.userId);
+                if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 });
+                if (effectiveVendorId && effectiveVendorId !== vendor.id) {
+                    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+                }
+                effectiveVendorId = vendor.id;
+            }
+            effectiveIsActive = undefined;
+        }
+
         // Build cache key from filters
-        const filterHash = JSON.stringify({ category, vendorId, isActive, isFeatured, search, campus, listingType, minPrice, maxPrice, page, limit });
+        const filterHash = JSON.stringify({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured, search, campus, listingType, minPrice, maxPrice, page, limit });
         const cacheKey = productListKey(filterHash);
-        const cached = await cacheGet<{ products: unknown[]; total: number }>(cacheKey);
-        if (cached) {
-            return NextResponse.json({ success: true, products: cached.products, pagination: { total: cached.total, page, limit, totalPages: Math.ceil(cached.total / limit) } });
+        if (!includeInactive) {
+            const cached = await cacheGet<{ products: unknown[]; total: number }>(cacheKey);
+            if (cached) {
+                return NextResponse.json({ success: true, products: cached.products, pagination: { total: cached.total, page, limit, totalPages: Math.ceil(cached.total / limit) } });
+            }
         }
 
         const where: Prisma.ProductWhereInput = {};
@@ -63,13 +95,15 @@ export async function GET(req: NextRequest) {
         // campus is included in filterHash for cache invalidation only.
 
         // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters
-        const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;
+        const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;
 
         // Normalize result: mock adapter returns pagination object when page/limit provided
         const products = Array.isArray(productsResult) ? productsResult : productsResult.data;
-        const total = await prismaAdapter.productDb.count({ category, vendorId, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined });
+        const total = await prismaAdapter.productDb.count({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined });
 
-        await cacheSet(cacheKey, { products, total }, 300);
+        if (!includeInactive) {
+            await cacheSet(cacheKey, { products, total }, 300);
+        }
 
         return NextResponse.json({
             success: true,
@@ -96,8 +130,43 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { name, description, category, price, compareAtPrice, discount, stock, images, mainImage, variants, tags, isFeatured, listingType, serviceDetails } = body;
 
-        if (!name || !description || !category || price === undefined || !mainImage) {
-            return NextResponse.json({ error: 'Missing required fields: name, description, category, price, mainImage' }, { status: 400 });
+        const resolvedListingType = listingType === 'SERVICE' ? 'SERVICE' : 'PRODUCT';
+
+        // Service listings carry a typed serviceDetails payload — validate before
+        // anything else so its base package price can act as the default price.
+        let parsedServiceDetails: unknown = null;
+        if (resolvedListingType === 'SERVICE' && serviceDetails !== undefined && serviceDetails !== null) {
+            const parsed = serviceDetailsSchema.safeParse(serviceDetails);
+            if (!parsed.success) {
+                return NextResponse.json(
+                    {
+                        error: parsed.error.issues[0]?.message ?? 'Invalid service details',
+                        code: 'SERVICE_DETAILS_INVALID',
+                        issues: parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+                    },
+                    { status: 400 }
+                );
+            }
+            parsedServiceDetails = parsed.data;
+        }
+
+        const missingFields = [
+            ...(!name ? ['name'] : []),
+            ...(!description ? ['description'] : []),
+            ...(!category ? ['category'] : []),
+            // Service listings derive their price from the base package when omitted.
+            ...(resolvedListingType !== 'SERVICE' && price === undefined ? ['price'] : []),
+            ...(!mainImage ? ['mainImage'] : []),
+        ];
+        if (missingFields.length > 0) {
+            return NextResponse.json({ error: `Missing required fields: ${missingFields.join(', ')}` }, { status: 400 });
+        }
+
+        if (resolvedListingType === 'SERVICE' && String(name).trim().length > SERVICE_LIMITS.titleMax) {
+            return NextResponse.json(
+                { error: `Service title must be at most ${SERVICE_LIMITS.titleMax} characters`, code: 'SERVICE_TITLE_TOO_LONG' },
+                { status: 400 }
+            );
         }
 
         // For vendors, find their vendor profile via unified data layer
@@ -116,7 +185,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
         }
 
-        const numericPrice = Number(price);
+        const numericPrice = isProvided(price)
+            ? Number(price)
+            : resolvedListingType === 'SERVICE'
+                ? baseServicePrice(parsedServiceDetails) ?? Number.NaN
+                : Number.NaN;
         if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
             return NextResponse.json({ error: 'Price must be a valid positive number' }, { status: 400 });
         }
@@ -137,7 +210,9 @@ export async function POST(req: NextRequest) {
 
         const numericStock = isProvided(stock)
             ? Number(stock)
-            : 0;
+            : resolvedListingType === 'SERVICE'
+                ? SERVICE_UNLIMITED_STOCK
+                : 0;
         if (!Number.isFinite(numericStock) || numericStock < 0) {
             return NextResponse.json({ error: 'Stock must be a valid non-negative number' }, { status: 400 });
         }
@@ -157,8 +232,8 @@ export async function POST(req: NextRequest) {
             variants: Array.isArray(variants) ? variants : variants ?? null,
             tags: tags || [],
             isFeatured: isFeatured || false,
-            listingType: listingType || 'PRODUCT',
-            serviceDetails: serviceDetails || null,
+            listingType: resolvedListingType,
+            serviceDetails: parsedServiceDetails,
         });
 
         // Increment vendor product count (use vendor object if available)

@@ -14,6 +14,12 @@ import { buildProductWhatsAppMessage } from "@/lib/utils/whatsappIntent";
 import ProductDetailActions from "@/components/features/ProductDetailActions";
 import ProductImageGallery from "@/components/features/ProductImageGallery";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import { serviceListingEnabled } from "@/lib/config/features";
+import {
+  ServiceDetailPanel,
+  minServicePackagePrice,
+  parseServiceDetails,
+} from "@/components/features/services/ServiceDetailPanel";
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -49,6 +55,8 @@ type ProductApiResponse = {
       totalOrders?: number | null;
     } | null;
     reviews?: Array<{ rating?: number | null }>;
+    /** Raw `Product.serviceDetails` JSON (services only). */
+    serviceDetails?: unknown;
   };
 };
 
@@ -205,6 +213,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const discountedPrice =
     productDiscount > 0 ? productPrice - (productPrice * productDiscount) / 100 : productPrice;
 
+  const parsedServiceDetails =
+    product.listingType === "SERVICE" ? parseServiceDetails(product.serviceDetails) : null;
+  const serviceView =
+    serviceListingEnabled &&
+    parsedServiceDetails !== null &&
+    (parsedServiceDetails.packages?.length ?? 0) > 0;
+  const serviceFromPrice =
+    serviceView && parsedServiceDetails ? minServicePackagePrice(parsedServiceDetails) : null;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid gap-8 lg:grid-cols-2">
@@ -250,37 +267,54 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
 
           <div className="mt-5">
+            {serviceView ? (
+              <span className="text-xl text-ds-text-secondary">From </span>
+            ) : null}
             <span className="text-3xl font-bold text-ds-text-brand">
-              {formatCurrency(discountedPrice)}
+              {formatCurrency(serviceView ? (serviceFromPrice ?? productPrice) : discountedPrice)}
             </span>
-            {productDiscount > 0 ? (
+            {!serviceView && productDiscount > 0 ? (
               <span className="ml-2 text-sm text-ds-text-tertiary line-through">
                 {formatCurrency(productPrice)}
               </span>
             ) : null}
           </div>
 
-          <ProductDetailActions
-            id={product.id}
-            name={productName}
-            price={productPrice}
-            discount={productDiscount}
-            images={product.images ?? undefined}
-            vendorId={productVendorId}
-            vendorName={vendorName}
-            stock={productStock}
-            category={product.category ?? null}
-            variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
-          />
+          {serviceView && parsedServiceDetails ? (
+            <ServiceDetailPanel
+              productId={product.id}
+              name={productName}
+              price={productPrice}
+              images={product.images ?? undefined}
+              vendorId={productVendorId}
+              vendorName={vendorName}
+              details={parsedServiceDetails}
+            />
+          ) : (
+            <ProductDetailActions
+              id={product.id}
+              name={productName}
+              price={productPrice}
+              discount={productDiscount}
+              images={product.images ?? undefined}
+              vendorId={productVendorId}
+              vendorName={vendorName}
+              stock={productStock}
+              category={product.category ?? null}
+              variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
+            />
+          )}
 
           <div className="mt-4 max-h-[320px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin lg:max-h-[360px]">
             <h3 className="mb-2 text-sm font-semibold text-ds-text-primary">Description</h3>
             <MarkdownRenderer content={product.description || "No description available for this product yet."} />
           </div>
 
-          <p className="mt-4 text-sm text-ds-text-secondary">
-            Stock: {productStock > 0 ? productStock : "Out of stock"}
-          </p>
+          {!serviceView ? (
+            <p className="mt-4 text-sm text-ds-text-secondary">
+              Stock: {productStock > 0 ? productStock : "Out of stock"}
+            </p>
+          ) : null}
           {!orderingAllowed && (
             <p
               role="alert"

@@ -66,6 +66,10 @@ interface CommerceLifecycleConfig {
   withdrawalSettlementHoldHours: number;
   minOrderAmount: number;
   maxBookingAdvanceDays: number;
+  serviceRequirementsTimeoutHours: number;
+  serviceAutoApproveHours: number;
+  serviceCountdownWarningHours: number;
+  serviceSettlementCommissionEnabled: boolean;
 }
 
 const initialTiers: CommissionTier[] = [
@@ -89,6 +93,35 @@ const initialCategoryRates: CategoryRate[] = VENDOR_CATEGORIES.map((vc) => ({
   rate: (CATEGORY_COMMISSION_DEFAULTS[vc.value] ?? COMMISSION_RATES.DEFAULT) * 100,
 }));
 
+type ServiceHourSettingKey =
+  | "serviceRequirementsTimeoutHours"
+  | "serviceAutoApproveHours"
+  | "serviceCountdownWarningHours";
+
+const serviceHourSettings: {
+  key: ServiceHourSettingKey;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: "serviceRequirementsTimeoutHours",
+    label: "Requirements Submission Timeout",
+    description: "Hours a buyer has to submit service requirements before the order times out.",
+  },
+  {
+    key: "serviceAutoApproveHours",
+    label: "Service Auto-Approve Window",
+    description:
+      "Hours after a service delivery is submitted before it is accepted automatically.",
+  },
+  {
+    key: "serviceCountdownWarningHours",
+    label: "Countdown Warning Threshold",
+    description:
+      "Hours before a service deadline when the order room surfaces a countdown warning.",
+  },
+];
+
 export default function OperationsSettingsPage() {
   const toFiniteNumber = (value: unknown, fallback: number) => {
     const parsed = Number(value);
@@ -110,6 +143,10 @@ export default function OperationsSettingsPage() {
     withdrawalSettlementHoldHours: PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS,
     minOrderAmount: PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT,
     maxBookingAdvanceDays: PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS,
+    serviceRequirementsTimeoutHours: 48,
+    serviceAutoApproveHours: 72,
+    serviceCountdownWarningHours: 12,
+    serviceSettlementCommissionEnabled: false,
   });
   const [commerceConfigLoading, setCommerceConfigLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -184,6 +221,18 @@ export default function OperationsSettingsPage() {
             maxBookingAdvanceDays: toFiniteNumber(
               data.config.maxBookingAdvanceDays,
               PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
+            ),
+            serviceRequirementsTimeoutHours: toFiniteNumber(
+              data.config.serviceRequirementsTimeoutHours,
+              48
+            ),
+            serviceAutoApproveHours: toFiniteNumber(data.config.serviceAutoApproveHours, 72),
+            serviceCountdownWarningHours: toFiniteNumber(
+              data.config.serviceCountdownWarningHours,
+              12
+            ),
+            serviceSettlementCommissionEnabled: Boolean(
+              data.config.serviceSettlementCommissionEnabled
             ),
           });
         }
@@ -355,6 +404,11 @@ export default function OperationsSettingsPage() {
           withdrawalSettlementHoldHours: commerceLifecycleConfig.withdrawalSettlementHoldHours,
           minOrderAmount: commerceLifecycleConfig.minOrderAmount,
           maxBookingAdvanceDays: commerceLifecycleConfig.maxBookingAdvanceDays,
+          serviceRequirementsTimeoutHours: commerceLifecycleConfig.serviceRequirementsTimeoutHours,
+          serviceAutoApproveHours: commerceLifecycleConfig.serviceAutoApproveHours,
+          serviceCountdownWarningHours: commerceLifecycleConfig.serviceCountdownWarningHours,
+          serviceSettlementCommissionEnabled:
+            commerceLifecycleConfig.serviceSettlementCommissionEnabled,
         }),
       });
 
@@ -379,6 +433,18 @@ export default function OperationsSettingsPage() {
         maxBookingAdvanceDays: toFiniteNumber(
           commerceData.config.maxBookingAdvanceDays,
           PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
+        ),
+        serviceRequirementsTimeoutHours: toFiniteNumber(
+          commerceData.config.serviceRequirementsTimeoutHours,
+          48
+        ),
+        serviceAutoApproveHours: toFiniteNumber(commerceData.config.serviceAutoApproveHours, 72),
+        serviceCountdownWarningHours: toFiniteNumber(
+          commerceData.config.serviceCountdownWarningHours,
+          12
+        ),
+        serviceSettlementCommissionEnabled: Boolean(
+          commerceData.config.serviceSettlementCommissionEnabled
         ),
       });
 
@@ -839,6 +905,58 @@ export default function OperationsSettingsPage() {
               disabled={commerceConfigLoading || isSaving}
               suffix="days"
               className="!w-32"
+            />
+          </div>
+
+          {serviceHourSettings.map((field) => (
+            <div
+              key={field.key}
+              className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <div className="font-medium text-ds-text-primary">{field.label}</div>
+                <div className="text-xs text-ds-text-secondary">{field.description}</div>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={720}
+                value={commerceLifecycleConfig[field.key]}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 720) {
+                    setCommerceLifecycleConfig((prev) => ({
+                      ...prev,
+                      [field.key]: val,
+                    }));
+                  }
+                }}
+                disabled={commerceConfigLoading || isSaving}
+                suffix="hours"
+                className="!w-36"
+              />
+            </div>
+          ))}
+
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+            <div>
+              <div className="font-medium text-ds-text-primary">
+                Settlement Commission on Release
+              </div>
+              <div className="text-xs text-ds-text-secondary">
+                When enabled, releasing a settlement withholds the vendor commission rate and
+                records a commission audit transaction. Off keeps the full amount with the vendor.
+              </div>
+            </div>
+            <Switch
+              checked={commerceLifecycleConfig.serviceSettlementCommissionEnabled}
+              disabled={commerceConfigLoading || isSaving}
+              onChange={(checked) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  serviceSettlementCommissionEnabled: checked,
+                }))
+              }
             />
           </div>
         </div>

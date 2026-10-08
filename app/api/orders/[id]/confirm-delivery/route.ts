@@ -7,7 +7,12 @@ import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { getRateLimitResponse, rateLimitByUser } from '@/lib/middleware/rate-limit';
 import { dispatchNotification } from '@/lib/services/notifications';
-import { releaseOrderSettlement } from '@/lib/services/orderLifecycle';
+import {
+    appendStatusHistoryEntry,
+    parseStatusHistory,
+    releaseOrderSettlement,
+} from '@/lib/services/orderLifecycle';
+import { isServiceItem, orderIsServiceOnly } from '@/lib/services/serviceOrders';
 
 interface RouteContext {
     params: Promise<{ id: string }>;
@@ -27,9 +32,13 @@ export async function POST(_req: NextRequest, context: RouteContext) {
             where: { id },
             select: {
                 id: true,
+                orderNumber: true,
                 status: true,
                 paymentStatus: true,
                 buyerId: true,
+                statusHistory: true,
+                completedAt: true,
+                items: { select: { listingType: true } },
             },
         });
 
@@ -42,7 +51,12 @@ export async function POST(_req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        if (order.status !== OrderStatus.DELIVERED) {
+        // Service approval: an in-review service order is approved straight to
+        // DELIVERED (transition + release happen in one transaction below).
+        const approveServiceInReview =
+            order.status === OrderStatus.IN_REVIEW && orderIsServiceOnly(order.items);
+
+        if (order.status !== OrderStatus.DELIVERED && !approveServiceInReview) {
             return NextResponse.json(
                 { error: 'Order must be delivered before confirmation.' },
                 { status: 400 }
@@ -56,13 +70,32 @@ export async function POST(_req: NextRequest, context: RouteContext) {
             );
         }
 
-        const releaseResult = await prisma.$transaction((tx) =>
-            releaseOrderSettlement(tx, {
+        const isServiceOrder = order.items.some(isServiceItem);
+
+        const releaseResult = await prisma.$transaction(async (tx) => {
+            if (approveServiceInReview) {
+                const history = parseStatusHistory(order.statusHistory as Prisma.JsonValue);
+                const nextHistory = appendStatusHistoryEntry(
+                    history,
+                    OrderStatus.DELIVERED,
+                    user.userId,
+                    'Buyer approved the deliverable.',
+                );
+                await tx.order.update({
+                    where: { id },
+                    data: {
+                        status: OrderStatus.DELIVERED,
+                        statusHistory: nextHistory as Prisma.InputJsonValue,
+                        completedAt: order.completedAt ?? new Date(),
+                    },
+                });
+            }
+            return releaseOrderSettlement(tx, {
                 orderId: id,
                 updatedBy: user.userId,
                 autoConfirmed: false,
-            })
-        );
+            });
+        });
 
         if (releaseResult.state === 'not_found') {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -102,8 +135,8 @@ export async function POST(_req: NextRequest, context: RouteContext) {
                 }),
                 dispatchNotification({
                     userId: releaseResult.vendorUserId as string,
-                    type: 'PAYMENT_SUCCESS',
-                    title: 'Settlement Released',
+                    type: isServiceOrder ? 'SERVICE_RELEASED' : 'PAYMENT_SUCCESS',
+                    title: isServiceOrder ? 'Service payment released' : 'Settlement Released',
                     message: `Settlement released for order ${releaseResult.orderNumber}.`,
                     link: '/wallet',
                     emailSubject: `Settlement released: ${releaseResult.orderNumber}`,

@@ -5,6 +5,7 @@ import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { LISTING_TYPES } from "@/lib/constants";
+import { useOptionList } from "@/lib/hooks/useOptionList";
 
 export interface FilterOptions {
   categories?: string[];
@@ -14,6 +15,8 @@ export interface FilterOptions {
   vendors?: string[];
   locations?: string[];
   status?: string[];
+  /** Service sub-filter: `serviceDetails.serviceCategory` values. */
+  serviceCategories?: string[];
 }
 
 export interface FilterSidebarProps {
@@ -36,6 +39,15 @@ export function FilterSidebar({
   className,
 }: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const serviceCategoryOptions = useOptionList("serviceCategories");
+
+  const handleServiceCategoryToggle = (categoryId: string) => {
+    const current = filters.serviceCategories || [];
+    const next = current.includes(categoryId)
+      ? current.filter((entry) => entry !== categoryId)
+      : [...current, categoryId];
+    onFilterChange({ ...filters, serviceCategories: next });
+  };
 
   const handleCategoryToggle = (categoryId: string) => {
     const currentCategories = filters.categories || [];
@@ -125,6 +137,30 @@ export function FilterSidebar({
           ))}
         </div>
       </div>
+
+      {/* Service categories — only meaningful while browsing services */}
+      {filters.listingType === "SERVICE" && (
+        <div>
+          <h4 className="mb-3 font-medium text-ds-text-primary">Service Category</h4>
+          {serviceCategoryOptions.visible.length === 0 ? (
+            <p className="text-sm text-ds-text-tertiary">No service categories available yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {serviceCategoryOptions.visible.map((option) => (
+                <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.serviceCategories?.includes(option.value) || false}
+                    onChange={() => handleServiceCategoryToggle(option.value)}
+                    className="h-4 w-4 rounded-ds-xs border-ds-border-base text-ds-text-brand focus:ring-2 focus:ring-ds-focus-ring/20"
+                  />
+                  <span className="text-sm text-ds-text-secondary">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Categories */}
       {categories.length > 0 && (
