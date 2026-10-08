@@ -56,6 +56,8 @@
 
 - **Help Center Config Fallbacks (Session 100):** `lib/config/siteContent.ts` exports `helpArticleFallbacks` for `/help/{orders,payments,locations,account,products,contact}`. Each fallback carries buyer+vendor directives (orders lifecycle & proof PENDING verification, payments wallet/Paystack amount validation, locations/campus pickup services, account 24h verification & session hygiene, products variants/reviews/tracking, contact static channels + WhatsApp continuation). `app/help/[slug]/page.tsx` renders `helpArticleFallbacks[slug]` when `PublicContent` `help-{slug}` is absent; admin-published content overrides automatically.
 
+- **Services Marketplace (Session 101–102):** extends `Product.listingType=SERVICE` + `Order`/`OrderItem` (no parallel tables). Vendor authors via `/operations/services` 5-step wizard (`ServiceListingWizard` + `steps/*`, `StageTracker` generalised to `components/ui/`); drafts persist locally (`localDraft`) + server-side (`isActive=false`, `serviceDetails.draftStep`); publish sets `isActive=true`, base-package price, unlimited stock. Storefront `ServiceDetailPanel` + `ServicePackagePicker` on `app/products/[id]`; `CartItem.selectedPackage` (legacy carts fall back to `product.price`); service-only carts get `deliveryFee=0`, no address requirement. Lifecycle: `AWAITING_REQUIREMENTS → IN_PROGRESS → IN_REVIEW → DELIVERED` with buyer requirements route, seller delivery modal, revision decrement + deadline re-arm, `confirm-delivery` extended, `service-fulfillment` cron (48h requirements timeout, late flags, 72h auto-approve). Order room (`ServiceOrderRoom`: timeline, requirements form, countdown, `OrderRoomChat` over `OrderMessage` + `messages` API + visibility-gated polling transport `orderRoomTransport.ts`, delivery modal, revision panel). Settlement commission inside `releaseOrderSettlement` behind `serviceSettlementCommissionEnabled=false` (writes first `COMMISSION` txn). Six service `NotificationType`s via `dispatchNotification`. Option lists: `OptionList` model (DISPLAY label/order/hide-only with immutable enum keys vs FREEFORM full CRUD), `getOptionList` never throws, `OptionListSelect` + `useOptionList`, config + admin APIs, `/operations/option-lists` editor. Kill switch `serviceListingEnabled` (default true) hides nav entry, wizard, storefront panel while keeping service-flagged products readable.
+
 ---
 
 ## Deployment Considerations
@@ -100,3 +102,10 @@ Known constraint: there is no in-repo CI/CD rollback script; rollback relies on 
 | Config Key | Purpose | Location | Default |
 |-----------|---------|----------|---------|
 | `ENABLE_DESIGN_VIEWER` | Mounts the dev-only design-asset viewer at `/__design/*`; must be false in production builds | .env | false |
+| `SERVICE_LISTING_ENABLED` | Kill switch for the service marketplace surface (nav entry, wizard, storefront panel) | .env / `lib/config/features.ts` | true |
+| `serviceRequirementsTimeoutHours` | Hours before an awaiting-requirements service order times out (seller penalty-free cancel) | `CommerceLifecycleConfig` (admin settings) | 48 |
+| `serviceAutoApproveHours` | Hours before an `IN_REVIEW` service order auto-approves + releases | `CommerceLifecycleConfig` | 72 |
+| `serviceCountdownWarningHours` | Countdown turns error-coloured below this threshold | `CommerceLifecycleConfig` | 12 |
+| `serviceSettlementCommissionEnabled` | Writes `COMMISSION` txn and pays vendor net at release (off = byte-identical current behaviour) | `CommerceLifecycleConfig` | false |
+| `orderRoomPollMs` | Order-room chat/timeline poll interval | `lib/config/serviceFulfillment.ts` | 10000 |
+| `serviceGeoMapEnabled` | Mounts the service geofence map preview | .env | false |
