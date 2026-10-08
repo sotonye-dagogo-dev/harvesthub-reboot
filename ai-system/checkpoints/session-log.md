@@ -5223,3 +5223,32 @@ was also invoked for the design conformance reference.
 - No architecture change made — the required `update-ai-system.md` deep sync is deferred to task T8
   at execution time, per `execute-feature.md` Step 5.
 
+
+---
+
+## Session 103 — Services Marketplace Round-Up + Final QA Gate — 2026-10-08
+
+**Goal:**
+Per `resume-session.md` + the "round up the final session" directive: reconcile checkpoint drift (in-progress claimed T3-partial/T4-pending vs repo reality), verify any leftover T8 work (flag gating, QA gate, docs sync), fix small leftovers, and close the session cleanly.
+
+**Drift check (`sync-context.md` equivalent):**
+- `git log`: 3 unmerged commits since base (`583b8ac` plan, `ad9c6c9` option-lists/wizard/storefront, `9531fed` lifecycle/order-room/commission) — all services work, none on main yet.
+- `in-progress.md` stale: claimed T3 PARTIAL with `wizardModel.ts:407` type error and T4–T8 pending. Reality: wizard + 5 steps + services page + storefront + lifecycle + order room + commission all present; `tsc` clean (error gone); `serviceListingEnabled` gating present in Sidebar, services page, product detail.
+- `task-queue.md` T1–T7 correctly `[x]`; only T8 `[ ]` was stale — now closed.
+- Verdict: minor-to-major doc drift, no code drift. Reconciled via docs (no architecture change), no `update-ai-system.md` re-plan needed.
+
+**Completed:**
+- Fixed last lint warning: removed unused `ServiceWizardValues` import in `components/features/services/steps/Media.tsx`.
+- Verified T8 gating in code (sidebar filter, DisabledNotice, storefront gate) and marked T8 done in `planning/task-queue.md`.
+- Full QA gate: `npx tsc --noEmit` ✅; `npm run lint` ✅ (pre-existing warnings only); `npx vitest run` ✅ 132 files / 729 passed / 32 skipped; `npm run build` ✅; `npm run audit:dead-links` ✅.
+- Docs sync: `system-architecture.md` (services bullet + 7 config rows), `memory/project-decisions.md` (services decision), `summaries/dev-history.md` (Session 103), `planning/task-queue.md` (T8 + last-synced), cleared `checkpoints/in-progress.md`.
+
+**Files Modified:**
+- `components/features/services/steps/Media.tsx`
+- `ai-system/planning/task-queue.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/summaries/dev-history.md`, `ai-system/checkpoints/session-log.md`, `ai-system/checkpoints/in-progress.md`
+
+**Next Task:**
+- Merge PR; on target envs run `db push` + migration baselining for the new services schema deltas (Session 98 pattern). Human call on wizard/StepTracker design-system promotion. Stale-asset orphan cleanup remains backlog.
+
+**Notes / Blockers:**
+- None blocking. Residual non-blocking risks: no antivirus, client-only video-duration check, mixed-cart single-status, orphan cleanup backlog.

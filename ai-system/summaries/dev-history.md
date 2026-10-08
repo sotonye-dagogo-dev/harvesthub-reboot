@@ -2604,3 +2604,22 @@ Executed the tightening directive: switched favicon to the MyHarvestHub logo wit
 **Next Sprint Focus:**
 - Consider adding a markdown preview toggle in the operations product form and extending structured-blogs TEXT blocks to optionally parse markdown (currently TEXT uses escaped + `<br />`).
 - Monitor Cloudinary upload orphan cleanup backlog and help-center sandbox/playground content polish.
+
+## 2026-10-08 — Services Marketplace Round-Up + Final QA Gate (Session 103)
+
+**Summary:**
+Rounded up the Services (Service-Marketplace) enablement (T1–T8): reconciled stale `checkpoints/in-progress.md` (claimed T3 partial / T4 pending) against actual repo state (wizard, storefront, lifecycle, order room, commission all landed in commits `ad9c6c9` + `9531fed`), verified `serviceListingEnabled` gating (sidebar filter, services-page DisabledNotice, storefront panel gate), fixed the last lint warning (unused `ServiceWizardValues` in `steps/Media.tsx`), and ran the full QA gate green.
+
+**Completed:**
+- `components/features/services/steps/Media.tsx` — removed unused `ServiceWizardValues` import (last lint warning).
+- Verified gating: `components/layout/Sidebar.tsx:82` filters `/operations/services`, `app/(operations)/operations/services/page.tsx:294` DisabledNotice, `app/products/[id]/page.tsx:219` panel gate.
+- QA gate: `npx tsc --noEmit` ✅ exit 0; `npm run lint` ✅ (pre-existing warnings only); `npx vitest run` ✅ 132 files / 729 passed / 32 skipped; `npm run build` ✅; `npm run audit:dead-links` ✅ (sidebar OK).
+- Docs: `planning/task-queue.md` T8 marked done; `system-architecture.md` services bullet + 7 config-point rows; `memory/project-decisions.md` services extension/polling/tier/serviceKind/commission decision; this dev-history entry; `checkpoints/session-log.md` Session 103; `checkpoints/in-progress.md` cleared.
+
+**Key Changes:**
+- No behaviour change beyond the lint fix; this session is reconciliation + verification + docs close-out.
+- Residual risks carried forward (documented, non-blocking): no antivirus scanning, video duration client-verified only, mixed-cart single-status limitation, stale Cloudinary orphan cleanup backlog.
+
+**Next Sprint Focus:**
+- DB: new schema deltas (`OptionList`, `OrderMessage`, `OrderStatus` +3, `NotificationType` +6, `OrderItem` +6 cols, `Vendor` +2 cols, `CommerceLifecycleConfig` +4 cols) need `db push` + migration baselining on target envs per the DB-sync decision (Session 98 pattern).
+- Human decision: promote multi-step wizard/StepTracker to design-system (flagged candidate only).

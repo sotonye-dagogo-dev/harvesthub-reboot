@@ -10,7 +10,7 @@ import {
 } from "@/lib/utils/uploadConfig";
 import { SERVICE_LIMITS } from "@/lib/config/serviceFulfillment";
 import { validateServiceVideoFile } from "../videoValidation";
-import { galleryImages, type ServiceWizardValues } from "../wizardModel";
+import { galleryImages } from "../wizardModel";
 import { errorFor, Field, StepForm, StepSection, type StepComponentProps } from "./stepShared";
 
 const BYTES_PER_MB = 1024 * 1024;

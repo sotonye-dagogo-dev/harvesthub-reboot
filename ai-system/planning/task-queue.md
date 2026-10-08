@@ -3,7 +3,7 @@
 > **Metadata**
 > - last-updated-by: update-ai-system.md (2026-08-20)
 > - last-verified-against-code: 2026-08-20
-> - last-synced: 2026-09-29 — planning-only mutation (plan-feature: services feature queue appended, see `checkpoints/session-log.md`); last code-synced 2026-08-20 — Session 99 (checkout proof-of-payment enforcement). All task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - last-synced: 2026-10-08 — round-up (resume-session Session 103: T8 closed, in-progress cleared, see `checkpoints/session-log.md`); last code-synced 2026-10-08 — Services T1–T8 verified (tsc clean, vitest 132 files / 729 passed, build + dead-links green). All task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
 > - staleness-policy: re-verify before each session
 
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
@@ -202,13 +202,13 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
       - [x] Tests: commission math on/off, legacy no-flag release unchanged, template-completeness
             (extend `lib/emails/__tests__/order-templates.test.tsx`), order-email routing.
 
-- [ ] **T8 `[S]` Feature flag gating, docs sync, QA gate** (deps: T3–T7)
-      - [ ] `serviceListingEnabled` (`lib/config/features.ts`) hides nav entry, wizard and storefront
+- [x] **T8 `[S]` Feature flag gating, docs sync, QA gate** (deps: T3–T7)
+      - [x] `serviceListingEnabled` (`lib/config/features.ts`) hides nav entry, wizard and storefront
             panel when false while leaving existing service-flagged products readable.
-      - [ ] Run the full QA gate: `npx prisma validate` → `npm run db:push` → `npm run db:generate` →
+      - [x] Run the full QA gate: `npx prisma validate` → `npm run db:push` → `npm run db:generate` →
             `npx tsc --noEmit` → `npm run lint` → `npx vitest run` → `npm run build` →
             `npm run audit:dead-links`.
-      - [ ] Deep sync (`update-ai-system.md`): `system-architecture.md` (new modules + Configuration
+      - [x] Deep sync (`update-ai-system.md`): `system-architecture.md` (new modules + Configuration
             Points rows), `project-context.md` (service providers; deferred items → Out of Scope),
             `memory/project-decisions.md` (extend-not-parallel-tables, polling-over-WebSocket,
             option-list tiers with immutable enum keys, `serviceKind`, flag-gated commission),
