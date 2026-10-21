@@ -25,21 +25,36 @@ async function getServiceSettlementCommissionRate(
     vendorCommissionRate: number | null | undefined
 ): Promise<number | null> {
     let commissionEnabled = false;
+    let defaultTierRate: number | null = null;
     try {
         const config = await tx.commerceLifecycleConfig.findUnique({
             where: { key: 'default' },
-            select: { serviceSettlementCommissionEnabled: true },
+            select: {
+                serviceSettlementCommissionEnabled: true,
+                vendorCommissionEnabled: true,
+                commissionDefaultRate: true,
+            },
         });
-        commissionEnabled = Boolean(config?.serviceSettlementCommissionEnabled);
+        // Session 104: platform-wide toggle (default OFF) OR the legacy
+        // service-scoped toggle (default OFF) — both off keeps today's
+        // byte-identical behaviour of crediting vendors the full gross.
+        commissionEnabled =
+            Boolean(config?.serviceSettlementCommissionEnabled) ||
+            Boolean(config?.vendorCommissionEnabled);
+        defaultTierRate =
+            typeof config?.commissionDefaultRate === 'number' && Number.isFinite(config.commissionDefaultRate)
+                ? config.commissionDefaultRate
+                : null;
     } catch {
         commissionEnabled = false;
     }
 
     if (!commissionEnabled) return null;
 
-    return typeof vendorCommissionRate === 'number' && Number.isFinite(vendorCommissionRate)
-        ? vendorCommissionRate
-        : CATEGORY_COMMISSION_DEFAULTS[VendorCategory.SERVICES];
+    if (typeof vendorCommissionRate === 'number' && Number.isFinite(vendorCommissionRate)) {
+        return vendorCommissionRate;
+    }
+    return defaultTierRate ?? CATEGORY_COMMISSION_DEFAULTS[VendorCategory.SERVICES];
 }
 
 export function parseStatusHistory(input: Prisma.JsonValue | null): StatusHistoryEntry[] {

@@ -12,6 +12,7 @@ import { productListKey } from '@/lib/cache/keys';
 import { UserRole, SERVICE_UNLIMITED_STOCK } from '@/lib/constants';
 import { SERVICE_LIMITS } from '@/lib/config/serviceFulfillment';
 import { baseServicePrice, serviceDetailsSchema } from '@/lib/schemas/service.schemas';
+import { checkSubscriptionEnforcement } from '@/lib/services/subscriptions';
 import type { Prisma } from '../../../prisma/generated/client';
 
 const isProvided = (value: unknown) => value !== null && value !== undefined && value !== '';
@@ -122,6 +123,16 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         if (user.role !== UserRole.VENDOR && user.role !== UserRole.ADMIN) {
             return NextResponse.json({ error: 'Only vendors can create products' }, { status: 403 });
+        }
+
+        // Subscription enforcement (Session 104): only ever active when the
+        // admin has enabled subscriptions AND set enforcement to BLOCK.
+        const enforcement = await checkSubscriptionEnforcement(prisma, user.userId);
+        if (!enforcement.allowed) {
+            return NextResponse.json(
+                { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary },
+                { status: 403 }
+            );
         }
 
         const rl = await rateLimitByUser(user.userId);

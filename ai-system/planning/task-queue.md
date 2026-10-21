@@ -1,9 +1,9 @@
-# Development Task Queue
+﻿# Development Task Queue
 
 > **Metadata**
-> - last-updated-by: update-ai-system.md (2026-08-20)
-> - last-verified-against-code: 2026-08-20
-> - last-synced: 2026-10-08 — round-up (resume-session Session 103: T8 closed, in-progress cleared, see `checkpoints/session-log.md`); last code-synced 2026-10-08 — Services T1–T8 verified (tsc clean, vitest 132 files / 729 passed, build + dead-links green). All task-queue mutations must be traced to `checkpoints/in-progress.md` or `checkpoints/session-log.md` (per §9 coupling, enforced by `audit-drift.md`)
+> - last-updated-by: update-ai-system.md (2026-10-21)
+> - last-verified-against-code: 2026-10-21
+> - last-synced: 2026-10-21 - Session 105 payment-models follow-ups (cron scheduling readiness + test-env storage repair) added and fully closed; QA gate green (bannerTracking repaired); see `checkpoints/session-log.md` Session 105. Previous: 2026-10-21 - Session 104 payment-models queue (commissions + subscription packages) added and fully closed; QA gate green; see `checkpoints/session-log.md` Session 104 + `checkpoints/in-progress.md`.
 > - staleness-policy: re-verify before each session
 
 > **Overview:** Sprint-level task queue. Agents execute tasks top to bottom within the current sprint. When a task is completed, mark it [x] and add a checkpoint entry. Future tasks are queued below for prioritisation in the next sprint.
@@ -16,45 +16,45 @@ Tags help agents self-select whether a task needs the full `execute-feature.md` 
 
 | Tag | Meaning | Recommended Command |
 |-----|---------|-------------------|
-| `[XS]` | Trivial — single file, known pattern | dev-cycle.md |
-| `[S]` | Small — 1-3 files, well-understood | dev-cycle.md |
-| `[M]` | Medium — 3-6 files across related modules | execute-feature.md |
-| `[L]` | Large — multi-module, architecture-aware | execute-feature.md (deep sync chain) |
-| `[XL]` | Very large — cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
+| `[XS]` | Trivial â€” single file, known pattern | dev-cycle.md |
+| `[S]` | Small â€” 1-3 files, well-understood | dev-cycle.md |
+| `[M]` | Medium â€” 3-6 files across related modules | execute-feature.md |
+| `[L]` | Large â€” multi-module, architecture-aware | execute-feature.md (deep sync chain) |
+| `[XL]` | Very large â€” cross-cutting, plan-feature first | execute-feature.md (deep sync chain) |
 
 ---
 
-## Feature Planning Queue (2026-09-29) — Services / Service-Marketplace Enablement `[XL]`
+## Feature Planning Queue (2026-09-29) â€” Services / Service-Marketplace Enablement `[XL]`
 
 > **Section summary:** plan-feature output for the stakeholder service-marketplace feature request
-> (`ai-system/artifacts/services-feature-request.pdf` → `.md`, treated as a feature request, not an
+> (`ai-system/artifacts/services-feature-request.pdf` â†’ `.md`, treated as a feature request, not an
 > authoritative PRD). Full plan: `planning/feature-plan-2026-09-29-services-marketplace.md`.
 > Design conformance reference: `design-references/service-listing-order-room/DESIGN.md`.
-> Strategy: **extend** the existing `Product.listingType=SERVICE` + `Order`/`OrderItem` pipeline —
+> Strategy: **extend** the existing `Product.listingType=SERVICE` + `Order`/`OrderItem` pipeline â€”
 > no parallel `services`/`service_orders` tables. Every behavioural change to a shared path is
 > additive or gated behind a config flag defaulting to today's behaviour. Run tasks in order via
 > `execute-feature.md` (each `[L]`/`[XL]` task requires the deep sync chain at close).
 
-**Scope reconciliation (pinch of salt — the request was written without codebase knowledge):** no
+**Scope reconciliation (pinch of salt â€” the request was written without codebase knowledge):** no
 parallel service tables; no S3 (Cloudinary is the stack); no ClamAV (deferred, documented residual
 risk); no Google Maps by default (`serviceGeoMapEnabled=false`); no WebSocket/gRPC (serverless stack
-— visibility-gated polling behind an isolated transport module); "I will…" title rule is helper text,
+â€” visibility-gated polling behind an isolated transport module); "I willâ€¦" title rule is helper text,
 not a validator; late-delivery auto-refund routes through the existing refund flow.
 
-- [x] **T1 `[M]` Option lists — admin-editable + hardened fallbacks** (deps: none) *(requested
+- [x] **T1 `[M]` Option lists â€” admin-editable + hardened fallbacks** (deps: none) *(requested
       modification; does not exist yet)*
-      - [x] `prisma/schema.prisma` — new `enum OptionListTier { DISPLAY FREEFORM }` + `model OptionList`
+      - [x] `prisma/schema.prisma` â€” new `enum OptionListTier { DISPLAY FREEFORM }` + `model OptionList`
             (`key @unique`, `tier`, `options Json`, `isActive`, `updatedBy`, timestamps,
             `@@map("option_lists")`); `npm run db:push` + `npm run db:generate` per the DB-sync decision.
-      - [x] `lib/config/optionLists.ts` — typed `OPTION_LIST_KEYS`, `OPTION_LIST_FALLBACKS`
+      - [x] `lib/config/optionLists.ts` â€” typed `OPTION_LIST_KEYS`, `OPTION_LIST_FALLBACKS`
             (campus, vendor/product categories, subcategories, listing types, service
             categories/locations/rate-types/tiers, service attributes, requirement-field types,
             service milestones, delivery zones, pickup services, positions), option-row type,
-            `resolveOptionLabel(key, value)` → `label ?? value ?? ""`.
-      - [x] `lib/services/optionLists.ts` — `getOptionList(key)`: DB → shape-validate → merge over
-            fallback → **catch → fallback → never throws**; `upsertOptionList`; cache + invalidation.
+            `resolveOptionLabel(key, value)` â†’ `label ?? value ?? ""`.
+      - [x] `lib/services/optionLists.ts` â€” `getOptionList(key)`: DB â†’ shape-validate â†’ merge over
+            fallback â†’ **catch â†’ fallback â†’ never throws**; `upsertOptionList`; cache + invalidation.
       - [x] `lib/hooks/useOptionList.ts` + `components/ui/OptionListSelect.tsx` (explicit
-            empty-state when both DB and fallback are empty — never crashes).
+            empty-state when both DB and fallback are empty â€” never crashes).
       - [x] Routes: `app/api/config/option-lists/route.ts`, `.../option-lists/[key]/route.ts`
             (404 `OPTION_LIST_NOT_FOUND` envelope for unregistered keys),
             `app/api/admin/option-lists/route.ts` + `[key]/route.ts` (ADMIN + PUT validation/bounds).
@@ -65,21 +65,21 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
             `AddressForm`, `ProfilePage`, delivery/pickup option rendering.
       - [x] Tests: DB-down, missing row, unregistered key, empty options, unknown stored value,
             admin PUT rejects malformed/oversized JSON. **Hard rule: server-side validation always
-            uses the code/Prisma enum key set — admins can hide a value, never inject one.**
+            uses the code/Prisma enum key set â€” admins can hide a value, never inject one.**
       - [x] `npm run audit:dead-links`; `tsc` / `lint` / `vitest` / `build` green.
 
 - [x] **T2 `[M]` Service data contract + server validation + signup persistence fix** (deps: T1)
-      - [x] `lib/schemas/service.schemas.ts` — Zod for `serviceDetails` (packages 1|3 tiers
+      - [x] `lib/schemas/service.schemas.ts` â€” Zod for `serviceDetails` (packages 1|3 tiers
             BASIC/STANDARD/PREMIUM, extras, attributes, weekly availability slots, requirement
-            fields `TEXT|SELECT|FILE`, media, ≤1,200-char description) + per-step slice schemas.
-      - [x] `lib/config/serviceFulfillment.ts` — limits (title 80, package title 30 / desc 100,
-            delivery 1–90 d, revisions 0/unlimited, 5 images / 2 PDFs / 1 video, 50 MB / 60 s),
+            fields `TEXT|SELECT|FILE`, media, â‰¤1,200-char description) + per-step slice schemas.
+      - [x] `lib/config/serviceFulfillment.ts` â€” limits (title 80, package title 30 / desc 100,
+            delivery 1â€“90 d, revisions 0/unlimited, 5 images / 2 PDFs / 1 video, 50 MB / 60 s),
             `SERVICE_TIER_KEYS`, `SERVICE_MILESTONES` fallback, `orderRoomPollMs` (10 000),
             countdown warning hours (12), `serviceGeoMapEnabled`.
-      - [x] `app/api/products/route.ts` + `app/api/products/[id]/route.ts` — validate `serviceDetails`
-            when `listingType=SERVICE`; SERVICE-aware create defaults (stock → `SERVICE_UNLIMITED_STOCK`,
-            price → base package price); **verify public GET excludes `isActive=false` drafts**.
-      - [x] **Signup bug fix** — persist `serviceCategory`/`serviceLocation` (collected in
+      - [x] `app/api/products/route.ts` + `app/api/products/[id]/route.ts` â€” validate `serviceDetails`
+            when `listingType=SERVICE`; SERVICE-aware create defaults (stock â†’ `SERVICE_UNLIMITED_STOCK`,
+            price â†’ base package price); **verify public GET excludes `isActive=false` drafts**.
+      - [x] **Signup bug fix** â€” persist `serviceCategory`/`serviceLocation` (collected in
             `StoreInfo` but currently dropped): `Vendor.serviceCategory ServiceCategory?` +
             `Vendor.serviceLocation ServiceLocation?` columns, payload in
             `app/signup/security-info/page.tsx`, validation + write in `app/api/auth/register/route.ts`
@@ -88,50 +88,50 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
             list, signup persists service fields.
 
 - [x] **T3 `[L]` Service listing wizard (5 steps) + database-side drafts** (deps: T1, T2)
-      - [x] Generalise `app/signup/components/StageTracker.tsx` → `components/ui/StageTracker.tsx`
+      - [x] Generalise `app/signup/components/StageTracker.tsx` â†’ `components/ui/StageTracker.tsx`
             (`labels[]` prop, responsive `grid-cols-1 sm:grid-cols-3 lg:grid-cols-5`); keep the
             signup path as a thin re-export (**non-breaking**).
       - [x] `components/features/services/ServiceListingWizard.tsx` + `steps/{Basics,Packages,
             Location,Media,Requirements}` and `ServicePackageMatrix`, `ServiceRequirementsBuilder`,
             `ServiceAvailabilityGrid` (reuse/mount the orphaned `BookingCalendar` for slots).
-      - [x] `app/(operations)/operations/services/page.tsx` — full-page wizard at `?new` / `?edit=<id>`
+      - [x] `app/(operations)/operations/services/page.tsx` â€” full-page wizard at `?new` / `?edit=<id>`
             + service listings table; register in `routeConfig.ts` / `navigation.ts` / `Sidebar.tsx`
             (vendor **and** admin groups). Conditionally rendered behind `serviceListingEnabled`.
       - [x] Drafts: `lib/utils/localDraft.ts` (new key, versioned) for instant recovery; each
             validated step advances a server-side draft `Product` (`isActive=false`,
             `serviceDetails.draftStep`); publish sets `isActive=true`, base package price, unlimited stock.
       - [x] Uploads: extend `lib/utils/uploadConfig.ts` + `app/api/upload/route.ts` +
-            `lib/services/cloudinary.ts` with `service-doc` (PDF ×2, 5 MB) and `service-video`
-            (MP4 ×1, 50 MB, `resource_type: video`, client-side 60 s duration check); 5 images reuse
+            `lib/services/cloudinary.ts` with `service-doc` (PDF Ã—2, 5 MB) and `service-video`
+            (MP4 Ã—1, 50 MB, `resource_type: video`, client-side 60 s duration check); 5 images reuse
             the existing `product` folder.
       - [x] Step 3 conditional: rendered **only** for the PHYSICAL/on-site delivery type; geo
             payloads rejected for digital services server-side (PRD TC-001); map preview gated by
             `serviceGeoMapEnabled`.
-      - [x] `app/(operations)/operations/products/page.tsx` — service rows link to the wizard (no
+      - [x] `app/(operations)/operations/products/page.tsx` â€” service rows link to the wizard (no
             duplication of CRUD); product flow untouched.
       - [x] Tests: step validation, draft advance/restore, publish payload, TC-001 API rejection,
             media limits, 320 px layout smoke.
 
 - [x] **T4 `[M]` Storefront, discovery & service-aware checkout** (deps: T2)
       - [x] `components/features/services/ServiceDetailPanel.tsx` + `ServicePackagePicker.tsx` on
-            `app/products/[id]/page.tsx` — tier cards (price / delivery / revisions / extras),
+            `app/products/[id]/page.tsx` â€” tier cards (price / delivery / revisions / extras),
             availability, "what I need from you"; falls back to the plain product view when
             `serviceDetails` is null (legacy listings).
       - [x] Pass `isService`/`listingType` from `components/features/ProductsContent.tsx` into
-            `ProductCard` (currently never passed — service badge heuristic fails today).
+            `ProductCard` (currently never passed â€” service badge heuristic fails today).
       - [x] Service-category filter on the live `components/features/FilterSidebar.tsx` when
-            `listingType=SERVICE` (the service panel in `ProductFiltersSidebar.tsx` is dead code —
+            `listingType=SERVICE` (the service panel in `ProductFiltersSidebar.tsx` is dead code â€”
             either wire it or retire it).
-      - [x] `lib/store/cartStore.ts` — optional `CartItem.selectedPackage` (persisted; old carts
+      - [x] `lib/store/cartStore.ts` â€” optional `CartItem.selectedPackage` (persisted; old carts
             without it must still check out against `product.price`).
-      - [x] `app/checkout/page.tsx` + `app/api/orders/route.ts` — service-only carts: `deliveryFee = 0`
-            (**bug today: services are charged ₦1,500**), no delivery-address requirement, delivery
+      - [x] `app/checkout/page.tsx` + `app/api/orders/route.ts` â€” service-only carts: `deliveryFee = 0`
+            (**bug today: services are charged â‚¦1,500**), no delivery-address requirement, delivery
             method collapsed to digital, notice copy updated; mixed carts keep product behaviour +
             show an explicit notice.
       - [x] Tests: package price carry-through, legacy cart compatibility, fee/address rules
             (service-only vs mixed vs product), service filter + badge rendering.
 
-- [x] **T5 `[XL]` Service order lifecycle — requirements gate, fulfilment clock, revisions** (deps: T2, T4)
+- [x] **T5 `[XL]` Service order lifecycle â€” requirements gate, fulfilment clock, revisions** (deps: T2, T4)
       - [x] Schema: `enum OrderStatus` += `AWAITING_REQUIREMENTS`, `IN_PROGRESS`, `IN_REVIEW`
             (Prisma + `lib/constants/index.ts` mirror); `enum NotificationType` += 6 service values;
             `OrderItem` += `listingType ListingType @default(PRODUCT)`, `serviceConfig Json?`,
@@ -141,26 +141,26 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
             `serviceSettlementCommissionEnabled` (false).
       - [x] Compiler-forced mirrors: `lib/utils/format.ts` `formatOrderStatus`,
             `components/ui/StatusTag.tsx` `ORDER_STATUS_COLORS`, `lib/config/notificationTemplates.ts`
-            (`Record<NotificationType,…>`), both transition maps.
-      - [x] `lib/services/serviceOrders.ts` — `orderHasServiceItems`, `orderIsServiceOnly`
-            (`serviceKind = items.every(SERVICE)` — documented single-status decision), deadline
+            (`Record<NotificationType,â€¦>`), both transition maps.
+      - [x] `lib/services/serviceOrders.ts` â€” `orderHasServiceItems`, `orderIsServiceOnly`
+            (`serviceKind = items.every(SERVICE)` â€” documented single-status decision), deadline
             computation, idempotent late detection.
-      - [x] `app/api/orders/route.ts` — seed `AWAITING_REQUIREMENTS` for paid service-only orders;
+      - [x] `app/api/orders/route.ts` â€” seed `AWAITING_REQUIREMENTS` for paid service-only orders;
             snapshot `serviceConfig` (purchased tier, price, deliveryDays, revisions, extras) and
             `listingType` onto each `OrderItem`.
-      - [x] `app/api/orders/[id]/requirements/route.ts` (buyer) — validate required fields incl.
-            FILE attachments → persist answers → `AWAITING_REQUIREMENTS → IN_PROGRESS`,
-            `deadlineAt = now + deliveryDays·24h` → notify seller.
-      - [x] `app/api/orders/[id]/status/route.ts` — service branch: seller submit → `IN_REVIEW` +
+      - [x] `app/api/orders/[id]/requirements/route.ts` (buyer) â€” validate required fields incl.
+            FILE attachments â†’ persist answers â†’ `AWAITING_REQUIREMENTS â†’ IN_PROGRESS`,
+            `deadlineAt = now + deliveryDaysÂ·24h` â†’ notify seller.
+      - [x] `app/api/orders/[id]/status/route.ts` â€” service branch: seller submit â†’ `IN_REVIEW` +
             `ensurePayoutHoldOnDelivery` (escrow ledger entry) + `LATE` flag when past deadline;
-            mirror in the client `STATUS_TRANSITIONS` (**keep the two maps in lockstep** — add a
+            mirror in the client `STATUS_TRANSITIONS` (**keep the two maps in lockstep** â€” add a
             test asserting they agree).
-      - [x] Revision action — `IN_REVIEW → IN_PROGRESS`, `revisionsRemaining -= 1`, re-arm deadline
+      - [x] Revision action â€” `IN_REVIEW â†’ IN_PROGRESS`, `revisionsRemaining -= 1`, re-arm deadline
             (PRD TC-003).
-      - [x] `app/api/orders/[id]/confirm-delivery/route.ts` — accept service orders in `IN_REVIEW`:
+      - [x] `app/api/orders/[id]/confirm-delivery/route.ts` â€” accept service orders in `IN_REVIEW`:
             transition to `DELIVERED` + release in one transaction; `app/api/orders/auto-confirm/route.ts`
             uses `serviceAutoApproveHours` for service orders (idempotent, existing cron auth pattern).
-      - [x] `app/api/orders/service-fulfillment/route.ts` (cron sibling of auto-confirm) — 48 h
+      - [x] `app/api/orders/service-fulfillment/route.ts` (cron sibling of auto-confirm) â€” 48 h
             requirements timeout (`REQUIREMENTS_TIMEOUT` history + penalty-free cancel eligibility,
             confirm the cancel path writes no negative reputation), late flags, service auto-approve.
       - [x] Tests: full transition matrix (service + product unchanged), TC-001/002/003, deadline math,
@@ -168,28 +168,28 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
             `revisionsRemaining`.
 
 - [x] **T6 `[L]` Order room UI** (deps: T5)
-      - [x] `lib/services/orderRoomTransport.ts` — visibility-gated polling (default 10 s, config),
+      - [x] `lib/services/orderRoomTransport.ts` â€” visibility-gated polling (default 10 s, config),
             isolated so WS/SSE can replace it later; documented decision (no WebSocket infra exists).
       - [x] `components/features/services/ServiceOrderRoom.tsx` composed of `ServiceTimeline`
             (milestones from the `serviceMilestones` option list), `ServiceRequirementsForm` (buyer),
             `ServiceCountdown` (`--ds-status-error*` below threshold, always paired with text),
             `OrderRoomChat` (`OrderMessage` model + `app/api/orders/[id]/messages` GET/POST,
             participants only, attachments via a new `order-attachment` upload folder with
-            order-membership authorization), `ServiceDeliveryModal` (seller → `IN_REVIEW`),
-            `ServiceRevisionPanel` (buyer), approve CTA → existing confirm-delivery.
+            order-membership authorization), `ServiceDeliveryModal` (seller â†’ `IN_REVIEW`),
+            `ServiceRevisionPanel` (buyer), approve CTA â†’ existing confirm-delivery.
       - [x] Mount in `app/orders/[id]/page.tsx` (shared buyer/vendor/admin page) gated on service
             items; add service statuses to the operations orders table/filters.
-      - [x] `prisma/schema.prisma` — `model OrderMessage` (orderId FK + index, sender, body,
+      - [x] `prisma/schema.prisma` â€” `model OrderMessage` (orderId FK + index, sender, body,
             `attachments Json?`).
       - [x] Tests: timeline states, requirements gating, countdown thresholds, chat auth (non-participant
             rejected), delivery CTA visibility (seller-only), revision counter.
 
 - [x] **T7 `[M]` Settlement commission + service emails/notifications** (deps: T5)
-      - [x] `lib/services/orderLifecycle.ts` — optional commission split inside
-            `releaseOrderSettlement` behind `serviceSettlementCommissionEnabled` (default false →
-            byte-identical current behaviour): `commission = gross × rate` (vendor rate, falling back
-            to `CATEGORY_COMMISSION_DEFAULTS.SERVICES`), vendor credited `gross − commission`,
-            `TransactionType.COMMISSION` audit transaction with `metadata` (rate, gross, net) —
+      - [x] `lib/services/orderLifecycle.ts` â€” optional commission split inside
+            `releaseOrderSettlement` behind `serviceSettlementCommissionEnabled` (default false â†’
+            byte-identical current behaviour): `commission = gross Ã— rate` (vendor rate, falling back
+            to `CATEGORY_COMMISSION_DEFAULTS.SERVICES`), vendor credited `gross âˆ’ commission`,
+            `TransactionType.COMMISSION` audit transaction with `metadata` (rate, gross, net) â€”
             the first ever write of that enum value.
       - [x] Admin UI: the four service lifecycle knobs in the existing **Service & Booking Settings**
             section of `app/(operations)/operations/settings/page.tsx` via
@@ -202,56 +202,56 @@ not a validator; late-delivery auto-refund routes through the existing refund fl
       - [x] Tests: commission math on/off, legacy no-flag release unchanged, template-completeness
             (extend `lib/emails/__tests__/order-templates.test.tsx`), order-email routing.
 
-- [x] **T8 `[S]` Feature flag gating, docs sync, QA gate** (deps: T3–T7)
+- [x] **T8 `[S]` Feature flag gating, docs sync, QA gate** (deps: T3â€“T7)
       - [x] `serviceListingEnabled` (`lib/config/features.ts`) hides nav entry, wizard and storefront
             panel when false while leaving existing service-flagged products readable.
-      - [x] Run the full QA gate: `npx prisma validate` → `npm run db:push` → `npm run db:generate` →
-            `npx tsc --noEmit` → `npm run lint` → `npx vitest run` → `npm run build` →
+      - [x] Run the full QA gate: `npx prisma validate` â†’ `npm run db:push` â†’ `npm run db:generate` â†’
+            `npx tsc --noEmit` â†’ `npm run lint` â†’ `npx vitest run` â†’ `npm run build` â†’
             `npm run audit:dead-links`.
       - [x] Deep sync (`update-ai-system.md`): `system-architecture.md` (new modules + Configuration
-            Points rows), `project-context.md` (service providers; deferred items → Out of Scope),
+            Points rows), `project-context.md` (service providers; deferred items â†’ Out of Scope),
             `memory/project-decisions.md` (extend-not-parallel-tables, polling-over-WebSocket,
             option-list tiers with immutable enum keys, `serviceKind`, flag-gated commission),
             `index/repo-map.md`, `index/dependency-graph.md`, `summaries/dev-history.md`.
 
-Notes: `design-system.md` must **not** be edited by agents — "multi-step wizard / StepTracker" is
+Notes: `design-system.md` must **not** be edited by agents â€” "multi-step wizard / StepTracker" is
 flagged only as a promotion candidate inside `design-references/service-listing-order-room/DESIGN.md`
 for a human to decide.
 
 ---
 
-## Session 99 — Checkout Proof-of-Payment Enforcement for Bank Transfer (2026-08-20)
+## Session 99 â€” Checkout Proof-of-Payment Enforcement for Bank Transfer (2026-08-20)
 
-> **Section summary:** Closed the checkout gap where a buyer could place an order without uploading proof of payment — with payment processing enabled, bank transfer (proof compulsory before order placement, validation left to vendor) + Paystack + wallet are all available; with payment processing disabled, the bank-transfer proof remains compulsory with no "Pay Later" bypass. Server enforces `PROOF_OF_PAYMENT_REQUIRED` and persists a `ProofOfTransfer` PENDING per order.
+> **Section summary:** Closed the checkout gap where a buyer could place an order without uploading proof of payment â€” with payment processing enabled, bank transfer (proof compulsory before order placement, validation left to vendor) + Paystack + wallet are all available; with payment processing disabled, the bank-transfer proof remains compulsory with no "Pay Later" bypass. Server enforces `PROOF_OF_PAYMENT_REQUIRED` and persists a `ProofOfTransfer` PENDING per order.
 
-- [x] `app/checkout/page.tsx` — proof-of-payment upload section (`ImageUpload` payment-proof + amount + optional bank reference) for `BANK_TRANSFER_PROOF`, validated before placing order; `proofOfTransfer` payload sent to `POST /api/orders`; `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled`, `WALLET` disabled when `!paymentsEnabled`, default forced to `BANK_TRANSFER_PROOF`; "Pay Later" / "Upload Proof Later" removed; notices + `PLATFORM_DEFAULTS.PAYMENT_NOTICE` updated.
-- [x] `app/api/orders/route.ts` — returns `PROOF_OF_PAYMENT_REQUIRED` (400) for `BANK_TRANSFER_PROOF` without valid proof; creates `ProofOfTransfer` (PENDING) per order inside the transaction; audit note records proof awaiting verification.
-- [x] Tests — 3 new bank-transfer-proof paths in `app/api/orders/__tests__/route.payment-smoke.test.ts`.
-- [x] QA gate — vitest 107 files / 501 passed / 32 skipped; tsc clean (changed files); lint clean; build exit 0.
+- [x] `app/checkout/page.tsx` â€” proof-of-payment upload section (`ImageUpload` payment-proof + amount + optional bank reference) for `BANK_TRANSFER_PROOF`, validated before placing order; `proofOfTransfer` payload sent to `POST /api/orders`; `bankTransferAvailable = bankTransferFallbackEnabled || !paymentsEnabled`, `WALLET` disabled when `!paymentsEnabled`, default forced to `BANK_TRANSFER_PROOF`; "Pay Later" / "Upload Proof Later" removed; notices + `PLATFORM_DEFAULTS.PAYMENT_NOTICE` updated.
+- [x] `app/api/orders/route.ts` â€” returns `PROOF_OF_PAYMENT_REQUIRED` (400) for `BANK_TRANSFER_PROOF` without valid proof; creates `ProofOfTransfer` (PENDING) per order inside the transaction; audit note records proof awaiting verification.
+- [x] Tests â€” 3 new bank-transfer-proof paths in `app/api/orders/__tests__/route.payment-smoke.test.ts`.
+- [x] QA gate â€” vitest 107 files / 501 passed / 32 skipped; tsc clean (changed files); lint clean; build exit 0.
 - [x] Sync ai-system docs (session-log, dev-history, task-queue, repo-map, dependency-graph, system-architecture) and clear `in-progress.md`.
 
 ---
 
-## Session 98 — Login P2022 Fix + SSL Warning Remediation (2026-08-19)
+## Session 98 â€” Login P2022 Fix + SSL Warning Remediation (2026-08-19)
 
 > **Section summary:** Fixed a production login failure (`P2022: column does not exist` on
-> `prisma.user.findUnique`) caused by schema/DB drift — the `users.campus` column added in Session 97
+> `prisma.user.findUnique`) caused by schema/DB drift â€” the `users.campus` column added in Session 97
 > existed in schema + generated client but was never applied to the Prisma Postgres DB. Ran
 > `prisma db push` to sync, baselined all 11 migrations with `prisma migrate resolve --applied` so the
-> Vercel `migrate deploy` hook is a no-op, and switched `sslmode=require` → `sslmode=verify-full` in
+> Vercel `migrate deploy` hook is a no-op, and switched `sslmode=require` â†’ `sslmode=verify-full` in
 > `DIRECT_URL` to remove the pg-connection-string warning. No application code changed; QA green
 > (tsc/lint/build; vitest 484 passed, 14 env-level jsdom localStorage failures unrelated).
 
-- [x] Diagnose P2022 on login — `prisma migrate diff` confirmed only `users.campus` missing.
-- [x] `prisma db push` — production schema in sync (additive, no data loss).
+- [x] Diagnose P2022 on login â€” `prisma migrate diff` confirmed only `users.campus` missing.
+- [x] `prisma db push` â€” production schema in sync (additive, no data loss).
 - [x] Verify login query path (`user.findUnique` + `campus` select) against live DB.
-- [x] SSL warning — `sslmode=require` → `sslmode=verify-full` in `.env`, `.env.local`, `.env.example`.
-- [x] Baseline all 11 migrations (`prisma migrate resolve --applied`) — `migrate status` up to date.
-- [x] QA gate — tsc clean, lint clean (2 pre-existing warnings), build exit 0.
+- [x] SSL warning â€” `sslmode=require` â†’ `sslmode=verify-full` in `.env`, `.env.local`, `.env.example`.
+- [x] Baseline all 11 migrations (`prisma migrate resolve --applied`) â€” `migrate status` up to date.
+- [x] QA gate â€” tsc clean, lint clean (2 pre-existing warnings), build exit 0.
 
 ---
 
-## Session 97 — "Tightening up" Directive (2026-08-18)
+## Session 97 â€” "Tightening up" Directive (2026-08-18)
 
 > **Section summary:** Executed the `execute-feature.md` tightening-up directive: bank-transfer
 > upload proof now available alongside Paystack card whenever the fallback is enabled (Paystack
@@ -264,37 +264,37 @@ for a human to decide.
 > reload/navigation. QA gate green: tsc clean, lint clean (pre-existing warnings only), 107 files /
 > 498 tests passed, build exit 0.
 
-- [x] Payments — `app/checkout/page.tsx`: `bankTransferAvailable = bankTransferFallbackEnabled`
+- [x] Payments â€” `app/checkout/page.tsx`: `bankTransferAvailable = bankTransferFallbackEnabled`
       (no longer exclusive to Paystack outage); gateway-unavailable notice mentions wallet +
       bank-transfer remain available; WALLET auto-switch fallback preserved.
-- [x] Campus schema — `User.campus Campus?` added to `prisma/schema.prisma`; migration
+- [x] Campus schema â€” `User.campus Campus?` added to `prisma/schema.prisma`; migration
       `20260818000000_add_user_campus` (`ALTER TABLE users ADD COLUMN campus "Campus"`); client
       regenerated (v7.5.0).
-- [x] Registration campus — `app/api/auth/register/route.ts` validates + persists campus for all
+- [x] Registration campus â€” `app/api/auth/register/route.ts` validates + persists campus for all
       roles; `app/signup/security-info/page.tsx` always sends campus; `app/signup/components/UserInfo.tsx`
       adds required Campus/Pickup Location Select (all roles).
-- [x] Profile campus — `app/api/users/[id]/profile/route.ts` GET selects + PUT applies campus;
+- [x] Profile campus â€” `app/api/users/[id]/profile/route.ts` GET selects + PUT applies campus;
       `ProfilePage` renders an editable Campus select for all roles, load falls back to
       vendorContext.campus, address list shows campus.
-- [x] Address/checkout campus — `components/features/AddressForm.tsx` adds campus Select + typed
+- [x] Address/checkout campus â€” `components/features/AddressForm.tsx` adds campus Select + typed
       `campus?: Campus`; ProfilePage address CRUD carries campus; checkout deliveryAddress includes it.
-- [x] Upload feedback — marketing-content modal shows active upload progress + "Uploading file and
+- [x] Upload feedback â€” marketing-content modal shows active upload progress + "Uploading file and
       submitting..." while submitting; BlogAdminPanel + PublicContentAdminPanel save buttons get
       `loading` spinner and `message.error` on failure.
-- [x] Toast fix — `lib/contexts/ToastContext.tsx` uses notification-only when description is passed,
+- [x] Toast fix â€” `lib/contexts/ToastContext.tsx` uses notification-only when description is passed,
       message-only otherwise (no double-toast); notification `key` de-dupes.
-- [x] Auto-refresh — new `lib/data-runtime/mutationBus.ts` (`emitDataMutated` /
+- [x] Auto-refresh â€” new `lib/data-runtime/mutationBus.ts` (`emitDataMutated` /
       `useDataMutationInvalidation` on `myharvesthub:data-mutated` CustomEvent); `useSmartResource`
       gains `invalidateOn`; operations dashboard subscribes to all mutation keys with
       `staleTimeMs: 0`; AnalyticsFeature re-runs on mutation; StoreSettingsPage refetches after save;
       `emitDataMutated` wired into products, banners, vendors, orders, vouchers, marketing-content,
       vendor-content, users, ads, settings, blog, public-content mutation handlers.
-- [x] QA gate — `npx tsc --noEmit` clean; `npm run lint` clean (2 pre-existing warnings); `npx vitest
+- [x] QA gate â€” `npx tsc --noEmit` clean; `npm run lint` clean (2 pre-existing warnings); `npx vitest
       run` 107 files / 498 passed / 32 skipped; `npm run build` exit 0.
 
 ---
 
-## Session 96 — Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green (2026-08-15)
+## Session 96 â€” Profile Picture Fix + Login Oracle Fix + Feedback-Gap Resolution + Test-Suite Green (2026-08-15)
 
 > **Section summary:** Closed out the 2026-08-15 auth/feedback audit backlog: fixed the profile
 > picture pipeline (cache invalidation + vendors-list `profilePicture`), eliminated the login
@@ -305,21 +305,21 @@ for a human to decide.
 > behind `RUN_INTEGRATION=1`), restoring the `updateOrderStatusSchema` status enum and fixing stale
 > schema/component tests.
 
-- [x] Profile picture cache invalidation — `app/api/users/[id]/profile/route.ts` now calls
+- [x] Profile picture cache invalidation â€” `app/api/users/[id]/profile/route.ts` now calls
       `cacheInvalidate(userProfileKey(id))` after PUT; `app/api/vendors/route.ts` list+POST `user`
       select includes `profilePicture` (fixes fallback avatar).
-- [x] jose 6.1.3 jsdom realm fix — `vitest.setup.tsx` aligns `globalThis.Uint8Array`/`window.Uint8Array`
+- [x] jose 6.1.3 jsdom realm fix â€” `vitest.setup.tsx` aligns `globalThis.Uint8Array`/`window.Uint8Array`
       with the Node-realm `TextEncoder` output; stale JWT tests updated to the `userId` claim;
       `jwt.utils.test` 15/15 green.
-- [x] Login oracle fix — `app/api/auth/login/route.ts` returns verification-pending (403) regardless
+- [x] Login oracle fix â€” `app/api/auth/login/route.ts` returns verification-pending (403) regardless
       of password correctness; decision documented in `project-decisions.md`.
-- [x] Dead `/contact` form removed → static channels + "Report a Problem" card linking to `/bug-report`.
-- [x] Address CRUD — `app/api/users/[id]/addresses/route.ts` GET/POST/PUT/DELETE with owner-or-admin
+- [x] Dead `/contact` form removed â†’ static channels + "Report a Problem" card linking to `/bug-report`.
+- [x] Address CRUD â€” `app/api/users/[id]/addresses/route.ts` GET/POST/PUT/DELETE with owner-or-admin
       guard + isDefault de-dup; `ProfilePage` addresses tab wired (Save/Edit/Delete + toasts).
-- [x] Feedback gaps — `NotificationContext.deleteNotification` → `Promise<boolean>` with success/error
+- [x] Feedback gaps â€” `NotificationContext.deleteNotification` â†’ `Promise<boolean>` with success/error
       toasts in NotificationBell/Drawer/Inbox; BlogAdminPanel + PublicContentAdminPanel save/delete
       toasts + try/catch; vendor-content approve + banner toggle confirmations.
-- [x] Test-suite green — API integration tests gated behind `RUN_INTEGRATION=1`; restored
+- [x] Test-suite green â€” API integration tests gated behind `RUN_INTEGRATION=1`; restored
       `OrderStatus` nativeEnum in `updateOrderStatusSchema`; fixed stale auth/order/product/navigation
       schema tests and OrderCard/Header/FilterSidebar/PhoneInput/layout/orders-page.admin/page.fallbacks
       component tests; FilterSidebar rating de-select source bug fixed via `onClick` re-check;
@@ -328,7 +328,7 @@ for a human to decide.
 
 ---
 
-## Session 94 — Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix (2026-08-13)
+## Session 94 â€” Non-Image Uploads + Descriptive Upload Errors + Password-Reset Email Fix (2026-08-13)
 
 > **Section summary:** Allowed listed non-image file types (PDFs, videos, and other whitelisted
 > formats) on document-capable uploads so verification-docs uploads no longer reject valid files just
@@ -338,19 +338,19 @@ for a human to decide.
 > reset-password route requires, `getAppUrl()` fallback corrected, and forgot-password/register email
 > sends are now awaited instead of fire-and-forget).
 
-- [x] `lib/utils/uploadConfig.ts` (new) — shared upload contract: `FolderType`, `MAX_UPLOAD_SIZE_MB`, `ALLOWED_UPLOAD_FORMATS` (`IMAGE_UPLOAD_FORMATS` = jpeg/jpg/png/webp; `DOCUMENT_UPLOAD_FORMATS` adds `pdf` for `payment-proof`, `verification-doc`, `bug-report`), `acceptAttributeFor`.
-- [x] `lib/services/cloudinary.ts` — `uploadImage` supports non-image MIME types via pure `resolveUploadParams` (image→`image`, `application/pdf`→`image` so thumbnails/transformations keep working, video→`video`, else→`raw`; `allowed_formats`/transformation only for non-raw); `UploadResult.width/height` optional.
-- [x] `app/api/upload/route.ts` — pre-upload size check (`File is too large. The maximum size for <folder> uploads is <N>MB.`), passes `allowedFormats`, and returns a descriptive 400 on upload failure instead of a generic "Internal server error".
-- [x] `lib/utils/uploadHelpers.ts` — `getUploadErrorMessage(error, { maxSizeMB, allowedFormats, fallback })`: size/type/network/auth/scope/rate-limit → concise messages; short server messages pass through; opaque errors → fallback. (Network detection uses `failed to fetch`/`failed to load`/`net::` — not bare `load failed`, which is a substring of "upload failed".)
-- [x] `app/signup/components/VerificationDocs.tsx` — shared config (`ACCEPT_ATTR`, 5MB limit) + `getUploadErrorMessage` toasts ("Unsupported file type. Use JPG, PNG or PDF.", "File is too large (max 5MB).").
-- [x] `components/ui/ImageUpload.tsx` — re-exports `FolderType` from uploadConfig (backward-compat for `StructuredContentEditor.tsx`), default `accept` = `acceptAttributeFor(folderType)`, copy → "Choose file(s)"/"files uploaded successfully"/"Only X files can be uploaded at once".
-- [x] Password-reset email flow — `lib/services/email.ts`: reset URL includes `&email=${encodeURIComponent(to)}`; `getAppUrl()` fallback = `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org'` (was `https://harvesthub.ng`). `app/api/auth/forgot-password/route.ts` (renamed from `.tsx`) now `await`s the send; `app/api/auth/register/route.ts` now `await`s `sendVerifyEmail`.
-- [x] Tests — cloudinary `resolveUploadParams` (+9); uploadHelpers `getUploadErrorMessage` (9); VerificationDocs PDF-accept + unsupported-type toast (10); ImageUpload copy/error-path (4). All green.
-- [x] Validation — `npx tsc --noEmit` clean; ESLint clean; full vitest 444 passed / 67 failed / 12 skipped (all 67 pre-existing integration/server-scope failures); `npm run build` exit 0.
+- [x] `lib/utils/uploadConfig.ts` (new) â€” shared upload contract: `FolderType`, `MAX_UPLOAD_SIZE_MB`, `ALLOWED_UPLOAD_FORMATS` (`IMAGE_UPLOAD_FORMATS` = jpeg/jpg/png/webp; `DOCUMENT_UPLOAD_FORMATS` adds `pdf` for `payment-proof`, `verification-doc`, `bug-report`), `acceptAttributeFor`.
+- [x] `lib/services/cloudinary.ts` â€” `uploadImage` supports non-image MIME types via pure `resolveUploadParams` (imageâ†’`image`, `application/pdf`â†’`image` so thumbnails/transformations keep working, videoâ†’`video`, elseâ†’`raw`; `allowed_formats`/transformation only for non-raw); `UploadResult.width/height` optional.
+- [x] `app/api/upload/route.ts` â€” pre-upload size check (`File is too large. The maximum size for <folder> uploads is <N>MB.`), passes `allowedFormats`, and returns a descriptive 400 on upload failure instead of a generic "Internal server error".
+- [x] `lib/utils/uploadHelpers.ts` â€” `getUploadErrorMessage(error, { maxSizeMB, allowedFormats, fallback })`: size/type/network/auth/scope/rate-limit â†’ concise messages; short server messages pass through; opaque errors â†’ fallback. (Network detection uses `failed to fetch`/`failed to load`/`net::` â€” not bare `load failed`, which is a substring of "upload failed".)
+- [x] `app/signup/components/VerificationDocs.tsx` â€” shared config (`ACCEPT_ATTR`, 5MB limit) + `getUploadErrorMessage` toasts ("Unsupported file type. Use JPG, PNG or PDF.", "File is too large (max 5MB).").
+- [x] `components/ui/ImageUpload.tsx` â€” re-exports `FolderType` from uploadConfig (backward-compat for `StructuredContentEditor.tsx`), default `accept` = `acceptAttributeFor(folderType)`, copy â†’ "Choose file(s)"/"files uploaded successfully"/"Only X files can be uploaded at once".
+- [x] Password-reset email flow â€” `lib/services/email.ts`: reset URL includes `&email=${encodeURIComponent(to)}`; `getAppUrl()` fallback = `NEXT_PUBLIC_SITE_URL || NEXT_PUBLIC_APP_URL || 'https://myharvesthub.org'` (was `https://harvesthub.ng`). `app/api/auth/forgot-password/route.ts` (renamed from `.tsx`) now `await`s the send; `app/api/auth/register/route.ts` now `await`s `sendVerifyEmail`.
+- [x] Tests â€” cloudinary `resolveUploadParams` (+9); uploadHelpers `getUploadErrorMessage` (9); VerificationDocs PDF-accept + unsupported-type toast (10); ImageUpload copy/error-path (4). All green.
+- [x] Validation â€” `npx tsc --noEmit` clean; ESLint clean; full vitest 444 passed / 67 failed / 12 skipped (all 67 pre-existing integration/server-scope failures); `npm run build` exit 0.
 
 ---
 
-## Session 91 — Upload Retention + Replace + Verification-Docs Upload Feedback (2026-08-13)
+## Session 91 â€” Upload Retention + Replace + Verification-Docs Upload Feedback (2026-08-13)
 
 > **Section summary:** Made immediate signup uploads retention-safe and feedback-rich: uploaded
 > verification links persist into the local form draft the moment they complete (thumbnail re-renders
@@ -358,63 +358,63 @@ for a human to decide.
 > verification-docs page gained per-thumbnail upload status overlays plus upload success/error toasts.
 > Also re-verified the `Uncaught (in promise) no-response` guard on `/signup/verification-docs`.
 
-- [x] `app/api/upload/route.ts` — add owner-scoped `DELETE /api/upload?publicId=...&folderType=...&guestUploadId=...` (destroys the asset only if `publicId` is inside the requester's folder scope via `isAssetInFolder`; guest scope = `guest-<guestUploadId>`, authenticated scope = the user's own folder; rate-limited).
-- [x] `lib/services/cloudinary.ts` — add `isAssetInFolder(publicId, folder)` scope guard.
-- [x] `lib/utils/uploadHelpers.ts` (new) — `deleteUploadedAsset` client helper.
-- [x] `app/signup/components/VerificationDocs.tsx` — persist docs to form draft on upload completion (`lastPersistedRef` loop guard; persist effect skips while `hasUploadingFile`); slot-aware restore that never clobbers in-progress uploads and seeds `donePublicIdRef`; old asset deleted only after a replacement succeeds; remove deletes asset + syncs formData; `itemRender` thumbnail overlay (uploading/failed/check) + per-upload success/error toasts.
-- [x] `app/signup/components/AccountInfo.tsx` — stable `guestUploadId` ref appended to profile upload; retains `publicId` on `profilePicture`.
-- [x] `lib/types.ts` — `UserFormData.profilePicture.publicId` optional.
-- [x] Tests: extend `app/signup/__tests__/VerificationDocs.test.tsx` (retention, replace-delete, remove-delete, status overlay — 8 tests); add `lib/utils/__tests__/uploadHelpers.test.ts` (3) + `lib/services/__tests__/cloudinary.test.ts` (`isAssetInFolder`, 3).
-- [x] Validation: `npx tsc --noEmit` (clean — also fixed pre-existing type errors in the VerificationDocs test file), `next lint` touched files (clean), focused vitest (4 files / 18 tests), full vitest (430 passed, 67 failed — all pre-existing, 12 skipped), `npm run build` (exit 0; only pre-existing build warnings).
+- [x] `app/api/upload/route.ts` â€” add owner-scoped `DELETE /api/upload?publicId=...&folderType=...&guestUploadId=...` (destroys the asset only if `publicId` is inside the requester's folder scope via `isAssetInFolder`; guest scope = `guest-<guestUploadId>`, authenticated scope = the user's own folder; rate-limited).
+- [x] `lib/services/cloudinary.ts` â€” add `isAssetInFolder(publicId, folder)` scope guard.
+- [x] `lib/utils/uploadHelpers.ts` (new) â€” `deleteUploadedAsset` client helper.
+- [x] `app/signup/components/VerificationDocs.tsx` â€” persist docs to form draft on upload completion (`lastPersistedRef` loop guard; persist effect skips while `hasUploadingFile`); slot-aware restore that never clobbers in-progress uploads and seeds `donePublicIdRef`; old asset deleted only after a replacement succeeds; remove deletes asset + syncs formData; `itemRender` thumbnail overlay (uploading/failed/check) + per-upload success/error toasts.
+- [x] `app/signup/components/AccountInfo.tsx` â€” stable `guestUploadId` ref appended to profile upload; retains `publicId` on `profilePicture`.
+- [x] `lib/types.ts` â€” `UserFormData.profilePicture.publicId` optional.
+- [x] Tests: extend `app/signup/__tests__/VerificationDocs.test.tsx` (retention, replace-delete, remove-delete, status overlay â€” 8 tests); add `lib/utils/__tests__/uploadHelpers.test.ts` (3) + `lib/services/__tests__/cloudinary.test.ts` (`isAssetInFolder`, 3).
+- [x] Validation: `npx tsc --noEmit` (clean â€” also fixed pre-existing type errors in the VerificationDocs test file), `next lint` touched files (clean), focused vitest (4 files / 18 tests), full vitest (430 passed, 67 failed â€” all pre-existing, 12 skipped), `npm run build` (exit 0; only pre-existing build warnings).
 - [x] Backlog: add stale-asset cleanup task (below).
 - [x] Sync `ai-system` docs (task-queue, repair-system, test-results, session-log, dev-history, project-decisions) and clear `in-progress.md`.
 
 Notes: cross-device/localStorage-cleared signups leave orphaned cloud uploads (no local draft to
-attach them to) — scheduled as a backlog cleanup task below. The `no-response` service-worker guard
+attach them to) â€” scheduled as a backlog cleanup task below. The `no-response` service-worker guard
 (`lib/utils/swNoResponseGuard.ts`, PR #126) remains in place and covered by tests.
 
 ## Backlog (added 2026-08-13)
 
-- [ ] Stale-asset cleanup for signup uploads — orphaned Cloudinary assets (verification docs + profile
+- [ ] Stale-asset cleanup for signup uploads â€” orphaned Cloudinary assets (verification docs + profile
       photos) created by signups that never completed: cross-device signups, cleared
       cache/localStorage where the local form draft is gone, or interrupted registrations. Requires
       an inventory of how assets are referenced post-registration, a retention policy (e.g. age-based),
       and a scoped cleanup job that only deletes assets outside active account folders.
 - [x] Profile address management is non-functional (feedback gap found in 2026-08-15 auth feedback
-      audit) — `components/features/ProfilePage.tsx` addresses tab renders an `AddressForm` wired to a
+      audit) â€” `components/features/ProfilePage.tsx` addresses tab renders an `AddressForm` wired to a
       no-op `onChange` with no Save button, and per-address Edit/Delete buttons have no handlers.
       `/api/users/[id]/addresses` only supports GET. **Resolved Session 96 (2026-08-15):** POST/PUT/DELETE
       address routes added to `/api/users/[id]/addresses`, ProfilePage address form wired with
       Save/Edit/Delete handlers + loading and success/error toasts.
 - [x] Contact form on `/contact` is a dead affordance (feedback gap found in 2026-08-15 auth feedback
-      audit) — `app/contact/page.tsx` "Send Message" form has no `onSubmit` and posts nowhere.
+      audit) â€” `app/contact/page.tsx` "Send Message" form has no `onSubmit` and posts nowhere.
       **Resolved Session 96 (2026-08-15):** dead form removed; page now points to the live
       `/bug-report` flow alongside static contact channels.
 - [x] Login "Please verify your email address before logging in" only fires after a correct password,
       leaking that the account exists and the password is right (security nuance flagged in 2026-08-15
-      audit) — decide whether to return the verification-pending message regardless of password
+      audit) â€” decide whether to return the verification-pending message regardless of password
       correctness and document the tradeoff. **Resolved Session 96 (2026-08-15):** verification-pending
       now returned regardless of password correctness; tradeoff documented in `project-decisions.md`.
 
 ---
 
-## Session 90 — Universal Structured Content Editor (Public Content + Blog) (2026-08-11)
+## Session 90 â€” Universal Structured Content Editor (Public Content + Blog) (2026-08-11)
 
 > **Section summary:** Extracted the guided no-HTML authoring experience into one reusable pure
 > section model + controlled editor, then refactored the public content and blog admin panels onto
 > it. Blog posts are now authored as structured content blocks (no raw HTML); public behavior
 > unchanged.
 
-- [x] `lib/content/structuredSections.ts` — pure section model: types, `createSection`,
-      `serializeSectionsToHtml` (escaped, `pc-*` wrappers, `\n`→`<br />`),
+- [x] `lib/content/structuredSections.ts` â€” pure section model: types, `createSection`,
+      `serializeSectionsToHtml` (escaped, `pc-*` wrappers, `\n`â†’`<br />`),
       `parseSectionsFromMetadata`, `buildSectionMetadata` (editorVersion 3 + fallbackContract),
       `stripSectionMetadata`, `sectionsToPlainText`, `htmlToFallbackSection`, `isSectionType`.
-- [x] `components/features/content/StructuredContentEditor.tsx` — controlled shared editor
+- [x] `components/features/content/StructuredContentEditor.tsx` â€” controlled shared editor
       (configurable `allowedTypes`, `mediaFolderType`, `minSections`, `showMedia`, `showButtons`);
       add/remove/move sections, LIST items, QUOTE attribution, media upload, button fields.
-- [x] Refactor `PublicContentAdminPanel.tsx` — render shared editor (TEXT/HERO/CALLOUT), remove
+- [x] Refactor `PublicContentAdminPanel.tsx` â€” render shared editor (TEXT/HERO/CALLOUT), remove
       duplicated helpers/types; behavior preserved exactly.
-- [x] Refactor `BlogAdminPanel.tsx` — render shared editor (all five types); `body` =
+- [x] Refactor `BlogAdminPanel.tsx` â€” render shared editor (all five types); `body` =
       `serializeSectionsToHtml(sections)`; edit parses `item.metadata` with legacy HTML fallback;
       metadata = custom JSON merged over `buildSectionMetadata(sections)`; editable JSON shows only
       custom fields. Keep title/slug/excerpt/author/category/tags/status/featured/publish-date/SEO.
@@ -426,7 +426,7 @@ attach them to) — scheduled as a backlog cleanup task below. The `no-response`
 - [x] Sync `ai-system` docs (system-architecture, task-queue, session-log, dev-history,
       project-decisions, repo-map, dependency-graph) and clear `in-progress.md`.
 
-Notes: No data migration — legacy blog posts stay renderable; they flatten to a single TEXT section
+Notes: No data migration â€” legacy blog posts stay renderable; they flatten to a single TEXT section
 only when opened and saved in the editor. `metadata.editorVersion` is informational (not yet read at
 runtime).
 
@@ -440,17 +440,17 @@ runtime).
 - [x] Mirror the same CIS handshake surface in report-sys.
 - [x] Validate the touched files after the rollout lands.
 
-## Session 89 — DB Schema Sync (Dev + Prod) + Prod Launch Staging (2026-08-11)
+## Session 89 â€” DB Schema Sync (Dev + Prod) + Prod Launch Staging (2026-08-11)
 
 > **Section summary:** Ops-only slice: pushed the current Prisma schema to both databases and staged the production database for launch by force-resetting it (removing mock/seed data).
 
-- [x] Dev DB: `prisma db push` using env from `.env.local` — schema in sync, no data loss (recent additive migrations `20260805160000_add_blog`, `20260810090000_add_banner_events`).
-- [x] Prod DB: `prisma db push` using env from `.env` — schema in sync.
-- [x] Prod launch staging: `prisma db push --force-reset --accept-data-loss` — database reset and rebuilt from schema; no seed re-run (`db push` does not seed).
+- [x] Dev DB: `prisma db push` using env from `.env.local` â€” schema in sync, no data loss (recent additive migrations `20260805160000_add_blog`, `20260810090000_add_banner_events`).
+- [x] Prod DB: `prisma db push` using env from `.env` â€” schema in sync.
+- [x] Prod launch staging: `prisma db push --force-reset --accept-data-loss` â€” database reset and rebuilt from schema; no seed re-run (`db push` does not seed).
 - [x] Verified `BANK_TRANSFER_PROOF` fallback auto-enables when payment processing is disabled (or gateway not ready) unless `PAYMENT_FALLBACK_BANK_TRANSFER` is explicitly disabled.
 - [x] Cleaned up temporary verification scripts/SQL; synced `ai-system` docs.
 
-Notes: residual observation — a post-reset cleanliness query reported 2 rows across tracked tables; the identifying query was deferred. Verify source of those rows before treating prod as fully empty.
+Notes: residual observation â€” a post-reset cleanliness query reported 2 rows across tracked tables; the identifying query was deferred. Verify source of those rows before treating prod as fully empty.
 
 ## CIS Identity Persistence (Phase 1)
 
@@ -460,18 +460,18 @@ Notes: residual observation — a post-reset cleanliness query reported 2 rows a
 - [x] Persist webhook events and identity mappings in `/api/cis/webhook`.
 - [x] Record push-model decision in `ai-system` docs.
 
-## Session 82 — Guest toast, signup footer, discount layout, Paystack inline acceptance (2026-05-02)
+## Session 82 â€” Guest toast, signup footer, discount layout, Paystack inline acceptance (2026-05-02)
 
 > Implemented single-pass fixes to guest action UX, signup layout, checkout discount stacking, and Paystack inline deposit acceptance.
 
 - [x] Show register/login toast for guest add-to-cart/favourite actions (implemented in `lib/hooks/useGuestGuard.ts`)
 - [x] Remove redundant footer from signup layout (`app/signup/layout.tsx`)
-- [x] Refactor checkout summary discount layout — original amount + discount % stacked below discount amount (`app/checkout/page.tsx`, `components/features/CartItemComponent.tsx`)
+- [x] Refactor checkout summary discount layout â€” original amount + discount % stacked below discount amount (`app/checkout/page.tsx`, `components/features/CartItemComponent.tsx`)
 - [x] Treat Paystack verification-unavailable as authoritative for inline deposits to avoid perpetual pending transactions (`app/api/wallet/deposit/route.ts`)
 
-Notes: pending follow-ups — migration script to clean existing stuck pending wallet transactions, tests for the changes, and docs update.
+Notes: pending follow-ups â€” migration script to clean existing stuck pending wallet transactions, tests for the changes, and docs update.
 
-## Feature Planning Queue (2026-05-02) — Email Layout Consistency Audit + Rectification
+## Feature Planning Queue (2026-05-02) â€” Email Layout Consistency Audit + Rectification
 
 > **Section summary:** Plan to audit every outbound email path and make all mail conform to the shared `EmailLayout` / template components so wallet, auth, vendor, notification, and order emails render with the same branded structure.
 
@@ -498,7 +498,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Update `ai-system/system-architecture.md` with the canonical email delivery/template flow if the audit changes the contract.
   - [x] Record implementation decisions in `ai-system/memory/project-decisions.md` and log closure in checkpoints/history.
 
-## Session 84 — Email layout consistency audit + rectification (2026-05-02)
+## Session 84 â€” Email layout consistency audit + rectification (2026-05-02)
 
 > Implemented the branded generic notification email path and removed direct auth sender bypasses so all outbound mail uses the shared layout/template stack.
 
@@ -554,7 +554,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-19) — Paystack Inline Popup + Webhook Alias Hardening
+## Cloud Session Execution Queue (2026-04-19) â€” Paystack Inline Popup + Webhook Alias Hardening
 
 > **Section summary:** One-pass payment integration queue to move client payment initialization to Paystack inline popup, preserve webhook signature verification, add `/api/paystack-webhook` compatibility endpoint, and keep existing contracts non-breaking.
 
@@ -570,7 +570,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-19) — Design Token Compliance + Payment Initialize Diagnostics + Discount Parity
+## Cloud Session Execution Queue (2026-04-19) â€” Design Token Compliance + Payment Initialize Diagnostics + Discount Parity
 
 > **Section summary:** One-pass corrective queue for hero nav tokenization, dark-mode form control surface compliance, payment initialize diagnostics clarity for serverless/IP allowlist restrictions, and cart/checkout discount parity.
 
@@ -585,7 +585,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-18) — Hero Icon Controls + Sidebar Modal-First Ad Click
+## Cloud Session Execution Queue (2026-04-18) â€” Hero Icon Controls + Sidebar Modal-First Ad Click
 
 > **Section summary:** Follow-up one-pass queue to iconize hero action controls, restore rounded hero image corners, and route sidebar ad clicks through the shared modal viewer flow.
 
@@ -601,7 +601,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-18) — Top/Hero Banner Navigator Rework + Fill Behavior
+## Cloud Session Execution Queue (2026-04-18) â€” Top/Hero Banner Navigator Rework + Fill Behavior
 
 > **Section summary:** One-pass cloud queue to remove top-banner navigators, move hero controls under image into a compact action panel, and enforce fill behavior for top/ad banner assets.
 
@@ -615,7 +615,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session 62 Corrective Slice (2026-04-15) — Orders Item Count + User Orders Pagination
+## Session 62 Corrective Slice (2026-04-15) â€” Orders Item Count + User Orders Pagination
 
 > **Section summary:** Corrective patch to eliminate list-view order item count drift and add explicit pagination controls to the general `/orders` experience.
 
@@ -626,7 +626,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session 69 Corrective Slice (2026-04-15) — Authenticated Wallet/Checkout Policy + Push Health UX
+## Session 69 Corrective Slice (2026-04-15) â€” Authenticated Wallet/Checkout Policy + Push Health UX
 
 > **Section summary:** Align wallet and checkout access with authenticated-user policy, replace blanket withdrawal role gates with payout-context safeguards, and make push health diagnostics visibly actionable.
 
@@ -639,7 +639,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session 70 Corrective Slice (2026-04-15) — Configurable Withdrawal Settlement Hold Window
+## Session 70 Corrective Slice (2026-04-15) â€” Configurable Withdrawal Settlement Hold Window
 
 > **Section summary:** Convert withdrawal pending-settlement hold timing from hardcoded logic to an admin-managed commerce lifecycle policy.
 
@@ -654,13 +654,13 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-17) — WhatsApp Auth Continuation + Pickup Copy + Voucher Scope Expansion
+## Cloud Session Execution Queue (2026-04-17) â€” WhatsApp Auth Continuation + Pickup Copy + Voucher Scope Expansion
 
 > **Section summary:** One-pass cloud execution queue to enforce auth-guarded WhatsApp handoff continuity, update requested pickup copy, and deliver configurable voucher scope/visibility behavior.
 
 - [x] Add auth-guarded continuation flow for `/contact/whatsapp` with safe redirect/refire after signup/email verification/login.
 - [x] Add shared safe internal redirect continuation helper and wire it through login/signup/verify-email continuity points.
-- [x] Update product-detail pickup copy to “Available at Sunday or Midweek services.”
+- [x] Update product-detail pickup copy to â€œAvailable at Sunday or Midweek services.â€
 - [x] Add reusable voucher scope parser/matcher for categories/vendors/campuses/products + visibility.
 - [x] Extend admin vouchers APIs (`GET`/`POST`/`PATCH`) to support scope + visibility fields while preserving backward compatibility.
 - [x] Extend operations vouchers UI to configure and display voucher scope + private/public visibility.
@@ -671,7 +671,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-17) — Card Density + Footer Grid + Wallet Paystack Handoff
+## Cloud Session Execution Queue (2026-04-17) â€” Card Density + Footer Grid + Wallet Paystack Handoff
 
 > **Section summary:** One-pass corrective queue to restore discovery/home density behavior, footer links-section mobile grid layout, and direct wallet deposit handoff reliability to Paystack checkout.
 
@@ -680,12 +680,12 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [x] Apply matching responsive card-density contract on `/vendors` (`3/3/4`).
 - [x] Update footer links sections container (Quick Links, Support, Contact Us) to mobile-grid behavior.
 - [x] Replace wallet pre-open blank-window deposit handoff with direct Paystack open + same-tab fallback navigation.
-- [x] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`) — lint/build passed; focused suite retains pre-existing `HomeContent.banner-layout` expectation drift.
+- [x] Run validation (`npm run lint`, `npm run build`, focused touched `vitest`) â€” lint/build passed; focused suite retains pre-existing `HomeContent.banner-layout` expectation drift.
 - [x] Sync `ai-system` closure docs (`session-log`, `dev-history`, architecture/memory/repair when needed).
 
 ---
 
-## Cloud Session Execution Queue (2026-04-16) — Ads Duplication Guard + Sidebar Rail + Wallet/Payment + WhatsApp Intent + Metadata + Vendor-Card UX
+## Cloud Session Execution Queue (2026-04-16) â€” Ads Duplication Guard + Sidebar Rail + Wallet/Payment + WhatsApp Intent + Metadata + Vendor-Card UX
 
 > **Section summary:** One-pass cloud execution package for non-breaking reliability and UX hardening across ad/banner mutations, sidebar ad rail behavior, wallet action containment, payment initialize diagnostics, origin-aware WhatsApp chat intent, dynamic metadata parity, and vendor-card layout consistency.
 
@@ -721,7 +721,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-16) — Cart Freshness + Checkout Live Validation + Sidebar/WhatsApp/Wallet Reliability
+## Cloud Session Execution Queue (2026-04-16) â€” Cart Freshness + Checkout Live Validation + Sidebar/WhatsApp/Wallet Reliability
 
 > **Section summary:** One-pass closure for cart/catalog reconciliation, checkout live-state guard before payment, sidebar overflow containment, WhatsApp guard redirect continuity, and wallet deposit handoff reliability.
 
@@ -738,7 +738,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Feature Planning Queue (2026-04-15) — Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
+## Feature Planning Queue (2026-04-15) â€” Wallet/Checkout Payment Integrity + Notification Delivery + Order Email Parity
 
 > **Section summary:** Reliability closure queue for contradictory admin wallet/checkout behavior, Paystack transaction-verification correctness, delayed in-app/push notification visibility, and plain order-notification email rendering.
 
@@ -836,7 +836,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [ ] Standardize response envelope and error mapping on profile/password/user-self routes to match shared API success/error patterns.
 
 - [ ] Harden profile UI feedback, state reconciliation, and refresh behavior after mutations.
-  - [ ] Ensure profile save handlers map structured API errors to user-safe messages and avoid generic “Internal server error” leakage.
+  - [ ] Ensure profile save handlers map structured API errors to user-safe messages and avoid generic â€œInternal server errorâ€ leakage.
   - [ ] Ensure successful profile updates reconcile local form state, auth context (`refreshUser`), and runtime resource cache in one deterministic flow.
   - [ ] Add explicit non-blocking refresh indicator and retry path when profile resource background refresh fails.
 
@@ -904,7 +904,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Create `app/ad-application` page with form content and static information
   - [x] Add backend endpoint `app/api/ads/apply/route.ts` to receive submissions
   - [x] Ensure no auth guard in middleware for this page (public route access)
-  - [x] Add a clear footer link text like “Apply to Advertise” in `components/layout/Footer` or equivalent
+  - [x] Add a clear footer link text like â€œApply to Advertiseâ€ in `components/layout/Footer` or equivalent
   - [x] Add tests: route accessibility + form submit behavior + footer link presence
 
 - [x] Fix role-based dashboard routing for admin/vendor:
@@ -922,7 +922,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [x] Resolve signup validation and role option bugs (closed via 2026-04-04 correction contract)
   - [x] Superseded: Do not add `Worker` as signup role; keep `Worker` only as church position where applicable.
   - [x] Removed role/dashboard mapping drift for deprecated signup role option.
-  - [x] Investigated and fixed intermittent “fill all required fields” signup-stage validation behavior.
+  - [x] Investigated and fixed intermittent â€œfill all required fieldsâ€ signup-stage validation behavior.
   - [x] Added/updated regression coverage for signup progression and validation-state retention.
 - [x] Fix `SecurityInfo` race condition where `updateFormData` is not flushed before calling `register`; pass final payload explicitly to API call
 - [x] Harden `/api/auth/register` input validation to use zod schemas and reject malformed requests (include `confirmPassword`, `agreeToTerms` checks)
@@ -935,9 +935,9 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 > **Section summary:** Pre-signup email check against CIS backend to detect existing accounts on other platforms.
 
-- [x] Add `lib/services/cisCheck.ts` — service calling `GET /api/v1/users/check-email/:email`
-- [x] Add `components/ui/CrossPlatformAccountPrompt.tsx` — UI prompt for detected cross-platform accounts
-- [x] Wire email blur check in `app/signup/components/UserInfo.tsx` — triggers CIS check on email field blur
+- [x] Add `lib/services/cisCheck.ts` â€” service calling `GET /api/v1/users/check-email/:email`
+- [x] Add `components/ui/CrossPlatformAccountPrompt.tsx` â€” UI prompt for detected cross-platform accounts
+- [x] Wire email blur check in `app/signup/components/UserInfo.tsx` â€” triggers CIS check on email field blur
 - [x] Block signup submission until cross-platform prompt is dismissed or no match found
 - [x] Export `CrossPlatformAccountPrompt` from `components/ui/index.ts`
 - [x] Update `ai-system` docs with feature decisions
@@ -949,8 +949,8 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 - [ ] Improve accessibility (keyboard nav, ARIA, contrast)
 - [ ] Add PWA support (service worker + offline caching)
 - [ ] Add search indexing and advanced filters (categories, campus)
-- [XL] Package the `ai-system` kit for versioned install (npm / GitHub Releases) for distribution beyond "clone the template repo" — deferred stretch goal from template v3
-- [XL] Optional `integrations/opencode/` adapter mapping `ai-system` commands to opencode-specific slash-commands (multi-manifest pattern, `AGENTS.md` + `opencode.json`), clearly labeled so the core kit stays vendor-neutral — deferred stretch goal from template v3
+- [XL] Package the `ai-system` kit for versioned install (npm / GitHub Releases) for distribution beyond "clone the template repo" â€” deferred stretch goal from template v3
+- [XL] Optional `integrations/opencode/` adapter mapping `ai-system` commands to opencode-specific slash-commands (multi-manifest pattern, `AGENTS.md` + `opencode.json`), clearly labeled so the core kit stays vendor-neutral â€” deferred stretch goal from template v3
 
 ---
 
@@ -970,7 +970,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session 49 Fix Slice — Payment/Banner UX Consistency (2026-04-11)
+## Session 49 Fix Slice â€” Payment/Banner UX Consistency (2026-04-11)
 
 > **Section summary:** Small reliability patch set for payment availability, cart feedback messaging, vendor rail layout, banner rendering integrity, and ad/banner placement previews.
 
@@ -1196,13 +1196,13 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Update `ai-system` artifacts (queue, plan, decisions, session log, architecture notes) with final statuses and residual risks.
   - [x] Track explicitly deferred low-priority items (contact page config source, vendor deactivation UX, webhook idempotency hardening) with owner and target sprint.
     - Deferred risk register:
-      - Contact page config source parity — Owner: Content/Platform; Target sprint: 2026-04-12 hardening wave.
-      - Vendor deactivation UX lifecycle completion — Owner: Operations UX; Target sprint: 2026-04-12 hardening wave.
-      - Payment webhook idempotency hardening — Owner: Payments backend; Target sprint: 2026-04-12 hardening wave.
+      - Contact page config source parity â€” Owner: Content/Platform; Target sprint: 2026-04-12 hardening wave.
+      - Vendor deactivation UX lifecycle completion â€” Owner: Operations UX; Target sprint: 2026-04-12 hardening wave.
+      - Payment webhook idempotency hardening â€” Owner: Payments backend; Target sprint: 2026-04-12 hardening wave.
 
 ---
 
-## Session Task Slice (2026-04-05) — Product/Vendor/Layout Hotfix Follow-up
+## Session Task Slice (2026-04-05) â€” Product/Vendor/Layout Hotfix Follow-up
 
 > **Section summary:** Immediate fixes for product detail routing, dashboard shell consistency, and vendor visibility/verification labeling.
 
@@ -1229,7 +1229,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Feature Planning Queue (2026-04-08) — Banner Integrity + Content Editor UX
+## Feature Planning Queue (2026-04-08) â€” Banner Integrity + Content Editor UX
 
 > **Section summary:** Planning backlog derived from `plan-feature.md` directive for banner behavior, analytics integrity, vendor-review communication checks, and non-technical public-content editing.
 
@@ -1261,7 +1261,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Feature Planning Queue (2026-04-08) — Product Discovery Filter/Sort Contract Hardening
+## Feature Planning Queue (2026-04-08) â€” Product Discovery Filter/Sort Contract Hardening
 
 > **Section summary:** Implementation queue for category-tag filtering correctness, query-state synchronization, and single-source-of-truth filter/sort configuration.
 
@@ -1291,7 +1291,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session Hotfix Queue (2026-04-08) — Home/Product/Banner/Data Integrity
+## Session Hotfix Queue (2026-04-08) â€” Home/Product/Banner/Data Integrity
 
 > **Section summary:** Immediate bug-fix slice for discount rendering, top-banner image-only behavior, and stale/zero data regressions on home + operations vendor metrics.
 
@@ -1313,7 +1313,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Session Feature Queue (2026-04-08) — Vendor Marketing Separation + Smart Refresh
+## Session Feature Queue (2026-04-08) â€” Vendor Marketing Separation + Smart Refresh
 
 > **Section summary:** Follow-up implementation slice to separate marketing moderation concerns from product media, add resilient avatar fallbacks, and reduce operations request churn with in-memory cached silent refresh.
 
@@ -1334,7 +1334,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Feature Planning Queue (2026-04-08) — Unified In-Memory Data Runtime + Seamless Refresh
+## Feature Planning Queue (2026-04-08) â€” Unified In-Memory Data Runtime + Seamless Refresh
 
 > **Section summary:** Cross-project reliability feature to preload role-accessible data, keep it in-memory, apply safe optimistic updates, and refresh from DB with minimal visual interruption.
 
@@ -1389,7 +1389,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Runtime Closeout Queue (2026-04-09) — Post-Cloud Gap Closure
+## Runtime Closeout Queue (2026-04-09) â€” Post-Cloud Gap Closure
 
 > **Section summary:** Follow-up closure plan for cloud-session blockers plus newly reported admin/dashboard UX issues.
 
@@ -1475,18 +1475,18 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Temporary cloud execution plan now exists in repository: `ai-system/planning/cloud-session-temp-plan-2026-04-13-commerce-assurance-wave.md`.
   - [x] Merged cloud implementation delivered constrained subset (Phase A) and requires continuation queue (Phase B) for full original scope closure.
 
-- [x] Slice 1 — Order-to-Payout automation with deterministic lifecycle transitions.
+- [x] Slice 1 â€” Order-to-Payout automation with deterministic lifecycle transitions.
   - [x] Replaced invalid/non-enum order transition map with canonical `OrderStatus` transitions only.
   - [x] Added idempotent no-op handling when requested status already equals persisted status.
   - [x] Added transaction-safe delivered-order payout automation (`TransactionType.PAYOUT`) for paid orders.
   - [x] Enforced payout idempotency via deterministic reference + existing payout check before crediting vendor wallet.
   - [x] Added focused route tests for invalid transition rejection, payout creation path, and idempotent replay.
 
-- [x] Slice 2 — Banner placement preview parity with runtime rendering.
+- [x] Slice 2 â€” Banner placement preview parity with runtime rendering.
   - [x] Updated shared `BannerPlacementPreview` so TOP placement remains image-only (no title overlay), matching `TopAdBanner` runtime contract.
   - [x] Added focused preview tests for TOP image-only behavior and HERO title-overlay continuity.
 
-- [x] Slice 3 — Vendor contact safety guard for WhatsApp handoff.
+- [x] Slice 3 â€” Vendor contact safety guard for WhatsApp handoff.
   - [x] Added public guard page (`/contact/whatsapp`) that shows safety disclaimer before external handoff.
   - [x] Rewired vendor detail WhatsApp CTA to route through guard-first page instead of direct external deep-link.
   - [x] Added focused tests for safe handoff path and invalid-number blocking behavior.
@@ -1496,7 +1496,7 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] `npx tsc --noEmit`.
   - [x] Focused Vitest suites for order status route, contact guard page, banner preview parity, and top-banner contract.
 
-- [x] Phase B continuation — Full original lifecycle orchestration scope (re-opened after integrity reconciliation).
+- [x] Phase B continuation â€” Full original lifecycle orchestration scope (re-opened after integrity reconciliation).
   - [x] Restore canonical feature spec parity in `ai-system/planning/project-plan.md` and keep this queue as source-of-truth for remaining scope.
   - [x] Implement buyer delivery confirmation endpoint/UI action for delivered orders.
   - [x] Implement 48-hour auto-confirm scheduler for delivered orders with idempotent replay safety.
@@ -1702,23 +1702,23 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-17) — Home Layout + Campus Search + Voucher Restoration + Trending/Deals + Product Detail + DataTable Standardization
+## Cloud Session Execution Queue (2026-04-17) â€” Home Layout + Campus Search + Voucher Restoration + Trending/Deals + Product Detail + DataTable Standardization
 
 > **Section summary:** One-pass execution queue for homepage layout parity fixes, campus-index discovery expansion, voucher/coupon restoration across buyer/admin flows, trending/deals algorithm foundation, product detail expansion, and overflow-safe reusable table rollout.
 
-- [x] Slice 1 — Home sidebar and product-card layout parity.
+- [x] Slice 1 â€” Home sidebar and product-card layout parity.
   - [x] Constrain desktop sidebar container so its rendered height does not exceed adjacent hero banner footprint.
   - [x] Scale sidebar ad tiles down for denser desktop presentation while preserving responsive behavior.
   - [x] Fix affected product-listing surfaces to render expected grid card density (no single-card full-width regression).
   - [x] Add/refresh focused tests for sidebar containment and product-card grid layout behavior.
 
-- [x] Slice 2 — Campus-index discovery/search expansion.
+- [x] Slice 2 â€” Campus-index discovery/search expansion.
   - [x] Extend products/discovery API query contract to include campus filtering/index-aware search matching.
   - [x] Extend discovery UI/query-state plumbing to expose and persist campus-aware search/filter behavior.
   - [x] Ensure search suggestions/discovery routes can return campus-relevant results without breaking current search behavior.
   - [x] Add/refresh focused tests for campus search/filter contracts and query-state rehydration.
 
-- [x] Slice 3 — Voucher/coupon restoration end-to-end with transactional safety.
+- [x] Slice 3 â€” Voucher/coupon restoration end-to-end with transactional safety.
   - [x] Audit and reuse existing voucher artifacts (`app/api/vouchers/*`, `app/api/admin/vouchers/*`, schema/models) before introducing new logic.
   - [x] Restore checkout voucher entry/apply flow with explicit success/failure feedback and recalculated totals.
   - [x] Restore authenticated user voucher page for available/used voucher visibility and usage history.
@@ -1726,25 +1726,25 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
   - [x] Enforce atomic redemption semantics and usage-limit integrity (ACID-safe update + redemption record linkage).
   - [x] Add/refresh focused tests for validate/apply/redeem limit checks, duplicate-redeem race handling, and CRUD behavior.
 
-- [x] Slice 4 — Trending algorithm confirmation + deals foundation.
+- [x] Slice 4 â€” Trending algorithm confirmation + deals foundation.
   - [x] Confirm and document canonical trending score inputs (sales, engagement, recency, availability constraints as applicable).
   - [x] Refactor trending selection into config-driven contract to avoid hardcoded scoring behavior.
   - [x] Lay foundation for home deals section: trending products with active discount/promotion and bounded time windows.
   - [x] Add/refresh focused tests for trending ordering and deals eligibility window logic.
 
-- [x] Slice 5 — Product detail page enrichment.
+- [x] Slice 5 â€” Product detail page enrichment.
   - [x] Add summarized vendor stats/information section(s) in dedicated product page.
   - [x] Add delivery policy (and related trust/context policy) section(s) sourced safely from existing data contracts/fallbacks.
   - [x] Expand related/similar products section quality and data relevance.
   - [x] Add/refresh focused tests for new product-detail section rendering and fallback behavior.
 
-- [x] Slice 6 — Reusable data-table standardization across operations.
+- [x] Slice 6 â€” Reusable data-table standardization across operations.
   - [x] Inventory operations pages using non-reusable tables (including banners/users and similar surfaces).
   - [x] Migrate those tables to the main reusable data-table component (or reusable wrapper) with overflow-safe defaults.
   - [x] Preserve per-page actions/sorting/filtering while eliminating viewport overflow regressions.
   - [x] Add/refresh focused tests for overflow containment and key table interactions on migrated pages.
 
-- [x] Slice 7 — Final quality gate + documentation closure.
+- [x] Slice 7 â€” Final quality gate + documentation closure.
   - [x] Run validation gate (`npm run lint`, `npx tsc --noEmit`, touched/focused tests, and any existing route/table audits).
   - [x] Update `ai-system/planning/task-queue.md` statuses and capture blockers with exact file-level context if any remain.
   - [x] Update `ai-system/checkpoints/session-log.md` and `ai-system/summaries/dev-history.md`.
@@ -1752,62 +1752,96 @@ Notes: pending follow-ups — migration script to clean existing stuck pending w
 
 ---
 
-## Cloud Session Execution Queue (2026-04-17) — Home Rails + Discovery Grid/Pagination + Mobile Footer Quick-Link Grid
+## Cloud Session Execution Queue (2026-04-17) â€” Home Rails + Discovery Grid/Pagination + Mobile Footer Quick-Link Grid
 
 > **Section summary:** One-pass execution queue for home card rail conversion, dedicated discovery grid+pagination parity, and footer quick-link mobile grid readability.
 
-- [x] Slice 1 — Home product-card rail conversion.
+- [x] Slice 1 â€” Home product-card rail conversion.
   - [x] Convert Featured Products section from grid layout to horizontal rail.
   - [x] Convert Trending Now section from grid layout to horizontal rail.
   - [x] Convert New Arrivals section from grid layout to horizontal rail.
   - [x] Convert Hot Deals section from grid layout to horizontal rail.
 
-- [x] Slice 2 — Home vendor-card rail conversion.
+- [x] Slice 2 â€” Home vendor-card rail conversion.
   - [x] Convert Popular Vendors section from grid layout to horizontal rail with fixed card widths.
 
-- [x] Slice 3 — Dedicated discovery pages keep grid + pagination.
+- [x] Slice 3 â€” Dedicated discovery pages keep grid + pagination.
   - [x] Preserve `/products` grid + pagination behavior for general and category-query exploration.
   - [x] Add pagination to `/vendors` while preserving gridded card display and active filters.
   - [x] Ensure page index resets safely when vendor filters/search criteria change.
 
-- [x] Slice 4 — Footer mobile quick-links grid.
+- [x] Slice 4 â€” Footer mobile quick-links grid.
   - [x] Update footer quick links to render as an appropriate mobile-first grid while preserving desktop readability.
 
-- [x] Slice 5 — Validation + documentation closure.
+- [x] Slice 5 â€” Validation + documentation closure.
   - [x] Run validation gate (`npm run lint`, `npm run build`, focused/touched tests as practical).
   - [x] Update `ai-system/planning/task-queue.md` with completion status.
   - [x] Update `ai-system/checkpoints/session-log.md` and `ai-system/summaries/dev-history.md`.
 
 ---
 
-## Cloud Session Execution Queue (2026-08-10) — Ad/Banner Performance Tracking & Analytics
+## Cloud Session Execution Queue (2026-08-10) â€” Ad/Banner Performance Tracking & Analytics
 
 > **Section summary:** End-to-end ads/banners performance tracking (impressions, clicks, conversions) with authenticated vs anonymous and unique counts, surfaced in the operations dashboards.
 
-- [x] Slice 1 — Schema + analytics core.
+- [x] Slice 1 â€” Schema + analytics core.
   - [x] Add `BannerEventType` enum (`IMPRESSION | CLICK | CONVERSION`) and `BannerEvent` model (bannerId, type, userId?, visitorId?, source?, metadata?, occurredAt) with composite indexes.
   - [x] Add `conversionCount` denormalized counter to `Banner` plus `events` relation.
   - [x] Create migration `20260810090000_add_banner_events` and regenerate the Prisma client.
-  - [x] Add `lib/analytics/bannerAnalytics.ts` — pure aggregation helper (total/unique/auth/anon + CTR/CR).
+  - [x] Add `lib/analytics/bannerAnalytics.ts` â€” pure aggregation helper (total/unique/auth/anon + CTR/CR).
 
-- [x] Slice 2 — Tracking API.
+- [x] Slice 2 â€” Tracking API.
   - [x] Extend `PATCH /api/banners/[id]` into a generic event-tracking endpoint (`{ type, visitorId, source, metadata }`) with `POST` alias for `sendBeacon`; IP rate-limited; best-effort event insert + denormalized counter increment.
   - [x] `app/api/ad-applications/[id]/route.ts` creates approved banners with `conversionCount: 0`.
 
-- [x] Slice 3 — Analytics API.
+- [x] Slice 3 â€” Analytics API.
   - [x] New admin-only `GET /api/admin/analytics/banners` with `days`/`bannerId` filters returning summary + per-banner metrics.
 
-- [x] Slice 4 — Client tracking + wiring.
-  - [x] Add `lib/tracking/bannerTracking.ts` — stable localStorage `visitorId`, `sendBeacon`/keepalive-fetch fire-and-forget events, per-session impression dedupe.
+- [x] Slice 4 â€” Client tracking + wiring.
+  - [x] Add `lib/tracking/bannerTracking.ts` â€” stable localStorage `visitorId`, `sendBeacon`/keepalive-fetch fire-and-forget events, per-session impression dedupe.
   - [x] Wire into `TopAdBanner`, `BannerCarousel` (hero + modal), and `HomeContent` (sidebar rail).
 
-- [x] Slice 5 — Dashboard surfaces.
+- [x] Slice 5 â€” Dashboard surfaces.
   - [x] `app/api/operations/dashboard/route.ts` admin metric cards for banner impressions/clicks + "Ad & Banner Analytics" quick action.
   - [x] `AnalyticsFeature.tsx` admin-only "Banner & Ad Performance" section fed by `getBannerAnalyticsClient` (`lib/data/clientDataFetchers.ts`).
 
-- [x] Slice 6 — Tests.
+- [x] Slice 6 â€” Tests.
   - [x] `lib/analytics/__tests__/bannerAnalytics.test.ts`, `app/api/banners/[id]/__tests__/tracking.route.test.ts`, `app/api/admin/analytics/banners/__tests__/route.test.ts`, `lib/tracking/__tests__/bannerTracking.test.ts`, `TopAdBanner.tracking.test.tsx`, `BannerCarousel.tracking.test.tsx`.
 
-- [x] Slice 7 — QA + docs closure.
+- [x] Slice 7 â€” QA + docs closure.
   - [x] Validation gate: `npx tsc --noEmit`, `npm run lint -- --max-warnings 0` (only pre-existing warnings in untouched files), focused vitest suites (44 new tests pass), `npm run build`.
   - [x] Update `ai-system/checkpoints/session-log.md`, `ai-system/summaries/dev-history.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/checkpoints/in-progress.md`.
+
+---
+
+## Feature Execution Queue (2026-10-21) â€” Payment Models: Commissions + Subscription Packages [XL] (Session 104)
+
+> **Section summary:** Platform-wide vendor-commission toggle (default OFF) and config-driven subscription packages (default ON, enforcement NONE|WARN|BLOCK default WARN) with admin CRUD, CARD/WALLET purchase + upgrade flows, notifications, cron sweep, and full admin observability. All slices complete; traced via `checkpoints/session-log.md` Session 104 and `checkpoints/in-progress.md`.
+
+- [x] Slice 1 â€” Schema (additive): `SubscriptionStatus`/`SubscriptionEnforcementLevel` enums; `NotificationType` +3; `CommerceLifecycleConfig` +4 fields (defaults: commission OFF, subs ON, notice 3, WARN); `SubscriptionPackage` + `VendorSubscription` models (`paymentReference @unique`, one-time notice dedupe columns); `db push` + client regen.
+- [x] Slice 2 â€” Core service `lib/services/subscriptions.ts` (never-throwing config reads, window math extending `max(now, expiry)`, idempotent sweep with atomic notify guards, admin stats, enforcement checks).
+- [x] Slice 3 â€” Purchase API `app/api/subscriptions` (CARD verify-backed with exact NGN subunit + GATEWAY_UNAVAILABLE precedent; WALLET ACID debit + PAYMENT ledger row; `SUB-` reference idempotent replay; renewal window extension). Public `app/api/subscription-packages`.
+- [x] Slice 4 â€” Admin APIs: `app/api/admin/subscription-packages` (+`[id]`, soft-delete guard when subscribers exist), `app/api/admin/subscriptions` (+`[id]` cancel/restore), `app/api/cron/subscriptions` (secret/admin auth, one-time notices).
+- [x] Slice 5 â€” Config plumbing: commerce-config GET/PUT payment-models fields; commission gate generalized in `lib/services/orderLifecycle.ts` (`vendorCommissionEnabled || serviceSettlementCommissionEnabled`, rate fallback chain incl. `commissionDefaultRate`); enforcement gates on product create + draftâ†’publish (BLOCK, VENDOR only).
+- [x] Slice 6 â€” UI: `/packages` public purchase page (Paystack inline + WALLET, localStorage `SUB-` reference idempotency, `?selected=` deep-link), `/operations/subscription` vendor status/history, `/operations/subscriptions` admin Tabs (Overview/Packages CRUD/Subscriptions), settings "Payment Models" card, dashboard WARN/BLOCK banner + metrics/quick actions, Sidebar/nav/footer/CTA wiring.
+- [x] Slice 7 â€” Notifications: `SUBSCRIPTION_ACTIVATED|EXPIRING_SOON|EXPIRED` mirrored into `lib/constants`, `NOTIFICATION_TEMPLATE_CONFIG`, `DEFAULT_EMAIL_TEMPLATES` (parity test-enforced).
+- [x] Slice 8 â€” Tests: subscriptions service (27), purchase route (16), admin schema (9), cron route (7), template parity (5), commission toggle matrix (+5), packages page (3).
+- [x] Slice 9 â€” QA gate + docs close: `prisma validate`/`db push`/`db generate`, `tsc --noEmit`, lint, vitest (full-suite failure set unchanged from baseline â€” bannerTracking Node-25 env + load flakes), `build`, `audit:dead-links`; session-log/dev-history/task-queue/project-decisions/system-architecture + `update-ai-system.md` deep sync.
+
+---
+
+## Feature Execution Queue (2026-10-21) - Payment-Models Follow-Ups: Cron Scheduling + Test-Env Repair (Session 105)
+
+> **Section summary:** Follow-up execution of the Session 104 close-out notes. Both lifecycle crons made Vercel-cron-ready (GET + Bearer `CRON_SECRET` auth, all legacy contracts preserved), `vercel.json` schedules both daily sweeps, and the Node-25/jsdom `localStorage` test-env breakage repaired via a capability-guard polyfill in `vitest.setup.tsx`. All slices complete; traced via `checkpoints/session-log.md` Session 105 and `checkpoints/in-progress.md`.
+
+- [x] Slice 1 - Cron readiness, subscriptions sweep: `app/api/cron/subscriptions/route.ts` shared `handleSweep(req)` + `GET` export (Vercel crons invoke GET); Bearer `Authorization: Bearer <secret>` over `CRON_SECRET`/`SUBSCRIPTION_CRON_SECRET`; POST + `x-subscription-cron-secret` + ADMIN preserved unchanged.
+- [x] Slice 2 - Cron readiness, service-fulfillment sweep: `app/api/orders/service-fulfillment/route.ts` `GET` export delegating to POST; Bearer auth over `CRON_SECRET`/`ORDER_FULFILLMENT_SECRET`/`ORDER_AUTO_CONFIRM_SECRET` added to `isAuthorizedCronRequest`; legacy `x-fulfillment-secret`/`x-auto-confirm-secret` + ADMIN + POST preserved unchanged. (User go/no-go: "schedule both".)
+- [x] Slice 3 - Scheduling config: `vercel.json` (new) with two staggered daily crons - `/api/cron/subscriptions` `0 3 * * *`, `/api/orders/service-fulfillment` `0 4 * * *` (Hobby-compatible once/day; inert on non-Vercel hosts; sweeps idempotent so best-effort cron delivery is replay/miss-safe).
+- [x] Slice 4 - Test-env storage repair: `vitest.setup.tsx` capability-guard in-memory `Storage` polyfill for `localStorage`/`sessionStorage` when ambient methods are missing (Node 25 stub delegated by jsdom 27); `bannerTracking.test.ts` "unavailable" test switched to `vi.stubGlobal` (Node `Storage` brand-checks prevent prototype spying). bannerTracking 10/10 green (was 10/10 red at baseline).
+- [x] Slice 5 - Tests: `app/api/cron/subscriptions/__tests__/route.test.ts` +8 GET/Bearer-matrix cases (15 total); new `app/api/orders/service-fulfillment/__tests__/route.auth.test.ts` (9-case auth matrix). Cron suites 24/24 green; storage-sensitive suites 16/16 green.
+- [x] Slice 6 - QA gate + docs close: `prisma validate` (untouched), `tsc --noEmit` (0 errors), `lint` (pre-existing warnings only), full `vitest run` (795 passed; bannerTracking fixed; remaining failures all load-induced 5s-timeout flakes, `forgot-password` single test baseline-reproduced pre-existing), `build`, `audit:dead-links`; session-log/dev-history/task-queue/project-decisions + `update-ai-system.md` deep sync; user git/Vercel/admin action list produced.
+
+**Deferred / human calls (carried forward):**
+- User-side: git branch/commit/push/PR (user owns git; no `gh` CLI locally); set `CRON_SECRET` in Vercel; verify both cron entries post-deploy; seed first subscription package(s) via admin UI; review Settings -> Payment Models.
+- Switch subscription enforcement WARN -> BLOCK only after vendors are notified (product decision, not blocking).
+

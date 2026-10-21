@@ -49,8 +49,27 @@ describe('getVisitorId', () => {
     });
 
     it('returns an empty string when localStorage is unavailable', () => {
-        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-            throw new Error('denied');
+        // Node 25 + jsdom 27 expose a method-less localStorage stub, and the
+        // setup installs a deterministic in-memory polyfill over it — so the
+        // unavailable case must be simulated by stubbing the global directly
+        // (repair-system.md: "explicitly mock localStorage in tests").
+        vi.stubGlobal('localStorage', {
+            getItem() {
+                throw new Error('denied');
+            },
+            setItem() {
+                throw new Error('denied');
+            },
+            removeItem() {
+                throw new Error('denied');
+            },
+            clear() {
+                throw new Error('denied');
+            },
+            key() {
+                return null;
+            },
+            length: 0,
         });
         expect(getVisitorId()).toBe('');
     });

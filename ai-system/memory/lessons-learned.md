@@ -1,8 +1,8 @@
-# Lessons Learned
+﻿# Lessons Learned
 
-> **last-updated-by:** update-ai-system.md (2026-08-20)
-> **last-updated-at:** 2026-08-20T00:00:00Z
-> **Overview:** Practical knowledge accumulated during development — things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
+> **last-updated-by:** update-ai-system.md (2026-10-21)
+> **last-updated-at:** 2026-10-21T00:00:00Z
+> **Overview:** Practical knowledge accumulated during development â€” things that worked well, things that didn't, and patterns worth repeating. Different from repair-system.md (which tracks errors); this file tracks development process insights and architectural wisdom.
 
 ---
 
@@ -32,7 +32,7 @@ During the upload-retention work, `npx tsc --noEmit` surfaced three pre-existing
 `app/signup/__tests__/VerificationDocs.test.tsx` (`beforeAll` not imported, the deferred resolver
 typed `(value: unknown) => void` instead of `(value: Response | PromiseLike<Response>) => void`, and
 `fileInputs(container)[0]` needing `!` under `noUncheckedIndexedAccess`) plus a real return-type bug
-in `VerificationDocs.tsx` — even though the tests passed at runtime under vitest.
+in `VerificationDocs.tsx` â€” even though the tests passed at runtime under vitest.
 
 **What We Learned:**
 Vitest transpiles with esbuild and does not type-check, so a test file can pass while
@@ -95,7 +95,7 @@ extending `SectionType`.
 Writing route unit tests that import a route which transitively pulls in `@/prisma/generated/client` (a `"type": "module"` package) failed with `[vitest] "vi.hoisted" hoisting is not supported when importing from ESM-only module`.
 
 **What We Learned:**
-`vi.hoisted` is incompatible with test files whose import graph loads an ESM-only module. Prefer the established pattern used elsewhere in this repo: declare mocks inside `vi.mock(factory)` and import the mocked module (`import { prisma } from '@/lib/db/prisma'`) to get the mock references, then drive them with `vi.mocked(...)`. Also prefer `import type { Prisma }` when `Prisma` is only used for a type assertion — that keeps the ESM-only generated client out of the runtime graph.
+`vi.hoisted` is incompatible with test files whose import graph loads an ESM-only module. Prefer the established pattern used elsewhere in this repo: declare mocks inside `vi.mock(factory)` and import the mocked module (`import { prisma } from '@/lib/db/prisma'`) to get the mock references, then drive them with `vi.mocked(...)`. Also prefer `import type { Prisma }` when `Prisma` is only used for a type assertion â€” that keeps the ESM-only generated client out of the runtime graph.
 
 **Apply When:**
 Writing unit tests for API routes or modules that touch the Prisma generated client or other ESM-only dependencies.
@@ -106,7 +106,7 @@ Writing unit tests for API routes or modules that touch the Prisma generated cli
 Testing `navigator.sendBeacon` payloads in `lib/tracking/__tests__/bannerTracking.test.ts` failed with `blob.text is not a function` because jsdom's `Blob` implementation does not expose `.text()`.
 
 **What We Learned:**
-jsdom's `Blob` is missing modern methods like `.text()`. Stub the global with Node's `Blob` (`import { Blob } from 'node:buffer'`, `vi.stubGlobal('Blob', NodeBlob)`) and remember `.text()` is async — `JSON.parse(await blob.text())`.
+jsdom's `Blob` is missing modern methods like `.text()`. Stub the global with Node's `Blob` (`import { Blob } from 'node:buffer'`, `vi.stubGlobal('Blob', NodeBlob)`) and remember `.text()` is async â€” `JSON.parse(await blob.text())`.
 
 **Apply When:**
 Testing code that constructs `Blob` objects (e.g. beacon payloads) inside a jsdom Vitest environment.
@@ -139,7 +139,7 @@ Refactoring sidebar/header route definitions, link arrays, or navigation config 
 Implemented off-platform payment with proof upload as a togglable option. Required coordinating `PAYMENT_FALLBACK_BANK_TRANSFER` (env var), `paymentsEnabled` (DB toggle in `CommerceLifecycleConfig`), and `gatewayReady` (automatic Paystack key check). The option appears only when the env var is true AND either `paymentsEnabled` is false or `gatewayReady` is false.
 
 **What We Learned:**
-A three-layer toggle system (env → DB → runtime health) can be hard to debug. All three conditions must be clearly surfaced in both the payment config API and the UI. The checkout page needs auto-switching logic so the user isn't left on a disabled payment method.
+A three-layer toggle system (env â†’ DB â†’ runtime health) can be hard to debug. All three conditions must be clearly surfaced in both the payment config API and the UI. The checkout page needs auto-switching logic so the user isn't left on a disabled payment method.
 
 **Apply When:**
 Adding conditional payment methods that depend on multiple configuration sources.
@@ -183,7 +183,7 @@ Adding public marketing/landing pages or relocating feature forms while preservi
 Running `prisma db push` against dev vs prod requires different env files (`.env.local` for dev, `.env` for prod), but `prisma.config.ts` uses `dotenv/config`, which loads `.env` by default and `dotenv` does not override already-set process env vars.
 
 **What We Learned:**
-To target the dev DB, preload `DIRECT_URL`/`DATABASE_URL` from `.env.local` into the process environment before invoking `npx prisma` (dotenv will not override them). For prod, run with no env overrides so `.env` is used. `prisma db push --force-reset --accept-data-loss` drops all data and rebuilds from the schema but does not run `prisma/seed.ts`. Also, `prisma db execute` does not print `SELECT`/`NOTICE` output and the `@prisma/adapter-pg` runtime may not reach the same proxy endpoint the Prisma CLI uses — use a `DO $$ ... RAISE EXCEPTION` block for pass/fail DB checks via the CLI.
+To target the dev DB, preload `DIRECT_URL`/`DATABASE_URL` from `.env.local` into the process environment before invoking `npx prisma` (dotenv will not override them). For prod, run with no env overrides so `.env` is used. `prisma db push --force-reset --accept-data-loss` drops all data and rebuilds from the schema but does not run `prisma/seed.ts`. Also, `prisma db execute` does not print `SELECT`/`NOTICE` output and the `@prisma/adapter-pg` runtime may not reach the same proxy endpoint the Prisma CLI uses â€” use a `DO $$ ... RAISE EXCEPTION` block for pass/fail DB checks via the CLI.
 
 **Apply When:**
 Running schema-sync/reset or data-verification commands against multiple environments in this repo.
@@ -202,10 +202,35 @@ Any schema change after a `db push`-based DB exists; before marking a migration 
 ## Bank Transfer Orders Must Carry Proof-of-Payment Before Persistence
 
 **Context:**
-Checkout allowed an order to be placed with `BANK_TRANSFER_PROOF` and no receipt image/amount — neither client nor server enforced it — and a payments-disabled bypass ("Pay Later" / "Upload Proof Later") created orders with no payment evidence at all.
+Checkout allowed an order to be placed with `BANK_TRANSFER_PROOF` and no receipt image/amount â€” neither client nor server enforced it â€” and a payments-disabled bypass ("Pay Later" / "Upload Proof Later") created orders with no payment evidence at all.
 
 **What We Learned:**
 Enforce the invariant on both sides: client validates `proofImageUrl` + `proofAmount` before `POST /api/orders`, and the server returns `PROOF_OF_PAYMENT_REQUIRED` (400) and only creates a `ProofOfTransfer` (PENDING) per order inside the same transaction. When `!paymentsEnabled` force `BANK_TRANSFER_PROOF` (`bankTransferAvailable = fallback || !paymentsEnabled`), disable `WALLET`, and remove the pay-later path so every bank-transfer order has verifiable evidence awaiting vendor confirmation.
 
 **Apply When:**
 Adding or changing off-platform payment methods where order creation must not be separable from payment evidence.
+
+## Every Charged Client Action Needs a Client-Persisted Idempotency Reference
+
+**Context:**
+The Session 104 subscription purchase flow initially generated its payment reference server-side per request for WALLET purchases (client omitted it). A lost response after a committed `$transaction` would make a user's manual retry mint a NEW reference â†’ second debit + second subscription row.
+
+**What We Learned:**
+Generate the reference client-side, persist it (e.g. localStorage `myharvesthub.packages.pending-sub.v1`) BEFORE initiating the popup/POST, and reuse it for every retry of the same unpaid attempt â€” the server's `@unique paymentReference` then returns the existing row instead of charging again. Clear the persisted record only on success, and also on `PAYMENT_AMOUNT_MISMATCH`/`PACKAGE_NOT_FOUND` (a price change makes the stored reference permanently unusable). The same rule applies to CARD flows: never regenerate a reference for a retried attempt.
+
+**Apply When:**
+Building any wallet-debit or gateway-charged purchase flow where the client controls retries; also when reviewing payment flows for double-charge risk.
+
+## Node 25 Breaks jsdom `localStorage` Tests (Pre-Existing Full-Suite Failures)
+
+**Context:**
+The full vitest suite reported `bannerTracking.test.ts` failing on `localStorage.clear is not a function` even at a clean baseline (proven by `git stash -u` â†’ run â†’ `git stash pop`). Node v25.x exposes a global `localStorage` stub that is not a function-bearing Storage instance unless `--localstorage-file` points at a valid path (warning: "`--localstorage-file` was provided without a valid path"), and it shadows jsdom's localStorage in the test global scope.
+
+**What We Learned:**
+When the full suite fails, first bisect: (1) prove pre-existence by stashing tracked+untracked changes and re-running the failing file, (2) re-run load-flaky 5s-timeout failures in isolation/small batches before assuming regression (they passed 12/12 in a low-load batch). Document the unchanged failure set in the session-log Validation section (established convention since Session 86). A durable fix would guard `localStorage` access behind feature detection or pin the Node version used by CI/test shells.
+
+**Apply When:**
+Full-suite vitest runs fail in files untouched by the current change set; QA-gate sign-off under environmental flakiness.
+
+**Resolution (Session 105, 2026-10-21):** The durable fix was applied at the environment layer instead of pinning Node — `vitest.setup.tsx` now capability-guards `localStorage`/`sessionStorage` and installs a deterministic in-memory `Storage` on `globalThis` + `window` when the ambient object lacks the methods (probe-verified: Node 25's stub and jsdom 27's delegated `window.localStorage` are the same broken object, `configurable: true`). One caveat learned while fixing it: the "storage unavailable" test cannot spy `Storage.prototype` (Node's `Storage` brand-checks foreign receivers: `TypeError: 'setItem' called on an object that is not a valid instance of Storage`) and a plain-object polyfill never inherits those prototype methods — such tests must `vi.stubGlobal('localStorage', ...)` the global directly. bannerTracking went 10/10 red (baseline-deterministic) to 10/10 green in the full suite.
+Full-suite vitest runs fail in files untouched by the current change set; QA-gate sign-off under environmental flakiness.

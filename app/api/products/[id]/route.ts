@@ -17,6 +17,7 @@ import {
     baseServicePrice,
     serviceDetailsSchema,
 } from '@/lib/schemas/service.schemas';
+import { checkSubscriptionEnforcement } from '@/lib/services/subscriptions';
 
 const isProvided = (value: unknown) => value !== null && value !== undefined && value !== '';
 
@@ -80,7 +81,22 @@ export async function PUT(req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
+        // Subscription enforcement (Session 104): gate draft → publish transitions
+        // for vendors only when the admin has set enforcement to BLOCK.
         const body = await req.json();
+        if (!product.isActive && typeof body !== 'undefined') {
+            const rawBody = body as { isActive?: unknown };
+            if (rawBody?.isActive === true && user.role === UserRole.VENDOR) {
+                const enforcement = await checkSubscriptionEnforcement(prisma, user.userId);
+                if (!enforcement.allowed) {
+                    return NextResponse.json(
+                        { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary },
+                        { status: 403 }
+                    );
+                }
+            }
+        }
+
         const { vendorId: _vendorId, id: _id, createdAt: _createdAt, updatedAt: _updatedAt, vendor: _vendor, reviews: _reviews, orderItems: _orderItems, cartItems: _cartItems, bookings: _bookings, serviceDetails: serviceDetailsInput, ...updateData } = body;
 
         const nextListingType =

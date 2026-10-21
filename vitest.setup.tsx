@@ -20,6 +20,75 @@ if (encoderRealmUint8Array && encoderRealmUint8Array !== globalThis.Uint8Array) 
   }
 }
 
+// --- Deterministic Web Storage for the jsdom test environment -----------------
+// Node 22+ ships experimental global localStorage/sessionStorage shims; on
+// Node 25 the shim is a method-less stub and jsdom 27 delegates its own
+// window.localStorage to it (verified: same object, configurable descriptor).
+// That broke storage-dependent suites (e.g. bannerTracking's
+// `localStorage.clear()`) and silently disabled persistence in others.
+// Per repair-system.md ("Search UI crashes in tests/runtimes where localStorage
+// is non-standard"), install a deterministic in-memory Storage whenever the
+// ambient one lacks the Storage methods. Test-infra only — no runtime impact.
+function createMemoryStorage(): Storage {
+  let data = new Map<string, string>();
+  return {
+    get length() {
+      return data.size;
+    },
+    key(index: number) {
+      return Array.from(data.keys())[index] ?? null;
+    },
+    getItem(key: string) {
+      return data.has(String(key)) ? (data.get(String(key)) as string) : null;
+    },
+    setItem(key: string, value: string) {
+      data.set(String(key), String(value));
+    },
+    removeItem(key: string) {
+      data.delete(String(key));
+    },
+    clear() {
+      data = new Map<string, string>();
+    },
+  } as Storage;
+}
+
+function isFunctionalStorage(value: unknown): value is Storage {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Storage).getItem === "function" &&
+    typeof (value as Storage).setItem === "function" &&
+    typeof (value as Storage).removeItem === "function" &&
+    typeof (value as Storage).clear === "function"
+  );
+}
+
+function ensureFunctionalStorage(name: "localStorage" | "sessionStorage"): void {
+  const ambient = (globalThis as Record<string, unknown>)[name];
+  if (isFunctionalStorage(ambient)) return;
+  const storage = createMemoryStorage();
+  Object.defineProperty(globalThis, name, {
+    value: storage,
+    configurable: true,
+    writable: true,
+  });
+  if (typeof window !== "undefined") {
+    try {
+      Object.defineProperty(window, name, {
+        value: storage,
+        configurable: true,
+        writable: true,
+      });
+    } catch {
+      // jsdom window refused redefinition; the globalThis replacement is sufficient.
+    }
+  }
+}
+
+ensureFunctionalStorage("localStorage");
+ensureFunctionalStorage("sessionStorage");
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();

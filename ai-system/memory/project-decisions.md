@@ -1,8 +1,8 @@
 # Project Decisions
 
 > **Metadata**
-> - last-updated-by: ai-system v3 upgrade
-> - last-verified-against-code: 2026-08-13
+> - last-updated-by: Session 105 — cron scheduling + test-env storage (2026-10-21)
+> - last-verified-against-code: 2026-10-21
 > - staleness-policy: each entry has its own staleness — check supersedes links
 
 > **Overview:** Log of significant architectural, technical, and product decisions made during development. Agents consult this before proposing changes to avoid contradicting prior reasoning. Each entry records what was decided, why, and what the alternatives were.
@@ -27,6 +27,70 @@
 **Implications:**
 [What this decision affects going forward]
 ```
+
+## Vendor Commission Withholding Is Gated by a Platform-Wide Toggle (Session 104)
+
+**Decision:** Settlement commission withholding is enabled when `CommerceLifecycleConfig.vendorCommissionEnabled` (new, **default false**) **OR** the legacy `serviceSettlementCommissionEnabled` (default false) is true. Rate resolution: `Vendor.commissionRate` → `commissionDefaultRate` config tier → `CATEGORY_COMMISSION_DEFAULTS[SERVICES]`. The admin UI exposes the platform-wide switch under a new Settings → "Payment Models" card; both switches are admin-owned and DB-backed.
+**Date:** 2026-10-21
+**Made by:** AI implementation session (opencode) — stakeholder directive via user
+
+**Reason:**
+Stakeholders want commissions on vendor sales as an admin-configurable monetization model, defaulting to OFF (vendors keep the full settlement). The existing service-scoped flag had to keep working untouched, so the gate is an OR of both flags — with both defaulting to false, behavior is byte-identical to today until an admin opts in. Generalizing the single private gate in `lib/services/orderLifecycle.ts` keeps one settlement code path (no forked logic).
+
+**Alternatives Considered:**
+
+- Replacing `serviceSettlementCommissionEnabled` outright (rejected: breaking for the existing admin toggle and its UI copy).
+- A separate commission engine for product orders (rejected: violates the extend-don't-parallel-tables strategy; settlement is already unified).
+- Category-level enable flags (rejected: over-configurable for the stated need; per-vendor rate overrides already cover granularity).
+
+**Implications:**
+
+- Turning the switch on applies to ALL released settlements (products and services) using the vendor's effective rate.
+- Config read failure inside settlement is a safe fallback: commission stays OFF (vendor keeps full amount) — never throws.
+- `commissionDefaultRate` now participates in the fallback chain, so tier changes by admins propagate to settlements with unusable vendor rates.
+
+## Subscription Packages: Config-Driven Vendor Monetization With Enforcement Levels (Session 104)
+
+**Decision:** New `SubscriptionPackage` (admin CRUD) + `VendorSubscription` (one row per purchase) models; `subscriptionEnabled` defaults **ON**, `subscriptionEnforcementLevel` ∈ `NONE|WARN|BLOCK` defaults **WARN**, `subscriptionExpiringNoticeDays` defaults 3. Enforcement gates selling actions (`POST /api/products` create, draft→publish `PUT /api/products/[id]`) for VENDORs only, and only under BLOCK; WARN renders dismissible dashboard banners. Renewal/upgrade purchases extend the window from `max(now, current effective expiry)` — a purchase is always a new row (payment history = subscription history). Expiry reads treat `expiresAt > now` as effective regardless of stored status; the idempotent `/api/cron/subscriptions` sweep flips status and arms one-time expiring/expired notices via atomic `expiringNotifiedAt`/`expiredNotifiedAt` guards.
+**Date:** 2026-10-21
+**Made by:** AI implementation session (opencode) — stakeholder directive via user
+
+**Reason:**
+The client's monetization model is subscriptions (default on), with commissions reserved as an optional complement. Enforcement had to be non-breaking for existing vendors, so WARN (nudges only) is the default and BLOCK is an explicit admin opt-in. Effective-time semantics keep reads correct even when the cron has not run; atomic notify-guards make sweeps replay-safe (no duplicate emails).
+
+**Alternatives Considered:**
+
+- Hard-block selling without an active subscription (rejected: breaks every existing vendor the day it ships).
+- Mutating a single "current subscription" row per vendor (rejected: loses payment/renewal history; violates append-only financial-record norms).
+- Renewal overwriting `expiresAt` in place (rejected: early renewals would silently lose paid time; extension from max(now, expiry) preserves it).
+- Webhook-driven subscription promotion (rejected: activation is verify-backed and synchronous; see payment-contract decision).
+
+**Implications:**
+
+- `/packages` (public) + `/operations/subscription` (vendor) + `/operations/subscriptions` (admin) are the access points; sidebar/nav/routeConfig are wired.
+- Admin observability: stats (active/expiring/expired/revenue/subscribers), subscriber table with filters, cancel/restore remediation, no bank-transfer flow (CARD/WALLET only).
+- Three NotificationTypes (`SUBSCRIPTION_ACTIVATED|EXPIRING_SOON|EXPIRED`) mirror into `lib/constants`, `NOTIFICATION_TEMPLATE_CONFIG`, and `DEFAULT_EMAIL_TEMPLATES` (parity enforced by test).
+
+## Subscription Payments Are CARD + WALLET Only, Verify-Backed, Idempotent by Reference (Session 104)
+
+**Decision:** Subscription purchases accept only CARD (Paystack inline popup, server-side `verifyPayment` with NGN + exact subunit amount checks; `GATEWAY_UNAVAILABLE` mirrors the wallet-deposit accepted-without-verification contract) and WALLET (atomic debit + row creation in one `$transaction` with a `PAYMENT` ledger row). **No bank-transfer path** (user decision 2026-10-21). References use the `SUB-` prefix and `paymentReference` is `@unique` — replays return the existing subscription (no double charge); abandoned inline payments are recovered by re-submitting with the SAME reference, which the `/packages` page persists in localStorage (`myharvesthub.packages.pending-sub.v1`). No webhook code change was needed: `charge.success` reconciliation's generic transaction-metadata annotation already covers `SUB-` PAYMENT ledger rows.
+**Date:** 2026-10-21
+**Made by:** AI implementation session (opencode) — explicit user go/no-go answer "Go, but no bank-transfer path"
+
+**Reason:**
+Verify-backed synchronous activation keeps the money-in contract (per project-decisions: require explicit provider verification) while the unique-reference idempotency key makes every failure mode recoverable without developer involvement — the client can always retry safely. WALLET debits are ACID with the subscription row so a failed purchase can never strand a debit.
+
+**Alternatives Considered:**
+
+- Bank-transfer proof path with admin verification (rejected: explicitly excluded by the user for scope).
+- PENDING subscription rows promoted by webhook (rejected: the webhook cannot know the package for an un-created subscription; idempotent re-submit achieves the same recovery with less state).
+- Synthetic success shortcuts when verification fails (rejected: forbidden by the 2026-09 payment decision; only the documented wallet-deposit `GATEWAY_UNAVAILABLE` precedent applies).
+
+**Implications:**
+
+- When payment processing is disabled (no Paystack keys), CARD is disabled client-side; WALLET remains usable, so subscriptions never fully dead-end while wallet funding works.
+- `SUB-` references flow into the existing wallet/transaction observability surfaces via the ledger row; admin subscriptions page shows amount/method/reference/window per purchase.
+- Free packages (price 0) activate immediately without touching the gateway or wallet.
 
 ## Verification Documents Upload Immediately, Not at Submit
 
@@ -2285,3 +2349,83 @@ A second `services`/`service_orders` pipeline would fork payment, refund, payout
 - Google Maps preview stays behind `serviceGeoMapEnabled=false`; no antivirus (MIME/allowlist + size caps only, documented residual risk).
 - `serviceListingEnabled=false` hides nav/wizard/storefront panel; service-flagged products stay readable.
 - Late delivery writes idempotent `LATE` flag; refunds use the existing refund flow.
+
+## Cron Scheduling: Vercel Cron via `vercel.json`, Bearer-Secret Auth, Both Sweeps Scheduled
+
+**Decision:** Both idempotent lifecycle sweeps — `/api/cron/subscriptions` (expiry flip + one-time notices)
+and `/api/orders/service-fulfillment` (paid→awaiting-requirements promotion, requirements-timeout marker,
+late-delivery marker, auto-approve + settlement release) — are scheduled in-repo via `vercel.json` crons
+(daily, staggered 03:00 / 04:00 UTC). Each route now exports GET (Vercel cron always invokes via GET) in
+addition to the existing POST, and accepts `Authorization: Bearer <secret>` matching the shared `CRON_SECRET`
+env var or a per-sweep env (`SUBSCRIPTION_CRON_SECRET`, `ORDER_FULFILLMENT_SECRET`,
+`ORDER_AUTO_CONFIRM_SECRET`); legacy header auth (`x-subscription-cron-secret`,
+`x-fulfillment-secret`/`x-auto-confirm-secret`) and ADMIN-session auth are preserved unchanged.
+**Date:** 2026-10-21
+**Made by:** AI implementation session (opencode, Session 105)
+
+**Reason:**
+Verified against current Vercel docs: cron jobs live in `vercel.json`, always fire GET at the production
+URL, and send `Authorization: Bearer $CRON_SECRET` when that env var is defined; delivery is best-effort
+on all plans (Hobby = once/day), so handlers must be safe under missed and duplicate runs — both sweeps
+already are (atomic `expiringNotifiedAt`/`expiredNotifiedAt` notice guards; status flips and settlement
+releases are transactional and re-run no-ops). Before this, neither sweep was scheduled anywhere: expiry
+flipped only lazily on read, and the service 48h/72h lifecycle automation was dormant. A single shared
+`CRON_SECRET` keeps ops to one env var while per-sweep envs preserve external-scheduler setups.
+
+**Alternatives Considered:**
+- External-only scheduler (cron-job.org etc.) (rejected: invisible in repo, extra moving parts; kept
+  working as a fallback via preserved header auth rather than as the primary mechanism).
+- POST-only routes + a POST-capable scheduler (rejected: fights the Vercel-native GET convention and
+  splits auth patterns per host).
+- Leaving service-fulfillment unscheduled (rejected by user go/no-go: "schedule both" — the automation
+  was designed, tested, and dormant only for lack of a scheduler entry).
+- No `maxDuration` override on either route (accepted: sweeps are bounded/cheap — `take: 250` scans —
+  and an override risks plan-limit build friction for no measured need).
+
+**Implications:**
+- After deploy with `CRON_SECRET` set, both sweeps run automatically; without any secret configured the
+  cron invocations receive 401 (fail-closed) and behavior degrades exactly to the pre-scheduling status
+  quo (lazy expiry flip, dormant lifecycle sweeps) — never an error loop.
+- `vercel.json` is inert on non-Vercel hosts; external schedulers can still POST with legacy headers.
+- New cron routes must follow this contract: GET+POST, Bearer `CRON_SECRET` (+ optional per-sweep env),
+  header + ADMIN fallbacks, idempotent handler.
+
+## Test-Env Web Storage: Capability-Guard Polyfill in `vitest.setup.tsx` (No Node Pin)
+
+**Decision:** `vitest.setup.tsx` installs a deterministic in-memory `Storage` on `globalThis` (and `window`)
+whenever the ambient `localStorage`/`sessionStorage` lacks the Storage methods — the Node 25 method-less
+global stub that jsdom 27 delegates `window.localStorage` to (probe-verified: same broken object on both
+globals, `configurable: true` descriptor). The one bannerTracking test that simulated "storage unavailable"
+via `vi.spyOn(Storage.prototype, 'getItem')` now stubs the global directly (`vi.stubGlobal`), because Node's
+`Storage` brand-checks make prototype-based simulation impossible against a non-conforming instance.
+No `.nvmrc`/`engines` Node pin was added.
+**Date:** 2026-10-21
+**Made by:** AI implementation session (opencode, Session 105)
+
+**Reason:**
+The full-suite `bannerTracking.test.ts` failure (10/10 red, deterministic at clean baseline — stash-verified
+in Session 104) was environmental, not code: Node ≥22 ships a global webstorage shim that on Node 25 is a
+method-less stub, and jsdom 27 delegates its own `window.localStorage` to it, so `localStorage.clear()` threw
+`TypeError: clear is not a function`. This follows the repair-system.md precedent ("Search UI crashes in
+tests/runtimes where localStorage is non-standard", 2026-04-15: capability guards + deterministic storage
+in tests). A capability-guard polyfill repairs the suite on any Node version; pinning Node would change the
+Vercel deploy runtime to fix a test-only problem and require human nvm/project-settings coordination.
+
+**Alternatives Considered:**
+- Pin Node via `.nvmrc` + `package.json engines` (rejected: touches deploy runtime for a test-infra issue;
+  the polyfill is version-agnostic; kept as an optional human call only if runtime-level pinning is wanted).
+- `Object.create(Storage.prototype)` delegating polyfill (rejected: probe proved Node's `Storage` methods
+  brand-check the receiver — `TypeError: 'setItem' called on an object that is not a valid instance of Storage`).
+- Per-suite ad-hoc mocking (rejected: scattered, silently forgettable; other storage-asserting suites were
+  already depending on a broken ambient stub without noticing).
+- Leaving the suite red with a documented baseline delta (rejected: the failure set was reproducibly larger
+  than the load-flake convention allows, and persistence-asserting tests were exercising a no-op store).
+
+**Implications:**
+- Every jsdom test file now has real storage semantics (length/key/getItem/setItem/removeItem/clear);
+  storage-persistence assertions are meaningful and the full-suite failure set shrank to the known
+  load-induced 5s-timeout flakes only.
+- Tests that must simulate unavailability/non-standard storage should stub the global directly
+  (`vi.stubGlobal`) rather than spying `Storage.prototype` — prototype spies cannot intercept a
+  non-conforming polyfill instance and Node's own `Storage` rejects foreign receivers.
+- Runtime code is untouched; production browser storage behavior is unchanged.

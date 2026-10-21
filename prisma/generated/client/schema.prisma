@@ -349,6 +349,22 @@ enum NotificationType {
   SERVICE_RELEASED
   SERVICE_REVISION_REQUESTED
   SERVICE_REQUIREMENTS_TIMEOUT
+  SUBSCRIPTION_ACTIVATED
+  SUBSCRIPTION_EXPIRING_SOON
+  SUBSCRIPTION_EXPIRED
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum SubscriptionEnforcementLevel {
+  NONE
+  WARN
+  BLOCK
 }
 
 enum ListingType {
@@ -459,6 +475,7 @@ model User {
   reviewedAdApplications AdApplication[]         @relation("AdApplicationReviewer")
   proofOfTransfers       ProofOfTransfer[]
   voucherRedemptions     VoucherRedemption[]
+  vendorSubscriptions    VendorSubscription[]
   cisIdentities          CisIdentity[]           @relation("CisIdentityLinked")
 
   @@index([email])
@@ -948,26 +965,80 @@ model CommissionConfig {
 }
 
 model CommerceLifecycleConfig {
-  id                                 String   @id @default(cuid())
-  key                                String   @unique @default("default")
-  autoConfirmEnabled                 Boolean  @default(true)
-  autoConfirmHours                   Int      @default(48)
-  refundWindowHours                  Int      @default(72)
-  withdrawalSettlementHoldHours      Int      @default(72)
-  paymentsEnabled                    Boolean  @default(true)
-  commissionDefaultRate              Float    @default(0.05)
-  commissionPremiumRate              Float    @default(0.03)
-  minOrderAmount                     Float    @default(500)
-  maxBookingAdvanceDays              Int      @default(60)
+  id                                 String                       @id @default(cuid())
+  key                                String                       @unique @default("default")
+  autoConfirmEnabled                 Boolean                      @default(true)
+  autoConfirmHours                   Int                          @default(48)
+  refundWindowHours                  Int                          @default(72)
+  withdrawalSettlementHoldHours      Int                          @default(72)
+  paymentsEnabled                    Boolean                      @default(true)
+  commissionDefaultRate              Float                        @default(0.05)
+  commissionPremiumRate              Float                        @default(0.03)
+  minOrderAmount                     Float                        @default(500)
+  maxBookingAdvanceDays              Int                          @default(60)
   // Service order lifecycle windows (defaults match today's non-service behaviour)
-  serviceRequirementsTimeoutHours    Int      @default(48)
-  serviceAutoApproveHours            Int      @default(72)
-  serviceCountdownWarningHours       Int      @default(12)
-  serviceSettlementCommissionEnabled Boolean  @default(false)
-  createdAt                          DateTime @default(now())
-  updatedAt                          DateTime @updatedAt
+  serviceRequirementsTimeoutHours    Int                          @default(48)
+  serviceAutoApproveHours            Int                          @default(72)
+  serviceCountdownWarningHours       Int                          @default(12)
+  serviceSettlementCommissionEnabled Boolean                      @default(false)
+  // Payment models (Session 104) — commissions stay OFF by default, subscription packages ON
+  vendorCommissionEnabled            Boolean                      @default(false)
+  subscriptionEnabled                Boolean                      @default(true)
+  subscriptionExpiringNoticeDays     Int                          @default(3)
+  subscriptionEnforcementLevel       SubscriptionEnforcementLevel @default(WARN)
+  createdAt                          DateTime                     @default(now())
+  updatedAt                          DateTime                     @updatedAt
 
   @@map("commerce_lifecycle_configs")
+}
+
+// Vendor subscription packages (admin CRUD; purchased via /packages)
+model SubscriptionPackage {
+  id           String  @id @default(cuid())
+  name         String
+  slug         String  @unique
+  description  String?
+  price        Float
+  durationDays Int     @default(30)
+  features     Json    @default("[]")
+  isActive     Boolean @default(true)
+  sortOrder    Int     @default(0)
+  updatedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions VendorSubscription[]
+
+  @@index([isActive])
+  @@map("subscription_packages")
+}
+
+// One row per purchase (renewal/upgrade = new row; expiresAt extends from max(now, current))
+model VendorSubscription {
+  id                 String             @id @default(cuid())
+  userId             String
+  packageId          String
+  status             SubscriptionStatus @default(ACTIVE)
+  paymentMethod      PaymentMethod
+  paymentReference   String             @unique
+  amount             Float
+  startAt            DateTime
+  expiresAt          DateTime
+  expiringNotifiedAt DateTime?
+  expiredNotifiedAt  DateTime?
+  metadata           Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package SubscriptionPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("vendor_subscriptions")
 }
 
 model Notification {

@@ -146,4 +146,28 @@ export const NOTIFICATION_TEMPLATE_CONFIG: Record<NotificationType, Notification
     priority: 'high',
     mediaHint: 'order',
   },
+  SUBSCRIPTION_ACTIVATED: {
+    title: 'Subscription Activated',
+    body: 'Your {{packageName}} subscription is now active until {{expiresAt}}.',
+    ctaLabel: 'View subscription',
+    defaultLink: '/operations/subscription',
+    priority: 'high',
+    mediaHint: 'payment',
+  },
+  SUBSCRIPTION_EXPIRING_SOON: {
+    title: 'Subscription Expiring Soon',
+    body: 'Your {{packageName}} subscription expires on {{expiresAt}}. Renew to stay active.',
+    ctaLabel: 'Renew now',
+    defaultLink: '/packages',
+    priority: 'high',
+    mediaHint: 'payment',
+  },
+  SUBSCRIPTION_EXPIRED: {
+    title: 'Subscription Expired',
+    body: 'Your {{packageName}} subscription expired on {{expiresAt}}. Renew to restore full seller access.',
+    ctaLabel: 'Renew now',
+    defaultLink: '/packages',
+    priority: 'high',
+    mediaHint: 'payment',
+  },
 };

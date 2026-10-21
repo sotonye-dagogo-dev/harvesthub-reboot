@@ -1,5 +1,9 @@
 /**
- * POST /api/orders/service-fulfillment - Service lifecycle cron (sibling of auto-confirm)
+ * GET|POST /api/orders/service-fulfillment - Service lifecycle cron (sibling of auto-confirm)
+ *
+ * Auth: Bearer CRON_SECRET/ORDER_FULFILLMENT_SECRET/ORDER_AUTO_CONFIRM_SECRET (Vercel cron
+ * convention — vercel.json crons invoke via GET), the x-fulfillment-secret/x-auto-confirm-secret
+ * headers, or an ADMIN session.
  *
  * Four idempotent sweeps over paid service orders:
  *  1. PENDING + PAID service-only orders -> AWAITING_REQUIREMENTS (payment settled after creation)
@@ -27,8 +31,21 @@ import { orderIsServiceOnly } from '@/lib/services/serviceOrders';
 
 const CRON_SECRET_HEADERS = ['x-fulfillment-secret', 'x-auto-confirm-secret'];
 const CRON_SECRET_ENVS = ['ORDER_FULFILLMENT_SECRET', 'ORDER_AUTO_CONFIRM_SECRET'];
+const BEARER_SECRET_ENVS = ['CRON_SECRET', 'ORDER_FULFILLMENT_SECRET', 'ORDER_AUTO_CONFIRM_SECRET'];
 
 function isAuthorizedCronRequest(req: NextRequest): boolean {
+    // Vercel cron convention: vercel.json crons invoke via GET with the
+    // CRON_SECRET env value sent as `Authorization: Bearer <secret>`.
+    const authorization = req.headers.get('authorization');
+    if (authorization?.startsWith('Bearer ')) {
+        const token = authorization.slice('Bearer '.length).trim();
+        if (token) {
+            for (const envName of BEARER_SECRET_ENVS) {
+                const secret = process.env[envName];
+                if (secret && token === secret) return true;
+            }
+        }
+    }
     for (const envName of CRON_SECRET_ENVS) {
         const secret = process.env[envName];
         if (!secret) continue;
@@ -241,4 +258,9 @@ export async function POST(req: NextRequest) {
         console.error('POST /api/orders/service-fulfillment error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
+}
+
+/** Vercel cron entrypoint — vercel.json crons always invoke via GET. */
+export async function GET(req: NextRequest) {
+    return POST(req);
 }

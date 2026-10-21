@@ -121,6 +121,33 @@ export const DEFAULT_EMAIL_TEMPLATES: Record<string, EmailTemplateDefinition> = 
       "Hi {{firstName}},\n\nThe buyer has not submitted requirements for order {{orderNumber}} within the allowed window. You may cancel without penalty.\n\nOpen the order: {{link}}\n\n— MyHarvestHub",
     variables: ["firstName", "orderNumber", "link"],
   },
+  "SUBSCRIPTION_ACTIVATED": {
+    key: "SUBSCRIPTION_ACTIVATED",
+    label: "Subscription Activated",
+    description: "Sent to a vendor when a subscription package purchase or renewal is activated.",
+    defaultSubject: "Your {{packageName}} subscription is active",
+    defaultBody:
+      "Hi {{firstName}},\n\nYour {{packageName}} subscription is now active until {{expiresAt}}.\n\nView subscription: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "packageName", "expiresAt", "amount", "link"],
+  },
+  "SUBSCRIPTION_EXPIRING_SOON": {
+    key: "SUBSCRIPTION_EXPIRING_SOON",
+    label: "Subscription Expiring Soon",
+    description: "Sent to a vendor when their subscription is about to expire (configurable notice window).",
+    defaultSubject: "Your {{packageName}} subscription expires on {{expiresAt}}",
+    defaultBody:
+      "Hi {{firstName}},\n\nYour {{packageName}} subscription expires on {{expiresAt}}. Renew now to keep your store fully active.\n\nRenew: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "packageName", "expiresAt", "link"],
+  },
+  "SUBSCRIPTION_EXPIRED": {
+    key: "SUBSCRIPTION_EXPIRED",
+    label: "Subscription Expired",
+    description: "Sent once when a vendor subscription lapses.",
+    defaultSubject: "Your {{packageName}} subscription has expired",
+    defaultBody:
+      "Hi {{firstName}},\n\nYour {{packageName}} subscription expired on {{expiresAt}}. Renew to restore full seller access.\n\nRenew: {{link}}\n\n— MyHarvestHub",
+    variables: ["firstName", "packageName", "expiresAt", "link"],
+  },
 };
 
 export function renderTemplateString(template: string, vars: Record<string, string>): string {

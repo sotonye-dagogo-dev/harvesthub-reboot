@@ -13,6 +13,8 @@ import {
 
 type TxOptions = {
     commissionEnabled?: boolean;
+    vendorCommissionEnabled?: boolean;
+    defaultTierRate?: number | null;
     commissionRate?: number | null;
     payoutStatus?: TransactionStatus;
     alreadyReleasedInHistory?: boolean;
@@ -23,6 +25,8 @@ type TxOptions = {
 function createTx(options: TxOptions = {}) {
     const {
         commissionEnabled = false,
+        vendorCommissionEnabled = false,
+        defaultTierRate = null,
         commissionRate = 0.05,
         payoutStatus = TransactionStatus.PENDING,
         alreadyReleasedInHistory = false,
@@ -91,9 +95,11 @@ function createTx(options: TxOptions = {}) {
             update: vi.fn().mockResolvedValue({}),
         },
         commerceLifecycleConfig: {
-            findUnique: vi
-                .fn()
-                .mockResolvedValue({ serviceSettlementCommissionEnabled: commissionEnabled }),
+            findUnique: vi.fn().mockResolvedValue({
+                serviceSettlementCommissionEnabled: commissionEnabled,
+                vendorCommissionEnabled,
+                commissionDefaultRate: defaultTierRate,
+            }),
         },
         vendor: {
             findUnique: vi.fn(),
@@ -234,5 +240,85 @@ describe('releaseOrderSettlement commission split', () => {
         expect(tx.wallet.update).not.toHaveBeenCalled();
         expect(tx.transaction.create).not.toHaveBeenCalled();
         expect(tx.order.update).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('releaseOrderSettlement platform-wide vendorCommissionEnabled toggle (Session 104)', () => {
+    it('keeps full-payout behaviour when both flags are off (default state)', async () => {
+        const tx = createTx({
+            commissionEnabled: false,
+            vendorCommissionEnabled: false,
+            commissionRate: 0.2,
+            balance: 5000,
+        });
+
+        const result = await releaseOrderSettlement(tx as never, releaseParams);
+
+        expect(result.state).toBe('released');
+        expect(result.amount).toBe(10000);
+        expect(result.commission).toBeUndefined();
+        expect(tx.transaction.create).not.toHaveBeenCalled();
+        expect(tx.wallet.update.mock.calls[0]![0].data.balance).toBe(15000);
+    });
+
+    it('applies the vendor rate when only the platform-wide flag is on', async () => {
+        const tx = createTx({
+            commissionEnabled: false,
+            vendorCommissionEnabled: true,
+            commissionRate: 0.08,
+            balance: 5000,
+        });
+
+        const result = await releaseOrderSettlement(tx as never, releaseParams);
+
+        expect(result.state).toBe('released');
+        expect(result.commission).toBe(800);
+        expect(result.net).toBe(9200);
+        expect(tx.wallet.update.mock.calls[0]![0].data.balance).toBe(14200);
+        expect(tx.transaction.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not double-commission when both flags are on', async () => {
+        const tx = createTx({
+            commissionEnabled: true,
+            vendorCommissionEnabled: true,
+            commissionRate: 0.05,
+            balance: 5000,
+        });
+
+        const result = await releaseOrderSettlement(tx as never, releaseParams);
+
+        expect(result.commission).toBe(500);
+        expect(result.net).toBe(9500);
+        expect(tx.transaction.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the configured commissionDefaultRate tier when the vendor rate is unusable', async () => {
+        const tx = createTx({
+            vendorCommissionEnabled: true,
+            commissionRate: null,
+            defaultTierRate: 0.07,
+            balance: 5000,
+        });
+
+        const result = await releaseOrderSettlement(tx as never, releaseParams);
+
+        expect(result.commission).toBe(700);
+        expect(result.net).toBe(9300);
+        const commissionCreate = tx.transaction.create.mock.calls[0]![0] as any;
+        expect(commissionCreate.data.metadata.rate).toBe(0.07);
+    });
+
+    it('never throws when the config read fails (safe fallback: no commission)', async () => {
+        const tx = createTx({ vendorCommissionEnabled: true, commissionRate: 0.1 });
+        tx.commerceLifecycleConfig.findUnique = vi
+            .fn()
+            .mockRejectedValue(new Error('db down'));
+
+        const result = await releaseOrderSettlement(tx as never, releaseParams);
+
+        expect(result.state).toBe('released');
+        expect(result.commission).toBeUndefined();
+        expect(tx.wallet.update.mock.calls[0]![0].data.balance).toBe(15000);
     });
 });

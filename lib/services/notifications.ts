@@ -142,6 +142,8 @@ function buildNotificationEmailDetails(metadata: Record<string, unknown>) {
   addRow('Product', toMetadataString(metadata.productName));
   addRow('Pending reason', toMetadataString(metadata.pendingReason));
   addRow('Payment status', toMetadataString(metadata.paymentStatus));
+  addRow('Package', toMetadataString(metadata.packageName));
+  addRow('Expires', toMetadataString(metadata.expiresAt));
 
   return rows;
 }

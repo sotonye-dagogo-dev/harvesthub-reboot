@@ -453,6 +453,42 @@ exports.Prisma.CommerceLifecycleConfigScalarFieldEnum = {
   serviceAutoApproveHours: 'serviceAutoApproveHours',
   serviceCountdownWarningHours: 'serviceCountdownWarningHours',
   serviceSettlementCommissionEnabled: 'serviceSettlementCommissionEnabled',
+  vendorCommissionEnabled: 'vendorCommissionEnabled',
+  subscriptionEnabled: 'subscriptionEnabled',
+  subscriptionExpiringNoticeDays: 'subscriptionExpiringNoticeDays',
+  subscriptionEnforcementLevel: 'subscriptionEnforcementLevel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SubscriptionPackageScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  price: 'price',
+  durationDays: 'durationDays',
+  features: 'features',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VendorSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  packageId: 'packageId',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  paymentReference: 'paymentReference',
+  amount: 'amount',
+  startAt: 'startAt',
+  expiresAt: 'expiresAt',
+  expiringNotifiedAt: 'expiringNotifiedAt',
+  expiredNotifiedAt: 'expiredNotifiedAt',
+  metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1066,6 +1102,19 @@ exports.AdDurationType = exports.$Enums.AdDurationType = {
   DAILY: 'DAILY'
 };
 
+exports.SubscriptionEnforcementLevel = exports.$Enums.SubscriptionEnforcementLevel = {
+  NONE: 'NONE',
+  WARN: 'WARN',
+  BLOCK: 'BLOCK'
+};
+
+exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.NotificationType = exports.$Enums.NotificationType = {
   ORDER_CONFIRMED: 'ORDER_CONFIRMED',
   ORDER_READY: 'ORDER_READY',
@@ -1083,7 +1132,10 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   SERVICE_DELIVERED: 'SERVICE_DELIVERED',
   SERVICE_RELEASED: 'SERVICE_RELEASED',
   SERVICE_REVISION_REQUESTED: 'SERVICE_REVISION_REQUESTED',
-  SERVICE_REQUIREMENTS_TIMEOUT: 'SERVICE_REQUIREMENTS_TIMEOUT'
+  SERVICE_REQUIREMENTS_TIMEOUT: 'SERVICE_REQUIREMENTS_TIMEOUT',
+  SUBSCRIPTION_ACTIVATED: 'SUBSCRIPTION_ACTIVATED',
+  SUBSCRIPTION_EXPIRING_SOON: 'SUBSCRIPTION_EXPIRING_SOON',
+  SUBSCRIPTION_EXPIRED: 'SUBSCRIPTION_EXPIRED'
 };
 
 exports.AvailabilityRequestStatus = exports.$Enums.AvailabilityRequestStatus = {
@@ -1192,6 +1244,8 @@ exports.Prisma.ModelName = {
   AdRateConfig: 'AdRateConfig',
   CommissionConfig: 'CommissionConfig',
   CommerceLifecycleConfig: 'CommerceLifecycleConfig',
+  SubscriptionPackage: 'SubscriptionPackage',
+  VendorSubscription: 'VendorSubscription',
   Notification: 'Notification',
   PushSubscription: 'PushSubscription',
   NotificationPreference: 'NotificationPreference',

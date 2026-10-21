@@ -27,6 +27,7 @@ export const footerConfig = {
     { href: "/products", label: "Browse Products" },
     { href: "/vendors", label: "Find Vendors" },
     { href: "/signup", label: "Become a Vendor" },
+    { href: "/packages", label: "Vendor Packages" },
     { href: "/about", label: "About Us" },
     { href: "/advertise", label: "Advertise With Us" },
     { href: "/blog", label: "Blog" },
