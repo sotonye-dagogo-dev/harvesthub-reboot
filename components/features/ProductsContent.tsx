@@ -7,7 +7,7 @@ import { buildCartPricing, useCart } from "@/lib/store/cartStore";
 import { useFavorites } from "@/lib/store/favoritesStore";
 import { useGuestGuard } from "@/lib/hooks/useGuestGuard";
 import { Package } from "lucide-react";
-import { getSubcategoryValues } from "@/lib/constants";
+import { getSubcategoryValues, SERVICE_UNLIMITED_STOCK } from "@/lib/constants";
 import type { Product, Vendor } from "@/lib/types";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -28,6 +28,18 @@ interface ProductsContentProps {
   vendors: Vendor[];
   initialQueryState?: ProductDiscoveryQueryState;
 }
+
+/**
+ * `serviceCategories` is a service-only filter that the shared discovery query
+ * parser does not know about yet, so it is read from (and written to) the raw
+ * search params alongside the parsed state.
+ */
+const readServiceCategoriesParam = (params: URLSearchParams): string[] =>
+  params
+    .get("serviceCategories")
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean) ?? [];
 
 export default function ProductsContent({
   products,
@@ -99,6 +111,7 @@ export default function ProductsContent({
     rating?: number;
     locations?: string[];
     vendors?: string[];
+    serviceCategories?: string[];
   }>({
     categories: initialQueryState?.categories || [],
     listingType: initialQueryState?.listingType,
@@ -113,6 +126,9 @@ export default function ProductsContent({
     rating: initialQueryState?.rating,
     locations: initialQueryState?.locations || [],
     vendors: initialQueryState?.vendors || [],
+    // Not part of the shared discovery query parser (service-only filter):
+    // read the raw param directly so a shared URL restores the selection.
+    serviceCategories: readServiceCategoriesParam(searchParams),
   });
   const [searchQuery, setSearchQuery] = useState(initialQueryState?.search || "");
   const [sortBy, setSortBy] = useState<ProductSortKey>(
@@ -144,7 +160,10 @@ export default function ProductsContent({
     const parsedState = parseProductDiscoveryQueryState(
       Object.fromEntries(searchParams.entries())
     );
-    const nextFilters = normalizeFilterState(parsedState);
+    const nextFilters = {
+      ...normalizeFilterState(parsedState),
+      serviceCategories: readServiceCategoriesParam(searchParams),
+    };
 
     setSearchQuery((prev) => (prev === parsedState.search ? prev : parsedState.search));
     setSortBy((prev) => (prev === parsedState.sort ? prev : parsedState.sort));
@@ -156,18 +175,25 @@ export default function ProductsContent({
   }, [searchParams]);
 
   useEffect(() => {
-    const queryString = buildProductDiscoveryQueryString({
-      search: searchQuery,
-      sort: sortBy,
-      categories: filters.categories || [],
-      listingType: filters.listingType,
-      minPrice: filters.priceRange?.min,
-      maxPrice: filters.priceRange?.max,
-      rating: filters.rating,
-      vendors: filters.vendors || [],
-      locations: filters.locations || [],
-    });
+    const params = new URLSearchParams(
+      buildProductDiscoveryQueryString({
+        search: searchQuery,
+        sort: sortBy,
+        categories: filters.categories || [],
+        listingType: filters.listingType,
+        minPrice: filters.priceRange?.min,
+        maxPrice: filters.priceRange?.max,
+        rating: filters.rating,
+        vendors: filters.vendors || [],
+        locations: filters.locations || [],
+      })
+    );
+    const serviceCategories = filters.serviceCategories || [];
+    if (serviceCategories.length > 0) {
+      params.set("serviceCategories", serviceCategories.join(","));
+    }
 
+    const queryString = params.toString();
     const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
     router.replace(nextUrl, { scroll: false });
   }, [filters, pathname, router, searchQuery, sortBy]);
@@ -189,6 +215,16 @@ export default function ProductsContent({
 
   if (filters.listingType) {
     filteredProducts = filteredProducts.filter((p) => p.listingType === filters.listingType);
+  }
+
+  if (filters.serviceCategories && filters.serviceCategories.length > 0) {
+    const selectedServiceCategories = filters.serviceCategories;
+    filteredProducts = filteredProducts.filter((p) => {
+      const serviceCategory = p.serviceDetails?.serviceCategory;
+      return (
+        typeof serviceCategory === "string" && selectedServiceCategories.includes(serviceCategory)
+      );
+    });
   }
 
   const minPrice = filters.priceRange?.min ?? filters.minPrice;
@@ -267,6 +303,16 @@ export default function ProductsContent({
 
   const locations = Array.from(new Set(liveVendors.map((v) => v.campus)));
 
+  // Service sub-filters only apply while browsing services; leaving the
+  // SERVICE type (or clearing all filters) drops them.
+  const handleFilterChange = (nextFilters: typeof filters) => {
+    if (nextFilters.serviceCategories?.length && nextFilters.listingType !== "SERVICE") {
+      setFilters({ ...nextFilters, serviceCategories: [] });
+      return;
+    }
+    setFilters(nextFilters);
+  };
+
   const handleAddToCart = (product: Product) => {
     if (!requireAuth("add items to your cart")) return;
     // Non-blocking: if product has variants (e.g. sizes), require selection via detail page instead of quick add
@@ -313,7 +359,7 @@ export default function ProductsContent({
           <div className="lg:sticky lg:top-24">
             <FilterSidebar
               filters={filters}
-              onFilterChange={setFilters}
+              onFilterChange={handleFilterChange}
               categories={categories}
               vendors={vendorsWithProducts}
               locations={locations}
@@ -366,6 +412,8 @@ export default function ProductsContent({
                   const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
                   const vendorStatus = vendor?.status || product.vendor?.status;
                   const { avgRating, reviewCount } = getProductReviewMetrics(product);
+                  const isServiceProduct =
+                    product.listingType === "SERVICE" || product.stock >= SERVICE_UNLIMITED_STOCK;
 
                   return (
                     <ProductCard
@@ -380,6 +428,8 @@ export default function ProductsContent({
                       reviewCount={reviewCount}
                       stock={product.stock}
                       discount={product.discount}
+                      isService={isServiceProduct}
+                      rateLabel={isServiceProduct ? "From" : undefined}
                       isVendorVerified={vendorStatus === "APPROVED"}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={() => guardedToggleFavorite(product.id)}

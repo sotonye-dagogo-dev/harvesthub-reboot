@@ -1,7 +1,7 @@
 # System Architecture
 
-> **last-updated-by:** update-ai-system.md (2026-09-05)
-> **last-verified-against-code:** 2026-09-05
+> **last-updated-by:** update-ai-system.md (2026-10-21, Session 105 cron scheduling + storage repair)
+> **last-verified-against-code:** 2026-10-21
 > **Overview:** MyHarvestHub is a full-stack Next.js application that blends server components, API routes, and a Prisma Postgres backend. The architecture is designed for incremental migration to a real database while keeping the UI and business logic stable. All 11 Prisma migrations are applied and `migrate status` reports up to date (baselined via `migrate resolve` in Session 98).
 
 ---
@@ -18,6 +18,13 @@
   - `lib/data/database.ts` implements in-memory CRUD operations and enforces referential integrity.
   - API routes under `app/api/*` expose the backend to the frontend and honor JWT auth.
   - Authentication is handled via JWTs stored in httpOnly cookies.
+
+- **Payment Models (Session 104)**
+  - Vendor monetization is config-driven via `CommerceLifecycleConfig`: optional commission withholding on released settlements (`vendorCommissionEnabled`, default OFF) and subscription packages (`subscriptionEnabled`, default ON, enforcement `NONE|WARN|BLOCK` default WARN).
+  - `lib/services/subscriptions.ts` is the single source of truth for config reads, effective-subscription windows, the idempotent cron sweep, admin stats, and enforcement checks (all never-throwing with safe fallbacks).
+  - Subscription purchases (`POST /api/subscriptions`) are CARD (Paystack verify-backed) or WALLET (ACID debit), idempotent via unique `SUB-` payment references; each purchase is a new `VendorSubscription` row extending `max(now, current expiry)`.
+  - Admin CRUD/observability: `/api/admin/subscription-packages` (+`[id]`), `/api/admin/subscriptions` (+`[id]`), surfaced at `/operations/subscriptions`; vendors at `/operations/subscription`; public purchase at `/packages`.
+  - Cron scheduling (Session 105): both lifecycle sweeps are Vercel-cron-ready and scheduled in `vercel.json` — `/api/cron/subscriptions` (03:00 UTC) and `/api/orders/service-fulfillment` (04:00 UTC) export GET and accept `Authorization: Bearer CRON_SECRET` (or their per-sweep env), with all legacy header/admin auth preserved; the sweeps are idempotent so best-effort cron delivery (missed/duplicate runs) is safe.
 
 - **Data Layer / Future Migration**
   - Prisma schema lives in `prisma/schema.prisma` (currently used for type generation and planned DB migration).
@@ -56,11 +63,14 @@
 
 - **Help Center Config Fallbacks (Session 100):** `lib/config/siteContent.ts` exports `helpArticleFallbacks` for `/help/{orders,payments,locations,account,products,contact}`. Each fallback carries buyer+vendor directives (orders lifecycle & proof PENDING verification, payments wallet/Paystack amount validation, locations/campus pickup services, account 24h verification & session hygiene, products variants/reviews/tracking, contact static channels + WhatsApp continuation). `app/help/[slug]/page.tsx` renders `helpArticleFallbacks[slug]` when `PublicContent` `help-{slug}` is absent; admin-published content overrides automatically.
 
+- **Services Marketplace (Session 101–102):** extends `Product.listingType=SERVICE` + `Order`/`OrderItem` (no parallel tables). Vendor authors via `/operations/services` 5-step wizard (`ServiceListingWizard` + `steps/*`, `StageTracker` generalised to `components/ui/`); drafts persist locally (`localDraft`) + server-side (`isActive=false`, `serviceDetails.draftStep`); publish sets `isActive=true`, base-package price, unlimited stock. Storefront `ServiceDetailPanel` + `ServicePackagePicker` on `app/products/[id]`; `CartItem.selectedPackage` (legacy carts fall back to `product.price`); service-only carts get `deliveryFee=0`, no address requirement. Lifecycle: `AWAITING_REQUIREMENTS → IN_PROGRESS → IN_REVIEW → DELIVERED` with buyer requirements route, seller delivery modal, revision decrement + deadline re-arm, `confirm-delivery` extended, `service-fulfillment` cron (48h requirements timeout, late flags, 72h auto-approve). Order room (`ServiceOrderRoom`: timeline, requirements form, countdown, `OrderRoomChat` over `OrderMessage` + `messages` API + visibility-gated polling transport `orderRoomTransport.ts`, delivery modal, revision panel). Settlement commission inside `releaseOrderSettlement` behind `serviceSettlementCommissionEnabled=false` (writes first `COMMISSION` txn). Six service `NotificationType`s via `dispatchNotification`. Option lists: `OptionList` model (DISPLAY label/order/hide-only with immutable enum keys vs FREEFORM full CRUD), `getOptionList` never throws, `OptionListSelect` + `useOptionList`, config + admin APIs, `/operations/option-lists` editor. Kill switch `serviceListingEnabled` (default true) hides nav entry, wizard, storefront panel while keeping service-flagged products readable.
+
 ---
 
 ## Deployment Considerations
 
 - The current stack targets Vercel-style deployments but is compatible with any Node.js host.
+- `vercel.json` declares two idempotent daily cron sweeps (Vercel invokes them via GET with `Authorization: Bearer $CRON_SECRET`): `/api/cron/subscriptions` at 03:00 UTC and `/api/orders/service-fulfillment` at 04:00 UTC. Both routes also keep POST + header-secret + ADMIN-session auth for external schedulers/ops, are fail-closed (401) without a configured secret (degrading exactly to the pre-scheduling behaviour), and are replay/miss-safe by design (atomic guards + transactional settlement).
 - The mock backend can be replaced with a real Prisma + PostgreSQL backend by swapping the data layer implementation.
 - Environment configuration is driven by `.env` files and `process.env` values (see `.env.example`).
 
@@ -100,3 +110,18 @@ Known constraint: there is no in-repo CI/CD rollback script; rollback relies on 
 | Config Key | Purpose | Location | Default |
 |-----------|---------|----------|---------|
 | `ENABLE_DESIGN_VIEWER` | Mounts the dev-only design-asset viewer at `/__design/*`; must be false in production builds | .env | false |
+| `SERVICE_LISTING_ENABLED` | Kill switch for the service marketplace surface (nav entry, wizard, storefront panel) | .env / `lib/config/features.ts` | true |
+| `serviceRequirementsTimeoutHours` | Hours before an awaiting-requirements service order times out (seller penalty-free cancel) | `CommerceLifecycleConfig` (admin settings) | 48 |
+| `serviceAutoApproveHours` | Hours before an `IN_REVIEW` service order auto-approves + releases | `CommerceLifecycleConfig` | 72 |
+| `serviceCountdownWarningHours` | Countdown turns error-coloured below this threshold | `CommerceLifecycleConfig` | 12 |
+| `serviceSettlementCommissionEnabled` | Writes `COMMISSION` txn and pays vendor net at release (off = byte-identical current behaviour) | `CommerceLifecycleConfig` | false |
+| `orderRoomPollMs` | Order-room chat/timeline poll interval | `lib/config/serviceFulfillment.ts` | 10000 |
+| `serviceGeoMapEnabled` | Mounts the service geofence map preview | .env | false |
+| `vendorCommissionEnabled` | Platform-wide gate: withholds the vendor's effective rate from released settlements (OR'd with `serviceSettlementCommissionEnabled`) | `CommerceLifecycleConfig` (admin Settings → Payment Models) | false |
+| `commissionDefaultRate` | Tier-fallback commission rate when `Vendor.commissionRate` is null/unusable | `CommerceLifecycleConfig` | 0.05 |
+| `subscriptionEnabled` | Master switch for the vendor subscription-packages system (`/packages`, enforcement, cron) | `CommerceLifecycleConfig` | true |
+| `subscriptionExpiringNoticeDays` | Days before expiry when the one-time expiring-soon notice is armed by the cron sweep | `CommerceLifecycleConfig` | 3 |
+| `subscriptionEnforcementLevel` | NONE (no gating) / WARN (dashboard nudges) / BLOCK (blocks vendor product create + draft→publish) | `CommerceLifecycleConfig` | WARN |
+| `SUBSCRIPTION_CRON_SECRET` | Per-sweep secret for `/api/cron/subscriptions` via the `x-subscription-cron-secret` header or Bearer auth (an ADMIN session is also accepted) | .env | unset |
+| `CRON_SECRET` | Shared cron secret: when set, Vercel crons send it as `Authorization: Bearer <value>` and both `/api/cron/subscriptions` and `/api/orders/service-fulfillment` accept it (see `vercel.json`) | .env (Vercel env) | unset |
+| `ORDER_FULFILLMENT_SECRET` / `ORDER_AUTO_CONFIRM_SECRET` | Per-sweep secrets for `/api/orders/service-fulfillment` via the `x-fulfillment-secret`/`x-auto-confirm-secret` headers or Bearer auth (an ADMIN session is also accepted) | .env | unset |

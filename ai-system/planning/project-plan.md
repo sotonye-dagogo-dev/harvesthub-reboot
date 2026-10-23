@@ -1,7 +1,7 @@
-# Project Plan
+﻿# Project Plan
 
-> **last-updated-by:** update-ai-system.md (2026-09-05)
-> **last-verified-against-code:** 2026-09-05
+> **last-updated-by:** update-ai-system.md (2026-10-21, Session 104)
+> **last-verified-against-code:** 2026-10-21
 > **Overview:** A phased roadmap for MyHarvestHub that guides work from foundational infrastructure through core product functionality to launch readiness. Update as progress is made.
 
 ---
@@ -54,7 +54,7 @@ Add a platform-specific CIS handshake so MyHarvestHub can report readiness, acce
 
 ---
 
-## Phase 1 — Foundation (In Progress)
+## Phase 1 â€” Foundation (In Progress)
 
 > **Section summary:** Core infrastructure and platform scaffolding that enables all features.
 
@@ -76,7 +76,7 @@ Add a platform-specific CIS handshake so MyHarvestHub can report readiness, acce
 
 ---
 
-## Phase 2 — Core Features
+## Phase 2 â€” Core Features
 
 > **Section summary:** Key product functionality needed for a minimum viable marketplace.
 
@@ -90,7 +90,7 @@ Add a platform-specific CIS handshake so MyHarvestHub can report readiness, acce
 
 ---
 
-## Phase 3 — Secondary Features
+## Phase 3 â€” Secondary Features
 
 > **Section summary:** Enhancements that improve usability and business value.
 
@@ -104,7 +104,7 @@ Add a platform-specific CIS handshake so MyHarvestHub can report readiness, acce
 
 ---
 
-## Phase 4 — Quality & Polish
+## Phase 4 â€” Quality & Polish
 
 > **Section summary:** UX polish, reliability hardening, and readiness for scaling.
 
@@ -146,7 +146,7 @@ Audit all outbound email senders and route them through the shared branded email
 
 ---
 
-## Phase 5 — Launch Preparation
+## Phase 5 â€” Launch Preparation
 
 > **Section summary:** Final steps to prepare for production deployment.
 
@@ -269,7 +269,7 @@ Ensure WhatsApp contact redirection is auth-guarded with safe continuation throu
 
 - `/contact/whatsapp` requires authentication and safely persists continuation intent for unauthenticated users.
 - After signup and successful verify-email/login completion, users resume the intended WhatsApp guard flow.
-- Product detail pickup text reads: “Available at Sunday or Midweek services.”
+- Product detail pickup text reads: â€œAvailable at Sunday or Midweek services.â€
 - Admin voucher create/edit supports scope by campuses, categories, products, and vendors.
 - Admin can mark voucher visibility as private (hidden from buyer voucher dashboard).
 - Voucher validation enforces configured scope filters at checkout and buyer voucher dashboard excludes private vouchers.
@@ -1297,3 +1297,6 @@ Align marketplace browsing layouts by making home card sections horizontally scr
 - [x] Create initial mock data and in-memory database layer
 - [x] Establish basic auth (login, register, logout) APIs
 - [x] Implement off-platform payment alternative with proof upload and vendor acknowledgment (2026-07-12)
+- [x] Payment Models â€” platform-wide vendor-commission toggle (default OFF) + config-driven subscription packages with admin CRUD, CARD/WALLET purchase + upgrade flows, WARN/BLOCK enforcement, expiring/expired notifications, cron sweep, and admin observability (2026-10-21, Session 104)
+    -> Follow-up (Session 105, 2026-10-21): cron scheduling + test-env storage repair closed — both lifecycle sweeps Vercel-cron-ready via `vercel.json` (GET + Bearer CRON_SECRET); bannerTracking suite repaired (was Node-25 localStorage breakage). Remaining human calls: set CRON_SECRET in Vercel, seed first package(s), optional WARN->BLOCK switch.
+- [x] Payment Models â€” platform-wide vendor-commission toggle (default OFF) + config-driven subscription packages with admin CRUD, CARD/WALLET purchase + upgrade flows, WARN/BLOCK enforcement, expiring/expired notifications, cron sweep, and admin observability (2026-10-21, Session 104)

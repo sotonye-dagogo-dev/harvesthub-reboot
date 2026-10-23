@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type ComponentType } from "react";
+import { useCallback, useState, type ComponentType } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -9,6 +9,7 @@ import {
   Megaphone,
   Package,
   ShoppingBag,
+  AlertTriangle,
   Users,
 } from "lucide-react";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
@@ -42,6 +43,13 @@ type OperationsDashboardPayload = {
   cards: MetricCard[];
   quickActions: QuickAction[];
   emptyState: string | null;
+  subscriptionNotice?: {
+    level: "WARN" | "BLOCK";
+    status: "NONE" | "EXPIRED";
+    message: string;
+    cta: string;
+    href: string;
+  } | null;
   updatedAt: string;
 };
 
@@ -94,8 +102,11 @@ export default function OperationsDashboardPage() {
       "ads",
       "settings",
       "analytics",
+      "subscriptions",
     ],
   });
+
+  const [dismissedNoticeKey, setDismissedNoticeKey] = useState<string | null>(null);
 
   if (isLoading && !dashboard) {
     return <SectionLoader />;
@@ -132,6 +143,43 @@ export default function OperationsDashboardPage() {
           {error}
         </div>
       ) : null}
+
+      {(() => {
+        const notice = dashboard?.subscriptionNotice;
+        if (!notice) return null;
+        const noticeKey = `${notice.level}:${notice.status}`;
+        if (dismissedNoticeKey === noticeKey) return null;
+        return (
+          <div
+            role="status"
+            className={`mt-4 flex flex-wrap items-center justify-between gap-3 rounded-ds-md border p-3 text-sm ${
+              notice.level === "BLOCK"
+                ? "border-red-300 bg-red-50 text-red-700"
+                : "border-amber-300 bg-amber-50 text-amber-800"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              <span>{notice.message}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                href={notice.href}
+                className="font-semibold underline hover:no-underline"
+              >
+                {notice.cta}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setDismissedNoticeKey(noticeKey)}
+                className="text-xs uppercase tracking-wide opacity-70 hover:opacity-100"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {dashboard?.emptyState ? (
         <div className="mt-6 rounded-ds-lg border border-ds-border-base bg-ds-surface-raised p-5 text-sm text-ds-text-secondary">

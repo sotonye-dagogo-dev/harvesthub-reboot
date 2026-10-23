@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   ShieldCheck,
 } from "lucide-react";
-import { Input, Switch, message, Tabs } from "antd";
+import { Input, Select, Switch, message, Tabs } from "antd";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,21 @@ interface CommerceLifecycleConfig {
   withdrawalSettlementHoldHours: number;
   minOrderAmount: number;
   maxBookingAdvanceDays: number;
+  serviceRequirementsTimeoutHours: number;
+  serviceAutoApproveHours: number;
+  serviceCountdownWarningHours: number;
+  serviceSettlementCommissionEnabled: boolean;
+  vendorCommissionEnabled: boolean;
+  subscriptionEnabled: boolean;
+  subscriptionExpiringNoticeDays: number;
+  subscriptionEnforcementLevel: "NONE" | "WARN" | "BLOCK";
 }
+
+const ENFORCEMENT_LEVEL_OPTIONS = [
+  { value: "NONE", label: "None — no nudges, no blocks" },
+  { value: "WARN", label: "Warn — banners and reminders only (default)" },
+  { value: "BLOCK", label: "Block — refuse new listings without an active subscription" },
+] as const;
 
 const initialTiers: CommissionTier[] = [
   {
@@ -89,6 +103,35 @@ const initialCategoryRates: CategoryRate[] = VENDOR_CATEGORIES.map((vc) => ({
   rate: (CATEGORY_COMMISSION_DEFAULTS[vc.value] ?? COMMISSION_RATES.DEFAULT) * 100,
 }));
 
+type ServiceHourSettingKey =
+  | "serviceRequirementsTimeoutHours"
+  | "serviceAutoApproveHours"
+  | "serviceCountdownWarningHours";
+
+const serviceHourSettings: {
+  key: ServiceHourSettingKey;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: "serviceRequirementsTimeoutHours",
+    label: "Requirements Submission Timeout",
+    description: "Hours a buyer has to submit service requirements before the order times out.",
+  },
+  {
+    key: "serviceAutoApproveHours",
+    label: "Service Auto-Approve Window",
+    description:
+      "Hours after a service delivery is submitted before it is accepted automatically.",
+  },
+  {
+    key: "serviceCountdownWarningHours",
+    label: "Countdown Warning Threshold",
+    description:
+      "Hours before a service deadline when the order room surfaces a countdown warning.",
+  },
+];
+
 export default function OperationsSettingsPage() {
   const toFiniteNumber = (value: unknown, fallback: number) => {
     const parsed = Number(value);
@@ -110,6 +153,14 @@ export default function OperationsSettingsPage() {
     withdrawalSettlementHoldHours: PLATFORM_DEFAULTS.WITHDRAWAL_SETTLEMENT_HOLD_HOURS,
     minOrderAmount: PLATFORM_DEFAULTS.MIN_ORDER_AMOUNT,
     maxBookingAdvanceDays: PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS,
+    serviceRequirementsTimeoutHours: 48,
+    serviceAutoApproveHours: 72,
+    serviceCountdownWarningHours: 12,
+    serviceSettlementCommissionEnabled: false,
+    vendorCommissionEnabled: false,
+    subscriptionEnabled: true,
+    subscriptionExpiringNoticeDays: 3,
+    subscriptionEnforcementLevel: "WARN",
   });
   const [commerceConfigLoading, setCommerceConfigLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -185,6 +236,32 @@ export default function OperationsSettingsPage() {
               data.config.maxBookingAdvanceDays,
               PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
             ),
+            serviceRequirementsTimeoutHours: toFiniteNumber(
+              data.config.serviceRequirementsTimeoutHours,
+              48
+            ),
+            serviceAutoApproveHours: toFiniteNumber(data.config.serviceAutoApproveHours, 72),
+            serviceCountdownWarningHours: toFiniteNumber(
+              data.config.serviceCountdownWarningHours,
+              12
+            ),
+            serviceSettlementCommissionEnabled: Boolean(
+              data.config.serviceSettlementCommissionEnabled
+            ),
+            vendorCommissionEnabled: Boolean(data.config.vendorCommissionEnabled),
+            subscriptionEnabled:
+              data.config.subscriptionEnabled === undefined
+                ? true
+                : Boolean(data.config.subscriptionEnabled),
+            subscriptionExpiringNoticeDays: toFiniteNumber(
+              data.config.subscriptionExpiringNoticeDays,
+              3
+            ),
+            subscriptionEnforcementLevel:
+              data.config.subscriptionEnforcementLevel === "NONE" ||
+              data.config.subscriptionEnforcementLevel === "BLOCK"
+                ? data.config.subscriptionEnforcementLevel
+                : "WARN",
           });
         }
       } catch (error) {
@@ -355,6 +432,15 @@ export default function OperationsSettingsPage() {
           withdrawalSettlementHoldHours: commerceLifecycleConfig.withdrawalSettlementHoldHours,
           minOrderAmount: commerceLifecycleConfig.minOrderAmount,
           maxBookingAdvanceDays: commerceLifecycleConfig.maxBookingAdvanceDays,
+          serviceRequirementsTimeoutHours: commerceLifecycleConfig.serviceRequirementsTimeoutHours,
+          serviceAutoApproveHours: commerceLifecycleConfig.serviceAutoApproveHours,
+          serviceCountdownWarningHours: commerceLifecycleConfig.serviceCountdownWarningHours,
+          serviceSettlementCommissionEnabled:
+            commerceLifecycleConfig.serviceSettlementCommissionEnabled,
+          vendorCommissionEnabled: commerceLifecycleConfig.vendorCommissionEnabled,
+          subscriptionEnabled: commerceLifecycleConfig.subscriptionEnabled,
+          subscriptionExpiringNoticeDays: commerceLifecycleConfig.subscriptionExpiringNoticeDays,
+          subscriptionEnforcementLevel: commerceLifecycleConfig.subscriptionEnforcementLevel,
         }),
       });
 
@@ -380,6 +466,32 @@ export default function OperationsSettingsPage() {
           commerceData.config.maxBookingAdvanceDays,
           PLATFORM_DEFAULTS.MAX_BOOKING_ADVANCE_DAYS
         ),
+        serviceRequirementsTimeoutHours: toFiniteNumber(
+          commerceData.config.serviceRequirementsTimeoutHours,
+          48
+        ),
+        serviceAutoApproveHours: toFiniteNumber(commerceData.config.serviceAutoApproveHours, 72),
+        serviceCountdownWarningHours: toFiniteNumber(
+          commerceData.config.serviceCountdownWarningHours,
+          12
+        ),
+        serviceSettlementCommissionEnabled: Boolean(
+          commerceData.config.serviceSettlementCommissionEnabled
+        ),
+        vendorCommissionEnabled: Boolean(commerceData.config.vendorCommissionEnabled),
+        subscriptionEnabled:
+          commerceData.config.subscriptionEnabled === undefined
+            ? true
+            : Boolean(commerceData.config.subscriptionEnabled),
+        subscriptionExpiringNoticeDays: toFiniteNumber(
+          commerceData.config.subscriptionExpiringNoticeDays,
+          3
+        ),
+        subscriptionEnforcementLevel:
+          commerceData.config.subscriptionEnforcementLevel === "NONE" ||
+          commerceData.config.subscriptionEnforcementLevel === "BLOCK"
+            ? commerceData.config.subscriptionEnforcementLevel
+            : "WARN",
       });
 
       message.success("Platform settings saved successfully");
@@ -839,6 +951,166 @@ export default function OperationsSettingsPage() {
               disabled={commerceConfigLoading || isSaving}
               suffix="days"
               className="!w-32"
+            />
+          </div>
+
+          {serviceHourSettings.map((field) => (
+            <div
+              key={field.key}
+              className="flex flex-col gap-3 rounded-ds-md border border-ds-border-base p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <div className="font-medium text-ds-text-primary">{field.label}</div>
+                <div className="text-xs text-ds-text-secondary">{field.description}</div>
+              </div>
+              <Input
+                type="number"
+                min={1}
+                max={720}
+                value={commerceLifecycleConfig[field.key]}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 720) {
+                    setCommerceLifecycleConfig((prev) => ({
+                      ...prev,
+                      [field.key]: val,
+                    }));
+                  }
+                }}
+                disabled={commerceConfigLoading || isSaving}
+                suffix="hours"
+                className="!w-36"
+              />
+            </div>
+          ))}
+
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+            <div>
+              <div className="font-medium text-ds-text-primary">
+                Settlement Commission on Release
+              </div>
+              <div className="text-xs text-ds-text-secondary">
+                When enabled, releasing a settlement withholds the vendor commission rate and
+                records a commission audit transaction. Off keeps the full amount with the vendor.
+              </div>
+            </div>
+            <Switch
+              checked={commerceLifecycleConfig.serviceSettlementCommissionEnabled}
+              disabled={commerceConfigLoading || isSaving}
+              onChange={(checked) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  serviceSettlementCommissionEnabled: checked,
+                }))
+              }
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-ds-text-brand" />
+          <h2 className="text-lg font-semibold text-ds-text-primary">Payment Models</h2>
+        </div>
+        <p className="mb-4 text-xs text-ds-text-secondary">
+          Control how the platform monetises vendor sales. Commissions withhold a percentage of each
+          released settlement; subscription packages charge vendors a recurring fee for selling
+          access. Both are independent — the default is subscriptions on, commissions off.
+        </p>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+            <div>
+              <div className="font-medium text-ds-text-primary">
+                Apply Commissions to Vendor Sales
+              </div>
+              <div className="text-xs text-ds-text-secondary">
+                When enabled, releasing a settlement withholds the vendor&apos;s commission rate
+                (per-category defaults and overrides in the Commission Rates section apply). Off by
+                default — vendors receive the full settlement amount.
+              </div>
+            </div>
+            <Switch
+              checked={commerceLifecycleConfig.vendorCommissionEnabled}
+              disabled={commerceConfigLoading || isSaving}
+              onChange={(checked) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  vendorCommissionEnabled: checked,
+                }))
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-ds-md border border-ds-border-base p-4">
+            <div>
+              <div className="font-medium text-ds-text-primary">
+                Enable Subscription Packages
+              </div>
+              <div className="text-xs text-ds-text-secondary">
+                Show subscription packages on the public Packages page and let vendors subscribe or
+                upgrade. Manage packages under{" "}
+                <span className="font-medium">Operations → Subscriptions</span>.
+              </div>
+            </div>
+            <Switch
+              checked={commerceLifecycleConfig.subscriptionEnabled}
+              disabled={commerceConfigLoading || isSaving}
+              onChange={(checked) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  subscriptionEnabled: checked,
+                }))
+              }
+            />
+          </div>
+
+          <div className="rounded-ds-md border border-ds-border-base p-4">
+            <div className="font-medium text-ds-text-primary">Subscription Enforcement</div>
+            <div className="mb-3 text-xs text-ds-text-secondary">
+              What happens when a vendor has no active subscription. Warn shows dismissible banners
+              only; Block refuses new product creation and service publishing until they renew.
+            </div>
+            <Select
+              value={commerceLifecycleConfig.subscriptionEnforcementLevel}
+              disabled={commerceConfigLoading || isSaving || !commerceLifecycleConfig.subscriptionEnabled}
+              options={ENFORCEMENT_LEVEL_OPTIONS.map((option) => ({ ...option }))}
+              onChange={(value) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  subscriptionEnforcementLevel: value as CommerceLifecycleConfig["subscriptionEnforcementLevel"],
+                }))
+              }
+              className="w-full max-w-md"
+            />
+          </div>
+
+          <div className="rounded-ds-md border border-ds-border-base p-4">
+            <div className="font-medium text-ds-text-primary">
+              Expiring-Subscription Notice (Days)
+            </div>
+            <div className="mb-3 text-xs text-ds-text-secondary">
+              How many days before expiry the vendor receives an expiring-soon reminder (0 disables
+              the reminder; the expiry notice always sends).
+            </div>
+            <Input
+              type="number"
+              min={0}
+              max={30}
+              value={commerceLifecycleConfig.subscriptionExpiringNoticeDays}
+              disabled={commerceConfigLoading || isSaving || !commerceLifecycleConfig.subscriptionEnabled}
+              onChange={(event) =>
+                setCommerceLifecycleConfig((prev) => ({
+                  ...prev,
+                  subscriptionExpiringNoticeDays: Math.min(
+                    30,
+                    Math.max(0, Math.round(toFiniteNumber(event.target.value, 3)))
+                  ),
+                }))
+              }
+              className="max-w-[140px]"
+              suffix="days"
             />
           </div>
         </div>

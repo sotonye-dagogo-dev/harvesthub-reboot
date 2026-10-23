@@ -2,7 +2,8 @@
 
 import { Input, PhoneInput } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { CAMPUS_LOCATIONS, Campus } from "@/lib/constants";
+import { Campus } from "@/lib/constants";
+import { useOptionList } from "@/lib/hooks/useOptionList";
 
 export interface AddressFormData {
   fullName: string;
@@ -23,6 +24,8 @@ export interface AddressFormProps {
 }
 
 export function AddressForm({ value, onChange, errors = {}, className }: AddressFormProps) {
+  const { visible: campusOptions } = useOptionList("campus");
+
   const handleChange =
     (field: keyof AddressFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange({ ...value, [field]: e.target.value });
@@ -136,7 +139,7 @@ export function AddressForm({ value, onChange, errors = {}, className }: Address
           )}
         >
           <option value="">Select campus (optional)</option>
-          {CAMPUS_LOCATIONS.map((item) => (
+          {campusOptions.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
             </option>

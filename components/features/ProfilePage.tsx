@@ -10,9 +10,14 @@ import { User, Mail, Phone, MapPin, Lock, Upload as UploadIcon } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 import type { Address } from "@/lib/types";
-import { CAMPUS_LOCATIONS, Campus, POSITION_OPTIONS, UserRole, VENDOR_CATEGORIES } from "@/lib/constants";
+import { Campus, UserRole } from "@/lib/constants";
+import { resolveOptionLabel } from "@/lib/config/optionLists";
+import { useOptionList } from "@/lib/hooks/useOptionList";
 
 export default function ProfilePage() {
+  const { visible: campusOptions } = useOptionList("campus");
+  const { visible: categoryOptions } = useOptionList("vendorCategories");
+  const { visible: positionOptions } = useOptionList("positions");
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [editMode, setEditMode] = useState(false);
@@ -670,7 +675,7 @@ export default function ProfilePage() {
                   className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                 >
                   <option value="">Select campus</option>
-                  {CAMPUS_LOCATIONS.map((item) => (
+                  {campusOptions.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>
@@ -693,7 +698,7 @@ export default function ProfilePage() {
                         className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       >
                         <option value="">Select category</option>
-                        {VENDOR_CATEGORIES.map((item) => (
+                        {categoryOptions.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
@@ -714,7 +719,7 @@ export default function ProfilePage() {
                         className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base px-3 py-2 text-sm text-ds-text-primary"
                       >
                         <option value="">Select position</option>
-                        {POSITION_OPTIONS.map((item) => (
+                        {positionOptions.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
@@ -789,7 +794,7 @@ export default function ProfilePage() {
                           {address.campus ? (
                             <div className="text-xs text-ds-text-tertiary">
                               Campus:{" "}
-                              {CAMPUS_LOCATIONS.find((c) => c.value === address.campus)?.label ??
+                              {resolveOptionLabel("campus", address.campus, campusOptions) ||
                                 address.campus}
                             </div>
                           ) : null}

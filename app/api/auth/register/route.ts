@@ -8,7 +8,7 @@ import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
 import { sendVerifyEmail } from '@/lib/services/email';
 import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender, Position } from '@/lib/constants';
+import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender, Position, ServiceCategory, ServiceLocation } from '@/lib/constants';
 import { randomUUID as uuidv4 } from 'crypto';
 
 const isValidEnumValue = <T extends readonly string[]>(value: unknown, enumValues: T): value is T[number] =>
@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
             accountName,
             accountNumber,
             agreeToTerms,
+            serviceCategory,
+            serviceLocation,
         } = body;
 
         if (!email || !password || !firstName || !lastName || !phoneNumber || !role) {
@@ -135,6 +137,43 @@ export async function POST(request: NextRequest) {
             ) {
                 return NextResponse.json(
                     { success: false, error: 'Invalid church position value' },
+                    { status: 400 }
+                );
+            }
+
+            // Service provider profile — collected on the store-info step and
+            // stored on Vendor (previously collected but silently dropped).
+            if (
+                serviceCategory !== undefined &&
+                serviceCategory !== null &&
+                serviceCategory !== '' &&
+                !isValidEnumValue(serviceCategory, Object.values(ServiceCategory) as readonly string[])
+            ) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid service category' },
+                    { status: 400 }
+                );
+            }
+
+            if (
+                serviceLocation !== undefined &&
+                serviceLocation !== null &&
+                serviceLocation !== '' &&
+                !isValidEnumValue(serviceLocation, Object.values(ServiceLocation) as readonly string[])
+            ) {
+                return NextResponse.json(
+                    { success: false, error: 'Invalid service location' },
+                    { status: 400 }
+                );
+            }
+
+            const isServiceProvider = category === VendorCategory.SERVICES;
+            if (isServiceProvider && (!serviceCategory || !serviceLocation)) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Service vendors must provide serviceCategory and serviceLocation',
+                    },
                     { status: 400 }
                 );
             }
@@ -305,6 +344,8 @@ export async function POST(request: NextRequest) {
                     status: 'PENDING',
                     isChurchAffiliated: isChurchAffiliated || false,
                     commissionRate,
+                    serviceCategory: serviceCategory || null,
+                    serviceLocation: serviceLocation || null,
                     businessVerification: businessVerificationData,
                     storeSettings: {
                         allowsPickup: true,

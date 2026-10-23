@@ -193,6 +193,9 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+  AWAITING_REQUIREMENTS
+  IN_PROGRESS
+  IN_REVIEW
 }
 
 enum PaymentStatus {
@@ -340,6 +343,28 @@ enum NotificationType {
   LOW_STOCK
   NEW_PRODUCT
   PROMOTION
+  SERVICE_REQUIREMENTS_REQUESTED
+  SERVICE_REQUIREMENTS_SUBMITTED
+  SERVICE_DELIVERED
+  SERVICE_RELEASED
+  SERVICE_REVISION_REQUESTED
+  SERVICE_REQUIREMENTS_TIMEOUT
+  SUBSCRIPTION_ACTIVATED
+  SUBSCRIPTION_EXPIRING_SOON
+  SUBSCRIPTION_EXPIRED
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum SubscriptionEnforcementLevel {
+  NONE
+  WARN
+  BLOCK
 }
 
 enum ListingType {
@@ -450,6 +475,7 @@ model User {
   reviewedAdApplications AdApplication[]         @relation("AdApplicationReviewer")
   proofOfTransfers       ProofOfTransfer[]
   voucherRedemptions     VoucherRedemption[]
+  vendorSubscriptions    VendorSubscription[]
   cisIdentities         CisIdentity[]        @relation("CisIdentityLinked")
 
   @@index([email])
@@ -541,6 +567,10 @@ model Vendor {
   commissionRate     Float          @default(0.05)
   storeLogo          String?
   storeBanner        String?
+
+  // Service provider profile (collected at signup; persisted as of 2026-09-29)
+  serviceCategory   ServiceCategory?
+  serviceLocation   ServiceLocation?
 
   // Structured JSON fields
   businessVerification Json?
@@ -680,6 +710,7 @@ model Order {
   items            OrderItem[]
   transactions     Transaction[]
   proofOfTransfers ProofOfTransfer[]
+  messages         OrderMessage[]
 
   @@index([buyerId])
   @@index([vendorId])
@@ -699,6 +730,14 @@ model OrderItem {
   selectedVariants Json?
   price            Float
   subtotal         Float
+
+  // Service fulfilment (additive — PRODUCT rows leave these null / defaulted)
+  listingType             ListingType @default(PRODUCT)
+  serviceConfig           Json?
+  requirementAnswers      Json?
+  requirementsSubmittedAt DateTime?
+  deadlineAt              DateTime?
+  revisionsRemaining      Int?
 
   // Relations
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -937,10 +976,69 @@ model CommerceLifecycleConfig {
   commissionPremiumRate         Float    @default(0.03)
   minOrderAmount                Float    @default(500)
   maxBookingAdvanceDays         Int      @default(60)
+  // Service order lifecycle windows (defaults match today's non-service behaviour)
+  serviceRequirementsTimeoutHours Int    @default(48)
+  serviceAutoApproveHours         Int    @default(72)
+  serviceCountdownWarningHours    Int    @default(12)
+  serviceSettlementCommissionEnabled Boolean @default(false)
+  // Payment models (Session 104) — commissions stay OFF by default, subscription packages ON
+  vendorCommissionEnabled         Boolean  @default(false)
+  subscriptionEnabled             Boolean  @default(true)
+  subscriptionExpiringNoticeDays  Int      @default(3)
+  subscriptionEnforcementLevel    SubscriptionEnforcementLevel @default(WARN)
   createdAt                     DateTime @default(now())
   updatedAt                     DateTime @updatedAt
 
   @@map("commerce_lifecycle_configs")
+}
+
+// Vendor subscription packages (admin CRUD; purchased via /packages)
+model SubscriptionPackage {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Float
+  durationDays Int     @default(30)
+  features    Json     @default("[]")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedBy   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions VendorSubscription[]
+
+  @@index([isActive])
+  @@map("subscription_packages")
+}
+
+// One row per purchase (renewal/upgrade = new row; expiresAt extends from max(now, current))
+model VendorSubscription {
+  id          String             @id @default(cuid())
+  userId      String
+  packageId   String
+  status      SubscriptionStatus @default(ACTIVE)
+  paymentMethod PaymentMethod
+  paymentReference String        @unique
+  amount      Float
+  startAt     DateTime
+  expiresAt   DateTime
+  expiringNotifiedAt DateTime?
+  expiredNotifiedAt  DateTime?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package SubscriptionPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("vendor_subscriptions")
 }
 
 model Notification {
@@ -1404,4 +1502,49 @@ model EmailTemplate {
   updatedAt DateTime @updatedAt
 
   @@map("email_templates")
+}
+
+// ─── Option Lists (admin-editable dropdown/select option sets) ────────────────
+// DISPLAY   = fixed set (labels/order/hidden only — values come from the code
+//             or Prisma enum key set and can never be injected by an admin)
+// FREEFORM  = admin may add/remove options (unregistered keys are rejected 404)
+enum OptionListTier {
+  DISPLAY
+  FREEFORM
+}
+
+model OptionList {
+  id        String         @id @default(cuid())
+  key       String         @unique
+  tier      OptionListTier @default(DISPLAY)
+  options   Json           @default("[]")
+  isActive  Boolean        @default(true)
+  updatedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("option_lists")
+}
+
+// ─── Order Room (buyer ↔ seller thread on a single order) ─────────────────────
+// Serverless stack has no WebSocket infra: the room reads this table through
+// visibility-gated polling (lib/services/orderRoomTransport.ts).
+model OrderMessage {
+  id        String   @id @default(cuid())
+  orderId   String
+  senderId  String
+  senderRole String
+  body      String
+  attachmentUrl String?
+  attachmentName String?
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("order_messages")
 }

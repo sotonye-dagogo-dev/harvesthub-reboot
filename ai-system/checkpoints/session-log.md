@@ -5154,3 +5154,172 @@ Resolve user-reported verification loop (clicking emailed link redirects to /ver
 - `npm run build` ✅
 - `npx vitest run` ✅ (108 passed, 503 tests)
 
+---
+
+## Session 101 — plan-feature: services (service-marketplace) enablement — 2026-09-29
+
+**Goal:**
+Run `commands/plan-feature.md` for the stakeholder service-marketplace request
+(`ai-system/artifacts/services-feature-request.pdf`). Convert the PDF to Markdown for analysis, treat
+it as a **feature request** rather than an authoritative PRD (it was authored without codebase
+knowledge), and produce a concrete, non-breaking, config-driven task queue that can be executed with
+`commands/execute-feature.md`. Planning only — no implementation code. `commands/generate-design-md.md`
+was also invoked for the design conformance reference.
+
+**Completed:**
+
+- **PDF → Markdown** — `uvx --with "markitdown[pdf]" markitdown` converted the PRD to
+  `ai-system/artifacts/services-feature-request.md` (registered approach per `tools/registry.md` →
+  markitdown row).
+- **Codebase recon** — confirmed `Services` is **already** an option everywhere it matters:
+  signup Store Category (`lib/constants/index.ts:471`, option 18/19),
+  `ProductCategory.SERVICES` browse chip (`lib/config/productDiscovery.ts:34`), and
+  `ListingType.SERVICE` (`prisma/schema.prisma:345`). Also confirmed `ListingType.SERVICE` is only
+  cosmetic today: `serviceDetails` is writable but never authored/read, `Booking` +
+  `components/features/BookingCalendar.tsx` are orphaned (no API, never mounted), services are
+  incorrectly charged the ₦1,500 delivery fee (`app/checkout/page.tsx:90`,
+  `app/api/orders/route.ts:441`), the signup `serviceCategory`/`serviceLocation` fields are silently
+  dropped, `TransactionType.COMMISSION` is never written, and no chat/WebSocket, escrow-for-services,
+  tiers, requirements or revision machinery exists.
+- **Scope reconciliation (pinch of salt)** — rejected the PRD's parallel `services` /
+  `service_packages` / `service_orders` Postgres DDL in favour of extending
+  `Product.listingType=SERVICE` + `Order`/`OrderItem`; rejected S3 (Cloudinary is the stack),
+  WebSocket/gRPC (serverless — visibility-gated polling behind an isolated transport), default
+  Google Maps (flag-gated) and ClamAV (deferred, documented residual risk); softened the "I will…"
+  title rule to helper text; routed late-delivery refunds through the existing refund flow.
+- **Plan document** — `planning/feature-plan-2026-09-29-services-marketplace.md`: feature summary,
+  scope-reconciliation table, architecture-impact matrix (every change additive or flag-gated),
+  new modules, 10-step end-to-end data flow, service `OrderStatus` state machine, design-system
+  conformance notes, the option-list contract, config keys, emails/notifications, 13 risks/edge
+  cases, dependency-ordered task list, and required architecture-doc updates.
+- **Requested modification (not yet built)** — admin-editable option lists with hardcoded fallbacks
+  and non-existence handling: new `OptionList` model with `DISPLAY` (label/order/hide only — enum
+  keys immutable) vs `FREEFORM` tiers, `getOptionList()` that never throws, `resolveOptionLabel()`,
+  empty-state rendering, server validation always against the code/Prisma key set, and an
+  `/operations/option-lists` admin editor.
+- **Design reference** — `design-references/service-listing-order-room/DESIGN.md` produced via
+  `commands/generate-design-md.md` + `skills/design-token-extraction/SKILL.md` from **supplied
+  markup** (no browsing tool needed — the reference is this repo): Tier 1/2 `ds-*` palette,
+  Geist type scale, spacing/radius/shadow/z tokens, card/notice/`StageTracker`/`StatusTag`/upload
+  patterns, and the responsive contract. `design-system.md` was **not** edited; no promotion
+  candidates flagged (tokens already come from the project's own Tier 1/2 layer).
+- **Task queue** — appended the dependency-ordered T1–T8 queue under
+  `## Feature Planning Queue (2026-09-29) — Services / Service-Marketplace Enablement [XL]` and
+  updated the `last-synced` metadata marker (this entry is the required §9 coupling trace for that
+  task-queue mutation).
+
+**Files Modified:**
+- `ai-system/artifacts/services-feature-request.md` (new — PDF conversion output)
+- `ai-system/design-references/service-listing-order-room/DESIGN.md` (new — generate-design-md)
+- `ai-system/planning/feature-plan-2026-09-29-services-marketplace.md` (new — plan-feature output)
+- `ai-system/planning/task-queue.md` (T1–T8 queue + `last-synced` marker)
+- `ai-system/checkpoints/session-log.md`
+
+**Validation:**
+- Planning-only session: no application code touched — `tsc`/`lint`/`vitest`/`build` not applicable.
+- Chain compliance: `plan-feature.md` → `checkpoints/session-log.md` ✅ (this entry);
+  `generate-design-md.md` → session-log ✅ (recorded above).
+- Task-queue coupling: `planning/task-queue.md` mutation has a matching session-log entry ✅.
+- No architecture change made — the required `update-ai-system.md` deep sync is deferred to task T8
+  at execution time, per `execute-feature.md` Step 5.
+
+
+---
+
+## Session 103 — Services Marketplace Round-Up + Final QA Gate — 2026-10-08
+
+**Goal:**
+Per `resume-session.md` + the "round up the final session" directive: reconcile checkpoint drift (in-progress claimed T3-partial/T4-pending vs repo reality), verify any leftover T8 work (flag gating, QA gate, docs sync), fix small leftovers, and close the session cleanly.
+
+**Drift check (`sync-context.md` equivalent):**
+- `git log`: 3 unmerged commits since base (`583b8ac` plan, `ad9c6c9` option-lists/wizard/storefront, `9531fed` lifecycle/order-room/commission) — all services work, none on main yet.
+- `in-progress.md` stale: claimed T3 PARTIAL with `wizardModel.ts:407` type error and T4–T8 pending. Reality: wizard + 5 steps + services page + storefront + lifecycle + order room + commission all present; `tsc` clean (error gone); `serviceListingEnabled` gating present in Sidebar, services page, product detail.
+- `task-queue.md` T1–T7 correctly `[x]`; only T8 `[ ]` was stale — now closed.
+- Verdict: minor-to-major doc drift, no code drift. Reconciled via docs (no architecture change), no `update-ai-system.md` re-plan needed.
+
+**Completed:**
+- Fixed last lint warning: removed unused `ServiceWizardValues` import in `components/features/services/steps/Media.tsx`.
+- Verified T8 gating in code (sidebar filter, DisabledNotice, storefront gate) and marked T8 done in `planning/task-queue.md`.
+- Full QA gate: `npx tsc --noEmit` ✅; `npm run lint` ✅ (pre-existing warnings only); `npx vitest run` ✅ 132 files / 729 passed / 32 skipped; `npm run build` ✅; `npm run audit:dead-links` ✅.
+- Docs sync: `system-architecture.md` (services bullet + 7 config rows), `memory/project-decisions.md` (services decision), `summaries/dev-history.md` (Session 103), `planning/task-queue.md` (T8 + last-synced), cleared `checkpoints/in-progress.md`.
+
+**Files Modified:**
+- `components/features/services/steps/Media.tsx`
+- `ai-system/planning/task-queue.md`, `ai-system/system-architecture.md`, `ai-system/memory/project-decisions.md`, `ai-system/summaries/dev-history.md`, `ai-system/checkpoints/session-log.md`, `ai-system/checkpoints/in-progress.md`
+
+**Next Task:**
+- Merge PR; on target envs run `db push` + migration baselining for the new services schema deltas (Session 98 pattern). Human call on wizard/StepTracker design-system promotion. Stale-asset orphan cleanup remains backlog.
+
+**Notes / Blockers:**
+- None blocking. Residual non-blocking risks: no antivirus, client-only video-duration check, mixed-cart single-status, orphan cleanup backlog.
+
+---
+
+## Session 104 — Payment Models: Vendor Commissions + Subscription Packages [XL] — 2026-10-21
+
+**Goal:**
+Per `execute-feature.md` ([XL] feature): build the client's monetization model end-to-end — an admin toggle for commission withholding on vendor sales (default disabled) and a config-driven subscription-packages system (default enabled) with admin CRUD, guest/buyer register-and-subscribe and existing-vendor upgrade/renew flows on `/packages`, appropriate emails + notifications, and admin configurability + observability of packages/subscribers/payments such that operations never need developer involvement. Non-breaking, config/metadata-driven, ACID-compliant, safe fallbacks. User go/no-go: **"Go, but no bank-transfer path"** (CARD verify-backed + WALLET only).
+
+**Completed:**
+- **Schema (additive, `db push` applied to db.prisma.io + client regenerated):** `SubscriptionStatus` + `SubscriptionEnforcementLevel` enums; `NotificationType` +3 (`SUBSCRIPTION_ACTIVATED|EXPIRING_SOON|EXPIRED`); `CommerceLifecycleConfig` +`vendorCommissionEnabled(false)`/`subscriptionEnabled(true)`/`subscriptionExpiringNoticeDays(3)`/`subscriptionEnforcementLevel(WARN)`; `SubscriptionPackage` + `VendorSubscription` (`paymentReference @unique`, `expiringNotifiedAt`/`expiredNotifiedAt` one-time-notice guards); `User` relation.
+- **Core service** `lib/services/subscriptions.ts` — never-throwing config normalization (invalid level → WARN, clamped notice days, NaN duration → 30d default), effective-window math extending `max(now, current expiry)`, `runSubscriptionSweep` (atomic status flip + one-time notices, replay-safe), `getSubscriptionAdminStats`, `checkSubscriptionEnforcement`.
+- **Commission gate** `lib/services/orderLifecycle.ts` generalized: `vendorCommissionEnabled || serviceSettlementCommissionEnabled` (both default OFF → byte-identical behavior); rate chain `Vendor.commissionRate → commissionDefaultRate → CATEGORY_COMMISSION_DEFAULTS[SERVICES]`; config-read failure = commission stays OFF, never throws.
+- **APIs:** `GET/POST /api/subscriptions` (summary+history; purchase: CARD via `verifyPayment` with NGN + exact subunit checks and wallet-deposit `GATEWAY_UNAVAILABLE` precedent; WALLET atomic debit + `PAYMENT` ledger row + subscription row in one `$transaction`; idempotent replay by `SUB-` reference; free packages activate instantly); public `GET /api/subscription-packages`; admin CRUD `/api/admin/subscription-packages` (+`[id]`, 409 soft-delete guard when subscribers exist); `/api/admin/subscriptions` (stats + filterable list) +`[id]` cancel/restore; `/api/cron/subscriptions` (`x-subscription-cron-secret` or ADMIN; one-time notices, never-fail dispatch); commerce-config GET/PUT + payment-models fields.
+- **Enforcement wiring:** BLOCK-level gate on `POST /api/products` and draft→publish `PUT /api/products/[id]` (VENDOR only; WARN/NONE/disabled = unchanged behavior).
+- **UI:** `/packages` public page (Paystack inline + WALLET, persisted `SUB-` reference replay, `?selected=` deep-link, role-aware CTAs); `/operations/subscription` (vendor status/history/alerts); `/operations/subscriptions` (admin Overview/Packages CRUD/Subscriptions tabs with filters + cancel/restore); settings "Payment Models" card; operations dashboard admin+vendor metrics/quick actions + dismissible WARN/BLOCK enforcement banner via additive `subscriptionNotice` payload; Sidebar (ADMIN/VENDOR orders entry + CreditCard), navigation/routeConfig (packages public, subscriptions ADMIN, subscription VENDOR+ADMIN), footer "Vendor Packages" quick link, `/become-vendor` CTA link.
+- **Notifications:** 3 new types mirrored into `lib/constants`, `NOTIFICATION_TEMPLATE_CONFIG`, `DEFAULT_EMAIL_TEMPLATES` (+ `buildNotificationEmailDetails` Package/Expires rows); ACTIVATED dispatched post-commit on purchase; EXPIRING_SOON/EXPIRED armed exactly once by the cron sweep.
+- **Tests (all green):** `lib/services/__tests__/subscriptions.test.ts` (27), `app/api/subscriptions/__tests__/route.test.ts` (16), `app/api/admin/subscription-packages/__tests__/schema.test.ts` (9), `app/api/cron/subscriptions/__tests__/route.test.ts` (7), `lib/config/__tests__/subscription-template-parity.test.ts` (5), `orderLifecycle.settlement-commission.test.ts` +5 toggle-matrix (11 total), `app/packages/__tests__/page.test.tsx` (3). Affected-area suites re-run green (notifications ×4, products route, Sidebar orders-scope).
+- **Docs close:** `memory/project-decisions.md` (3 new Session 104 entries), `system-architecture.md` (Payment Models bullet + 7 config rows), `planning/task-queue.md` (Session 104 queue, all `[x]` + last-synced), `planning/project-plan.md` (shipped item), `summaries/dev-history.md` (Session 104), `memory/lessons-learned.md` (+2), `index/repo-map.md` + `index/dependency-graph.md` (deep sync), this entry, `in-progress.md` cleared.
+
+**Files Modified:**
+- `prisma/schema.prisma` (+ generated client), `lib/services/subscriptions.ts` (new), `lib/services/orderLifecycle.ts`, `lib/services/notifications.ts`
+- `app/api/subscriptions/`, `app/api/subscription-packages/`, `app/api/admin/subscription-packages/`, `app/api/admin/subscriptions/`, `app/api/cron/subscriptions/` (new), `app/api/admin/commerce-config/route.ts`, `app/api/operations/dashboard/route.ts`, `app/api/products/route.ts`, `app/api/products/[id]/route.ts`
+- `app/packages/`, `app/(operations)/operations/subscription/`, `app/(operations)/operations/subscriptions/` (new), `app/(operations)/operations/settings/page.tsx`, `app/(operations)/operations/dashboard/page.tsx`, `app/become-vendor/page.tsx`
+- `components/layout/Sidebar.tsx`, `lib/rbac/routeConfig.ts`, `lib/navigation.ts`, `lib/config/siteContent.ts`, `lib/config/emailTemplates.ts`, `lib/config/notificationTemplates.ts`, `lib/constants/index.ts`
+- `ai-system/*` (docs close + deep sync)
+
+**Validation:**
+- `npx prisma validate` ✅; `npm run db:push` ✅ (additive, DB in sync); `npm run db:generate` ✅.
+- `npx tsc --noEmit` ✅ exit 0 (0 errors repo-wide); `npm run lint` ✅ (only pre-existing warnings in untouched files).
+- `npm run build` ✅ (all routes incl. `/packages`, `/operations/subscription(s)`); `npm run audit:dead-links` ✅ (routes + sidebar OK; only pre-existing `/events/electronics-fair` + dynamic-param placeholders).
+- `npx vitest run`: all Session 104 suites + touched areas green; full-suite runs (3 total: 8→13→12 failed files) show only pre-existing/environmental failures — `bannerTracking.test.ts` deterministically fails at clean baseline (stash-verified) due to Node v25's broken global `localStorage` stub, and every other failing file is a load-induced 5s-timeout flake re-verified green in isolation/small batches (incl. `app/packages`, `lib/emails/NotificationEmail`, orders table-flow, home clickthrough — 100% pass low-load). Convention per Session 86: failure set unchanged from baseline = gate satisfied.
+
+**Next Task:**
+- Merge + deploy; schedule `POST /api/cron/subscriptions` on the host scheduler (Vercel cron/external) with `SUBSCRIPTION_CRON_SECRET` (expiry flips lazily on read until then). Optional: seed an initial "Starter" package via the admin UI. Human call on Node-version pinning to repair `bannerTracking.test.ts`.
+
+**Notes / Blockers:**
+- No commits made this session — all Session 104 work sits in the working tree (uncommitted), consistent with prior sessions' PR-merge pattern.
+- WALLET/`GATEWAY_UNAVAILABLE` contracts intentionally mirror wallet-deposit precedents (logged in project-decisions); no webhook changes needed (`SUB-` PAYMENT rows covered by generic reconciliation annotation).
+
+---
+
+## Session 105 — Payment-Models Follow-Ups: Cron Scheduling Readiness + Test-Env Storage Repair — 2026-10-21
+
+**Goal:**
+Execute the `execute-feature.md` pipeline on the Session 104 close-out notes: make the subscription-expiry cron (and, per user go/no-go, the sibling service-fulfillment cron) Vercel-cron-ready, repair the Node-25/jsdom test-env `localStorage` breakage that kept `bannerTracking.test.ts` red at baseline, run the full QA gate, close docs with the `update-ai-system.md` deep sync, and produce the user's git/Vercel/admin action list. Standing rules: config/metadata-driven, reusable modular, non-breaking/additive, ACID, safe fallbacks. User go/no-go: **"Go, code only — no git push"** + **"Yes — schedule both crons"** + **"Don't push — I'll handle git"**.
+
+**Completed:**
+- **Cron readiness (additive, non-breaking):** `app/api/cron/subscriptions/route.ts` refactored to a shared `handleSweep(req)` with a new `GET` export (Vercel crons always invoke via GET) alongside the preserved `POST`; auth now also accepts `Authorization: Bearer <secret>` matching `CRON_SECRET` or `SUBSCRIPTION_CRON_SECRET` (Vercel convention), with the existing `x-subscription-cron-secret` header + ADMIN session unchanged. `app/api/orders/service-fulfillment/route.ts` likewise gained a `GET` export delegating to `POST` and Bearer auth over `CRON_SECRET`/`ORDER_FULFILLMENT_SECRET`/`ORDER_AUTO_CONFIRM_SECRET`; the legacy `x-fulfillment-secret`/`x-auto-confirm-secret` + ADMIN contracts are byte-for-byte preserved. Both remain idempotent (atomic notice/status guards; settlement release transactional) so best-effort cron delivery (missed/duplicate runs) is safe.
+- **`vercel.json` (new):** two staggered daily crons — `/api/cron/subscriptions` at `0 3 * * *` and `/api/orders/service-fulfillment` at `0 4 * * *` (both valid on Hobby once/day and paid plans; inert on non-Vercel hosts). Verified against current Vercel docs (GET invocation, `Authorization: Bearer $CRON_SECRET` auto-sent when the env var is set, best-effort delivery ⇒ idempotency required).
+- **Test-env storage repair:** `vitest.setup.tsx` gained a capability-guard polyfill — when ambient `localStorage`/`sessionStorage` lack the Storage methods (Node 25 method-less global stub that jsdom 27 delegates `window.localStorage` to; probe-verified same object on both globals, `configurable: true`), a deterministic in-memory `Storage` is installed on `globalThis` and `window`. Per repair-system.md precedent (2026-04-15). No `.nvmrc`/engines Node pin added.
+- **bannerTracking test updated:** the "storage unavailable" case now uses `vi.stubGlobal('localStorage', …)` instead of `vi.spyOn(Storage.prototype, 'getItem')`, because Node's `Storage` brand-checks foreign receivers (probe-verified `TypeError`) and the in-memory polyfill instance does not inherit `Storage.prototype` methods. bannerTracking went from 10/10 red at baseline to **10/10 green** in the full run.
+- **Tests:** extended `app/api/cron/subscriptions/__tests__/route.test.ts` (+8 GET/Bearer-matrix cases → 15 total) and added `app/api/orders/service-fulfillment/__tests__/route.auth.test.ts` (9-case auth matrix). Cron suites 24/24 green; storage-sensitive suites (bannerTracking + SearchBar + packages page) 16/16 green.
+
+**Files Modified:**
+- `app/api/cron/subscriptions/route.ts`, `app/api/orders/service-fulfillment/route.ts`, `vercel.json` (new)
+- `vitest.setup.tsx`, `lib/tracking/__tests__/bannerTracking.test.ts`
+- `app/api/cron/subscriptions/__tests__/route.test.ts`, `app/api/orders/service-fulfillment/__tests__/route.auth.test.ts` (new)
+- `ai-system/*` (docs close + deep sync)
+
+**Validation:**
+- `npx prisma validate` ✅ (schema valid; untouched this session). `npx tsc --noEmit` ✅ exit 0 (0 errors repo-wide). `npm run lint` ✅ (exit 0; only pre-existing warnings in untouched files).
+- `npx vitest run` (full): **795 passed / 21 failed / 32 skipped (848)**; `bannerTracking` 10/10 green. All 21 failures are 5s-timeout flakes; `forgot-password.test.tsx`'s single failing test was re-verified to fail identically at a clean `git stash -u` baseline (pre-existing, unrelated — no storage usage in that test), and the rest (Sidebar.orders-scope, home clickthrough, packages page, wallet, VerificationDocs, PhoneInput, etc.) pass in isolation/small batches (e.g. Sidebar 5/5 alone). Convention per Session 86: failure set is a strict subset of the Session 104 baseline = gate satisfied.
+- `npm run build` ✅ (compiled successfully; 94/94 static pages; both cron routes + `/packages` + `/operations/subscription(s)` present; warnings only, all pre-existing), `npm run audit:dead-links` ✅ (exit 0; only pre-existing `/events/electronics-fair` + dynamic-param placeholders).
+
+**Next Task:**
+- User to run the exact git commands (branch → commit → push → PR) supplied at session close; set `CRON_SECRET` (and optionally per-sweep secrets) in Vercel; verify both cron entries fire post-deploy; create the first subscription package(s) via the admin UI; review Settings → Payment Models. Deferred human call: whether to switch subscription enforcement from WARN → BLOCK once vendors are notified.
+
+**Notes / Blockers:**
+- All Session 104 + 105 work is **uncommitted in the working tree** (50 paths); user explicitly chose to handle all git operations — no branch/commit/push was made this session.
+- No `gh` CLI locally, so the PR must be opened/merged by the user via the supplied link/commands.
+- `forgot-password.test.tsx` single-test 5s timeout is a pre-existing environmental flake (baseline-reproduced); not in this session's blast radius — left untouched.

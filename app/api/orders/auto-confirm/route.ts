@@ -57,10 +57,21 @@ export async function POST(req: NextRequest) {
                 orderNumber: true,
                 statusHistory: true,
                 updatedAt: true,
+                items: { select: { listingType: true } },
             },
             take: 250,
             orderBy: { updatedAt: 'asc' },
         });
+
+        // Service orders settle on their own clock (serviceAutoApproveHours, default 72h).
+        const serviceConfigRow = await prisma.commerceLifecycleConfig
+            .findUnique({
+                where: { key: 'default' },
+                select: { serviceAutoApproveHours: true },
+            })
+            .catch(() => null);
+        const serviceAutoConfirmWindowMs =
+            (serviceConfigRow?.serviceAutoApproveHours ?? 72) * 60 * 60 * 1000;
 
         const eligible = candidates.filter((order) => {
             const history = parseStatusHistory(order.statusHistory as Prisma.JsonValue);
@@ -69,8 +80,11 @@ export async function POST(req: NextRequest) {
             if (hasHistoryStatus(history, 'BUYER_CONFIRMED')) return false;
             if (hasHistoryStatus(history, 'AUTO_CONFIRMED')) return false;
 
+            const isServiceOrder =
+                order.items.length > 0 && order.items.every((item) => item.listingType === 'SERVICE');
+            const windowMs = isServiceOrder ? serviceAutoConfirmWindowMs : autoConfirmWindowMs;
             const deliveredAt = getLatestStatusTimestamp(history, OrderStatus.DELIVERED) || order.updatedAt;
-            return now - deliveredAt.getTime() >= autoConfirmWindowMs;
+            return now - deliveredAt.getTime() >= windowMs;
         });
 
         let released = 0;

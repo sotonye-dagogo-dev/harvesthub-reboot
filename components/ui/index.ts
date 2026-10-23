@@ -25,6 +25,12 @@ export type { PaginationProps, SimplePaginationProps } from "./Pagination";
 export { PhoneInput } from "./PhoneInput";
 export type { PhoneInputProps } from "./PhoneInput";
 
+export { OptionListSelect } from "./OptionListSelect";
+export type { OptionListSelectProps } from "./OptionListSelect";
+
+export { default as StageTracker } from "./StageTracker";
+export type { StageTrackerProps } from "./StageTracker";
+
 export { ThemeToggle } from "./ThemeToggle";
 
 export { RoleGuard } from "./RoleGuard";

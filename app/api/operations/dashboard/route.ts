@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/utils/auth";
 import { UserRole } from "@/lib/constants";
+import { getSubscriptionSummary } from "@/lib/services/subscriptions";
 
 type DashboardIconName =
     | "users"
@@ -27,7 +28,7 @@ type QuickAction = {
 };
 
 async function getAdminMetrics() {
-    const [activeVendors, pendingAds, totalOrders, totalUsers, bannerAgg] = await Promise.all([
+    const [activeVendors, pendingAds, totalOrders, totalUsers, activeSubscriptions, bannerAgg] = await Promise.all([
         prisma.vendor.count({ where: { status: "APPROVED" } }),
         prisma.adApplication.count({
             where: {
@@ -36,6 +37,9 @@ async function getAdminMetrics() {
         }),
         prisma.order.count(),
         prisma.user.count(),
+        prisma.vendorSubscription
+            .count({ where: { status: "ACTIVE" } })
+            .catch(() => 0),
         prisma.banner.aggregate({
             _sum: { impressionCount: true, clickCount: true, conversionCount: true },
         }),
@@ -94,6 +98,14 @@ async function getAdminMetrics() {
             href: "/operations/users",
             cta: "Open user management",
         },
+        {
+            title: "Active Subscriptions",
+            value: activeSubscriptions.toLocaleString(),
+            description: "Vendors with an active paid subscription package.",
+            icon: "package",
+            href: "/operations/subscriptions",
+            cta: "Manage subscriptions",
+        },
     ];
 
     const quickActions: QuickAction[] = [
@@ -106,6 +118,11 @@ async function getAdminMetrics() {
             title: "Moderate Vendors",
             description: "Approve, reject, or suspend vendor accounts.",
             href: "/operations/vendors",
+        },
+        {
+            title: "Manage Subscriptions",
+            description: "Subscription packages, subscribers, and payment records.",
+            href: "/operations/subscriptions",
         },
         {
             title: "Manage Vouchers",
@@ -124,7 +141,12 @@ async function getAdminMetrics() {
         },
     ];
 
-    return { cards, quickActions, emptyState: null as string | null };
+    return {
+        cards,
+        quickActions,
+        emptyState: null as string | null,
+        subscriptionNotice: null as null,
+    };
 }
 
 async function getVendorMetrics(userId: string) {
@@ -138,21 +160,32 @@ async function getVendorMetrics(userId: string) {
         };
     }
 
-    const [totalProducts, activeProducts, totalOrders, revenueAgg, pendingOrders] = await Promise.all([
-        prisma.product.count({ where: { vendorId: vendor.id } }),
-        prisma.product.count({ where: { vendorId: vendor.id, isActive: true } }),
-        prisma.order.count({ where: { vendorId: vendor.id } }),
-        prisma.order.aggregate({
-            where: { vendorId: vendor.id, paymentStatus: "PAID" },
-            _sum: { total: true },
-        }),
-        prisma.order.count({
-            where: {
-                vendorId: vendor.id,
-                status: { in: ["PENDING", "CONFIRMED", "PROCESSING"] },
-            },
-        }),
-    ]);
+    const [totalProducts, activeProducts, totalOrders, revenueAgg, pendingOrders, subscriptionSummary] =
+        await Promise.all([
+            prisma.product.count({ where: { vendorId: vendor.id } }),
+            prisma.product.count({ where: { vendorId: vendor.id, isActive: true } }),
+            prisma.order.count({ where: { vendorId: vendor.id } }),
+            prisma.order.aggregate({
+                where: { vendorId: vendor.id, paymentStatus: "PAID" },
+                _sum: { total: true },
+            }),
+            prisma.order.count({
+                where: {
+                    vendorId: vendor.id,
+                    status: { in: ["PENDING", "CONFIRMED", "PROCESSING"] },
+                },
+            }),
+            getSubscriptionSummary(prisma, userId).catch(() => null),
+        ]);
+
+    const subscriptionValue =
+        !subscriptionSummary || !subscriptionSummary.enabled
+            ? "—"
+            : subscriptionSummary.status === "ACTIVE"
+              ? `${subscriptionSummary.daysRemaining ?? 0}d left`
+              : subscriptionSummary.status === "EXPIRED"
+                ? "Expired"
+                : "None";
 
     const cards: MetricCard[] = [
         {
@@ -181,6 +214,17 @@ async function getVendorMetrics(userId: string) {
             href: "/analytics",
             cta: "Open analytics",
         },
+        {
+            title: "Subscription",
+            value: subscriptionValue,
+            description:
+                subscriptionSummary?.enabled === false
+                    ? "Subscription packages are currently disabled."
+                    : "Your active vendor subscription package.",
+            icon: "activity",
+            href: "/operations/subscription",
+            cta: "View subscription",
+        },
     ];
 
     const quickActions: QuickAction[] = [
@@ -188,6 +232,11 @@ async function getVendorMetrics(userId: string) {
             title: "Add New Product",
             description: "Create a new listing with images, pricing, and stock.",
             href: "/operations/products",
+        },
+        {
+            title: "My Subscription",
+            description: "View, renew, or upgrade your subscription package.",
+            href: "/operations/subscription",
         },
         {
             title: "Update Store Settings",
@@ -201,7 +250,23 @@ async function getVendorMetrics(userId: string) {
         },
     ];
 
-    return { cards, quickActions, emptyState: null as string | null };
+    const subscriptionNotice =
+        !subscriptionSummary || !subscriptionSummary.enabled || subscriptionSummary.status === "ACTIVE"
+            ? null
+            : ({
+                  level: subscriptionSummary.enforcementLevel === "BLOCK" ? "BLOCK" : "WARN",
+                  status: subscriptionSummary.status,
+                  message:
+                      subscriptionSummary.status === "EXPIRED"
+                          ? subscriptionSummary.enforcementLevel === "BLOCK"
+                              ? "Your vendor subscription has expired. New listings are blocked until you renew."
+                              : "Your vendor subscription has expired. Renew to stay in good standing."
+                          : "You don't have an active vendor subscription yet. Choose a package to start selling with full access.",
+                  cta: "View packages",
+                  href: "/packages",
+              } as const);
+
+    return { cards, quickActions, emptyState: null as string | null, subscriptionNotice };
 }
 
 export async function GET() {
@@ -227,6 +292,7 @@ export async function GET() {
                 cards: metrics.cards,
                 quickActions: metrics.quickActions,
                 emptyState: metrics.emptyState,
+                subscriptionNotice: metrics.subscriptionNotice,
                 updatedAt: new Date().toISOString(),
             },
         });

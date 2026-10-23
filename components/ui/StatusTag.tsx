@@ -25,6 +25,10 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
   COMPLETED: "green",
   CANCELLED: "red",
   REFUNDED: "magenta",
+  // Service order lifecycle (2026-09-29 services feature)
+  AWAITING_REQUIREMENTS: "orange",
+  IN_PROGRESS: "blue",
+  IN_REVIEW: "purple",
 };
 
 /**
@@ -90,6 +94,12 @@ const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   LOW_STOCK: "orange",
   NEW_PRODUCT: "blue",
   PROMOTION: "magenta",
+  SERVICE_REQUIREMENTS_REQUESTED: "orange",
+  SERVICE_REQUIREMENTS_SUBMITTED: "blue",
+  SERVICE_DELIVERED: "cyan",
+  SERVICE_RELEASED: "green",
+  SERVICE_REVISION_REQUESTED: "volcano",
+  SERVICE_REQUIREMENTS_TIMEOUT: "red",
 };
 
 /**

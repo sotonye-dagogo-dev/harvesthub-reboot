@@ -12,6 +12,9 @@ import {
     getPaymentProofFolder,
     getVerificationDocFolder,
     getBugReportFolder,
+    getServiceDocFolder,
+    getServiceVideoFolder,
+    getOrderAttachmentFolder,
 } from '@/lib/services/cloudinary';
 import { UserRole } from '@/lib/constants';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -33,6 +36,9 @@ const VALID_FOLDER_TYPES: FolderType[] = [
     'payment-proof',
     'verification-doc',
     'bug-report',
+    'service-doc',
+    'service-video',
+    'order-attachment',
 ];
 
 const BYTES_PER_MB = 1024 * 1024;
@@ -61,6 +67,12 @@ function resolveFolder(
             return userId ? getVerificationDocFolder(userId) : null;
         case 'bug-report':
             return userId ? getBugReportFolder(userId) : null;
+        case 'service-doc':
+            return vendorId ? getServiceDocFolder(vendorId) : null;
+        case 'service-video':
+            return vendorId ? getServiceVideoFolder(vendorId) : null;
+        case 'order-attachment':
+            return userId ? getOrderAttachmentFolder(userId) : null;
         default:
             return null;
     }
@@ -122,7 +134,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (
-            ['product', 'vendor-logo', 'vendor-banner'].includes(folderType) &&
+            ['product', 'vendor-logo', 'vendor-banner', 'service-doc', 'service-video'].includes(folderType) &&
             payload?.role !== UserRole.VENDOR &&
             payload?.role !== UserRole.ADMIN
         ) {

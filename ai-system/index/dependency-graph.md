@@ -1,8 +1,8 @@
-# Dependency Graph
+﻿# Dependency Graph
 
-> **last-updated-by:** update-ai-system.md (2026-08-20)
-> **last-verified-against-code:** 2026-08-20
-> **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation, Prisma-first runtime (11 migrations up to date), checkout proof enforcement, mutation bus, and CIS persistence.
+> **last-updated-by:** update-ai-system.md (2026-10-21, Session 105 cron scheduling + storage repair)
+> **last-verified-against-code:** 2026-10-21
+> **Overview:** Current high-level dependency map for MyHarvestHub after operations-route consolidation, Prisma-first runtime (11 migrations up to date), checkout proof enforcement, mutation bus, CIS persistence, the Session 104 payment-models/subscription-packages surface, and the Session 105 cron-scheduling + test-env storage-repair surface.
 
 ---
 
@@ -123,7 +123,7 @@ lib/services/notifications.ts
 # --- Universal Structured Content Editor ---
 
 lib/content/structuredSections.ts
-  (pure module — no imports from components or client-only code)
+  (pure module â€” no imports from components or client-only code)
 
 components/features/content/StructuredContentEditor.tsx
   -> lib/content/structuredSections.ts (types, createSection, labels)
@@ -160,6 +160,49 @@ app/api/cis/status + app/api/cis/webhook
    -> lib/config/cis.ts (env normalization + signature verify)
    -> lib/data/cisIdentity.ts (CisIdentity / CisWebhookEvent persistence)
    -> prisma/schema.prisma (CisIdentity, CisWebhookEvent)
+
+# --- Payment Models: Commissions + Subscription Packages (Session 104) ---
+
+lib/services/subscriptions.ts (never-throwing core: config, windows, sweep, stats, enforcement)
+   -> lib/db/prisma.ts (tx-shaped client passed in; CommerceLifecycleConfig, VendorSubscription, SubscriptionPackage reads)
+   -> prisma/generated/client (SubscriptionStatus, SubscriptionEnforcementLevel)
+
+app/api/subscriptions/route.ts (GET summary+history / POST purchase)
+   -> lib/services/subscriptions.ts (getPaymentModelsConfig, getLatestSubscription, resolveSubscriptionWindow, buildSubscriptionReference)
+   -> lib/services/payments.ts (verifyPayment â€” CARD verify-backed; GATEWAY_UNAVAILABLE precedent)
+   -> lib/services/notifications.ts (SUBSCRIPTION_ACTIVATED post-commit dispatch)
+   -> lib/db/prisma.ts (WALLET ACID debit + VendorSubscription create + PAYMENT ledger row in one $transaction)
+
+app/api/admin/subscription-packages/route.ts | [id]/route.ts
+   -> subscriptionPackageSchema (zod) + lib/db/prisma.ts (soft-delete guard: subscribers exist â†’ 409)
+
+app/api/admin/subscriptions/route.ts | [id]/route.ts
+   -> lib/services/subscriptions.ts (getSubscriptionAdminStats)
+   -> lib/db/prisma.ts (filterable list; CANCELLED/ACTIVE remediation)
+
+app/api/cron/subscriptions/route.ts  (GET|POST; vercel.json cron 0 3 * * *)
+   -> lib/services/subscriptions.ts (runSubscriptionSweep â€” atomic expiring/expired notify guards)
+   -> lib/services/notifications.ts (SUBSCRIPTION_EXPIRING_SOON | SUBSCRIPTION_EXPIRED, never-fail)
+   -> auth: Bearer CRON_SECRET | SUBSCRIPTION_CRON_SECRET (Vercel convention) + x-subscription-cron-secret header + ADMIN session
+
+app/api/orders/service-fulfillment/route.ts  (GET|POST; vercel.json cron 0 4 * * *)
+   -> lib/services/orderLifecycle.ts + lib/services/serviceOrders.ts (4 idempotent lifecycle sweeps)
+   -> lib/services/notifications.ts (REQUIREMENTS_TIMEOUT buyer notice, never-fail)
+   -> auth: Bearer CRON_SECRET | ORDER_FULFILLMENT_SECRET | ORDER_AUTO_CONFIRM_SECRET + x-fulfillment-secret/x-auto-confirm-secret headers + ADMIN session
+
+vercel.json
+   -> schedules the two cron GET invocations above (staggered daily 03:00/04:00 UTC; inert on non-Vercel hosts)
+
+app/api/products/route.ts (POST) + app/api/products/[id]/route.ts (PUT publish transition)
+   -> lib/services/subscriptions.ts (checkSubscriptionEnforcement â€” BLOCK-level gate, VENDOR only)
+
+lib/services/orderLifecycle.ts (releaseOrderSettlement)
+   -> prisma tx.commerceLifecycleConfig.findUnique (vendorCommissionEnabled OR serviceSettlementCommissionEnabled; commissionDefaultRate tier)
+   -> lib/constants (CATEGORY_COMMISSION_DEFAULTS tier fallback)
+
+app/packages/page.tsx | app/(operations)/operations/subscription(s)/page.tsx
+   -> app/api/subscription-packages + app/api/subscriptions (+ admin/subscription-packages, admin/subscriptions)
+   -> lib/utils/paystackInline.ts (buildPaystackReference "SUB-" + inline popup; localStorage pending-reference idempotency)
 ```
 
 ---

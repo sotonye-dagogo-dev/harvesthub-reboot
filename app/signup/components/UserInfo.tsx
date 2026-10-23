@@ -1,14 +1,13 @@
 "use client";
 
-import { Form, Input, Select, message } from "antd";
+import { Form, Input, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FormComponentProps } from "@/app/types";
-import { PhoneInput } from "@/components/ui";
+import { PhoneInput, OptionListSelect } from "@/components/ui";
 import { CrossPlatformAccountPrompt } from "@/components/ui/CrossPlatformAccountPrompt";
 import type { CrossPlatformAccountInfo } from "@/components/ui/CrossPlatformAccountPrompt";
 import { checkEmailCrossPlatform, type CrossPlatformCheckResult } from "@/lib/services/cisCheck";
-import { CAMPUS_LOCATIONS } from "@/lib/constants";
 
 interface UserInfoFields {
   firstName: string;
@@ -232,18 +231,11 @@ export default function UserInfo({ onNext, updateFormData, formData }: FormCompo
           }
           rules={[{ required: true, message: "Please select your campus location" }]}
         >
-          <Select
+          <OptionListSelect
+            listKey="campus"
             size="large"
             placeholder="Select your campus"
             className="rounded-ds-md"
-            options={CAMPUS_LOCATIONS.map((campus) => ({
-              value: campus.value,
-              label: campus.label,
-            }))}
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
           />
         </Form.Item>
 

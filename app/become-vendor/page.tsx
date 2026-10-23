@@ -135,6 +135,17 @@ export default function BecomeVendorPage() {
           message="Your vendor profile is created immediately with pending status and can be updated from Store Settings."
         />
 
+        <p className="mt-3 text-sm text-ds-text-secondary">
+          Selling access is covered by subscription packages —{" "}
+          <Link
+            href="/packages"
+            className="font-semibold text-ds-text-brand hover:text-ds-brand-primary-hover"
+          >
+            browse packages
+          </Link>{" "}
+          to subscribe before or after registering your store.
+        </p>
+
         <Form
           form={form}
           layout="vertical"
