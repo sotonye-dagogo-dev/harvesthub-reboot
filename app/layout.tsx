@@ -36,12 +36,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <body className="min-h-screen bg-ds-surface-base text-ds-text-primary">
         <Providers>
           <div className="flex min-h-screen flex-col">
-            <TopAdBanner />
-            <Header />
-            <main className="flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">
+            {/* Phones: header first, promo strip under it. Larger screens: strip above the header. */}
+            <TopAdBanner className="order-2 md:order-1" />
+            <Header className="order-1 md:order-2" />
+            <main className="order-3 flex-1 bg-ds-surface-sunken dark:bg-ds-surface-sunken">
               {children}
             </main>
-            <Footer />
+            <Footer className="order-4" />
           </div>
         </Providers>
       </body>

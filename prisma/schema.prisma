@@ -261,6 +261,12 @@ enum BannerPosition {
   SIDEBAR
 }
 
+/// How a banner is drawn: an uploaded artwork, or a branded design built from its text
+enum BannerDisplayStyle {
+  IMAGE
+  DESIGNED
+}
+
 enum BannerTheme {
   BUSINESS
   CHURCH
@@ -919,6 +925,12 @@ model Banner {
   clickCount      Int            @default(0)
   impressionCount Int            @default(0)
   conversionCount Int            @default(0)
+  /// Third-party advert (labelled "Sponsored", dismissible, kept out of the top strip by default)
+  isSponsored     Boolean            @default(false)
+  /// IMAGE = uploaded artwork; DESIGNED = MyHarvestHub-branded layout from title/subtitle/CTA
+  displayStyle    BannerDisplayStyle @default(IMAGE)
+  /// Sponsored TOP adverts only: paid premium placement in the very top strip
+  premiumTopPlacement Boolean        @default(false)
   createdBy       String
 
   createdAt DateTime @default(now())

@@ -29,6 +29,11 @@ const BANNER_UPDATE_IDEMPOTENCY_TTL_SECONDS = 60 * 5;
  * Converts displayOrder to number and start/end date strings to Date objects.
  */
 function normalizeBannerUpdateData(data: Record<string, unknown>) {
+    if (data.isSponsored !== undefined) data.isSponsored = data.isSponsored === true;
+    if (data.premiumTopPlacement !== undefined) data.premiumTopPlacement = data.premiumTopPlacement === true;
+    if (data.displayStyle !== undefined) data.displayStyle = data.displayStyle === 'DESIGNED' ? 'DESIGNED' : 'IMAGE';
+    if (data.isSponsored === false) data.premiumTopPlacement = false;
+    if (data.imageUrl === null) data.imageUrl = '';
     if (typeof data.title === 'string') {
         data.title = data.title.trim();
     }
@@ -74,7 +79,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 
         const body = await req.json();
         const allowedFields = ['title', 'subtitle', 'description', 'imageUrl', 'linkUrl', 'isActive',
-            'position', 'startDate', 'endDate', 'displayOrder', 'theme', 'accentColor', 'details', 'knowMoreLabel', 'actions', 'targetAudience'];
+            'position', 'startDate', 'endDate', 'displayOrder', 'theme', 'accentColor', 'details', 'knowMoreLabel', 'actions', 'targetAudience',
+            'isSponsored', 'displayStyle', 'premiumTopPlacement'];
         const data: Record<string, unknown> = {};
         for (const key of allowedFields) {
             if (body[key] !== undefined) data[key] = body[key];
