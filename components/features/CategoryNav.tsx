@@ -42,7 +42,7 @@ export function CategoryNav({
                 isActive(category.slug) && "bg-ds-brand-surface"
               )}
             >
-              <span className="flex h-14 w-14 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand transition-colors group-hover:bg-ds-brand-primary group-hover:text-white sm:h-16 sm:w-16">
+              <span className="flex h-14 w-14 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand transition-colors dark:bg-ds-palette-purple-800 dark:text-ds-palette-purple-100 group-hover:bg-ds-brand-primary group-hover:text-white sm:h-16 sm:w-16">
                 <Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
               </span>
               <span className="line-clamp-2 text-[11px] font-medium leading-tight text-ds-text-primary sm:text-xs">

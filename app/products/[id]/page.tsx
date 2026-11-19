@@ -377,7 +377,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <ul className="divide-y divide-ds-border-subtle">
               {deliveryInfo.map(({ icon: Icon, title, body }) => (
                 <li key={title} className="flex items-start gap-3 px-4 py-3">
-                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand">
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand dark:bg-ds-palette-purple-800 dark:text-ds-palette-purple-100">
                     <Icon className="h-4 w-4" />
                   </span>
                   <div>

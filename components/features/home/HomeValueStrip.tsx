@@ -20,7 +20,7 @@ export function HomeValueStrip() {
           href={href}
           className="flex flex-col items-center gap-1 rounded-ds-sm px-1 py-2 text-center transition-colors hover:bg-ds-brand-surface sm:flex-row sm:text-left"
         >
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand dark:bg-ds-palette-purple-800 dark:text-ds-palette-purple-100">
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
