@@ -119,5 +119,5 @@ export const passwordStrengthColors: Record<string, { hex: string; twClass: stri
     fair: { hex: '#f59e0b', twClass: 'bg-ds-status-warning' },
     good: { hex: '#3b82f6', twClass: 'bg-ds-status-info' },
     strong: { hex: '#22c55e', twClass: 'bg-ds-status-success' },
-    veryStrong: { hex: '#9333ea', twClass: 'bg-ds-brand-primary' },
+    veryStrong: { hex: '#b81d82', twClass: 'bg-ds-brand-primary' },
 };

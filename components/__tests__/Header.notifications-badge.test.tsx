@@ -38,7 +38,7 @@ describe("Header notification badges", () => {
   it("shows notifications link with unread count for authenticated users", () => {
     render(<Header />);
 
-    fireEvent.click(screen.getByRole("button", { name: /browse/i }));
+    fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
 
     expect(screen.getByRole("link", { name: /notifications/i })).toBeInTheDocument();
     expect(screen.getAllByText("6").length).toBeGreaterThan(0);

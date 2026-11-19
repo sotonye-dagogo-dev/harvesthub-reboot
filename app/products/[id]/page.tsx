@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Rating } from "@/components/ui";
@@ -222,124 +221,182 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const serviceFromPrice =
     serviceView && parsedServiceDetails ? minServicePackagePrice(parsedServiceDetails) : null;
 
+  const deliveryInfo = [
+    {
+      icon: Store,
+      title: "Church Pickup",
+      body: "Available at Sunday or Midweek services. Coordinate directly with your vendor after ordering.",
+    },
+    {
+      icon: Truck,
+      title: "Home Delivery",
+      body: "Delivery is available at checkout with a fee per vendor. Delivery timeframes are coordinated by the vendor.",
+    },
+    {
+      icon: RefreshCw,
+      title: "Returns & Cancellations",
+      body: "Contact the vendor directly to discuss returns. Orders can be cancelled before the vendor begins processing.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Buyer Protection",
+      body: "All transactions are recorded on MyHarvestHub. Report any issues to our platform support for assistance.",
+    },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid gap-8 lg:grid-cols-2">
-        <ProductImageGallery images={(product.images as string[]) ?? []} alt={productName} />
+    <div className="container mx-auto px-4 py-4 sm:py-6">
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="mb-3 text-xs text-ds-text-secondary">
+        <Link href="/" className="text-ds-text-secondary hover:text-ds-text-brand">Home</Link>
+        <span className="mx-1.5">/</span>
+        <Link href="/products" className="text-ds-text-secondary hover:text-ds-text-brand">Products</Link>
+        <span className="mx-1.5">/</span>
+        <span className="text-ds-text-primary">{productName}</span>
+      </nav>
 
-        <div>
-          <div className="mb-3 flex flex-wrap gap-2" aria-label="Product status badges">
-            {product.isFeatured ? <Badge variant="primary">Featured</Badge> : null}
-            {product.listingType === "SERVICE" ? <Badge variant="info">Service</Badge> : null}
-            {productCategory ? <Badge>{productCategory}</Badge> : null}
-          </div>
-          <div className="mb-3 flex flex-wrap gap-2" aria-label="Vendor verification status">
-            {!vendorVerified ? (
-              <Badge variant="warning">Unverified Vendor</Badge>
-            ) : (
-              <Badge variant="success">Verified Vendor</Badge>
-            )}
-          </div>
-          <h1 className="text-3xl font-bold text-ds-text-primary">{productName}</h1>
-          <p className="mt-2 text-sm text-ds-text-secondary">
-            Sold by{" "}
-            <Link href={vendorHref} className="text-ds-text-brand hover:underline">
-              {vendorName}
-            </Link>
-          </p>
-          <p className="mt-2 text-sm text-ds-text-secondary">
-            {whatsappGuardHref ? (
-              <Link
-                href={whatsappGuardHref}
-                className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Chat with vendor on WhatsApp
+      <div className="grid gap-4 lg:grid-cols-12">
+        {/* Main product card (Jumia layout: gallery + buy box) */}
+        <div className="rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm dark:bg-ds-surface-raised lg:col-span-9">
+          <div className="grid gap-6 md:grid-cols-2">
+            <ProductImageGallery images={(product.images as string[]) ?? []} alt={productName} />
+
+            <div>
+            <div className="mb-3 flex flex-wrap gap-2" aria-label="Product status badges">
+              {product.isFeatured ? <Badge variant="primary">Featured</Badge> : null}
+              {product.listingType === "SERVICE" ? <Badge variant="info">Service</Badge> : null}
+              {productCategory ? <Badge>{productCategory}</Badge> : null}
+            </div>
+            <div className="mb-3 flex flex-wrap gap-2" aria-label="Vendor verification status">
+              {!vendorVerified ? (
+                <Badge variant="warning">Unverified Vendor</Badge>
+              ) : (
+                <Badge variant="success">Verified Vendor</Badge>
+              )}
+            </div>
+            <h1 className="text-xl font-semibold text-ds-text-primary sm:text-2xl">{productName}</h1>
+            <p className="mt-2 text-sm text-ds-text-secondary">
+              Sold by{" "}
+              <Link href={vendorHref} className="text-ds-text-brand hover:underline">
+                {vendorName}
               </Link>
-            ) : (
-              "Vendor chat is currently unavailable for this listing."
-            )}
-          </p>
+            </p>
+            <p className="mt-2 text-sm text-ds-text-secondary">
+              {whatsappGuardHref ? (
+                <Link
+                  href={whatsappGuardHref}
+                  className="inline-flex items-center gap-1.5 text-ds-status-success-text hover:underline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat with vendor on WhatsApp
+                </Link>
+              ) : (
+                "Vendor chat is currently unavailable for this listing."
+              )}
+            </p>
 
-          <div className="mt-4 flex items-center gap-2">
-            <Rating value={averageRating} readonly />
-            <span className="text-sm text-ds-text-secondary">({reviews.length} reviews)</span>
-          </div>
+            <div className="mt-4 flex items-center gap-2">
+              <Rating value={averageRating} readonly />
+              <span className="text-sm text-ds-text-secondary">({reviews.length} reviews)</span>
+            </div>
 
-          <div className="mt-5">
-            {serviceView ? (
-              <span className="text-xl text-ds-text-secondary">From </span>
-            ) : null}
-            <span className="text-3xl font-bold text-ds-text-brand">
-              {formatCurrency(serviceView ? (serviceFromPrice ?? productPrice) : discountedPrice)}
-            </span>
-            {!serviceView && productDiscount > 0 ? (
-              <span className="ml-2 text-sm text-ds-text-tertiary line-through">
-                {formatCurrency(productPrice)}
+            <div className="mt-5">
+              {serviceView ? (
+                <span className="text-xl text-ds-text-secondary">From </span>
+              ) : null}
+              <span className="text-3xl font-bold text-ds-text-primary">
+                {formatCurrency(serviceView ? (serviceFromPrice ?? productPrice) : discountedPrice)}
               </span>
+              {!serviceView && productDiscount > 0 ? (
+                <>
+                  <span className="ml-2 text-sm text-ds-text-tertiary line-through">
+                    {formatCurrency(productPrice)}
+                  </span>
+                  <span className="ml-2 rounded-ds-xs bg-ds-palette-magenta-100 px-1.5 py-0.5 text-xs font-bold text-ds-palette-magenta-700 dark:bg-ds-palette-magenta-900 dark:text-ds-palette-magenta-200">
+                    -{productDiscount}%
+                  </span>
+                </>
+              ) : null}
+            </div>
+
+            {serviceView && parsedServiceDetails ? (
+              <ServiceDetailPanel
+                productId={product.id}
+                name={productName}
+                price={productPrice}
+                images={product.images ?? undefined}
+                vendorId={productVendorId}
+                vendorName={vendorName}
+                details={parsedServiceDetails}
+              />
+            ) : (
+              <ProductDetailActions
+                id={product.id}
+                name={productName}
+                price={productPrice}
+                discount={productDiscount}
+                images={product.images ?? undefined}
+                vendorId={productVendorId}
+                vendorName={vendorName}
+                stock={productStock}
+                category={product.category ?? null}
+                variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
+              />
+            )}
+
+            <div className="mt-4 max-h-[320px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin lg:max-h-[360px]">
+              <h3 className="mb-2 text-sm font-semibold text-ds-text-primary">Description</h3>
+              <MarkdownRenderer content={product.description || "No description available for this product yet."} />
+            </div>
+
+            {!serviceView ? (
+              <p className="mt-4 text-sm text-ds-text-secondary">
+                Stock: {productStock > 0 ? productStock : "Out of stock"}
+              </p>
             ) : null}
+            {!orderingAllowed && (
+              <p
+                role="alert"
+                aria-live="polite"
+                className="mt-3 rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-3 text-sm text-ds-status-warning-text"
+              >
+                This vendor is currently unverified. You can browse their catalog, but order
+                completion may require extra acknowledgment until verification is approved.
+              </p>
+            )}
+            </div>
           </div>
-
-          {serviceView && parsedServiceDetails ? (
-            <ServiceDetailPanel
-              productId={product.id}
-              name={productName}
-              price={productPrice}
-              images={product.images ?? undefined}
-              vendorId={productVendorId}
-              vendorName={vendorName}
-              details={parsedServiceDetails}
-            />
-          ) : (
-            <ProductDetailActions
-              id={product.id}
-              name={productName}
-              price={productPrice}
-              discount={productDiscount}
-              images={product.images ?? undefined}
-              vendorId={productVendorId}
-              vendorName={vendorName}
-              stock={productStock}
-              category={product.category ?? null}
-              variants={(product.variants as ProductApiResponse["product"] extends { variants?: infer V } ? V : never) ?? null}
-            />
-          )}
-
-          <div className="mt-4 max-h-[320px] overflow-y-auto overscroll-contain rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken/30 p-3 scrollbar-thin lg:max-h-[360px]">
-            <h3 className="mb-2 text-sm font-semibold text-ds-text-primary">Description</h3>
-            <MarkdownRenderer content={product.description || "No description available for this product yet."} />
-          </div>
-
-          {!serviceView ? (
-            <p className="mt-4 text-sm text-ds-text-secondary">
-              Stock: {productStock > 0 ? productStock : "Out of stock"}
-            </p>
-          ) : null}
-          {!orderingAllowed && (
-            <p
-              role="alert"
-              aria-live="polite"
-              className="mt-3 rounded-ds-md border border-ds-status-warning/30 bg-ds-status-warning-bg p-3 text-sm text-ds-status-warning-text"
-            >
-              This vendor is currently unverified. You can browse their catalog, but order
-              completion may require extra acknowledgment until verification is approved.
-            </p>
-          )}
         </div>
-      </div>
 
-      {/* Vendor Summary Card */}
-      {product.vendor && (
-        <section className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">About the Vendor</h2>
-          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-5 shadow-ds-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={vendorHref}
-                    className="text-lg font-bold text-ds-text-brand hover:underline"
-                  >
+        {/* Right column: delivery + seller information */}
+        <aside className="flex flex-col gap-4 lg:col-span-3">
+          <section className="rounded-ds-md bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-raised">
+            <h2 className="border-b border-ds-border-subtle px-4 py-3 text-sm font-semibold uppercase tracking-wide text-ds-text-primary">
+              Delivery &amp; Returns
+            </h2>
+            <ul className="divide-y divide-ds-border-subtle">
+              {deliveryInfo.map(({ icon: Icon, title, body }) => (
+                <li key={title} className="flex items-start gap-3 px-4 py-3">
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-ds-full bg-ds-brand-subtle text-ds-text-brand dark:bg-ds-palette-purple-800 dark:text-ds-palette-purple-100">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-ds-text-primary">{title}</p>
+                    <p className="mt-0.5 text-xs text-ds-text-secondary">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {product.vendor && (
+            <section className="rounded-ds-md bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-raised">
+              <h2 className="border-b border-ds-border-subtle px-4 py-3 text-sm font-semibold uppercase tracking-wide text-ds-text-primary">
+                Seller Information
+              </h2>
+              <div className="space-y-2 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={vendorHref} className="text-base font-bold text-ds-text-primary hover:text-ds-text-brand">
                     {vendorName}
                   </Link>
                   {vendorVerified ? (
@@ -349,109 +406,45 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   )}
                 </div>
                 {product.vendor.category && (
-                  <p className="mt-1 text-sm text-ds-text-secondary">
+                  <p className="text-xs text-ds-text-secondary">
                     {String(product.vendor.category).replace(/_/g, " ")}
                   </p>
                 )}
                 {product.vendor.campus && (
-                  <p className="mt-1 flex items-center gap-1 text-sm text-ds-text-secondary">
+                  <p className="flex items-center gap-1 text-xs text-ds-text-secondary">
                     <Store className="h-3.5 w-3.5" /> {product.vendor.campus}
                   </p>
                 )}
-                {product.vendor.storeDescription && (
-                  <p className="mt-2 text-sm text-ds-text-secondary line-clamp-3">
-                    {product.vendor.storeDescription}
+                {vendorAvgRating ? (
+                  <p className="flex items-center gap-1 text-sm font-semibold text-ds-text-primary">
+                    <Star className="h-4 w-4 fill-ds-rating-fill text-ds-rating-fill" />
+                    {Number(vendorAvgRating).toFixed(1)}
+                    <span className="text-xs font-normal text-ds-text-secondary">seller rating</span>
                   </p>
+                ) : null}
+                {product.vendor.storeDescription && (
+                  <p className="line-clamp-3 text-xs text-ds-text-secondary">{product.vendor.storeDescription}</p>
                 )}
               </div>
-              <div className="flex shrink-0 flex-col gap-3 sm:items-end">
-                {vendorAvgRating ? (
-                  <div className="text-right">
-                    <p className="text-xs text-ds-text-secondary">Vendor Rating</p>
-                    <p className="flex items-center justify-end gap-1 font-bold text-ds-text-primary">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {Number(vendorAvgRating).toFixed(1)}
-                    </p>
-                  </div>
-                ) : null}
+              <div className="border-t border-ds-border-subtle px-4 py-3">
                 <Link
                   href={vendorHref}
-                  className="inline-flex items-center rounded-ds-md border border-ds-brand-primary px-4 py-2 text-sm font-medium text-ds-text-brand transition-colors hover:bg-ds-brand-surface"
+                  className="flex w-full items-center justify-center rounded-ds-md border border-ds-brand-primary px-4 py-2 text-sm font-semibold text-ds-brand-primary transition-colors hover:bg-ds-brand-primary hover:text-white"
                 >
-                  View Store →
+                  Visit Store
                 </Link>
               </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Delivery & Policy */}
-      <section className="mt-8">
-        <h2 className="mb-4 text-lg font-semibold text-ds-text-primary">Delivery &amp; Pickup</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
-                <Store className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="font-semibold text-ds-text-primary">Church Pickup</p>
-                <p className="mt-1 text-sm text-ds-text-secondary">
-                  Available at Sunday or Midweek services. Coordinate directly with your vendor
-                  after ordering.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
-                <Truck className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="font-semibold text-ds-text-primary">Home Delivery</p>
-                <p className="mt-1 text-sm text-ds-text-secondary">
-                  Delivery is available at checkout with a fee per vendor. Delivery timeframes are
-                  coordinated by the vendor.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
-                <RefreshCw className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="font-semibold text-ds-text-primary">Returns &amp; Cancellations</p>
-                <p className="mt-1 text-sm text-ds-text-secondary">
-                  Contact the vendor directly to discuss returns. Orders can be cancelled before the
-                  vendor begins processing.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-ds-md border border-ds-border-base bg-ds-surface-base p-4">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ds-brand-subtle text-ds-text-brand">
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="font-semibold text-ds-text-primary">Buyer Protection</p>
-                <p className="mt-1 text-sm text-ds-text-secondary">
-                  All transactions are recorded on MyHarvestHub. Report any issues to our platform
-                  support for assistance.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </section>
+          )}
+        </aside>
+      </div>
 
       {relatedProducts.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-4 text-xl font-semibold text-ds-text-primary">Related Products</h2>
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <section className="mt-6 rounded-ds-md bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-raised">
+          <h2 className="border-b border-ds-border-subtle px-4 py-3 text-base font-semibold text-ds-text-primary">
+            You may also like
+          </h2>
+          <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 sm:p-3 lg:grid-cols-4 xl:grid-cols-6">
             {relatedProducts.map((related) => (
               <ProductCard
                 key={related.id}

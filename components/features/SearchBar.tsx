@@ -20,6 +20,8 @@ export interface SearchBarProps {
   recentSearchKey?: string;
   recentSearchLimit?: number;
   suggestionLimit?: number;
+  /** Render a prominent "Search" submit button (Jumia-style header search). */
+  showSubmitButton?: boolean;
 }
 
 const DEFAULT_RECENT_SEARCH_KEY = "myharvesthub.search.recent.v1";
@@ -66,6 +68,7 @@ export function SearchBar({
   recentSearchKey = DEFAULT_RECENT_SEARCH_KEY,
   recentSearchLimit = 6,
   suggestionLimit = 6,
+  showSubmitButton = false,
 }: SearchBarProps) {
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -293,8 +296,8 @@ export function SearchBar({
 
   return (
     <div ref={dropdownRef} className={cn("relative", className)}>
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="relative">
+      <form onSubmit={handleSubmit} className={cn("relative", showSubmitButton && "flex items-stretch gap-2")} role="search">
+        <div className={cn("relative", showSubmitButton && "min-w-0 flex-1")}>
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-ds-text-placeholder" />
           <input
             type="text"
@@ -307,7 +310,11 @@ export function SearchBar({
             }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base py-2 pl-10 pr-10 text-ds-text-primary placeholder-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary dark:placeholder-ds-text-placeholder dark:focus:border-ds-brand-accent"
+            aria-label={placeholder}
+            className={cn(
+              "w-full rounded-ds-md border border-ds-border-base bg-ds-surface-base py-2 pl-10 pr-10 text-ds-text-primary placeholder-ds-text-placeholder focus:border-ds-border-focus focus:outline-none focus:ring-2 focus:ring-ds-focus-ring/20 dark:bg-ds-surface-base dark:text-ds-text-primary dark:placeholder-ds-text-placeholder dark:focus:border-ds-brand-accent",
+              showSubmitButton && "h-10 border-ds-border-strong"
+            )}
           />
           {query && (
             <button
@@ -320,6 +327,14 @@ export function SearchBar({
             </button>
           )}
         </div>
+        {showSubmitButton ? (
+          <button
+            type="submit"
+            className="hidden h-10 flex-shrink-0 items-center rounded-ds-md bg-ds-brand-primary px-5 text-sm font-semibold uppercase tracking-wide text-white shadow-ds-sm transition-colors hover:bg-ds-brand-primary-hover sm:inline-flex"
+          >
+            Search
+          </button>
+        ) : null}
       </form>
 
       {/* Suggestions Dropdown */}

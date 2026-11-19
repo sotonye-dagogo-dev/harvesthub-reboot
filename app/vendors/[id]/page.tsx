@@ -121,7 +121,7 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
                   priority
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900" />
+                <div className="absolute inset-0 bg-gradient-to-br from-ds-palette-magenta-600 via-ds-palette-purple-800 to-ds-brand-deep" />
               )}
             </div>
 

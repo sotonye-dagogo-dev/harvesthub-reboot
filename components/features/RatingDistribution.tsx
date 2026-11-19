@@ -92,7 +92,7 @@ export function RatingDistribution({ reviews }: RatingDistributionProps) {
               <Progress
                 percent={percentage}
                 showInfo={false}
-                strokeColor="#9333ea"
+                strokeColor="#7a1f96"
                 trailColor="#e5e7eb"
                 className=""
               />

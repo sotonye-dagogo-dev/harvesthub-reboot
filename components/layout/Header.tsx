@@ -16,13 +16,15 @@ import {
   Store,
   Bell,
   Ticket,
+  HelpCircle,
+  MapPin,
 } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getDashboardRoute } from "@/lib/utils/dashboard";
 import { Button, ThemeToggle } from "@/components/ui";
 import { SearchBar } from "@/components/features";
+import { Logo } from "@/components/brand";
 import { useCart } from "@/lib/store/cartStore";
 import { cn } from "@/lib/utils";
 import { PRODUCT_DISCOVERY_CATEGORIES } from "@/lib/config/productDiscovery";
@@ -32,11 +34,15 @@ function renderCounterBadge(count: number) {
   if (count <= 0) return null;
 
   return (
-    <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-ds-full bg-ds-status-error px-1 text-[10px] font-semibold leading-none text-white">
+    <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-ds-full bg-ds-brand-primary px-1 text-[10px] font-semibold leading-none text-white">
       {count > 99 ? "99+" : count}
     </span>
   );
 }
+
+const activeLinkClass = "bg-ds-brand-subtle text-ds-text-brand dark:bg-ds-brand-subtle";
+const idleLinkClass =
+  "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised";
 
 export function Header() {
   const pathname = usePathname();
@@ -46,25 +52,26 @@ export function Header() {
   const { unreadCount } = useNotifications();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileCategories, setShowMobileCategories] = useState(false);
-  const [showDesktopNavMenu, setShowDesktopNavMenu] = useState(false);
-  const desktopNavMenuRef = useRef<HTMLDivElement>(null);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setShowDesktopNavMenu(false);
+    setShowAccountMenu(false);
+    setShowMobileMenu(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!showDesktopNavMenu) return;
+    if (!showAccountMenu) return;
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (!desktopNavMenuRef.current?.contains(event.target as Node)) {
-        setShowDesktopNavMenu(false);
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setShowAccountMenu(false);
       }
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setShowDesktopNavMenu(false);
+        setShowAccountMenu(false);
       }
     };
 
@@ -75,457 +82,341 @@ export function Header() {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [showDesktopNavMenu]);
+  }, [showAccountMenu]);
 
   const handleLogout = async () => {
     await logout();
     window.location.href = "/login";
   };
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(path);
+  // Exact match, or a real sub-path ("/orders/123"), so "/" never matches everything.
+  const isActive = (path: string) =>
+    pathname === path || (path !== "/" && pathname.startsWith(`${path}/`));
 
-  const getDashboardLink = () => {
-    return getDashboardRoute(user?.role);
-  };
+  const dashboardLink = getDashboardRoute(user?.role);
+  const ordersLink = resolveOrdersLink();
 
-  const getOrdersLink = () => resolveOrdersLink();
   const handleHeaderSearch = (value: string) => {
     const query = value.trim();
     if (!query) return;
     router.push(`/products?search=${encodeURIComponent(query)}`);
   };
 
-  const desktopMenuLinks = user
+  const accountLinks = user
     ? [
         ...(user.role === "ADMIN" || user.role === "VENDOR"
-          ? [
-              {
-                href: getDashboardLink(),
-                label: "Dashboard",
-                icon: LayoutDashboard,
-                active: isActive(getDashboardLink()),
-              },
-            ]
+          ? [{ href: dashboardLink, label: "Dashboard", icon: LayoutDashboard }]
           : []),
-        {
-          href: "/cart",
-          label: "Cart",
-          icon: ShoppingCart,
-          active: isActive("/cart"),
-          count: totalItems,
-        },
-        {
-          href: "/notifications",
-          label: "Notifications",
-          icon: Bell,
-          active: isActive("/notifications"),
-          count: unreadCount,
-        },
-        {
-          href: getOrdersLink(),
-          label: "Orders",
-          icon: Package,
-          active: isActive(getOrdersLink()),
-        },
-        {
-          href: "/favourites",
-          label: "Favourites",
-          icon: Heart,
-          active: isActive("/favourites"),
-        },
-        {
-          href: "/vouchers",
-          label: "Vouchers",
-          icon: Ticket,
-          active: isActive("/vouchers"),
-        },
-        {
-          href: "/wallet",
-          label: "Wallet",
-          icon: Wallet,
-          active: isActive("/wallet"),
-        },
+        { href: "/profile", label: "My Account", icon: User },
+        { href: ordersLink, label: "Orders", icon: Package },
+        { href: "/notifications", label: "Notifications", icon: Bell, count: unreadCount },
+        { href: "/favourites", label: "Favourites", icon: Heart },
+        { href: "/vouchers", label: "Vouchers", icon: Ticket },
+        { href: "/wallet", label: "Wallet", icon: Wallet },
         ...(user.role === "BUYER"
-          ? [
-              {
-                href: "/become-vendor",
-                label: "Register Store",
-                icon: Store,
-                active: isActive("/become-vendor"),
-              },
-            ]
+          ? [{ href: "/become-vendor", label: "Register Store", icon: Store }]
           : []),
       ]
-    : [];
+    : [
+        { href: "/profile", label: "My Account", icon: User },
+        { href: ordersLink, label: "Orders", icon: Package },
+        { href: "/favourites", label: "Favourites", icon: Heart },
+        { href: "/vouchers", label: "Vouchers", icon: Ticket },
+      ];
 
   return (
-    <header className="sticky top-0 z-ds-header w-full border-b border-ds-border-base bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-ds-border-subtle bg-ds-surface-base">
-              <Image
-                src="/myharvesthublogo.png"
-                alt="MyHarvestHub"
-                fill
-                className="object-cover rounded-full"
+    <header className="sticky top-0 z-ds-header w-full bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
+      {/* Top strip (Jumia-style promo bar) */}
+      <div className="hidden bg-ds-brand-deep text-ds-brand-on-deep md:block">
+        <div className="container mx-auto flex h-8 items-center justify-between gap-4 px-4 text-xs">
+          <Link
+            href="/become-vendor"
+            className="inline-flex items-center gap-1.5 font-medium text-ds-brand-on-deep hover:text-ds-palette-magenta-200"
+          >
+            <Store className="h-3.5 w-3.5" />
+            Sell on MyHarvestHub
+          </Link>
+          <span className="inline-flex items-center gap-1.5 text-ds-palette-purple-200">
+            <MapPin className="h-3.5 w-3.5" />
+            Pick up your orders at your Harvesters campus
+          </span>
+          <Link
+            href="/packages"
+            className="font-medium text-ds-brand-on-deep hover:text-ds-palette-magenta-200"
+          >
+            Vendor packages
+          </Link>
+        </div>
+      </div>
+
+      <div className="border-b border-ds-border-base">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 md:h-16 md:flex-nowrap md:py-0">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => {
+                const next = !showMobileMenu;
+                setShowMobileMenu(next);
+                if (!next) {
+                  setShowMobileCategories(false);
+                }
+              }}
+              aria-label="Toggle mobile menu"
+              aria-controls="mobile-menu"
+              aria-expanded={showMobileMenu}
+              data-expanded={showMobileMenu ? "true" : "false"}
+              className="order-1 -ml-2 rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+
+            {/* Logo */}
+            <Link href="/" className="order-1 flex flex-shrink-0 items-center" aria-label="MyHarvestHub home">
+              <Logo markSize={36} wordmarkClassName="text-lg sm:text-xl" />
+            </Link>
+
+            {/* Search — full width row on mobile, centre column on desktop */}
+            <div className="order-3 w-full min-w-0 md:order-2 md:mx-4 md:w-auto md:flex-1 md:max-w-2xl xl:max-w-3xl">
+              <SearchBar
+                onSearch={handleHeaderSearch}
+                placeholder="Search products and vendors"
+                expandDropdownOnDesktop
+                showRecentSearches
+                showSubmitButton
               />
             </div>
-            <span className="hidden sm:block text-xl font-bold text-ds-text-primary">
-              MyHarvestHub
-            </span>
-          </Link>
 
-          {/* Search Bar - Always visible */}
-          <div className="flex-1 min-w-0 max-w-xl md:max-w-2xl xl:max-w-3xl">
-            <SearchBar
-              onSearch={handleHeaderSearch}
-              placeholder="Search products and vendors"
-              expandDropdownOnDesktop
-              showRecentSearches
-            />
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden items-center gap-2 md:flex">
-            <ThemeToggle />
-
-            {user ? (
-              <>
-                <div className="relative" ref={desktopNavMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setShowDesktopNavMenu((prev) => !prev)}
-                    className="flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                  >
-                    <Menu className="h-4 w-4" />
-                    <span className="hidden lg:block">Browse</span>
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform",
-                        showDesktopNavMenu && "rotate-180"
-                      )}
-                    />
-                  </button>
-
-                  {showDesktopNavMenu && (
-                    <div className="absolute right-0 mt-2 max-h-[min(70vh,28rem)] min-w-60 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-1 shadow-ds-lg">
-                      {desktopMenuLinks.map((item) => {
-                        const Icon = item.icon;
-
-                        return (
-                          <Link
-                            key={`${item.href}-${item.label}`}
-                            href={item.href}
-                            className={cn(
-                              "flex items-center justify-between gap-3 rounded-ds-sm px-3 py-2 text-sm font-medium transition-colors",
-                              item.active
-                                ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                                : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                            )}
-                            onClick={() => setShowDesktopNavMenu(false)}
-                          >
-                            <span className="inline-flex items-center gap-2">
-                              <Icon className="h-4 w-4" />
-                              {item.label}
-                            </span>
-                            {item.count && item.count > 0 ? (
-                              <span className="rounded-ds-full bg-ds-status-error px-2 py-0.5 text-xs font-semibold text-white">
-                                {item.count > 99 ? "99+" : item.count}
-                              </span>
-                            ) : null}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Profile - All users */}
-                <Link
-                  href="/profile"
-                  className={cn(
-                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
-                    isActive("/profile")
-                      ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle "
-                      : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                  )}
-                >
-                  <User className="h-4 w-4" />
-                  <span className="hidden lg:block">{user.firstName}</span>
-                </Link>
-
-                {/* Logout */}
-                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1">
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden lg:block">Logout</span>
-                </Button>
-              </>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => {
-              const next = !showMobileMenu;
-              setShowMobileMenu(next);
-              if (!next) {
-                setShowMobileCategories(false);
-              }
-            }}
-            aria-label="Toggle mobile menu"
-            aria-controls="mobile-menu"
-            data-expanded={showMobileMenu ? "true" : "false"}
-            className="rounded-ds-md p-2 text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised md:hidden"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {showMobileMenu && (
-          <div id="mobile-menu" className="border-t border-ds-border-base py-4 md:hidden">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between px-4">
-                <span className="text-sm font-medium text-ds-text-primary">Theme</span>
-                <ThemeToggle className="p-2" />
+            {/* Actions */}
+            <div className="order-2 ml-auto flex items-center gap-1 md:order-3 md:ml-0">
+              <div className="hidden md:block">
+                <ThemeToggle />
               </div>
 
-              <div className="px-2">
+              {/* Account dropdown */}
+              <div className="relative hidden md:block" ref={accountMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setShowMobileCategories((prev) => !prev)}
-                  aria-controls="mobile-categories-menu"
-                  data-expanded={showMobileCategories ? "true" : "false"}
-                  className="flex w-full items-center justify-between rounded-ds-md px-3 py-3 text-left text-sm font-medium text-ds-text-primary transition-colors hover:bg-ds-surface-sunken"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Menu className="h-4 w-4" />
-                    Browse Categories
-                  </span>
-                  {showMobileCategories ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
+                  onClick={() => setShowAccountMenu((prev) => !prev)}
+                  aria-haspopup="menu"
+                  aria-expanded={showAccountMenu}
+                  aria-label="Account menu"
+                  className={cn(
+                    "flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                    showAccountMenu ? activeLinkClass : "text-ds-text-primary hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised"
                   )}
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden max-w-[8rem] truncate lg:block">
+                    {user ? `Hi, ${user.firstName}` : "Account"}
+                  </span>
+                  <ChevronDown
+                    className={cn("h-4 w-4 transition-transform", showAccountMenu && "rotate-180")}
+                  />
                 </button>
-                {showMobileCategories && (
+
+                {showAccountMenu && (
                   <div
-                    id="mobile-categories-menu"
-                    className="mt-1 max-h-72 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-1"
+                    role="menu"
+                    className="absolute right-0 mt-2 max-h-[min(75vh,32rem)] min-w-60 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-base p-2 shadow-ds-lg"
                   >
-                    {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
-                      <Link
-                        key={category.value}
-                        href={`/products?category=${category.slug}`}
-                        className="block rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-base hover:text-ds-text-primary"
-                        onClick={() => {
-                          setShowMobileMenu(false);
-                          setShowMobileCategories(false);
-                        }}
+                    {!user && (
+                      <div className="mb-2 border-b border-ds-border-base pb-3">
+                        <Link href="/login" onClick={() => setShowAccountMenu(false)}>
+                          <Button className="w-full">Sign In</Button>
+                        </Link>
+                        <p className="mt-2 text-center text-xs text-ds-text-secondary">
+                          New here?{" "}
+                          <Link
+                            href="/signup"
+                            className="font-medium"
+                            onClick={() => setShowAccountMenu(false)}
+                          >
+                            Create an account
+                          </Link>
+                        </p>
+                      </div>
+                    )}
+
+                    {accountLinks.map((item) => {
+                      const Icon = item.icon;
+                      const count = "count" in item ? item.count ?? 0 : 0;
+
+                      return (
+                        <Link
+                          key={`${item.href}-${item.label}`}
+                          href={item.href}
+                          role="menuitem"
+                          className={cn(
+                            "flex items-center justify-between gap-3 rounded-ds-sm px-3 py-2 text-sm font-medium transition-colors",
+                            isActive(item.href) ? activeLinkClass : idleLinkClass
+                          )}
+                          onClick={() => setShowAccountMenu(false)}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </span>
+                          {count > 0 ? (
+                            <span className="rounded-ds-full bg-ds-brand-primary px-2 py-0.5 text-xs font-semibold text-white">
+                              {count > 99 ? "99+" : count}
+                            </span>
+                          ) : null}
+                        </Link>
+                      );
+                    })}
+
+                    {user && (
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="mt-1 flex w-full items-center gap-2 border-t border-ds-border-base px-3 pb-1 pt-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg"
                       >
-                        {category.label}
-                      </Link>
-                    ))}
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
 
-              {user ? (
-                <>
-                  {/* Dashboard (Admin & Vendor only) */}
-                  {(user.role === "ADMIN" || user.role === "VENDOR") && (
-                    <Link
-                      href={getDashboardLink()}
-                      className={cn(
-                        "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                        isActive(getDashboardLink())
-                          ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                          : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                      )}
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <LayoutDashboard className="h-5 w-5" />
-                      Dashboard
-                    </Link>
-                  )}
+              {/* Help */}
+              <Link
+                href="/help"
+                className="hidden items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium text-ds-text-primary hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised lg:flex"
+              >
+                <HelpCircle className="h-5 w-5" />
+                Help
+              </Link>
 
-                  {/* Cart */}
-                  <Link
-                    href="/cart"
-                    className={cn(
-                      "relative flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/cart")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {renderCounterBadge(totalItems)}
-                    Cart {totalItems > 0 && `(${totalItems})`}
-                  </Link>
-
-                  {/* Notifications */}
-                  <Link
-                    href="/notifications"
-                    className={cn(
-                      "relative flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/notifications")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <Bell className="h-5 w-5" />
-                    {renderCounterBadge(unreadCount)}
-                    Notifications {unreadCount > 0 && `(${unreadCount > 99 ? "99+" : unreadCount})`}
-                  </Link>
-
-                  {/* Orders */}
-                  <Link
-                    href={getOrdersLink()}
-                    className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive(getOrdersLink())
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <Package className="h-5 w-5" />
-                    Orders
-                  </Link>
-
-                  {/* Favourites */}
-                  <Link
-                    href="/favourites"
-                    className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/favourites")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <Heart className="h-5 w-5" />
-                    Favourites
-                  </Link>
-
-                  {/* Vouchers */}
-                  <Link
-                    href="/vouchers"
-                    className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/vouchers")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <Ticket className="h-5 w-5" />
-                    Vouchers
-                  </Link>
-
-                  {/* Wallet */}
-                  <Link
-                    href="/wallet"
-                    className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/wallet")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <Wallet className="h-5 w-5" />
-                    Wallet
-                  </Link>
-
-                  {/* Profile */}
-                  <Link
-                    href="/profile"
-                    className={cn(
-                      "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                      isActive("/profile")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <User className="h-5 w-5" />
-                    Profile
-                  </Link>
-
-                  {user.role === "BUYER" && (
-                    <Link
-                      href="/become-vendor"
-                      className={cn(
-                        "flex items-center gap-3 rounded-ds-md px-4 py-3 text-sm font-medium transition-colors",
-                        isActive("/become-vendor")
-                          ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                          : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                      )}
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <Store className="h-5 w-5" />
-                      Register Store
-                    </Link>
-                  )}
-
-                  {/* Logout */}
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 rounded-ds-md px-4 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className={cn(
-                      "rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
-                      isActive("/login")
-                        ? "bg-ds-brand-subtle text-ds-palette-purple-700 dark:bg-ds-brand-subtle"
-                        : "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className={cn(
-                      "rounded-ds-md px-4 py-2 text-sm font-medium transition-colors",
-                      isActive("/signup")
-                        ? "bg-ds-brand-primary text-white"
-                        : "bg-ds-brand-primary text-white hover:bg-ds-brand-primary-hover"
-                    )}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
+              {/* Cart — always visible */}
+              <Link
+                href="/cart"
+                aria-label={totalItems > 0 ? `Cart, ${totalItems} items` : "Cart"}
+                className={cn(
+                  "relative flex items-center gap-2 rounded-ds-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive("/cart") ? activeLinkClass : "text-ds-text-primary hover:bg-ds-surface-sunken dark:hover:bg-ds-surface-raised"
+                )}
+              >
+                <span className="relative">
+                  <ShoppingCart className="h-6 w-6" />
+                  {renderCounterBadge(totalItems)}
+                </span>
+                <span className="hidden lg:block">Cart</span>
+              </Link>
             </div>
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {showMobileMenu && (
+        <div
+          id="mobile-menu"
+          className="max-h-[calc(100dvh-7rem)] overflow-y-auto border-b border-ds-border-base bg-ds-surface-base py-4 md:hidden"
+        >
+          <div className="container mx-auto flex flex-col gap-1 px-4">
+            {!user && (
+              <div className="mb-2 flex gap-2">
+                <Link href="/login" className="flex-1" onClick={() => setShowMobileMenu(false)}>
+                  <Button className="w-full">Sign In</Button>
+                </Link>
+                <Link href="/signup" className="flex-1" onClick={() => setShowMobileMenu(false)}>
+                  <Button variant="outline" className="w-full">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {user && (
+              <p className="px-3 pb-2 text-sm font-semibold text-ds-text-primary">Hi, {user.firstName}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowMobileCategories((prev) => !prev)}
+              aria-controls="mobile-categories-menu"
+              aria-expanded={showMobileCategories}
+              data-expanded={showMobileCategories ? "true" : "false"}
+              className="flex w-full items-center justify-between rounded-ds-md px-3 py-3 text-left text-sm font-medium text-ds-text-primary transition-colors hover:bg-ds-surface-sunken"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Menu className="h-4 w-4" />
+                Browse Categories
+              </span>
+              {showMobileCategories ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {showMobileCategories && (
+              <div
+                id="mobile-categories-menu"
+                className="mb-1 max-h-72 overflow-y-auto rounded-ds-md border border-ds-border-base bg-ds-surface-sunken p-1"
+              >
+                {PRODUCT_DISCOVERY_CATEGORIES.map((category) => (
+                  <Link
+                    key={category.value}
+                    href={`/products?category=${category.slug}`}
+                    className="block rounded-ds-sm px-3 py-2 text-sm text-ds-text-secondary transition-colors hover:bg-ds-surface-base hover:text-ds-text-primary"
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      setShowMobileCategories(false);
+                    }}
+                  >
+                    {category.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {(user ? accountLinks : []).map((item) => {
+              const Icon = item.icon;
+              const count = "count" in item ? item.count ?? 0 : 0;
+              return (
+                <Link
+                  key={`m-${item.href}-${item.label}`}
+                  href={item.href}
+                  className={cn(
+                    "relative flex items-center gap-3 rounded-ds-md px-3 py-3 text-sm font-medium transition-colors",
+                    isActive(item.href) ? activeLinkClass : idleLinkClass
+                  )}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                  {count > 0 ? ` (${count > 99 ? "99+" : count})` : null}
+                </Link>
+              );
+            })}
+
+            <Link
+              href="/help"
+              className={cn("flex items-center gap-3 rounded-ds-md px-3 py-3 text-sm font-medium", idleLinkClass)}
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <HelpCircle className="h-5 w-5" />
+              Help Center
+            </Link>
+
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-sm font-medium text-ds-text-primary">Theme</span>
+              <ThemeToggle className="p-2" />
+            </div>
+
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 rounded-ds-md px-3 py-3 text-left text-sm font-medium text-ds-status-error-text hover:bg-ds-status-error-bg dark:text-ds-status-error dark:hover:bg-ds-status-error-bg/20"
+              >
+                <LogOut className="h-5 w-5" />
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

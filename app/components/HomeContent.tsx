@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Megaphone, MapPin, Store, Zap } from "lucide-react";
 import Image from "next/image";
 import { BannerCarousel, ProductCard, CategoryNav, VendorCard } from "@/components/features";
 import { BannerActionModal } from "@/components/features/BannerCarousel";
@@ -15,6 +16,11 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { isVendorVerified } from "@/lib/utils/vendor";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { HomeBlogSection } from "@/components/features/blog/HomeBlogSection";
+import { CategorySidebar } from "@/components/features/home/CategorySidebar";
+import { FlashSaleCountdown } from "@/components/features/home/FlashSaleCountdown";
+import { HomeSection } from "@/components/features/home/HomeSection";
+import { HomeValueStrip } from "@/components/features/home/HomeValueStrip";
+import { HarvestersCross } from "@/components/brand";
 import {
   DEFAULT_PRODUCT_SORT,
   PRODUCT_DISCOVERY_CATEGORIES,
@@ -42,7 +48,7 @@ const HOME_RAIL_CONTAINER_CLASS =
 const HOME_RAIL_FOCUS_CLASS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-brand-primary focus-visible:ring-offset-2";
 const HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS =
-  "w-[calc((100%-0.75rem)/2)] min-w-[10.5rem] flex-shrink-0 md:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-2.25rem)/4)]";
+  "w-[calc((100%-0.75rem)/2)] min-w-[10.5rem] flex-shrink-0 sm:w-[calc((100%-1.5rem)/3)] md:w-[calc((100%-2.25rem)/4)] lg:w-[calc((100%-3.75rem)/6)]";
 const HOME_VENDOR_RAIL_ITEM_WIDTH_CLASS = "w-[18rem] flex-shrink-0 sm:w-[19rem] lg:w-[20rem]";
 
 function normalizeBannerText(value: string | null | undefined): string {
@@ -147,15 +153,9 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     activeSidebarBanners.forEach((banner) => trackBannerImpression(banner.id, "sidebar"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSidebarBanners.length]);
-  const sidebarGridColumnsClass =
-    activeSidebarBanners.length > 1
-      ? hasHeroBanners
-        ? "grid-cols-2"
-        : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-      : "grid-cols-1";
-  const sidebarImageSizes = hasHeroBanners
-    ? "(min-width: 1280px) 13vw, (min-width: 1024px) 15vw, (min-width: 640px) 20vw, 44vw"
-    : "(min-width: 1280px) 18vw, (min-width: 1024px) 20vw, (min-width: 640px) 28vw, 44vw";
+  // The ad rail always sits in the narrow right column beside the hero (Jumia layout).
+  const sidebarGridColumnsClass = activeSidebarBanners.length > 1 ? "grid-cols-2" : "grid-cols-1";
+  const sidebarImageSizes = "(min-width: 1280px) 11vw, (min-width: 1024px) 13vw, (min-width: 640px) 20vw, 44vw";
   const enableRailAutoScroll = activeSidebarBanners.length > 1;
   const mobileRailAutoScroll = useAutoScrollRail({
     enabled: enableRailAutoScroll,
@@ -175,19 +175,19 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
   // Get featured products
   const featuredProducts = liveProducts
     .filter((product) => product.isFeatured && product.isActive)
-    .slice(0, 8);
+    .slice(0, 12);
 
   // Get trending products (sort by reviews count)
   const trendingProducts = liveProducts
     .filter((product) => product.isActive)
     .sort((a, b) => getProductReviewMetrics(b).reviewCount - getProductReviewMetrics(a).reviewCount)
-    .slice(0, 8);
+    .slice(0, 12);
 
   // Get new arrivals (sort by createdAt)
   const newArrivals = liveProducts
     .filter((product) => product.isActive)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 8);
+    .slice(0, 12);
 
   // Get deals (products with discount >= 5%)
   const dealsProducts = liveProducts
@@ -261,350 +261,271 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
     []
   );
 
+  const renderProductRail = (
+    list: Product[],
+    ariaLabel: string,
+    options: { showStockBar?: boolean } = {}
+  ) => (
+    <div
+      className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
+      tabIndex={0}
+      aria-label={ariaLabel}
+    >
+      {list.map((product) => {
+        const vendor = liveVendors.find((v) => v.id === product.vendorId);
+        const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
+        const vendorStatus = vendor?.status || product.vendor?.status;
+        const { avgRating, reviewCount } = getProductReviewMetrics(product);
+
+        return (
+          <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
+            <ProductCard
+              id={product.id}
+              name={product.name}
+              price={product.price}
+              image={product.images[0] || "/placeholder-product.jpg"}
+              vendorName={vendorName}
+              vendorId={product.vendorId}
+              rating={avgRating}
+              reviewCount={reviewCount}
+              stock={product.stock}
+              discount={product.discount}
+              isFeatured={product.isFeatured}
+              isVendorVerified={vendorStatus === "APPROVED"}
+              isFavorite={isFavorite(product.id)}
+              onToggleFavorite={() => guardedToggleFavorite(product.id)}
+              onAddToCart={() => handleAddToCart(product)}
+              showStockBar={options.showStockBar}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-ds-surface-sunken dark:bg-ds-surface-sunken">
-      {/* Hero + Side Banner Deck — when no side banners, hero is centered and expands to occupy extra space while preserving aspect ratio */}
-      {(activeBanners.length > 0 || activeSidebarBanners.length > 0) && (
-        <section className="container mx-auto px-4 py-3">
-          <div className="grid min-w-0 gap-2 lg:grid-cols-12">
-            {activeBanners.length > 0 && (
-              <div
-                className={
-                  activeSidebarBanners.length === 0
-                    ? "min-w-0 lg:col-span-12 flex justify-center"
-                    : "min-w-0 lg:col-span-8"
-                }
-              >
-                <div className={activeSidebarBanners.length === 0 ? "w-full max-w-5xl" : "w-full"}>
-                  <BannerCarousel banners={activeBanners} autoPlay />
+      {/* Hero deck: category menu | hero slider | ad rail or promo tiles (Jumia layout) */}
+      <section className="container mx-auto px-4 py-3">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-12">
+          <aside className="hidden min-w-0 lg:col-span-2 lg:block">
+            <CategorySidebar categories={categories} />
+          </aside>
+
+          <div className="min-w-0 lg:col-span-7">
+            {hasHeroBanners ? (
+              <BannerCarousel banners={activeBanners} autoPlay />
+            ) : (
+              <div className="relative flex h-full min-h-[14rem] flex-col justify-center overflow-hidden rounded-ds-md bg-ds-brand-deep p-6 text-ds-brand-on-deep sm:p-10">
+                <HarvestersCross
+                  size={260}
+                  className="pointer-events-none absolute -right-10 -top-6 text-white opacity-10"
+                  title=""
+                />
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ds-palette-magenta-200">
+                  The Harvesters marketplace
+                </p>
+                <h1 className="mt-2 max-w-md text-2xl font-bold text-white sm:text-4xl">
+                  Shop. Serve. Grow.
+                </h1>
+                <p className="mt-2 max-w-md text-sm text-ds-palette-purple-200 sm:text-base">
+                  Buy from trusted vendors in the Harvesters family and pick up at your campus.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link
+                    href="/products"
+                    className="rounded-ds-md bg-ds-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-ds-md hover:bg-ds-brand-primary-hover hover:text-white"
+                  >
+                    Start shopping
+                  </Link>
+                  <Link
+                    href="/become-vendor"
+                    className="rounded-ds-md border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 hover:text-white"
+                  >
+                    Open your store
+                  </Link>
                 </div>
               </div>
             )}
-            {activeSidebarBanners.length > 0 && (
-              <aside
-                className={hasHeroBanners ? "min-w-0 lg:col-span-4" : "min-w-0 lg:col-span-12"}
-              >
-                <div
-                  data-testid="sidebar-banner-rail-mobile"
-                  ref={mobileRailAutoScroll.railRef}
-                  className={`flex ${AD_RAIL_CONFIG.mobile.gapClass} overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 lg:hidden`}
-                  {...mobileRailAutoScroll.bind}
-                >
-                  {activeSidebarBanners.map((banner) => {
-                    const cardContent = (
-                      <div
-                        data-testid="sidebar-banner-tile"
-                        className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
-                      >
-                        <div className="relative aspect-square w-full">
-                          <Image
-                            src={banner.imageUrl}
-                            alt={normalizeBannerText(banner.title) || "Sidebar banner"}
-                            fill
-                            className="object-cover"
-                            sizes={sidebarImageSizes}
-                          />
-                        </div>
-                      </div>
-                    );
-
-                    return (
-                      <button
-                        type="button"
-                        key={banner.id}
-                        onClick={() => {
-                          trackBannerClick(banner.id, "sidebar");
-                          setActiveSidebarModalBanner(mapBannerToModalItem(banner));
-                        }}
-                        className="transition-opacity hover:opacity-95"
-                        aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
-                      >
-                        {cardContent}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div
-                  data-testid="sidebar-banner-grid"
-                  ref={desktopRailAutoScroll.railRef}
-                  className={`hidden w-full min-w-0 ${AD_RAIL_CONFIG.desktop.gapClass} ${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1 lg:grid ${sidebarGridColumnsClass}`}
-                  {...desktopRailAutoScroll.bind}
-                >
-                  {activeSidebarBanners.map((banner) => {
-                    const cardContent = (
-                      <div
-                        data-testid="sidebar-banner-tile"
-                        className="relative w-full min-w-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
-                      >
-                        <div className="relative aspect-square w-full">
-                          <Image
-                            src={banner.imageUrl}
-                            alt={normalizeBannerText(banner.title) || "Sidebar banner"}
-                            fill
-                            className="object-cover"
-                            sizes={sidebarImageSizes}
-                          />
-                        </div>
-                      </div>
-                    );
-
-                    return (
-                      <button
-                        type="button"
-                        key={banner.id}
-                        onClick={() => {
-                          trackBannerClick(banner.id, "sidebar");
-                          setActiveSidebarModalBanner(mapBannerToModalItem(banner));
-                        }}
-                        className="block min-w-0 transition-opacity hover:opacity-95"
-                        aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
-                      >
-                        {cardContent}
-                      </button>
-                    );
-                  })}
-                </div>
-              </aside>
-            )}
           </div>
-        </section>
-      )}
 
-      <div className="container mx-auto px-4 py-3">
-        {/* Category Navigation */}
-        <section className="mb-3">
-          <h2 className="mb-3 text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-            Shop by Category
-          </h2>
-          <CategoryNav categories={categories} layout="horizontal" />
-        </section>
+          {activeSidebarBanners.length > 0 ? (
+            <aside className="min-w-0 lg:col-span-3">
+              <div
+                data-testid="sidebar-banner-rail-mobile"
+                ref={mobileRailAutoScroll.railRef}
+                className={`flex ${AD_RAIL_CONFIG.mobile.gapClass} overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 lg:hidden`}
+                {...mobileRailAutoScroll.bind}
+              >
+                {activeSidebarBanners.map((banner) => {
+                  const cardContent = (
+                    <div
+                      data-testid="sidebar-banner-tile"
+                      className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
+                    >
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={banner.imageUrl}
+                          alt={normalizeBannerText(banner.title) || "Sidebar banner"}
+                          fill
+                          className="object-cover"
+                          sizes={sidebarImageSizes}
+                        />
+                      </div>
+                    </div>
+                  );
 
-        {/*Fallback for when there are no products using EmptyState component*/}
+                  return (
+                    <button
+                      type="button"
+                      key={banner.id}
+                      onClick={() => {
+                        trackBannerClick(banner.id, "sidebar");
+                        setActiveSidebarModalBanner(mapBannerToModalItem(banner));
+                      }}
+                      className="transition-opacity hover:opacity-95"
+                      aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
+                    >
+                      {cardContent}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div
+                data-testid="sidebar-banner-grid"
+                ref={desktopRailAutoScroll.railRef}
+                className={`hidden w-full min-w-0 ${AD_RAIL_CONFIG.desktop.gapClass} ${AD_RAIL_CONFIG.desktop.maxHeightClass} overflow-y-auto overflow-x-hidden pr-1 lg:grid ${sidebarGridColumnsClass}`}
+                {...desktopRailAutoScroll.bind}
+              >
+                {activeSidebarBanners.map((banner) => {
+                  const cardContent = (
+                    <div
+                      data-testid="sidebar-banner-tile"
+                      className="relative w-full min-w-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
+                    >
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={banner.imageUrl}
+                          alt={normalizeBannerText(banner.title) || "Sidebar banner"}
+                          fill
+                          className="object-cover"
+                          sizes={sidebarImageSizes}
+                        />
+                      </div>
+                    </div>
+                  );
+
+                  return (
+                    <button
+                      type="button"
+                      key={banner.id}
+                      onClick={() => {
+                        trackBannerClick(banner.id, "sidebar");
+                        setActiveSidebarModalBanner(mapBannerToModalItem(banner));
+                      }}
+                      className="block min-w-0 transition-opacity hover:opacity-95"
+                      aria-label={`Know more about ${normalizeBannerText(banner.title) || "this sidebar ad"}`}
+                    >
+                      {cardContent}
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+          ) : (
+            <aside className="hidden min-w-0 flex-col gap-3 lg:col-span-3 lg:flex">
+              <Link
+                href="/become-vendor"
+                className="group flex flex-1 flex-col justify-between rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm transition-shadow hover:shadow-ds-md dark:bg-ds-surface-raised"
+              >
+                <Store className="h-7 w-7 text-ds-brand-primary" aria-hidden="true" />
+                <span>
+                  <span className="block text-sm font-semibold text-ds-text-primary">Sell on MyHarvestHub</span>
+                  <span className="block text-xs text-ds-text-secondary">Reach the whole Harvesters community</span>
+                </span>
+              </Link>
+              <Link
+                href="/help"
+                className="group flex flex-1 flex-col justify-between rounded-ds-md bg-ds-surface-base p-4 shadow-ds-sm transition-shadow hover:shadow-ds-md dark:bg-ds-surface-raised"
+              >
+                <MapPin className="h-7 w-7 text-ds-text-brand" aria-hidden="true" />
+                <span>
+                  <span className="block text-sm font-semibold text-ds-text-primary">Campus pickup</span>
+                  <span className="block text-xs text-ds-text-secondary">Collect your order after service</span>
+                </span>
+              </Link>
+              <Link
+                href="/advertise"
+                className="group flex flex-1 flex-col justify-between rounded-ds-md bg-ds-brand-primary p-4 text-white shadow-ds-sm transition-colors hover:bg-ds-brand-primary-hover hover:text-white"
+              >
+                <Megaphone className="h-7 w-7" aria-hidden="true" />
+                <span>
+                  <span className="block text-sm font-semibold">Advertise with us</span>
+                  <span className="block text-xs text-ds-palette-magenta-100">Put your brand in front of buyers</span>
+                </span>
+              </Link>
+            </aside>
+          )}
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 pb-3">
+        <HomeValueStrip />
+
         {liveProducts.length === 0 && <EmptyState title={"No Products Found"} />}
         {isRefreshing ? (
           <p className="mb-3 text-xs text-ds-text-tertiary">Refreshing marketplace data...</p>
         ) : null}
         {error ? <p className="mb-3 text-xs text-ds-status-error-text">{error}</p> : null}
 
-        {/* Featured Products */}
-        {featuredProducts.length > 0 && (
-          <section className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                Featured Products
-              </h2>
-              <Link
-                href="/products?featured=true"
-                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
-              >
-                View All →
-              </Link>
-            </div>
-            <div
-              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
-              tabIndex={0}
-              aria-label="Featured products horizontal list"
-            >
-              {featuredProducts.map((product) => {
-                const vendor = liveVendors.find((v) => v.id === product.vendorId);
-                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-                const vendorStatus = vendor?.status || product.vendor?.status;
-                const { avgRating, reviewCount } = getProductReviewMetrics(product);
-
-                return (
-                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Trending Products */}
-        {trendingProducts.length > 0 && (
-          <section className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                Trending Now
-              </h2>
-              <Link
-                href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
-                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
-              >
-                View All →
-              </Link>
-            </div>
-            <div
-              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
-              tabIndex={0}
-              aria-label="Trending products horizontal list"
-            >
-              {trendingProducts.map((product) => {
-                const vendor = liveVendors.find((v) => v.id === product.vendorId);
-                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-                const vendorStatus = vendor?.status || product.vendor?.status;
-                const { avgRating, reviewCount } = getProductReviewMetrics(product);
-
-                return (
-                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* New Arrivals */}
-        {newArrivals.length > 0 && (
-          <section className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                New Arrivals
-              </h2>
-              <Link
-                href={`/products?${buildProductDiscoveryQueryString({ sort: DEFAULT_PRODUCT_SORT })}`}
-                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
-              >
-                View All →
-              </Link>
-            </div>
-            <div
-              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
-              tabIndex={0}
-              aria-label="New arrivals horizontal list"
-            >
-              {newArrivals.map((product) => {
-                const vendor = liveVendors.find((v) => v.id === product.vendorId);
-                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-                const vendorStatus = vendor?.status || product.vendor?.status;
-                const { avgRating, reviewCount } = getProductReviewMetrics(product);
-
-                return (
-                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Hot Deals */}
+        {/* Flash Sales */}
         {dealsProducts.length > 0 && (
-          <section className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs">%</span> Hot Deals
-              </h2>
-              <Link
-                href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
-                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
-              >
-                View All →
-              </Link>
-            </div>
-            <div
-              className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
-              tabIndex={0}
-              aria-label="Hot deals horizontal list"
-            >
-              {dealsProducts.map((product) => {
-                const vendor = liveVendors.find((v) => v.id === product.vendorId);
-                const vendorName = vendor?.storeName || product.vendor?.storeName || "Vendor";
-                const vendorStatus = vendor?.status || product.vendor?.status;
-                const { avgRating, reviewCount } = getProductReviewMetrics(product);
-
-                return (
-                  <div key={product.id} className={HOME_PRODUCT_RAIL_ITEM_WIDTH_CLASS}>
-                    <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      image={product.images[0] || "/placeholder-product.jpg"}
-                      vendorName={vendorName}
-                      vendorId={product.vendorId}
-                      rating={avgRating}
-                      reviewCount={reviewCount}
-                      stock={product.stock}
-                      discount={product.discount}
-                      isFeatured={product.isFeatured}
-                      isVendorVerified={vendorStatus === "APPROVED"}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={() => guardedToggleFavorite(product.id)}
-                      onAddToCart={() => handleAddToCart(product)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          <HomeSection
+            tone="magenta"
+            title={
+              <>
+                <Zap className="h-5 w-5 fill-current" aria-hidden="true" /> Flash Sales
+              </>
+            }
+            headerExtra={<FlashSaleCountdown />}
+            href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
+          >
+            {renderProductRail(dealsProducts, "Hot deals horizontal list", { showStockBar: true })}
+          </HomeSection>
         )}
 
-        {/* Popular Vendors */}
+        {/* Shop by category */}
+        <HomeSection title="Shop by Category" href="/products">
+          <CategoryNav categories={categories} layout="grid" />
+        </HomeSection>
+
+        {featuredProducts.length > 0 && (
+          <HomeSection tone="deep" title="Top Picks for You" href="/products?featured=true">
+            {renderProductRail(featuredProducts, "Featured products horizontal list")}
+          </HomeSection>
+        )}
+
+        {trendingProducts.length > 0 && (
+          <HomeSection
+            title="Trending Now"
+            href={`/products?${buildProductDiscoveryQueryString({ sort: "trending" })}`}
+          >
+            {renderProductRail(trendingProducts, "Trending products horizontal list")}
+          </HomeSection>
+        )}
+
+        {newArrivals.length > 0 && (
+          <HomeSection
+            title="New Arrivals"
+            href={`/products?${buildProductDiscoveryQueryString({ sort: DEFAULT_PRODUCT_SORT })}`}
+          >
+            {renderProductRail(newArrivals, "New arrivals horizontal list")}
+          </HomeSection>
+        )}
+
         {popularVendors.length > 0 && (
-          <section className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-ds-text-primary sm:text-2xl dark:text-ds-text-primary">
-                Popular Vendors
-              </h2>
-              <Link
-                href="/vendors"
-                className="text-sm font-medium text-ds-text-brand hover:text-ds-palette-purple-700"
-              >
-                View All →
-              </Link>
-            </div>
+          <HomeSection tone="deep" title="Official Stores" href="/vendors">
             <div
               className={`${HOME_RAIL_CONTAINER_CLASS} ${HOME_RAIL_FOCUS_CLASS}`}
               tabIndex={0}
@@ -626,7 +547,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 </div>
               ))}
             </div>
-          </section>
+          </HomeSection>
         )}
       </div>
 
