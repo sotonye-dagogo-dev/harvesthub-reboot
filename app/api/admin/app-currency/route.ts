@@ -2,7 +2,7 @@
  * GET /api/admin/app-currency — in-app currency settings + circulation stats (ADMIN only)
  * PUT /api/admin/app-currency — update settings (ADMIN only). Partial updates.
  */
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -38,19 +38,23 @@ async function getStats() {
     };
 }
 
-async function requireAdmin() {
+type AdminCheck = { ok: true; userId: string } | { ok: false; response: NextResponse };
+
+async function requireAdmin(): Promise<AdminCheck> {
     const user = await getCurrentUser();
-    if (!user) return { error: apiError('Unauthorized', 401) } as const;
-    if (user.role !== UserRole.ADMIN) return { error: apiError('Forbidden', 403) } as const;
+    if (!user) return { ok: false, response: apiError('Unauthorized', 401) };
+    if (user.role !== UserRole.ADMIN) return { ok: false, response: apiError('Forbidden', 403) };
     const rl = await rateLimitByUser(user.userId);
-    if (!rl.success) return { error: getRateLimitResponse(rl) } as const;
-    return { user } as const;
+    if (!rl.success) {
+        return { ok: false, response: getRateLimitResponse(rl) };
+    }
+    return { ok: true, userId: user.userId };
 }
 
 export async function GET(_req: NextRequest) {
     return withApiHandler('GET /api/admin/app-currency', async () => {
         const auth = await requireAdmin();
-        if ('error' in auth) return auth.error;
+        if (!auth.ok) return auth.response;
 
         const [config, stats] = await Promise.all([getAppCurrencyConfig(prisma), getStats()]);
         return apiSuccess({ config, stats });
@@ -60,7 +64,7 @@ export async function GET(_req: NextRequest) {
 export async function PUT(req: NextRequest) {
     return withApiHandler('PUT /api/admin/app-currency', async () => {
         const auth = await requireAdmin();
-        if ('error' in auth) return auth.error;
+        if (!auth.ok) return auth.response;
 
         const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
         const patch: Partial<AppCurrencyConfig> = {};
@@ -95,7 +99,7 @@ export async function PUT(req: NextRequest) {
         if (max < min) return apiError('maxConversion must be greater than or equal to minConversion', 400);
 
         const config = await updateAppCurrencyConfig(prisma, patch);
-        console.info('[app-currency] settings updated', { by: auth.user.userId, patch });
+        console.info('[app-currency] settings updated', { by: auth.userId, patch });
         return apiSuccess({ config, stats: await getStats() });
     });
 }
