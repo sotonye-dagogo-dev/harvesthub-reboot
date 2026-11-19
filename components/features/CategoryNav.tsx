@@ -100,7 +100,7 @@ export function CategoryNav({
           "whitespace-nowrap rounded-ds-full px-4 py-2 text-sm font-medium transition-colors",
           !currentCategory
             ? "bg-ds-brand-primary text-white dark:bg-ds-brand-primary"
-            : "bg-ds-surface-sunken text-ds-text-secondary hover:bg-ds-surface-disabled  dark:text-ds-text-placeholder dark:hover:bg-ds-surface-overlay"
+            : "border border-ds-border-base bg-ds-surface-base text-ds-text-secondary hover:border-ds-border-brand hover:text-ds-text-brand dark:bg-ds-surface-raised dark:text-ds-text-placeholder"
         )}
       >
         All
@@ -113,7 +113,7 @@ export function CategoryNav({
             "whitespace-nowrap rounded-ds-full px-4 py-2 text-sm font-medium transition-colors",
             isActive(category.slug)
               ? "bg-ds-brand-primary text-white dark:bg-ds-brand-primary"
-              : "bg-ds-surface-sunken text-ds-text-secondary hover:bg-ds-surface-disabled  dark:text-ds-text-placeholder dark:hover:bg-ds-surface-overlay"
+              : "border border-ds-border-base bg-ds-surface-base text-ds-text-secondary hover:border-ds-border-brand hover:text-ds-text-brand dark:bg-ds-surface-raised dark:text-ds-text-placeholder"
           )}
         >
           {category.name}
