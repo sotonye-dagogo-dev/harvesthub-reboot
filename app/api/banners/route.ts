@@ -46,7 +46,12 @@ export async function GET(req: NextRequest) {
         const banners = await prismaAdapter.bannerDb.findAll(filters as any);
 
         const normalizedBanners = Array.isArray(banners)
-            ? banners.filter((banner: any) => typeof banner?.imageUrl === 'string' && banner.imageUrl.trim().length > 0)
+            ? banners.filter(
+                (banner: any) =>
+                    (typeof banner?.imageUrl === 'string' && banner.imageUrl.trim().length > 0) ||
+                    // Branded (DESIGNED) banners render from text, so they don't need an image
+                    (banner?.displayStyle === 'DESIGNED' && typeof banner?.title === 'string' && banner.title.trim().length > 0)
+            )
             : [];
 
         const result = { success: true, banners: normalizedBanners };
@@ -70,7 +75,10 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { title, subtitle, description, imageUrl, linkUrl, actions, position, theme,
             accentColor, details, knowMoreLabel, isActive, startDate, endDate,
-            displayOrder, targetAudience } = body;
+            displayOrder, targetAudience, isSponsored, displayStyle, premiumTopPlacement } = body;
+
+        const normalizedDisplayStyle = displayStyle === 'DESIGNED' ? 'DESIGNED' : 'IMAGE';
+        const normalizedIsSponsored = isSponsored === true;
 
         const normalizedPosition = typeof position === 'string' ? position.trim().toUpperCase() : '';
         const validPositions = ['TOP', 'HERO', 'SIDEBAR'];
@@ -81,8 +89,12 @@ export async function POST(req: NextRequest) {
         const normalizedTitle = typeof title === 'string' ? title.trim() : '';
         const isTopBanner = normalizedPosition === 'TOP';
 
-        if (!imageUrl) {
+        if (!imageUrl && normalizedDisplayStyle !== 'DESIGNED') {
             return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 });
+        }
+
+        if (normalizedDisplayStyle === 'DESIGNED' && !normalizedTitle) {
+            return NextResponse.json({ error: 'title is required for branded (designed) banners' }, { status: 400 });
         }
 
         if (!isTopBanner && !normalizedTitle) {
@@ -138,7 +150,7 @@ export async function POST(req: NextRequest) {
             title: normalizedTitle,
             subtitle,
             description,
-            imageUrl,
+            imageUrl: typeof imageUrl === 'string' ? imageUrl : '',
             linkUrl,
             actions,
             position: normalizedPosition,
@@ -151,6 +163,10 @@ export async function POST(req: NextRequest) {
             endDate: endDate ? new Date(endDate) : null,
             displayOrder: displayOrder ?? 0,
             targetAudience: targetAudience || [],
+            isSponsored: normalizedIsSponsored,
+            displayStyle: normalizedDisplayStyle,
+            // Premium top placement only makes sense for sponsored TOP adverts
+            premiumTopPlacement: normalizedIsSponsored && isTopBanner && premiumTopPlacement === true,
             createdBy: user.userId,
         } as any);
 

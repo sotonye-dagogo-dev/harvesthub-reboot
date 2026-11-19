@@ -44,7 +44,7 @@ const activeLinkClass = "bg-ds-brand-subtle text-ds-text-brand dark:bg-ds-brand-
 const idleLinkClass =
   "text-ds-text-secondary hover:bg-ds-surface-sunken dark:text-ds-text-placeholder dark:hover:bg-ds-surface-raised";
 
-export function Header() {
+export function Header({ className }: { className?: string } = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -125,7 +125,7 @@ export function Header() {
       ];
 
   return (
-    <header className="sticky top-0 z-ds-header w-full bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base">
+    <header className={cn("sticky top-0 z-ds-header w-full bg-ds-surface-base shadow-ds-sm dark:bg-ds-surface-base", className)}>
       {/* Top strip (Jumia-style promo bar) */}
       <div className="hidden bg-ds-brand-deep text-ds-brand-on-deep md:block">
         <div className="container mx-auto flex h-8 items-center justify-between gap-4 px-4 text-xs">

@@ -17,6 +17,7 @@ import { isAntdFormValidationError } from "@/lib/utils/formErrors";
 import type { BannerPlacementWarning } from "@/lib/utils/bannerPlacementValidation";
 import { generateRequestKey } from "@/lib/utils/requestKey";
 import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
+import { AdStrip } from "@/components/features/ads/AdStrip";
 
 const DEFAULT_DISPLAY_ORDER = 0;
 
@@ -37,6 +38,14 @@ export default function OperationsBannersPage() {
     | "SIDEBAR";
   const previewImageUrl = Form.useWatch("imageUrl", form) ?? "";
   const previewTitle = Form.useWatch("title", form) ?? "";
+  const watchedDisplayStyle = (Form.useWatch("displayStyle", form) ?? "IMAGE") as "IMAGE" | "DESIGNED";
+  const watchedIsSponsored = Boolean(Form.useWatch("isSponsored", form));
+  const isDesignedTop = previewPosition === "TOP" && watchedDisplayStyle === "DESIGNED";
+  const watchedSubtitle = Form.useWatch("subtitle", form) ?? "";
+  const watchedCta = Form.useWatch("knowMoreLabel", form) ?? "";
+  const watchedTheme = Form.useWatch("theme", form) ?? "BUSINESS";
+  const watchedLink = Form.useWatch("linkUrl", form) ?? "";
+  const watchedPremiumTop = Boolean(Form.useWatch("premiumTopPlacement", form));
 
   const reloadBanners = useCallback(async () => {
     const res = await fetch("/api/banners");
@@ -78,6 +87,10 @@ export default function OperationsBannersPage() {
       position: "HERO",
       isActive: true,
       displayOrder: DEFAULT_DISPLAY_ORDER,
+      isSponsored: false,
+      displayStyle: "IMAGE",
+      premiumTopPlacement: false,
+      theme: "BUSINESS",
     });
     setShowModal(true);
   };
@@ -93,6 +106,12 @@ export default function OperationsBannersPage() {
       position: banner.position,
       displayOrder: banner.displayOrder,
       isActive: banner.isActive,
+      subtitle: banner.subtitle ?? "",
+      knowMoreLabel: banner.knowMoreLabel ?? "",
+      theme: banner.theme ?? "BUSINESS",
+      isSponsored: banner.isSponsored === true,
+      displayStyle: banner.displayStyle === "DESIGNED" ? "DESIGNED" : "IMAGE",
+      premiumTopPlacement: banner.premiumTopPlacement === true,
       startDate: banner.startDate ? dayjs(banner.startDate) : null,
       endDate: banner.endDate ? dayjs(banner.endDate) : null,
     });
@@ -109,10 +128,18 @@ export default function OperationsBannersPage() {
         message.error("Display order must be a valid number.");
         return;
       }
+      const designed = values.position === "TOP" && values.displayStyle === "DESIGNED";
+      const sponsored = values.isSponsored === true;
       const payload = {
         title: values.position === "TOP" ? values.title || "" : values.title,
+        subtitle: values.subtitle || null,
+        knowMoreLabel: values.knowMoreLabel || null,
+        theme: values.theme || "BUSINESS",
+        isSponsored: sponsored,
+        displayStyle: designed ? "DESIGNED" : "IMAGE",
+        premiumTopPlacement: sponsored && values.position === "TOP" && values.premiumTopPlacement === true,
         description: values.description || null,
-        imageUrl: values.imageUrl,
+        imageUrl: values.imageUrl || "",
         linkUrl: values.linkUrl || null,
         position: values.position,
         displayOrder: normalizedDisplayOrder,
@@ -216,11 +243,16 @@ export default function OperationsBannersPage() {
       dataIndex: "imageUrl",
       key: "imageUrl",
       width: 120,
-      render: (imageUrl: string) => (
-        <div className="relative h-16 w-24 overflow-hidden rounded-ds-xs">
-          <Image src={imageUrl} alt="Banner" fill className="object-cover" />
-        </div>
-      ),
+      render: (imageUrl: string, record: Banner) =>
+        imageUrl ? (
+          <div className="relative h-16 w-24 overflow-hidden rounded-ds-xs">
+            <Image src={imageUrl} alt="Banner" fill className="object-cover" />
+          </div>
+        ) : (
+          <div className="flex h-16 w-24 items-center justify-center rounded-ds-xs bg-ds-brand-deep px-1 text-center text-[10px] font-semibold text-white">
+            {record.displayStyle === "DESIGNED" ? "Branded design" : "No image"}
+          </div>
+        ),
     },
     {
       title: "Title",
@@ -231,9 +263,16 @@ export default function OperationsBannersPage() {
       title: "Position",
       dataIndex: "position",
       key: "position",
-      render: (position: string) => (
-        <span className="rounded-ds-full bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
-          {position}
+      render: (position: string, record: Banner) => (
+        <span className="inline-flex flex-wrap gap-1">
+          <span className="rounded-ds-full bg-ds-brand-subtle px-2 py-1 text-xs text-ds-text-brand">
+            {position}
+          </span>
+          {record.isSponsored ? (
+            <span className="rounded-ds-full bg-ds-status-warning-bg px-2 py-1 text-xs text-ds-status-warning-text">
+              {record.premiumTopPlacement ? "Sponsored · Premium top" : "Sponsored"}
+            </span>
+          ) : null}
         </span>
       ),
     },
@@ -365,33 +404,84 @@ export default function OperationsBannersPage() {
             subtitle="Use the right ratio for hero, top, and sidebar to prevent letterboxing in production slots."
           />
 
-          <Form.Item
-            shouldUpdate={(prevValues, nextValues) => prevValues.position !== nextValues.position}
-            noStyle
-          >
-            {({ getFieldValue }) => {
-              const position = getFieldValue("position");
-              const hideTitle = position === "TOP";
+          <div className="grid gap-4 md:grid-cols-2">
+            <Form.Item
+              name="isSponsored"
+              label="Advert type"
+              tooltip="Sponsored adverts are labelled, can be closed by visitors, and are kept out of the top strip unless you give them premium top placement."
+            >
+              <Select
+                options={[
+                  { value: false, label: "MyHarvestHub / Harvesters campaign" },
+                  { value: true, label: "Sponsored (third-party advert)" },
+                ]}
+              />
+            </Form.Item>
 
-              if (hideTitle) {
-                return (
-                  <div className="mb-4 rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken p-3 text-sm text-ds-text-secondary">
-                    Top banners render image-only. Title text is hidden from the top strip.
-                  </div>
-                );
-              }
+            {previewPosition === "TOP" ? (
+              <Form.Item name="displayStyle" label="Design">
+                <Select
+                  options={[
+                    { value: "IMAGE", label: "Upload an image design" },
+                    { value: "DESIGNED", label: "Branded design (built from text)" },
+                  ]}
+                />
+              </Form.Item>
+            ) : null}
+          </div>
 
-              return (
-                <Form.Item
-                  name="title"
-                  label="Title"
-                  rules={[{ required: true, message: "Please enter banner title" }]}
-                >
-                  <Input placeholder="Enter banner title" />
-                </Form.Item>
-              );
-            }}
-          </Form.Item>
+          {previewPosition === "TOP" && watchedIsSponsored ? (
+            <div className="mb-4 flex items-start justify-between gap-4 rounded-ds-md border border-ds-border-base p-3">
+              <div className="text-sm">
+                <p className="font-medium text-ds-text-primary">Premium top placement</p>
+                <p className="text-xs text-ds-text-secondary">
+                  Off: shown in the &quot;Sponsored&quot; slot between home-page sections. On: shown in the strip at the
+                  very top of every page (charge more for this).
+                </p>
+              </div>
+              <Form.Item name="premiumTopPlacement" valuePropName="checked" noStyle>
+                <Switch />
+              </Form.Item>
+            </div>
+          ) : null}
+
+          {previewPosition === "TOP" && !isDesignedTop ? (
+            <div className="mb-4 rounded-ds-md border border-ds-border-subtle bg-ds-surface-sunken p-3 text-sm text-ds-text-secondary">
+              Image designs fill the strip edge to edge (about 64:10, at least 1280 × 200). Keep key text in the
+              middle — the strip is short on phones.
+            </div>
+          ) : null}
+
+          {previewPosition !== "TOP" || isDesignedTop ? (
+            <Form.Item
+              name="title"
+              label={isDesignedTop ? "Headline" : "Title"}
+              rules={[{ required: true, message: isDesignedTop ? "Please enter a headline" : "Please enter banner title" }]}
+            >
+              <Input placeholder={isDesignedTop ? "e.g. Mega Thanksgiving market — this Sunday" : "Enter banner title"} maxLength={90} />
+            </Form.Item>
+          ) : null}
+
+          {isDesignedTop ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              <Form.Item name="subtitle" label="Supporting line" className="md:col-span-2">
+                <Input placeholder="e.g. Shop from 50+ church vendors and pick up after service" maxLength={120} />
+              </Form.Item>
+              <Form.Item name="knowMoreLabel" label="Button text">
+                <Input placeholder="Learn more" maxLength={24} />
+              </Form.Item>
+              <Form.Item name="theme" label="Colour" className="md:col-span-3">
+                <Select
+                  options={[
+                    { value: "BUSINESS", label: "Harvesters Purple" },
+                    { value: "PROMOTION", label: "Harvesters Magenta" },
+                    { value: "EVENT", label: "Purple to violet" },
+                    { value: "CHURCH", label: "Purple to magenta (church events)" },
+                  ]}
+                />
+              </Form.Item>
+            </div>
+          ) : null}
 
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={3} placeholder="Enter banner description" />
@@ -399,8 +489,9 @@ export default function OperationsBannersPage() {
 
           <Form.Item
             name="imageUrl"
-            label="Image"
-            rules={[{ required: true, message: "Please upload an image" }]}
+            label={isDesignedTop ? "Background image (optional — not used by branded designs)" : "Image"}
+            rules={isDesignedTop ? [] : [{ required: true, message: "Please upload an image" }]}
+            hidden={isDesignedTop}
           >
             <div className="grid gap-3 md:grid-cols-[1fr_220px]">
               <ImageUpload
@@ -481,11 +572,43 @@ export default function OperationsBannersPage() {
             <Switch />
           </Form.Item>
 
-          <BannerPlacementPreview
-            position={previewPosition}
-            imageUrl={previewImageUrl}
-            title={previewTitle}
-          />
+          {previewPosition === "TOP" && (isDesignedTop ? previewTitle.trim() : previewImageUrl) ? (
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-medium text-ds-text-secondary">
+                Live preview —{" "}
+                {watchedIsSponsored && !watchedPremiumTop
+                  ? "shown in the Sponsored slot on the home page"
+                  : "shown in the top strip"}
+              </p>
+              <div className="pointer-events-none overflow-hidden rounded-ds-md border border-ds-border-base">
+                <AdStrip
+                  banner={
+                    {
+                      id: "preview",
+                      title: previewTitle,
+                      subtitle: watchedSubtitle,
+                      knowMoreLabel: watchedCta,
+                      theme: watchedTheme,
+                      imageUrl: previewImageUrl,
+                      linkUrl: watchedLink || "#",
+                      position: "TOP",
+                      isSponsored: watchedIsSponsored,
+                      displayStyle: isDesignedTop ? "DESIGNED" : "IMAGE",
+                    } as unknown as Banner
+                  }
+                  variant={watchedIsSponsored && !watchedPremiumTop ? "inline" : "top"}
+                  trackingSource="top"
+                  onDismiss={watchedIsSponsored ? () => undefined : undefined}
+                />
+              </div>
+            </div>
+          ) : (
+            <BannerPlacementPreview
+              position={previewPosition}
+              imageUrl={previewImageUrl}
+              title={previewTitle}
+            />
+          )}
         </Form>
       </Modal>
     </div>

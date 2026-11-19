@@ -21,6 +21,7 @@ import { FlashSaleCountdown } from "@/components/features/home/FlashSaleCountdow
 import { HomeSection } from "@/components/features/home/HomeSection";
 import { HomeValueStrip } from "@/components/features/home/HomeValueStrip";
 import { HarvestersCross } from "@/components/brand";
+import { SponsoredAdSlot } from "@/components/features/ads/SponsoredAdSlot";
 import {
   DEFAULT_PRODUCT_SORT,
   PRODUCT_DISCOVERY_CATEGORIES,
@@ -364,6 +365,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       className={`relative ${AD_RAIL_CONFIG.mobile.tileWidthClass} flex-shrink-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm`}
                     >
                       <div className="relative aspect-square w-full">
+                        {banner.isSponsored ? (
+                          <span className="absolute left-1 top-1 z-ds-raised rounded-ds-xs bg-black/60 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                            Sponsored
+                          </span>
+                        ) : null}
                         <Image
                           src={banner.imageUrl}
                           alt={normalizeBannerText(banner.title) || "Sidebar banner"}
@@ -405,6 +411,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                       className="relative w-full min-w-0 overflow-hidden rounded-ds-md border border-ds-border-base bg-ds-surface-base shadow-ds-sm"
                     >
                       <div className="relative aspect-square w-full">
+                        {banner.isSponsored ? (
+                          <span className="absolute left-1 top-1 z-ds-raised rounded-ds-xs bg-black/60 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                            Sponsored
+                          </span>
+                        ) : null}
                         <Image
                           src={banner.imageUrl}
                           alt={normalizeBannerText(banner.title) || "Sidebar banner"}
@@ -500,6 +511,9 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
           </HomeSection>
         )}
 
+        {/* Third-party wide adverts live in-feed, labelled and dismissible */}
+        <SponsoredAdSlot banners={liveBanners} slotIndex={0} />
+
         {featuredProducts.length > 0 && (
           <HomeSection tone="deep" title="Top Picks for You" href="/products?featured=true">
             {renderProductRail(featuredProducts, "Featured products horizontal list")}
@@ -514,6 +528,8 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             {renderProductRail(trendingProducts, "Trending products horizontal list")}
           </HomeSection>
         )}
+
+        <SponsoredAdSlot banners={liveBanners} slotIndex={1} />
 
         {newArrivals.length > 0 && (
           <HomeSection

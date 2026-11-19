@@ -5,8 +5,9 @@ import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin, ArrowUp } from "lucide-react";
 import { footerConfig } from "@/lib/config/siteContent";
 import { Logo } from "@/components/brand";
+import { cn } from "@/lib/utils";
 
-export function Footer() {
+export function Footer({ className }: { className?: string } = {}) {
   const currentYear = new Date().getFullYear();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -27,7 +28,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-ds-brand-deep text-ds-palette-purple-200">
+    <footer className={cn("bg-ds-brand-deep text-ds-palette-purple-200", className)}>
       {/* Brand band */}
       <div className="border-b border-white/10">
         <div className="container mx-auto flex flex-col items-start justify-between gap-4 px-4 py-6 md:flex-row md:items-center">

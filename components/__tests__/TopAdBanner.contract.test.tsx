@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TopAdBanner } from "@/components/features/TopAdBanner";
 
 vi.mock("@/lib/data/clientDataFetchers", () => ({
@@ -50,19 +50,55 @@ describe("TopAdBanner contract", () => {
     const { container } = render(<TopAdBanner />);
 
     await waitFor(() => {
-      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="top-ad-slot"]')).toBeInTheDocument();
     });
     expect(screen.queryByText("Spring Market Deals")).not.toBeInTheDocument();
   });
 
-  it("uses compact top-strip height contract after ratio rebalance", async () => {
+  it("uses the compact fixed-height top-strip contract", async () => {
     vi.mocked(getTopBannersClient).mockResolvedValue([buildBanner()]);
 
     render(<TopAdBanner />);
 
     const strip = await screen.findByTestId("top-ad-strip");
-    expect(strip.className).toContain("min-h-[28px]");
-    expect(strip.className).toContain("max-h-[44px]");
+    expect(strip.className).toContain("h-11");
+    expect(strip.className).toContain("sm:h-12");
+  });
+
+  it("keeps non-premium sponsored adverts out of the top strip", async () => {
+    vi.mocked(getTopBannersClient).mockResolvedValue([buildBanner({ isSponsored: true })]);
+
+    const { container } = render(<TopAdBanner />);
+
+    await waitFor(() => expect(getTopBannersClient).toHaveBeenCalled());
+    expect(container.querySelector('[data-testid="top-ad-slot"]')).not.toBeInTheDocument();
+  });
+
+  it("labels premium sponsored adverts and lets visitors hide them", async () => {
+    window.sessionStorage.clear();
+    vi.mocked(getTopBannersClient).mockResolvedValue([
+      buildBanner({ isSponsored: true, premiumTopPlacement: true }),
+    ]);
+
+    const { container } = render(<TopAdBanner />);
+
+    expect(await screen.findByText("Sponsored")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /hide this advert/i }));
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="top-ad-slot"]')).not.toBeInTheDocument();
+    });
+  });
+
+  it("renders branded (designed) campaigns from their text without an image", async () => {
+    vi.mocked(getTopBannersClient).mockResolvedValue([
+      buildBanner({ displayStyle: "DESIGNED", imageUrl: "", title: "Mega Thanksgiving market", knowMoreLabel: "Shop now" }),
+    ]);
+
+    render(<TopAdBanner />);
+
+    expect(await screen.findByText("Mega Thanksgiving market")).toBeInTheDocument();
+    expect(screen.getByText("Shop now")).toBeInTheDocument();
+    expect(screen.queryByText("Sponsored")).not.toBeInTheDocument();
   });
 
   it("renders top banner when title is empty/whitespace", async () => {
@@ -74,7 +110,7 @@ describe("TopAdBanner contract", () => {
     const { container } = render(<TopAdBanner />);
 
     await waitFor(() => {
-      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="top-ad-slot"]')).toBeInTheDocument();
     });
   });
 

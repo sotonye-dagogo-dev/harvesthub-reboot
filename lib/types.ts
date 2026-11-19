@@ -471,6 +471,12 @@ export interface Banner {
     clickCount: number;
     impressionCount: number;
     conversionCount: number;
+    /** Third-party advert: labelled "Sponsored", dismissible, kept out of the top strip unless premium */
+    isSponsored?: boolean;
+    /** IMAGE = uploaded artwork; DESIGNED = branded layout built from title/subtitle/CTA */
+    displayStyle?: 'IMAGE' | 'DESIGNED';
+    /** Sponsored TOP adverts only: paid placement in the very top strip */
+    premiumTopPlacement?: boolean;
     createdAt: Timestamp;
     updatedAt: Timestamp;
     createdBy: ID;

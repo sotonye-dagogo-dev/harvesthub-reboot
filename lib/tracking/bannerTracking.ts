@@ -19,7 +19,8 @@ export type BannerTrackingSource =
   | "hero"
   | "hero-modal"
   | "sidebar"
-  | "sidebar-modal";
+  | "sidebar-modal"
+  | "sponsored-inline";
 
 export type TrackedBannerEvent = "IMPRESSION" | "CLICK" | "CONVERSION";
 

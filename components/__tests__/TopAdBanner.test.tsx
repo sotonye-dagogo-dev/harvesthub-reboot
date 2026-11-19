@@ -50,7 +50,7 @@ describe("TopAdBanner", () => {
     const { container } = render(<TopAdBanner />);
 
     await waitFor(() => {
-      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="top-ad-slot"]')).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Special Offer!")).not.toBeInTheDocument();
@@ -62,7 +62,7 @@ describe("TopAdBanner", () => {
     const { container } = render(<TopAdBanner />);
 
     await waitFor(() => {
-      expect(container.querySelector('[role="banner"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="top-ad-slot"]')).toBeInTheDocument();
     });
   });
 
