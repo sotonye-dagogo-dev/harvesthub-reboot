@@ -88,7 +88,7 @@ export default function OfflineNotice() {
       {state === "offline-collapsed" && (
         <button
           onClick={() => setState("offline-expanded")}
-          className="flex items-center gap-2 rounded-full bg-purple-700 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all hover:bg-purple-600"
+          className="flex items-center gap-2 rounded-full bg-ds-brand-deep px-4 py-2 text-sm font-medium text-white shadow-lg transition-all hover:bg-ds-brand-primary"
         >
           <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
           You&apos;re offline
@@ -97,7 +97,7 @@ export default function OfflineNotice() {
 
       {/* Offline expanded card */}
       {state === "offline-expanded" && (
-        <div className="w-[min(360px,90vw)] rounded-xl bg-purple-800 p-4 text-white shadow-2xl">
+        <div className="w-[min(360px,90vw)] rounded-xl bg-ds-palette-purple-950 p-4 text-white shadow-2xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
@@ -105,20 +105,20 @@ export default function OfflineNotice() {
             </div>
             <button
               onClick={() => setDismissed(true)}
-              className="rounded-full p-1 text-purple-300 transition-colors hover:bg-purple-700 hover:text-white"
+              className="rounded-full p-1 text-ds-palette-purple-300 transition-colors hover:bg-ds-brand-deep hover:text-white"
               aria-label="Dismiss offline notice"
             >
               <X size={16} />
             </button>
           </div>
-          <p className="text-xs leading-relaxed text-purple-200">
+          <p className="text-xs leading-relaxed text-ds-palette-purple-200">
             The data being displayed was last updated
             {lastTimestamp ? ` at ${lastTimestamp}` : " recently"}.
             Some actions require an internet connection.
           </p>
           <button
             onClick={() => setState("offline-collapsed")}
-            className="mt-3 w-full rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-purple-500"
+            className="mt-3 w-full rounded-lg bg-ds-brand-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-ds-brand-primary-hover"
           >
             Collapse
           </button>

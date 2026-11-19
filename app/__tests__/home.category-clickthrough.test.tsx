@@ -32,9 +32,16 @@ describe("home category click-through contract", () => {
     render(<HomeContent banners={[]} products={[]} vendors={[]} />);
 
     const category = firstCategory!;
-    const categoryLink = screen.getByRole("link", {
-      name: new RegExp(category.label, "i"),
+    // Categories appear in both the desktop category menu and the category grid;
+    // every instance must emit the same canonical link.
+    const categoryLinks = screen.getAllByRole("link", {
+      name: new RegExp(`^${category.label}$`, "i"),
     });
+    expect(categoryLinks.length).toBeGreaterThan(0);
+    categoryLinks.forEach((link) =>
+      expect(link).toHaveAttribute("href", `/products?category=${category.slug}`)
+    );
+    const categoryLink = categoryLinks[0]!;
 
     expect(categoryLink).toHaveAttribute("href", `/products?category=${category.slug}`);
 

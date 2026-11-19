@@ -5,16 +5,23 @@ import { TopAdBanner } from "@/components/features";
 import { Providers } from "@/app/providers";
 
 export const metadata = {
-  title: "MyHarvestHub",
-  description: "Next-gen agriculture e-commerce for campus vendors and buyers",
+  title: "MyHarvestHub — Shop. Serve. Grow.",
+  description:
+    "MyHarvestHub is the Harvesters marketplace: shop from trusted vendors in the Harvesters community, with campus pickup and home delivery.",
+  manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/myharvesthublogo.png", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/myharvesthublogo.png", sizes: "180x180", type: "image/png" }],
-    shortcut: "/myharvesthublogo.png",
+    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/favicon.ico",
   },
+};
+
+export const viewport = {
+  themeColor: "#2B0B4E",
 };
 
 export const dynamic = "force-dynamic";

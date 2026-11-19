@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin, ArrowUp } from "lucide-react";
 import { footerConfig } from "@/lib/config/siteContent";
+import { Logo } from "@/components/brand";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -26,13 +27,29 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t border-ds-border-base bg-ds-surface-base dark:bg-ds-surface-base">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-ds-brand-deep text-ds-palette-purple-200">
+      {/* Brand band */}
+      <div className="border-b border-white/10">
+        <div className="container mx-auto flex flex-col items-start justify-between gap-4 px-4 py-6 md:flex-row md:items-center">
+          <Link href="/" aria-label="MyHarvestHub home" className="text-white hover:text-white">
+            <Logo variant="church" markSize={44} showTagline inverted />
+          </Link>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-semibold uppercase tracking-wide text-white">We accept</span>
+            {["Paystack", "Cards", "Bank transfer", "MyHarvestHub wallet"].map((method) => (
+              <span key={method} className="rounded-ds-sm border border-white/20 bg-white/5 px-2 py-1 text-white">
+                {method}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
           {/* About Section */}
           <div className="col-span-2 lg:col-span-1">
-            <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">About MyHarvestHub</h3>
-             <p className="text-sm text-ds-text-secondary">{footerConfig.about}</p>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white">About MyHarvestHub</h3>
+             <p className="text-sm text-ds-palette-purple-200">{footerConfig.about}</p>
             <div className="mt-4 flex gap-3">
               {footerConfig.socialLinks.map((social) => (
                 <a
@@ -40,7 +57,7 @@ export function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                  className="text-ds-palette-purple-200 hover:text-white"
                   aria-label={social.label}
                 >
                   {social.icon === "instagram" ? <Instagram className="h-5 w-5" /> : null}
@@ -61,13 +78,13 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">Quick Links</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white">Quick Links</h3>
             <ul className="space-y-2 text-sm">
                {footerConfig.quickLinks.map((link) => (
                  <li key={link.href}>
                    <Link
                      href={link.href}
-                     className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                     className="text-ds-palette-purple-200 hover:text-white"
                    >
                      {link.label}
                    </Link>
@@ -78,13 +95,13 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">Support</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white">Support</h3>
             <ul className="space-y-2 text-sm">
                {footerConfig.supportLinks.map((link) => (
                  <li key={link.href}>
                    <Link
                      href={link.href}
-                     className="text-ds-text-secondary hover:text-ds-text-brand dark:text-ds-text-placeholder dark:hover:text-ds-brand-accent"
+                     className="text-ds-palette-purple-200 hover:text-white"
                    >
                      {link.label}
                    </Link>
@@ -95,26 +112,26 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-ds-text-primary">Contact Us</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white">Contact Us</h3>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-2 text-ds-text-secondary">
+              <li className="flex items-start gap-2 text-ds-palette-purple-200">
                 <MapPin className="h-5 w-5 flex-shrink-0" />
                  <span>{footerConfig.contact.address}</span>
               </li>
-              <li className="flex items-center gap-2 text-ds-text-secondary">
+              <li className="flex items-center gap-2 text-ds-palette-purple-200">
                 <Phone className="h-5 w-5 flex-shrink-0" />
                 <a
                    href={`tel:${footerConfig.contact.phone.replace(/\s+/g, "")}`}
-                  className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
+                  className="text-ds-palette-purple-200 hover:text-white"
                 >
                    {footerConfig.contact.phone}
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-ds-text-secondary">
+              <li className="flex items-center gap-2 text-ds-palette-purple-200">
                 <Mail className="h-5 w-5 flex-shrink-0" />
                 <a
                    href={`mailto:${footerConfig.contact.email}`}
-                  className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
+                  className="text-ds-palette-purple-200 hover:text-white"
                 >
                    {footerConfig.contact.email}
                 </a>
@@ -124,17 +141,17 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t border-ds-border-base pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 text-sm text-ds-text-secondary md:flex-row">
+        <div className="mt-10 border-t border-white/10 pt-6">
+          <div className="flex flex-col items-center justify-between gap-4 text-sm text-ds-palette-purple-200 md:flex-row">
             <div className="flex flex-col items-center gap-1 md:items-start">
-              <p>&copy; {currentYear} MyHarvestHub. All rights reserved.</p>
-              <p className="text-xs text-ds-text-placeholder">
+              <p>&copy; {currentYear} MyHarvestHub — a Harvesters International Christian Centre initiative. All rights reserved.</p>
+              <p className="text-xs text-ds-palette-purple-300">
                 Built by{" "}
                 <a
                   href="https://sotonye-dagogo.is-a.dev"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ds-text-brand hover:underline"
+                  className="text-ds-palette-magenta-200 hover:text-white hover:underline"
                 >
                   S.D.
                 </a>
@@ -145,7 +162,7 @@ export function Footer() {
                  <Link
                    key={link.href}
                    href={link.href}
-                   className="hover:text-ds-text-brand dark:hover:text-ds-brand-accent"
+                   className="text-ds-palette-purple-200 hover:text-white"
                  >
                    {link.label}
                  </Link>

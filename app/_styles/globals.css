@@ -10,22 +10,35 @@
    ============================================================================ */
 @layer base {
   :root {
-    /* Purple palette */
-    --ds-palette-purple-50: 250 245 255;
-    --ds-palette-purple-100: 243 232 255;
-    --ds-palette-purple-200: 233 213 255;
-    --ds-palette-purple-300: 216 180 254;
-    --ds-palette-purple-400: 192 132 252;
-    --ds-palette-purple-500: 168 85 247;
-    --ds-palette-purple-600: 147 51 234;
-    --ds-palette-purple-700: 126 34 206;
-    --ds-palette-purple-800: 107 33 168;
-    --ds-palette-purple-900: 88 28 135;
-    --ds-palette-purple-950: 59 7 100;
+    /* Harvesters Purple palette (#2B0B4E = 950, Vibrant Violet #8E24AA = 500) */
+    --ds-palette-purple-50: 247 241 251;
+    --ds-palette-purple-100: 238 226 246;
+    --ds-palette-purple-200: 220 195 236;
+    --ds-palette-purple-300: 194 155 221;
+    --ds-palette-purple-400: 166 107 203;
+    --ds-palette-purple-500: 142 36 170;
+    --ds-palette-purple-600: 122 31 150;
+    --ds-palette-purple-700: 99 26 126;
+    --ds-palette-purple-800: 74 20 102;
+    --ds-palette-purple-900: 56 14 87;
+    --ds-palette-purple-950: 43 11 78;
 
     /* Neutral palette */
+    /* Harvesters Magenta palette (CTA accent, #B81D82 = 600) */
+    --ds-palette-magenta-50: 253 240 247;
+    --ds-palette-magenta-100: 250 220 236;
+    --ds-palette-magenta-200: 244 181 216;
+    --ds-palette-magenta-300: 234 132 189;
+    --ds-palette-magenta-400: 217 80 159;
+    --ds-palette-magenta-500: 199 49 143;
+    --ds-palette-magenta-600: 184 29 130;
+    --ds-palette-magenta-700: 154 23 108;
+    --ds-palette-magenta-800: 124 18 87;
+    --ds-palette-magenta-900: 94 14 66;
+    --ds-palette-magenta-950: 61 8 42;
+
     --ds-palette-white: 255 255 255;
-    --ds-palette-black: 6 6 6;
+    --ds-palette-black: 18 18 18; /* Harvesters Dark Charcoal #121212 */
     --ds-palette-neutral-50: 250 250 250;
     --ds-palette-neutral-100: 245 245 245;
     --ds-palette-neutral-200: 229 229 229;
@@ -87,14 +100,18 @@
 @layer base {
   :root {
     /* ---- Brand ---- */
-    --ds-brand-primary: var(--ds-palette-purple-600);
-    --ds-brand-primary-hover: var(--ds-palette-purple-700);
-    --ds-brand-primary-active: var(--ds-palette-purple-800);
-    --ds-brand-primary-light: var(--ds-palette-purple-500);
-    --ds-brand-accent: var(--ds-palette-purple-400);
+    /* Harvesters: Magenta drives CTAs; Purple #2B0B4E (brand-deep) drives headers/nav */
+    --ds-brand-primary: var(--ds-palette-magenta-600);
+    --ds-brand-primary-hover: var(--ds-palette-magenta-700);
+    --ds-brand-primary-active: var(--ds-palette-magenta-800);
+    --ds-brand-primary-light: var(--ds-palette-magenta-500);
+    --ds-brand-accent: var(--ds-palette-purple-500);
     --ds-brand-muted: var(--ds-palette-purple-300);
     --ds-brand-subtle: var(--ds-palette-purple-100);
     --ds-brand-surface: var(--ds-palette-purple-50);
+    --ds-brand-deep: var(--ds-palette-purple-950);
+    --ds-brand-deep-hover: var(--ds-palette-purple-900);
+    --ds-brand-on-deep: var(--ds-palette-white);
 
     /* ---- Text ---- */
     --ds-text-primary: var(--ds-palette-black);
@@ -103,8 +120,8 @@
     --ds-text-placeholder: var(--ds-palette-neutral-400);
     --ds-text-disabled: var(--ds-palette-neutral-400);
     --ds-text-inverse: var(--ds-palette-white);
-    --ds-text-brand: var(--ds-palette-purple-600);
-    --ds-text-link: var(--ds-palette-purple-600);
+    --ds-text-brand: var(--ds-palette-purple-500);
+    --ds-text-link: var(--ds-palette-purple-500);
     --ds-text-link-hover: var(--ds-palette-purple-700);
 
     /* ---- Surfaces ---- */
@@ -118,7 +135,7 @@
     --ds-border-base: var(--ds-palette-neutral-200);
     --ds-border-strong: var(--ds-palette-neutral-300);
     --ds-border-subtle: var(--ds-palette-neutral-100);
-    --ds-border-brand: var(--ds-palette-purple-600);
+    --ds-border-brand: var(--ds-palette-magenta-600);
     --ds-border-focus: var(--ds-palette-purple-500);
 
     /* ---- Status ---- */
@@ -205,14 +222,17 @@
 
   .dark {
     /* ---- Brand (dark) ---- */
-    --ds-brand-primary: var(--ds-palette-purple-500);
-    --ds-brand-primary-hover: var(--ds-palette-purple-400);
-    --ds-brand-primary-active: var(--ds-palette-purple-600);
-    --ds-brand-primary-light: var(--ds-palette-purple-400);
+    --ds-brand-primary: var(--ds-palette-magenta-500);
+    --ds-brand-primary-hover: var(--ds-palette-magenta-400);
+    --ds-brand-primary-active: var(--ds-palette-magenta-600);
+    --ds-brand-primary-light: var(--ds-palette-magenta-400);
     --ds-brand-accent: var(--ds-palette-purple-300);
     --ds-brand-muted: var(--ds-palette-purple-700);
     --ds-brand-subtle: var(--ds-palette-purple-900);
     --ds-brand-surface: var(--ds-palette-purple-950);
+    --ds-brand-deep: var(--ds-palette-purple-950);
+    --ds-brand-deep-hover: var(--ds-palette-purple-900);
+    --ds-brand-on-deep: var(--ds-palette-white);
 
     /* ---- Text (dark) ---- */
     --ds-text-primary: var(--ds-palette-neutral-200);
@@ -221,9 +241,9 @@
     --ds-text-placeholder: var(--ds-palette-neutral-400);
     --ds-text-disabled: var(--ds-palette-neutral-500);
     --ds-text-inverse: var(--ds-palette-black);
-    --ds-text-brand: var(--ds-palette-purple-400);
-    --ds-text-link: var(--ds-palette-purple-400);
-    --ds-text-link-hover: var(--ds-palette-purple-300);
+    --ds-text-brand: var(--ds-palette-purple-300);
+    --ds-text-link: var(--ds-palette-purple-300);
+    --ds-text-link-hover: var(--ds-palette-purple-200);
 
     /* ---- Surfaces (dark) ---- */
     --ds-surface-base: var(--ds-palette-neutral-950);
@@ -236,7 +256,7 @@
     --ds-border-base: var(--ds-palette-neutral-700);
     --ds-border-strong: var(--ds-palette-neutral-600);
     --ds-border-subtle: var(--ds-palette-neutral-800);
-    --ds-border-brand: var(--ds-palette-purple-500);
+    --ds-border-brand: var(--ds-palette-magenta-500);
     --ds-border-focus: var(--ds-palette-purple-400);
 
     /* ---- Status (dark) ---- */

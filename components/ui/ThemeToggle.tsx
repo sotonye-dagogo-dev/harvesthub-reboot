@@ -22,7 +22,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
         aria-pressed={isDark}
         title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         className={cn(
-          "inline-flex items-center gap-2 rounded-ds-md border border-ds-border-base bg-ds-surface-base px-4 py-2 text-sm font-medium text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500",
+          "inline-flex items-center gap-2 rounded-ds-md border border-ds-border-base bg-ds-surface-base px-4 py-2 text-sm font-medium text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ds-focus-ring",
           className
         )}
       >
@@ -48,7 +48,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
       aria-pressed={isDark}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={cn(
-        "rounded-ds-full p-3 sm:p-2 text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500",
+        "rounded-ds-full p-3 sm:p-2 text-ds-text-secondary transition-colors hover:bg-ds-surface-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ds-focus-ring",
         className
       )}
     >

@@ -18,17 +18,17 @@ import type { ThemeConfig } from 'antd';
  */
 export const DS_PALETTE = {
     purple: {
-        50: '#faf5ff',
-        100: '#f3e8ff',
-        200: '#e9d5ff',
-        300: '#d8b4fe',
-        400: '#c084fc',
-        500: '#a855f7',
-        600: '#9333ea',
-        700: '#7e22ce',
-        800: '#6b21a8',
-        900: '#581c87',
-        950: '#3b0764',
+        50: '#f7f1fb',
+        100: '#eee2f6',
+        200: '#dcc3ec',
+        300: '#c29bdd',
+        400: '#a66bcb',
+        500: '#8e24aa',
+        600: '#7a1f96',
+        700: '#631a7e',
+        800: '#4a1466',
+        900: '#380e57',
+        950: '#2b0b4e',
     },
     neutral: {
         50: '#fafafa',
@@ -48,8 +48,9 @@ export const DS_PALETTE = {
     amber: { 50: '#fffbeb', 100: '#fef3c7', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 800: '#92400e', 900: '#451a03' },
     blue: { 50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 800: '#1e40af', 900: '#0e1a3f' },
     yellow: { 400: '#facc15', 500: '#eab308' },
+    magenta: { 50: '#fdf0f7', 100: '#fadcec', 200: '#f4b5d8', 300: '#ea84bd', 400: '#d9509f', 500: '#c7318f', 600: '#b81d82', 700: '#9a176c', 800: '#7c1257', 900: '#5e0e42', 950: '#3d082a' },
     white: '#ffffff',
-    black: '#060606',
+    black: '#121212',
 } as const;
 
 /** Shadow tokens (keep in sync with --ds-shadow-*) */
@@ -67,11 +68,11 @@ const DS_RADIUS = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16 };
 export const antdTheme: ThemeConfig = {
     token: {
         // Brand
-        colorPrimary: DS_PALETTE.purple[600],
-        colorPrimaryHover: DS_PALETTE.purple[500],
-        colorPrimaryActive: DS_PALETTE.purple[700],
+        colorPrimary: DS_PALETTE.magenta[600],
+        colorPrimaryHover: DS_PALETTE.magenta[500],
+        colorPrimaryActive: DS_PALETTE.magenta[700],
         colorLink: DS_PALETTE.purple[500],
-        colorLinkHover: DS_PALETTE.purple[600],
+        colorLinkHover: DS_PALETTE.purple[700],
 
         // Status
         colorSuccess: DS_PALETTE.green[500],
@@ -108,7 +109,7 @@ export const antdTheme: ThemeConfig = {
 
     components: {
         Button: {
-            primaryShadow: `0 2px 0 rgba(147, 51, 234, 0.1)`,
+            primaryShadow: `0 2px 0 rgba(184, 29, 130, 0.1)`,
             controlHeight: 40,
             controlHeightLG: 48,
             controlHeightSM: 32,
@@ -140,7 +141,7 @@ export const antdTheme: ThemeConfig = {
             controlHeightSM: 32,
         },
         Pagination: {
-            itemActiveBg: DS_PALETTE.purple[600],
+            itemActiveBg: DS_PALETTE.magenta[600],
             itemLinkBg: DS_PALETTE.white,
         },
         Menu: {
