@@ -13,6 +13,14 @@ import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGatewa
 import { dispatchNotification } from '@/lib/services/notifications';
 import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
 import { getCommerceLifecycleConfig } from '@/lib/services/commerceConfig';
+import {
+    AppCurrencyError,
+    appCurrencyErrorResponse,
+    coinsRequiredFor,
+    debitCoinsForOrder,
+    getAppCurrencyConfig,
+    type AppCurrencyConfig,
+} from '@/lib/services/appCurrency';
 import { isServiceItem, initialOrderStatus } from '@/lib/services/serviceOrders';
 import {
     ListingType,
@@ -280,6 +288,21 @@ export async function POST(req: NextRequest) {
         const commerceConfig = await getCommerceLifecycleConfig(prisma);
         const paymentsEnabled = commerceConfig.paymentsEnabled;
         const requiresGatewayVerification = paymentsEnabled && paymentMethod === PaymentMethod.CARD;
+        const isAppCurrencyPayment = paymentMethod === PaymentMethod.APP_CURRENCY;
+        let appCurrencyConfig: AppCurrencyConfig | null = null;
+
+        if (isAppCurrencyPayment) {
+            appCurrencyConfig = await getAppCurrencyConfig(prisma);
+            if (!appCurrencyConfig.enabled) {
+                return NextResponse.json(appCurrencyErrorResponse(new AppCurrencyError('APP_CURRENCY_DISABLED'), appCurrencyConfig), { status: 400 });
+            }
+            if (!appCurrencyConfig.checkoutEnabled) {
+                return NextResponse.json(
+                    appCurrencyErrorResponse(new AppCurrencyError('APP_CURRENCY_CHECKOUT_DISABLED'), appCurrencyConfig),
+                    { status: 400 }
+                );
+            }
+        }
 
         let gatewayVerification: Awaited<ReturnType<typeof verifyPayment>> | null = null;
         let paymentAuditNote = 'Payment pending confirmation.';
@@ -325,6 +348,8 @@ export async function POST(req: NextRequest) {
             }
         } else if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
             paymentAuditNote = 'Wallet payment selected.';
+        } else if (isAppCurrencyPayment && appCurrencyConfig) {
+            paymentAuditNote = `Paid with ${appCurrencyConfig.name} at ₦${appCurrencyConfig.nairaPerUnit} per ${appCurrencyConfig.symbol}.`;
         } else if (paymentMethod === PaymentMethod.BANK_TRANSFER || paymentMethod === PaymentMethod.BANK_TRANSFER_PROOF) {
             const fallback = getPaymentFallbackTelemetry();
             if (normalizedProofOfTransfer) {
@@ -628,7 +653,7 @@ export async function POST(req: NextRequest) {
             ? gatewayVerification?.status === 'SUCCESS'
                 ? PaymentStatus.PAID
                 : PaymentStatus.PENDING
-            : paymentMethod === PaymentMethod.WALLET && paymentsEnabled
+            : (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) || isAppCurrencyPayment
                 ? PaymentStatus.PAID
                 : PaymentStatus.PENDING;
 
@@ -661,6 +686,22 @@ export async function POST(req: NextRequest) {
 
                 buyerWalletId = buyerWallet.id;
                 runningWalletBalance = buyerWallet.balance;
+            }
+
+            let coinWalletId: string | null = null;
+            if (isAppCurrencyPayment && appCurrencyConfig) {
+                const coinWallet = await tx.wallet.findUnique({
+                    where: { userId: user.userId },
+                    select: { id: true, coinBalance: true, isActive: true },
+                });
+                if (!coinWallet || !coinWallet.isActive) {
+                    throw new AppCurrencyError('WALLET_NOT_AVAILABLE');
+                }
+                // Early, friendly check; the per-order debit below is the guarded source of truth.
+                if (coinWallet.coinBalance < coinsRequiredFor(grandTotal, appCurrencyConfig)) {
+                    throw new AppCurrencyError('INSUFFICIENT_COIN_BALANCE');
+                }
+                coinWalletId = coinWallet.id;
             }
 
             const createdOrders: Array<
@@ -764,6 +805,18 @@ export async function POST(req: NextRequest) {
                     });
                 }
 
+                if (isAppCurrencyPayment && appCurrencyConfig && coinWalletId) {
+                    await debitCoinsForOrder(tx, {
+                        walletId: coinWalletId,
+                        nairaAmount: prepared.total,
+                        orderId: newOrder.id,
+                        orderNumber: newOrder.orderNumber,
+                        reference: `COIN-PAYMENT-ORDER-${newOrder.id}`,
+                        config: appCurrencyConfig,
+                        metadata: { orderGroupId, vendorId: prepared.vendorId },
+                    });
+                }
+
                 for (const item of prepared.orderItems) {
                     const productId = item.product.connect.id;
                     const prod = await tx.product.findUnique({
@@ -796,7 +849,7 @@ export async function POST(req: NextRequest) {
             return createdOrders;
         });
 
-        if (paymentMethod === PaymentMethod.WALLET && paymentsEnabled) {
+        if ((paymentMethod === PaymentMethod.WALLET && paymentsEnabled) || isAppCurrencyPayment) {
             await cacheInvalidate(userWalletKey(user.userId));
         }
 
@@ -938,6 +991,11 @@ export async function POST(req: NextRequest) {
             { status: paymentConfirmationPending ? 202 : 201 }
         );
     } catch (error) {
+        if (error instanceof AppCurrencyError) {
+            const status = error.code === 'WALLET_NOT_AVAILABLE' ? 409 : 400;
+            return NextResponse.json(appCurrencyErrorResponse(error), { status });
+        }
+
         if (error instanceof Error && error.message === 'WALLET_NOT_AVAILABLE') {
             return NextResponse.json(
                 { error: 'Buyer wallet is unavailable for wallet payment.', code: 'WALLET_NOT_AVAILABLE' },

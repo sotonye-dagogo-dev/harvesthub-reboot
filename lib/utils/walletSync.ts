@@ -7,7 +7,9 @@ export type WalletSyncReason =
   | "order-refund-request"
   | "order-refund-review"
   | "order-confirm-delivery"
-  | "order-grouped-action";
+  | "order-grouped-action"
+  | "app-currency-convert"
+  | "order-placed";
 
 export type WalletSyncDetail = {
   reason: WalletSyncReason;

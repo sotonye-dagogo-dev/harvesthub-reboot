@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, Button } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import { emitDataMutated } from "@/lib/data-runtime/mutationBus";
+import { AppCurrencySettingsCard } from "@/components/features/wallet/AppCurrencySettingsCard";
 import {
   PLATFORM_DEFAULTS,
   COMMISSION_RATES,
@@ -1115,6 +1116,8 @@ export default function OperationsSettingsPage() {
           </div>
         </div>
       </Card>
+
+      <AppCurrencySettingsCard />
     </div>
   );
 }

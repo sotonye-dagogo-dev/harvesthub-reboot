@@ -23,6 +23,7 @@ import {
   Ticket,
   Globe,
   MapPin,
+  Coins,
 } from "lucide-react";
 import Image from "next/image";
 import { PLATFORM_DEFAULTS } from "@/lib/constants";
@@ -41,7 +42,14 @@ import { emitWalletSync } from "@/lib/utils/walletSync";
 export const dynamic = "force-dynamic";
 
 type DeliveryMethod = "PICKUP" | "DELIVERY";
-type PaymentMethod = "WALLET" | "CARD" | "BANK_TRANSFER_PROOF";
+type PaymentMethod = "WALLET" | "CARD" | "BANK_TRANSFER_PROOF" | "APP_CURRENCY";
+type CheckoutCoinSummary = {
+  enabled: boolean;
+  name: string;
+  symbol: string;
+  nairaPerUnit: number;
+  coinBalance: number;
+};
 type PickupService = "SUNDAY_FIRST" | "SUNDAY_SECOND" | "MIDWEEK" | "SPECIAL_EVENT";
 type CardPaymentState = "IDLE" | "INITIALIZED" | "VERIFYING" | "VERIFIED" | "PENDING_CONFIRMATION";
 type CheckoutWalletSummary = {
@@ -243,6 +251,27 @@ export default function CheckoutPage() {
     return { availableBalance };
   }, []);
 
+  const loadCoinSummary = useCallback(async (): Promise<CheckoutCoinSummary | null> => {
+    const res = await fetch("/api/wallet/currency?limit=1", { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    const config = data?.config;
+    if (!config || typeof config !== "object") return null;
+    return {
+      enabled: config.enabled === true && config.checkoutEnabled !== false,
+      name: typeof config.name === "string" ? config.name : "Harvest Coins",
+      symbol: typeof config.symbol === "string" ? config.symbol : "HC",
+      nairaPerUnit: Number(config.nairaPerUnit) > 0 ? Number(config.nairaPerUnit) : 1,
+      coinBalance: Number(data.coinBalance) || 0,
+    };
+  }, []);
+
+  const { data: coinSummary } = useSmartResource(loadCoinSummary, {
+    key: "checkout-coin-summary",
+    refreshIntervalMs: 60_000,
+    staleTimeMs: 15_000,
+  });
+
   const { data: walletSummary } = useSmartResource(loadWalletSummary, {
     key: `checkout-wallet-summary:${user?.id ?? "guest"}`,
     enabled: Boolean(user?.id),
@@ -264,6 +293,14 @@ export default function CheckoutPage() {
   const availableWalletBalance = walletSummary?.availableBalance ?? null;
   const hasSufficientWalletBalance =
     typeof availableWalletBalance === "number" ? availableWalletBalance >= total : true;
+  const coinsEnabled = Boolean(coinSummary?.enabled);
+  // Round UP so the platform is never short (matches the server's coinsRequiredFor).
+  const coinsNeeded = coinSummary
+    ? Math.ceil((Math.max(0, total) / coinSummary.nairaPerUnit) * 100 - 1e-9) / 100
+    : 0;
+  const hasSufficientCoins = coinSummary ? coinSummary.coinBalance >= coinsNeeded : false;
+  const formatCoinAmount = (value: number) =>
+    `${coinSummary?.symbol ?? "HC"} ${value.toLocaleString("en-NG", { maximumFractionDigits: 2 })}`;
   const walletBalanceLabel =
     typeof availableWalletBalance === "number"
       ? `Balance: ${formatCurrency(availableWalletBalance)}`
@@ -293,10 +330,17 @@ export default function CheckoutPage() {
   }, [hasSufficientWalletBalance, bankTransferAvailable, paymentMethod]);
 
   useEffect(() => {
-    if (!paymentsEnabled) {
+    // Coins are an internal currency, so they stay usable when online payments are switched off.
+    if (!paymentsEnabled && paymentMethod !== "APP_CURRENCY") {
       setPaymentMethod("BANK_TRANSFER_PROOF");
     }
-  }, [paymentsEnabled]);
+  }, [paymentsEnabled, paymentMethod]);
+
+  useEffect(() => {
+    if (paymentMethod === "APP_CURRENCY" && coinSummary && !coinsEnabled) {
+      setPaymentMethod(paymentsEnabled ? "WALLET" : "BANK_TRANSFER_PROOF");
+    }
+  }, [paymentMethod, coinSummary, coinsEnabled, paymentsEnabled]);
 
   useEffect(() => {
     if (!Array.isArray(runtimeProducts) || runtimeProducts.length === 0 || items.length === 0) {
@@ -464,6 +508,11 @@ export default function CheckoutPage() {
 
     if (paymentMethod === "WALLET" && !hasSufficientWalletBalance) {
       message.error("Insufficient wallet balance for this order total.");
+      return;
+    }
+
+    if (paymentMethod === "APP_CURRENCY" && !hasSufficientCoins) {
+      message.error(`You don't have enough ${coinSummary?.name ?? "coins"} for this order.`);
       return;
     }
 
@@ -664,8 +713,8 @@ export default function CheckoutPage() {
       setCardPaymentReference(null);
       setCardPaymentState("IDLE");
       clearCart();
-      if (paymentMethod === "WALLET") {
-        emitWalletSync("order-grouped-action");
+      if (paymentMethod === "WALLET" || paymentMethod === "APP_CURRENCY") {
+        emitWalletSync("order-placed");
       }
       router.push("/orders");
     } catch (error) {
@@ -1007,6 +1056,32 @@ export default function CheckoutPage() {
                   ) : null}
                 </div>
               </Radio>
+              {coinsEnabled && coinSummary ? (
+                <Radio
+                  value="APP_CURRENCY"
+                  disabled={!hasSufficientCoins}
+                  className="flex w-full items-center gap-3 rounded-ds-md border border-ds-border-base p-4"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 font-medium text-ds-text-primary">
+                      <Coins className="h-5 w-5 text-ds-brand-primary" />
+                      Pay with {coinSummary.name}
+                    </div>
+                    <div className="mt-1 text-sm text-ds-text-secondary">
+                      Balance: {formatCoinAmount(coinSummary.coinBalance)} · This order:{" "}
+                      {formatCoinAmount(coinsNeeded)}
+                    </div>
+                    {!hasSufficientCoins ? (
+                      <div className="mt-1 text-xs text-ds-status-warning-text">
+                        Not enough {coinSummary.name}.{" "}
+                        <a href="/wallet" className="font-semibold underline">
+                          Convert naira in your wallet
+                        </a>
+                      </div>
+                    ) : null}
+                  </div>
+                </Radio>
+              ) : null}
               <Radio
                 value="CARD"
                 disabled={!cardPaymentsAvailable}

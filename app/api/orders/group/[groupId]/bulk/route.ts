@@ -3,6 +3,7 @@
  * Bulk grouped lifecycle actions with mixed-status partial handling.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { refundCoinsForOrder } from '@/lib/services/appCurrency';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -167,6 +168,22 @@ export async function POST(req: NextRequest, context: RouteContext) {
               statusHistory: nextHistory as Prisma.InputJsonValue,
             },
           });
+
+          if (order.paymentMethod === PaymentMethod.APP_CURRENCY && order.total > 0) {
+            const coinBuyer = await tx.buyer.findUnique({
+              where: { id: order.buyerId },
+              select: { userId: true },
+            });
+            if (coinBuyer) {
+              await refundCoinsForOrder(tx, {
+                orderId: order.id,
+                orderNumber: order.orderNumber,
+                buyerUserId: coinBuyer.userId,
+                reason: reason || 'grouped cancellation',
+                metadata: { groupedAction: true, orderGroupId: normalizedGroupId },
+              });
+            }
+          }
 
           if (order.paymentMethod === PaymentMethod.WALLET && order.total > 0) {
             const buyer = await tx.buyer.findUnique({

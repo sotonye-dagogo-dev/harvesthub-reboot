@@ -2429,3 +2429,37 @@ Vercel deploy runtime to fix a test-only problem and require human nvm/project-s
   (`vi.stubGlobal`) rather than spying `Storage.prototype` — prototype spies cannot intercept a
   non-conforming polyfill instance and Node's own `Storage` rejects foreign receivers.
 - Runtime code is untouched; production browser storage behavior is unchanged.
+
+---
+
+## In-App Currency ("Harvest Coins") — One-Way, Admin-Toggled (Phase 2)
+
+**Date:** 2026-11-19
+**Made by:** AI implementation session (Claude, Phase 2 of the Harvesters rebrand programme)
+
+**Decision:**
+Add an optional in-app currency, OFF by default. The super admin (ADMIN) sets name, symbol, naira-per-coin
+rate, per-conversion min/max and whether it is accepted at checkout (`/operations/settings` → In-App Currency,
+API `/api/admin/app-currency`). Users convert naira from their wallet into coins (`POST /api/wallet/currency/convert`);
+coins are spent at checkout with `PaymentMethod.APP_CURRENCY`; coins can never be withdrawn.
+
+**Reason:**
+Product owner chose the one-way model (closed-loop, like a store credit) — simplest to run and avoids
+cash-out handling, fees and payout risk. Vendors are unaffected: coin-paid orders are PAID immediately and
+settle through the existing order payout flow in naira, because the platform already holds the naira from the
+conversion.
+
+**Implementation notes:**
+- Storage: `Wallet.coinBalance` + append-only `CoinTransaction` ledger (unique `reference` = idempotency key);
+  naira side of a conversion is a `Transaction` of type `CURRENCY_CONVERSION`.
+- All balance moves use guarded atomic `updateMany` (`balance >= amount` / `coinBalance >= coins`) — never
+  read-then-write — so concurrent requests cannot overspend.
+- Coins needed for an order are rounded UP to 0.01 (`coinsRequiredFor`) so the platform is never short.
+- Refunds of coin-paid orders (buyer cancel, grouped cancel, approved refund request) return the coins recorded
+  at payment time (not today's rate) via `refundCoinsForOrder`, idempotent per order.
+- `creditCoins` / `debitCoins` are ready for Phase 3 (Backoffice worker rewards).
+- Schema is additive: `prisma/migrations/20261119200000_add_app_currency` (also applies with `db push`).
+  The columns must exist in the database before this code is deployed.
+
+**Alternatives considered:** two-way currency (rejected: cash-out, fees, payout handling); separate coin wallet
+model (rejected: one wallet per user keeps auth, caching and UI simpler).

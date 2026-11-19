@@ -211,6 +211,8 @@ enum PaymentMethod {
   BANK_TRANSFER_PROOF
   CARD
   USSD
+  /// In-app currency (e.g. Harvest Coins) — admin-toggled, one-way (naira → coins)
+  APP_CURRENCY
 }
 
 enum DeliveryMethod {
@@ -232,6 +234,18 @@ enum TransactionType {
   REFUND
   COMMISSION
   PAYOUT
+  /// Naira wallet debit when a user converts naira into the in-app currency
+  CURRENCY_CONVERSION
+}
+
+/// Ledger entry types for the in-app currency (coin) balance
+enum CoinTransactionType {
+  CONVERSION
+  PAYMENT
+  REFUND
+  REWARD
+  REWARD_REVERSAL
+  ADJUSTMENT
 }
 
 enum TransactionStatus {
@@ -709,6 +723,7 @@ model Order {
   vendor           Vendor            @relation(fields: [vendorId], references: [id])
   items            OrderItem[]
   transactions     Transaction[]
+  coinTransactions CoinTransaction[]
   proofOfTransfers ProofOfTransfer[]
   messages         OrderMessage[]
 
@@ -778,16 +793,50 @@ model Wallet {
   balance  Float   @default(0)
   currency String  @default("NGN")
   isActive Boolean @default(true)
+  /// In-app currency balance (coins). One-way: spendable, never withdrawable.
+  coinBalance Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     Transaction[]
+  coinTransactions CoinTransaction[]
 
   @@index([userId])
   @@map("wallets")
+}
+
+/// Append-only ledger for the in-app currency balance on Wallet.coinBalance.
+model CoinTransaction {
+  id            String              @id @default(cuid())
+  walletId      String
+  type          CoinTransactionType
+  /// Coins moved (always positive); direction is implied by type and balanceBefore/After
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  /// Naira value at the rate in force when the entry was written
+  nairaValue    Float               @default(0)
+  /// Naira per coin at the time of the entry
+  rate          Float               @default(1)
+  /// Idempotency key — the same reference is never applied twice
+  reference     String              @unique
+  description   String
+  orderId       String?
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  order  Order? @relation(fields: [orderId], references: [id])
+
+  @@index([walletId])
+  @@index([type])
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("coin_transactions")
 }
 
 model Transaction {
@@ -986,6 +1035,17 @@ model CommerceLifecycleConfig {
   subscriptionEnabled             Boolean  @default(true)
   subscriptionExpiringNoticeDays  Int      @default(3)
   subscriptionEnforcementLevel    SubscriptionEnforcementLevel @default(WARN)
+  // In-app currency (Phase 2) — OFF by default; super admin turns it on
+  appCurrencyEnabled              Boolean  @default(false)
+  appCurrencyName                 String   @default("Harvest Coins")
+  appCurrencySymbol               String   @default("HC")
+  /// Naira value of one coin (₦1 = 1 coin by default)
+  appCurrencyNairaPerUnit         Float    @default(1)
+  /// Per-conversion limits, in naira
+  appCurrencyMinConversion        Float    @default(100)
+  appCurrencyMaxConversion        Float    @default(500000)
+  /// Allow paying for orders with coins at checkout
+  appCurrencyCheckoutEnabled      Boolean  @default(true)
   createdAt                     DateTime @default(now())
   updatedAt                     DateTime @updatedAt
 

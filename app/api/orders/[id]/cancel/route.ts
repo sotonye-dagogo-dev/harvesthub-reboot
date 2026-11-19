@@ -2,6 +2,7 @@
  * POST /api/orders/[id]/cancel � Cancel an order
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { refundCoinsForOrder } from '@/lib/services/appCurrency';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@/prisma/generated/client';
 import { getCurrentUser } from '@/lib/utils/auth';
@@ -83,6 +84,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
                         status: 'COMPLETED',
                         reference: `REFUND-${order.id}`,
                     },
+                });
+            }
+
+            // Coin-paid orders get their coins back (never naira — coins are one-way)
+            if (order.paymentMethod === 'APP_CURRENCY' && order.total > 0) {
+                await refundCoinsForOrder(tx, {
+                    orderId: order.id,
+                    orderNumber: order.orderNumber,
+                    buyerUserId: buyer.userId,
+                    reason: reason || 'cancelled by buyer',
                 });
             }
 
