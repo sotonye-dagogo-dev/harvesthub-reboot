@@ -11,6 +11,7 @@ import { PLATFORM_DEFAULTS } from "@/lib/constants";
 import type { Wallet, Transaction } from "@/lib/types";
 import { useSmartResource } from "@/lib/hooks/useSmartResource";
 import { emitWalletSync, subscribeWalletSync } from "@/lib/utils/walletSync";
+import { AppCurrencyCard } from "@/components/features/wallet/AppCurrencyCard";
 import type { ReactElement } from "react";
 import {
   buildPaystackReference,
@@ -457,16 +458,24 @@ export default function WalletPage() {
             ) : (
               <>
                 <div className="space-y-3">
-                  {paginatedTransactions.map((transaction) => (
+                  {paginatedTransactions.map((transaction) => {
+                    // Direction comes from the balance movement: REFUND/PAYOUT can be credits or debits.
+                    const isCredit =
+                      transaction.type === "DEPOSIT" ||
+                      (transaction.type === "REFUND" && transaction.status === "PENDING") ||
+                      (Number.isFinite(transaction.balanceAfter) &&
+                        Number.isFinite(transaction.balanceBefore) &&
+                        transaction.balanceAfter > transaction.balanceBefore);
+                    return (
                     <div
                       key={transaction.id}
                       className="flex items-center justify-between border-b border-ds-border-base pb-3 last:border-0"
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-ds-full ${transaction.type === "DEPOSIT" ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg"}`}
+                          className={`flex h-10 w-10 items-center justify-center rounded-ds-full ${isCredit ? "bg-ds-status-success-bg dark:bg-ds-status-success-bg" : transaction.type === "WITHDRAWAL" ? "bg-ds-status-error-bg dark:bg-ds-status-error-bg" : "bg-ds-status-info-bg dark:bg-ds-status-info-bg"}`}
                         >
-                          {transaction.type === "DEPOSIT" ? (
+                          {isCredit ? (
                             <ArrowDownCircle className="h-5 w-5 text-ds-status-success-text" />
                           ) : (
                             <ArrowUpCircle className="h-5 w-5 text-ds-status-error-text" />
@@ -474,7 +483,7 @@ export default function WalletPage() {
                         </div>
                         <div>
                           <div className="font-medium text-ds-text-primary">
-                            {transaction.type.charAt(0) + transaction.type.slice(1).toLowerCase()}
+                            {(transaction.type.charAt(0) + transaction.type.slice(1).toLowerCase()).replace(/_/g, " ")}
                           </div>
                           <div className="text-sm text-ds-text-secondary">
                             {new Date(transaction.createdAt).toLocaleString()}
@@ -488,9 +497,9 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div
-                          className={`font-semibold ${transaction.type === "DEPOSIT" ? "text-ds-status-success-text" : "text-ds-status-error-text"}`}
+                          className={`font-semibold ${isCredit ? "text-ds-status-success-text" : "text-ds-status-error-text"}`}
                         >
-                          {transaction.type === "DEPOSIT" ? "+" : "-"}{" "}
+                          {isCredit ? "+" : "-"}{" "}
                           {formatCurrency(transaction.amount)}
                         </div>
                         <div
@@ -500,7 +509,8 @@ export default function WalletPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {totalPages > 1 && (
                   <div className="mt-6 flex justify-center">
@@ -516,6 +526,8 @@ export default function WalletPage() {
           </Card>
         </div>
       </div>
+
+      <AppCurrencyCard className="mt-6" nairaBalance={availableBalance} />
 
       <Modal
         title="Deposit"

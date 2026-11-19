@@ -9,6 +9,14 @@ export function mapCheckoutErrorMessage(error: CheckoutErrorPayload): string {
     return "Insufficient wallet balance for this checkout.";
   }
 
+  if (error.code === "INSUFFICIENT_COIN_BALANCE") {
+    return error.error || "You don't have enough coins for this checkout.";
+  }
+
+  if (error.code === "APP_CURRENCY_DISABLED" || error.code === "APP_CURRENCY_CHECKOUT_DISABLED") {
+    return error.error || "Paying with coins is not available right now. Choose another payment method.";
+  }
+
   if (error.code === "WALLET_NOT_AVAILABLE") {
     return "Wallet payment is currently unavailable. Choose another payment method.";
   }

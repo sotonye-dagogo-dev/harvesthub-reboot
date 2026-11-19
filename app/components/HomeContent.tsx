@@ -471,6 +471,11 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
       </section>
 
       <div className="container mx-auto px-4 pb-3">
+        {/* Phones/tablets: the side category menu is hidden, so show one compact scrollable row */}
+        <nav aria-label="Shop by category" className="mb-3 lg:hidden">
+          <CategoryNav categories={categories} layout="horizontal" className="pb-1" />
+        </nav>
+
         <HomeValueStrip />
 
         {liveProducts.length === 0 && <EmptyState title={"No Products Found"} />}
@@ -494,11 +499,6 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
             {renderProductRail(dealsProducts, "Hot deals horizontal list", { showStockBar: true })}
           </HomeSection>
         )}
-
-        {/* Shop by category */}
-        <HomeSection title="Shop by Category" href="/products">
-          <CategoryNav categories={categories} layout="grid" />
-        </HomeSection>
 
         {featuredProducts.length > 0 && (
           <HomeSection tone="deep" title="Top Picks for You" href="/products?featured=true">

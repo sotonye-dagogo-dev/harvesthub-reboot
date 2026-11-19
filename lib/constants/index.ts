@@ -41,6 +41,8 @@ export enum PaymentMethod {
     BANK_TRANSFER = 'BANK_TRANSFER',
     BANK_TRANSFER_PROOF = 'BANK_TRANSFER_PROOF',
     USSD = 'USSD',
+    /** In-app currency (Harvest Coins) — only accepted when the super admin enables it */
+    APP_CURRENCY = 'APP_CURRENCY',
 }
 
 export enum DeliveryMethod {
@@ -210,6 +212,8 @@ export enum TransactionType {
     REFUND = 'REFUND',
     COMMISSION = 'COMMISSION',
     PAYOUT = 'PAYOUT',
+    /** Naira moved out of the wallet into the in-app currency */
+    CURRENCY_CONVERSION = 'CURRENCY_CONVERSION',
 }
 
 export enum TransactionStatus {

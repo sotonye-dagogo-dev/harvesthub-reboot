@@ -2,6 +2,7 @@
  * POST /api/orders/[id]/refund/review - Admin approves/rejects refund
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { refundCoinsForOrder } from '@/lib/services/appCurrency';
 import {
     Prisma,
     OrderStatus,
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
                 total: true,
                 status: true,
                 paymentStatus: true,
+                paymentMethod: true,
                 buyer: { select: { userId: true } },
                 vendor: { select: { userId: true } },
                 statusHistory: true,
@@ -204,39 +206,73 @@ export async function POST(req: NextRequest, context: RouteContext) {
                 });
             }
 
+            const isCoinOrder = order.paymentMethod === 'APP_CURRENCY';
             const buyerWallet = await tx.wallet.findUnique({
                 where: { id: refundRequest.walletId },
-                select: { id: true, balance: true },
+                select: { id: true, balance: true, userId: true },
             });
 
             if (!buyerWallet) {
                 throw new Error('BUYER_WALLET_NOT_FOUND');
             }
 
-            const buyerBalanceAfter = buyerWallet.balance + refundRequest.amount;
-            await tx.wallet.update({
-                where: { id: buyerWallet.id },
-                data: { balance: buyerBalanceAfter },
-            });
+            if (isCoinOrder) {
+                // Coin-paid order: return the coins that were spent (coins are one-way, never naira).
+                const coinRefund = await refundCoinsForOrder(tx, {
+                    orderId: order.id,
+                    orderNumber: order.orderNumber,
+                    buyerUserId: buyerWallet.userId,
+                    reason: reason || 'refund approved',
+                    metadata: { refundRequestId: refundRequest.id, reviewedBy: user.userId },
+                });
 
-            await tx.transaction.update({
-                where: { id: refundRequest.id },
-                data: {
-                    status: TransactionStatus.COMPLETED,
-                    balanceBefore: buyerWallet.balance,
-                    balanceAfter: buyerBalanceAfter,
-                    description: `Refund approved for order ${order.orderNumber}`,
-                    metadata: {
-                        ...(refundRequest.metadata && typeof refundRequest.metadata === 'object' && !Array.isArray(refundRequest.metadata)
-                            ? (refundRequest.metadata as Record<string, unknown>)
-                            : {}),
-                        reviewedBy: user.userId,
-                        reviewedAt: new Date().toISOString(),
-                        action: 'APPROVED',
-                        reason,
+                await tx.transaction.update({
+                    where: { id: refundRequest.id },
+                    data: {
+                        status: TransactionStatus.COMPLETED,
+                        balanceBefore: buyerWallet.balance,
+                        balanceAfter: buyerWallet.balance,
+                        description: `Refund approved for order ${order.orderNumber} (returned as coins)`,
+                        metadata: {
+                            ...(refundRequest.metadata && typeof refundRequest.metadata === 'object' && !Array.isArray(refundRequest.metadata)
+                                ? (refundRequest.metadata as Record<string, unknown>)
+                                : {}),
+                            reviewedBy: user.userId,
+                            reviewedAt: new Date().toISOString(),
+                            action: 'APPROVED',
+                            reason,
+                            refundedAs: 'APP_CURRENCY',
+                            coinRefundReference: coinRefund?.reference ?? null,
+                            coinsRefunded: coinRefund?.amount ?? 0,
+                        },
                     },
-                },
-            });
+                });
+            } else {
+                const buyerBalanceAfter = buyerWallet.balance + refundRequest.amount;
+                await tx.wallet.update({
+                    where: { id: buyerWallet.id },
+                    data: { balance: buyerBalanceAfter },
+                });
+
+                await tx.transaction.update({
+                    where: { id: refundRequest.id },
+                    data: {
+                        status: TransactionStatus.COMPLETED,
+                        balanceBefore: buyerWallet.balance,
+                        balanceAfter: buyerBalanceAfter,
+                        description: `Refund approved for order ${order.orderNumber}`,
+                        metadata: {
+                            ...(refundRequest.metadata && typeof refundRequest.metadata === 'object' && !Array.isArray(refundRequest.metadata)
+                                ? (refundRequest.metadata as Record<string, unknown>)
+                                : {}),
+                            reviewedBy: user.userId,
+                            reviewedAt: new Date().toISOString(),
+                            action: 'APPROVED',
+                            reason,
+                        },
+                    },
+                });
+            }
 
             const history = parseStatusHistory(order.statusHistory as Prisma.JsonValue);
             const withApproved = appendStatusHistoryEntry(
@@ -249,7 +285,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
                 withApproved,
                 'REFUND_EXECUTED',
                 user.userId,
-                'Refund credited to buyer wallet and lifecycle reconciled.'
+                isCoinOrder
+                    ? 'Refund returned to buyer as coins and lifecycle reconciled.'
+                    : 'Refund credited to buyer wallet and lifecycle reconciled.'
             );
 
             await tx.order.update({
