@@ -154,6 +154,15 @@ export function Footer() {
                   className="text-ds-palette-magenta-200 hover:text-white hover:underline"
                 >
                   S.D.
+                </a>{" "}
+                &amp;{" "}
+                <a
+                  href="https://cartzedan.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-ds-palette-magenta-200 hover:text-white hover:underline"
+                >
+                  Cartzedan
                 </a>
               </p>
             </div>
