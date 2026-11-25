@@ -12,6 +12,7 @@ import {
     COMMISSION_RATES,
 } from '@/lib/constants';
 import type {
+    Prisma,
     Campus as PrismaCampus,
     VendorCategory as PrismaVendorCategory,
     ServiceCategory as PrismaServiceCategory,
@@ -19,6 +20,12 @@ import type {
 } from '@/prisma/generated/client';
 import { generateTokenPair } from '@/lib/utils/jwt';
 import { setAuthCookies } from '@/lib/utils/cookies';
+import {
+    checkVerificationDocuments,
+    checkVettingDetails,
+    normalizeSellerType,
+} from '@/lib/services/vendorVerification';
+import { isVendorBlocked, vendorBlockedMessage } from '@/lib/services/vendorStatus';
 
 const validCampusValues = new Set(CAMPUS_LOCATIONS.map((item) => item.value));
 const validCategoryValues = new Set(VENDOR_CATEGORIES.map((item) => item.value));
@@ -34,7 +41,17 @@ type ConvertToVendorBody = {
     isChurchAffiliated?: boolean;
     serviceCategory?: string;
     serviceLocation?: string;
+    businessAddress?: string;
+    sellerType?: string;
+    idType?: string;
+    verificationDocuments?: unknown;
+    department?: string;
+    refereeName?: string;
+    refereePhone?: string;
+    chosenPackageId?: string;
 };
+
+class ConvertBlockedError extends Error {}
 
 export async function POST(req: NextRequest) {
     try {
@@ -56,15 +73,60 @@ export async function POST(req: NextRequest) {
         const serviceCategory = body.serviceCategory?.trim() || '';
         const serviceLocation = body.serviceLocation?.trim() || '';
 
-        if (!storeName || !category || !campus || !whatsappNumber) {
+        const businessAddress = body.businessAddress?.trim() || '';
+
+        if (!storeName || !category || !campus || !whatsappNumber || !businessAddress) {
             return NextResponse.json(
                 {
                     error:
-                        'storeName, category, campus, and whatsappNumber are required to register as a vendor.',
+                        'storeName, category, campus, whatsappNumber and businessAddress are required to register as a vendor.',
                 },
                 { status: 400 }
             );
         }
+
+        // Same verification rules as new-vendor signup.
+        const verification = checkVerificationDocuments({
+            sellerType: body.sellerType,
+            documents: body.verificationDocuments,
+            idType: body.idType,
+        });
+        if (!verification.ok) {
+            return NextResponse.json({ error: verification.error, code: verification.code }, { status: 400 });
+        }
+        const vetting = checkVettingDetails({
+            department: body.department,
+            refereeName: body.refereeName,
+            refereePhone: body.refereePhone,
+        });
+        if (!vetting.ok) {
+            return NextResponse.json({ error: vetting.error, code: vetting.code }, { status: 400 });
+        }
+
+        let chosenPackage: { id: string; slug: string; name: string; price: number; durationDays: number } | null = null;
+        if (typeof body.chosenPackageId === 'string' && body.chosenPackageId) {
+            const pkg = await prisma.subscriptionPackage.findUnique({
+                where: { id: body.chosenPackageId },
+                select: { id: true, slug: true, name: true, price: true, durationDays: true, isActive: true },
+            });
+            if (!pkg || !pkg.isActive || pkg.price <= 0) {
+                return NextResponse.json(
+                    { error: 'The package you picked is no longer available. Please choose another.', code: 'INVALID_PACKAGE' },
+                    { status: 400 }
+                );
+            }
+            chosenPackage = { id: pkg.id, slug: pkg.slug, name: pkg.name, price: pkg.price, durationDays: pkg.durationDays };
+        }
+
+        const businessVerification = {
+            verificationDocuments: verification.documents,
+            businessAddress,
+            idType: body.idType || undefined,
+            sellerType: normalizeSellerType(body.sellerType),
+            department: vetting.details.department,
+            referee: { name: vetting.details.refereeName, phone: vetting.details.refereePhone },
+            chosenPackage: chosenPackage ? { ...chosenPackage, chosenAt: new Date().toISOString() } : undefined,
+        } as unknown as Prisma.InputJsonValue;
 
         if (!validCategoryValues.has(category as (typeof VENDOR_CATEGORIES)[number]['value'])) {
             return NextResponse.json({ error: 'Invalid vendor category' }, { status: 400 });
@@ -126,6 +188,11 @@ export async function POST(req: NextRequest) {
                 };
             }
 
+            // A suspended or rejected store must not be reset to PENDING by re-registering.
+            if (user.vendor && isVendorBlocked(user.vendor.status)) {
+                throw new ConvertBlockedError(vendorBlockedMessage(user.vendor.status));
+            }
+
             const updatedUser = await tx.user.update({
                 where: { id: user.id },
                 data: { role: UserRole.VENDOR },
@@ -168,6 +235,7 @@ export async function POST(req: NextRequest) {
                     serviceLocation: parsedServiceLocation,
                     status: VendorStatus.PENDING,
                     commissionRate: resolvedCommissionRate,
+                    businessVerification,
                 },
                 create: {
                     userId: user.id,
@@ -181,6 +249,7 @@ export async function POST(req: NextRequest) {
                     commissionRate: resolvedCommissionRate,
                     serviceCategory: parsedServiceCategory,
                     serviceLocation: parsedServiceLocation,
+                    businessVerification,
                     storeSettings: {
                         allowsPickup: true,
                         allowsDelivery: false,
@@ -231,6 +300,9 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
+        if (error instanceof ConvertBlockedError) {
+            return NextResponse.json({ error: error.message, code: 'VENDOR_NOT_ACTIVE' }, { status: 403 });
+        }
         console.error('POST /api/users/me/convert-to-vendor error:', error);
         const message = error instanceof Error ? error.message : 'Internal server error';
         return NextResponse.json({ error: message }, { status: 500 });

@@ -4,6 +4,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
+import { getCurrentUser } from '@/lib/utils/auth';
+import { UserRole } from '@/lib/constants';
+import { isVendorBlocked } from '@/lib/services/vendorStatus';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
@@ -15,6 +18,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
         const { id } = await context.params;
         const vendor = await prisma.vendor.findUnique({ where: { id } });
         if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        if (isVendorBlocked(vendor.status)) {
+            const viewer = await getCurrentUser();
+            const canView = !!viewer && (viewer.role === UserRole.ADMIN || viewer.userId === vendor.userId);
+            if (!canView) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        }
 
         const url = new URL(req.url);
         const page = Math.max(parseInt(url.searchParams.get('page') ?? '1', 10), 1);

@@ -13,6 +13,7 @@ import { getPaymentFallbackTelemetry, verifyPayment, type SupportedPaymentGatewa
 import { dispatchNotification } from '@/lib/services/notifications';
 import { parseOrderGroupIdFromHistory } from '@/lib/services/orderLifecycle';
 import { getCommerceLifecycleConfig } from '@/lib/services/commerceConfig';
+import { isVendorBlocked, VENDOR_UNAVAILABLE_FOR_BUYERS } from '@/lib/services/vendorStatus';
 import {
     AppCurrencyError,
     appCurrencyErrorResponse,
@@ -478,6 +479,16 @@ export async function POST(req: NextRequest) {
             const vendor = vendorById.get(entry.vendorId);
             if (!vendor) {
                 return NextResponse.json({ error: `Vendor ${entry.vendorId} not found` }, { status: 404 });
+            }
+            if (isVendorBlocked(vendor.status)) {
+                return NextResponse.json(
+                    {
+                        error: `${vendor.storeName}: ${VENDOR_UNAVAILABLE_FOR_BUYERS} Remove their items from your cart to continue.`,
+                        code: 'VENDOR_UNAVAILABLE',
+                        vendorId: vendor.id,
+                    },
+                    { status: 400 }
+                );
             }
 
             let subtotal = 0;

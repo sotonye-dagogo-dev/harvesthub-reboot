@@ -325,28 +325,64 @@ export async function runSubscriptionSweep(
     return result;
 }
 
+/**
+ * Free allowance: every vendor starts free and may keep this many ACTIVE
+ * listings without a paid package. Past it, BLOCK enforcement asks them to
+ * pay for their package. Override with FREE_LISTING_ALLOWANCE (0 = no free tier).
+ */
+export function getFreeListingAllowance(): number {
+    const raw = Number(process.env.FREE_LISTING_ALLOWANCE);
+    return Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : 5;
+}
+
 export type SubscriptionEnforcementCheck = {
-    /** True when the action may proceed (subscriptions disabled, WARN/NONE level, or active subscription). */
+    /** True when the action may proceed (subscriptions disabled, WARN/NONE level, active subscription, or within the free allowance). */
     allowed: boolean;
-    code: 'SUBSCRIPTION_REQUIRED' | null;
+    code: 'SUBSCRIPTION_REQUIRED' | 'FREE_LIMIT_REACHED' | null;
     message: string | null;
     summary: SubscriptionSummary;
+    /** Free active-listing allowance, when a listing count was supplied. */
+    freeAllowance?: number;
 };
 
 /**
  * Enforcement gate for selling actions (product create, service publish).
  * Only ever blocks when the platform toggle is ON AND the level is BLOCK AND
  * the user has no effective subscription — WARN/NONE always allow.
+ * When `countActiveListings` is given, an unsubscribed vendor is still allowed
+ * while they are under the free listing allowance (counted only when needed).
  * Never throws.
  */
 export async function checkSubscriptionEnforcement(
     tx: Pick<SubscriptionDbClient, 'commerceLifecycleConfig' | 'vendorSubscription'>,
     userId: string,
-    now: Date = new Date()
+    now: Date = new Date(),
+    opts: { countActiveListings?: () => Promise<number> } = {}
 ): Promise<SubscriptionEnforcementCheck> {
     const summary = await getSubscriptionSummary(tx, userId, now);
     if (!summary.blocked) {
         return { allowed: true, code: null, message: null, summary };
+    }
+    if (opts.countActiveListings) {
+        const freeAllowance = getFreeListingAllowance();
+        let activeListingCount = Number.POSITIVE_INFINITY;
+        try {
+            activeListingCount = await opts.countActiveListings();
+        } catch (error) {
+            console.error('[subscriptions] active listing count failed:', error);
+        }
+        if (activeListingCount < freeAllowance) {
+            return { allowed: true, code: null, message: null, summary, freeAllowance };
+        }
+        if (!summary.subscription && freeAllowance > 0) {
+            return {
+                allowed: false,
+                code: 'FREE_LIMIT_REACHED',
+                message: `You have used your ${freeAllowance} free listings. Pay for your package to publish more.`,
+                summary,
+                freeAllowance,
+            };
+        }
     }
     const message = summary.subscription
         ? `Your ${summary.subscription.packageName} subscription has lapsed. Renew or choose another package to continue publishing listings.`

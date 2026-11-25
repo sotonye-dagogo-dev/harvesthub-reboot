@@ -6,10 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByIP, rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
-import { cacheGet, cacheSet } from '@/lib/cache/redis';
+import { cacheGet, cacheSet, cacheInvalidate, cacheInvalidatePattern } from '@/lib/cache/redis';
 import { vendorKey } from '@/lib/cache/keys';
 import { UserRole } from '@/lib/constants';
 import { sendVendorApprovalEmail } from '@/lib/services/email';
+import { isVendorBlocked } from '@/lib/services/vendorStatus';
 
 interface RouteContext { params: Promise<{ id: string }>; }
 
@@ -20,8 +21,8 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
         const { id } = await context.params;
         const cacheK = vendorKey(id);
-        const cached = await cacheGet(cacheK);
-        if (cached) return NextResponse.json({ success: true, vendor: cached });
+        const cached = await cacheGet<{ status?: string; userId?: string }>(cacheK);
+        if (cached && !isVendorBlocked(cached.status)) return NextResponse.json({ success: true, vendor: cached });
 
         const vendor = await prisma.vendor.findUnique({
             where: { id },
@@ -31,6 +32,13 @@ export async function GET(req: NextRequest, context: RouteContext) {
             },
         });
         if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+
+        // Suspended/rejected stores are hidden from everyone except the vendor and admins.
+        if (isVendorBlocked(vendor.status)) {
+            const viewer = await getCurrentUser();
+            const canView = !!viewer && (viewer.role === UserRole.ADMIN || viewer.userId === vendor.userId);
+            if (!canView) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        }
 
         const ratingAgg = await prisma.review.aggregate({
             where: { product: { vendorId: id } },
@@ -81,9 +89,18 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         const previousStatus = vendor.status;
         const nextStatus = typeof body.status === 'string' ? body.status : undefined;
         const rejectionReason = typeof body.reason === 'string' ? body.reason.trim() : undefined;
-        const allowedFields = ['storeName', 'storeDescription', 'storeLogo', 'storeBanner', 'campus',
-            'categories', 'businessPhone', 'whatsappNumber', 'address', 'isActive', 'isVerified', 'status',
-            'businessVerification'];
+        // Status and verification data are admin-only: a vendor must never be able to approve
+        // or un-suspend themselves.
+        const vendorEditableFields = ['storeName', 'storeDescription', 'storeLogo', 'storeBanner', 'campus',
+            'categories', 'businessPhone', 'whatsappNumber', 'address', 'isActive'];
+        const adminOnlyFields = ['isVerified', 'status', 'businessVerification'];
+        if (user.role !== UserRole.ADMIN && adminOnlyFields.some((field) => body[field] !== undefined)) {
+            return NextResponse.json(
+                { error: 'Only admins can change vendor status or verification details', code: 'ADMIN_ONLY_FIELDS' },
+                { status: 403 }
+            );
+        }
+        const allowedFields = user.role === UserRole.ADMIN ? [...vendorEditableFields, ...adminOnlyFields] : vendorEditableFields;
         const data: Record<string, unknown> = {};
         for (const key of allowedFields) {
             if (body[key] !== undefined) data[key] = body[key];
@@ -94,6 +111,16 @@ export async function PUT(req: NextRequest, context: RouteContext) {
         }
 
         const updated = await prisma.vendor.update({ where: { id }, data });
+
+        // Make status changes visible straight away (store page + product lists are cached).
+        await cacheInvalidate(vendorKey(id));
+        if (typeof nextStatus === 'string' && nextStatus !== previousStatus) {
+            await Promise.all([
+                cacheInvalidatePattern('cache:products:*'),
+                cacheInvalidatePattern('cache:product:*'),
+                cacheInvalidatePattern('cache:vendors:*'),
+            ]);
+        }
 
         const shouldDispatchReviewEmail =
             user.role === UserRole.ADMIN &&

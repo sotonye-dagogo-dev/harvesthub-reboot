@@ -4,6 +4,7 @@
  * DELETE /api/products/[id] � Delete product
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { isVendorBlocked, vendorBlockedMessage, VENDOR_BLOCKED_CODE } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@/prisma/generated/client';
 import { getCurrentUser } from '@/lib/utils/auth';
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
         const product = await prisma.product.findUnique({
             where: { id },
             include: {
-                vendor: { select: { id: true, userId: true, storeName: true, storeLogo: true, campus: true, averageRating: true } },
+                vendor: { select: { id: true, userId: true, storeName: true, storeLogo: true, campus: true, averageRating: true, status: true } },
                 reviews: { where: { status: 'APPROVED' }, include: { buyer: { include: { user: { select: { firstName: true, lastName: true } } } }, votes: true }, orderBy: { createdAt: 'desc' }, take: 10 },
             },
         });
@@ -47,7 +48,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
         }
 
-        if (product.isActive) {
+        // Listings from suspended/rejected vendors are hidden from buyers.
+        if (isVendorBlocked(product.vendor.status) && !isOwner) {
+            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        }
+
+        if (product.isActive && !isVendorBlocked(product.vendor.status)) {
             const cacheK = productKey(id);
             const cached = await cacheGet(cacheK);
             if (cached) return NextResponse.json(cached);
@@ -81,16 +87,26 @@ export async function PUT(req: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
+        if (user.role !== UserRole.ADMIN && isVendorBlocked(product.vendor.status)) {
+            return NextResponse.json(
+                { error: vendorBlockedMessage(product.vendor.status), code: VENDOR_BLOCKED_CODE },
+                { status: 403 }
+            );
+        }
+
         // Subscription enforcement (Session 104): gate draft → publish transitions
         // for vendors only when the admin has set enforcement to BLOCK.
         const body = await req.json();
         if (!product.isActive && typeof body !== 'undefined') {
             const rawBody = body as { isActive?: unknown };
             if (rawBody?.isActive === true && user.role === UserRole.VENDOR) {
-                const enforcement = await checkSubscriptionEnforcement(prisma, user.userId);
+                const enforcement = await checkSubscriptionEnforcement(prisma, user.userId, new Date(), {
+                    countActiveListings: () =>
+                        prisma.product.count({ where: { vendor: { userId: user.userId }, isActive: true, NOT: { id } } }),
+                });
                 if (!enforcement.allowed) {
                     return NextResponse.json(
-                        { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary },
+                        { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary, freeAllowance: enforcement.freeAllowance },
                         { status: 403 }
                     );
                 }

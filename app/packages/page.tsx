@@ -63,6 +63,7 @@ interface SubscriptionsResponse {
   history: unknown[];
   walletBalance: number;
   walletActive: boolean;
+  chosenPackageId: string | null;
 }
 
 interface PaymentsConfigResponse {
@@ -164,6 +165,7 @@ function PackagesPageInner() {
       history: Array.isArray(data.history) ? data.history : [],
       walletBalance: typeof data.walletBalance === "number" ? data.walletBalance : 0,
       walletActive: Boolean(data.walletActive),
+      chosenPackageId: typeof data.chosenPackageId === "string" ? data.chosenPackageId : null,
     };
   }, []);
 
@@ -476,10 +478,20 @@ function PackagesPageInner() {
         {packages.map((pkg) => {
           const features = toFeatures(pkg.features);
           return (
-            <Card key={pkg.id} className="flex flex-col">
+            <Card
+              key={pkg.id}
+              className={`flex flex-col ${
+                mySubscription?.chosenPackageId === pkg.id ? "ring-2 ring-ds-brand-primary" : ""
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-lg font-semibold text-ds-text-primary">{pkg.name}</h3>
-                <Badge variant="primary">{pkg.durationDays}d</Badge>
+                <div className="flex flex-wrap justify-end gap-1">
+                  {mySubscription?.chosenPackageId === pkg.id ? (
+                    <Badge variant="success">Your pick</Badge>
+                  ) : null}
+                  <Badge variant="primary">{pkg.durationDays}d</Badge>
+                </div>
               </div>
               <p className="mt-3 text-3xl font-bold text-ds-text-brand">
                 {formatNaira(pkg.price)}

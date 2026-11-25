@@ -9,6 +9,7 @@ const { mockPrisma, mockHashPassword, mockSendVerifyEmail, mockRateLimitStrict }
     wallet: { create: vi.fn() },
     buyer: { create: vi.fn() },
     vendor: { create: vi.fn() },
+    subscriptionPackage: { findUnique: vi.fn() },
     userMilestone: { create: vi.fn() },
     commissionConfig: { findUnique: vi.fn() },
     commerceLifecycleConfig: { findUnique: vi.fn() },
@@ -65,6 +66,9 @@ const registerBody = (overrides: Record<string, unknown> = {}) => ({
   campus: "IKEJA",
   businessAddress: "12 Example Road",
   verificationDocuments,
+  department: "Ushering",
+  refereeName: "Bisi Ade",
+  refereePhone: "08011112222",
   serviceCategory: ServiceCategory.CREATIVE,
   serviceLocation: ServiceLocation.REMOTE,
   ...overrides,
@@ -150,5 +154,52 @@ describe("POST /api/auth/register — service provider fields", () => {
     expect(res.status).toBe(201);
     expect(mockTx.buyer.create).toHaveBeenCalled();
     expect(mockTx.vendor.create).not.toHaveBeenCalled();
+  });
+
+  it("lets an individual seller register without a CAC certificate", async () => {
+    const res = await POST(
+      post(
+        registerBody({
+          sellerType: "INDIVIDUAL",
+          verificationDocuments: verificationDocuments.filter((d) => d.documentType !== "BUSINESS_REGISTRATION"),
+        }),
+      ),
+    );
+    expect(res.status).toBe(201);
+  });
+
+  it("rejects a vendor without department or referee", async () => {
+    const res = await POST(post(registerBody({ department: "", refereeName: "" })));
+    const json = await res.json();
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("MISSING_VETTING_DETAILS");
+  });
+
+  it("stores the package picked at signup", async () => {
+    mockPrisma.subscriptionPackage.findUnique.mockResolvedValue({
+      id: "pkg_grow", slug: "grow", name: "Grow", price: 5000, durationDays: 30, isActive: true,
+    });
+    const res = await POST(post(registerBody({ chosenPackageId: "pkg_grow" })));
+    expect(res.status).toBe(201);
+    expect(mockTx.vendor.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          businessVerification: expect.objectContaining({
+            department: "Ushering",
+            chosenPackage: expect.objectContaining({ id: "pkg_grow", slug: "grow" }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("rejects a free or inactive package", async () => {
+    mockPrisma.subscriptionPackage.findUnique.mockResolvedValue({
+      id: "pkg_seed", slug: "seed", name: "Seed", price: 0, durationDays: 30, isActive: true,
+    });
+    const res = await POST(post(registerBody({ chosenPackageId: "pkg_seed" })));
+    const json = await res.json();
+    expect(res.status).toBe(400);
+    expect(json.code).toBe("INVALID_PACKAGE");
   });
 });
