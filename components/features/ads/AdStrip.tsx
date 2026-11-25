@@ -8,7 +8,7 @@ import type { Banner } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { resolvePrimaryBannerAction } from "@/lib/utils/bannerActions";
 import { trackBannerClick, type BannerTrackingSource } from "@/lib/tracking/bannerTracking";
-import { HarvestersCross } from "@/components/brand";
+import { BrandCross } from "@/components/brand";
 
 type Variant = "top" | "inline";
 
@@ -64,7 +64,7 @@ export function AdStrip({ banner, variant, trackingSource, onDismiss, className 
           : "min-h-[6.5rem] flex-col items-start justify-center gap-1 rounded-ds-md px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8"
       )}
     >
-      <HarvestersCross
+      <BrandCross
         size={variant === "top" ? 70 : 150}
         title=""
         className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 text-white opacity-10"

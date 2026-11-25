@@ -9,7 +9,7 @@ interface HomeSectionProps {
   title: ReactNode;
   href?: string;
   linkLabel?: string;
-  /** Header bar colour: plain (white), deep (Harvesters Purple) or magenta (Flash Sales). */
+  /** Header bar colour: plain (white), deep (brand purple) or magenta (Flash Sales). */
   tone?: HomeSectionTone;
   /** Extra content shown in the header bar (e.g. a countdown). */
   headerExtra?: ReactNode;

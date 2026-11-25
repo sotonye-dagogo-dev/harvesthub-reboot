@@ -138,7 +138,7 @@ export function Header({ className }: { className?: string } = {}) {
           </Link>
           <span className="inline-flex items-center gap-1.5 text-ds-palette-purple-200">
             <MapPin className="h-3.5 w-3.5" />
-            Pick up your orders at your Harvesters campus
+            Pick up your orders at your campus
           </span>
           <Link
             href="/packages"

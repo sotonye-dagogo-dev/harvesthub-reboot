@@ -11,8 +11,8 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-const purplePrimary = "#B81D82"; // Harvesters Magenta (CTA)
-const purpleDark = "#2B0B4E"; // Harvesters Purple
+const purplePrimary = "#B81D82"; // Brand magenta (CTA)
+const purpleDark = "#2B0B4E"; // Brand purple
 const grayText = "#6b7280";
 const grayBorder = "#e5e7eb";
 

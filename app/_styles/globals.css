@@ -10,7 +10,7 @@
    ============================================================================ */
 @layer base {
   :root {
-    /* Harvesters Purple palette (#2B0B4E = 950, Vibrant Violet #8E24AA = 500) */
+    /* Brand purple palette (#2B0B4E = 950, Vibrant Violet #8E24AA = 500) */
     --ds-palette-purple-50: 247 241 251;
     --ds-palette-purple-100: 238 226 246;
     --ds-palette-purple-200: 220 195 236;
@@ -24,7 +24,7 @@
     --ds-palette-purple-950: 43 11 78;
 
     /* Neutral palette */
-    /* Harvesters Magenta palette (CTA accent, #B81D82 = 600) */
+    /* Brand magenta palette (CTA accent, #B81D82 = 600) */
     --ds-palette-magenta-50: 253 240 247;
     --ds-palette-magenta-100: 250 220 236;
     --ds-palette-magenta-200: 244 181 216;
@@ -38,7 +38,7 @@
     --ds-palette-magenta-950: 61 8 42;
 
     --ds-palette-white: 255 255 255;
-    --ds-palette-black: 18 18 18; /* Harvesters Dark Charcoal #121212 */
+    --ds-palette-black: 18 18 18; /* Dark Charcoal #121212 */
     --ds-palette-neutral-50: 250 250 250;
     --ds-palette-neutral-100: 245 245 245;
     --ds-palette-neutral-200: 229 229 229;
@@ -100,7 +100,7 @@
 @layer base {
   :root {
     /* ---- Brand ---- */
-    /* Harvesters: Magenta drives CTAs; Purple #2B0B4E (brand-deep) drives headers/nav */
+    /* Brand: Magenta drives CTAs; Purple #2B0B4E (brand-deep) drives headers/nav */
     --ds-brand-primary: var(--ds-palette-magenta-600);
     --ds-brand-primary-hover: var(--ds-palette-magenta-700);
     --ds-brand-primary-active: var(--ds-palette-magenta-800);
