@@ -433,8 +433,18 @@ export default function OperationsProductsPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = (await response.json()) as { error?: string };
+      const data = (await response.json()) as { error?: string; code?: string };
       if (!response.ok) {
+        if (data.code === "FREE_LIMIT_REACHED" || data.code === "SUBSCRIPTION_REQUIRED") {
+          Modal.confirm({
+            title: data.code === "FREE_LIMIT_REACHED" ? "Your free listings are used up" : "Package payment needed",
+            content: data.error || "Pay for your package to publish more listings.",
+            okText: "Pay for my package",
+            cancelText: "Not now",
+            onOk: () => router.push("/packages"),
+          });
+          return;
+        }
         throw new Error(data.error || "Unable to save product");
       }
 

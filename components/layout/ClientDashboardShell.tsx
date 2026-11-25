@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { VendorStatusNotice } from "@/components/features/vendor/VendorStatusNotice";
 import { Sidebar } from "./Sidebar";
 
 interface ClientDashboardShellProps {
@@ -14,6 +15,7 @@ export function ClientDashboardShell({ sidebarType, children }: ClientDashboardS
       <div className="flex flex-1 overflow-hidden">
         <Sidebar type={sidebarType} />
         <main className="flex-1 overflow-y-auto bg-ds-surface-sunken p-6 pb-20 dark:bg-ds-surface-sunken md:pb-6">
+          {sidebarType === "vendor" ? <VendorStatusNotice /> : null}
           {children}
         </main>
       </div>

@@ -2,6 +2,7 @@
  * GET /api/products/[id]/related � Related products
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
             where: {
                 id: { not: id },
                 isActive: true,
+                ...visibleVendorProductWhere(),
                 OR: [
                     { category: product.category },
                     { vendorId: product.vendorId },

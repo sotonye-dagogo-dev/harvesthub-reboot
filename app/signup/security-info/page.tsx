@@ -6,6 +6,11 @@ import { useFormData } from "@/app/providers";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { UserRole, VendorCategory, Campus, Position } from "@/lib/constants";
 import SecurityInfo from "../components/SecurityInfo";
+import {
+  missingDocsMessage,
+  normalizeSellerType,
+  requiredDocTypesFor,
+} from "@/lib/services/vendorVerification";
 import { getPendingAuthRedirect, sanitizeInternalRedirectPath } from "@/lib/utils/authRedirect";
 
 export default function SecurityInfoPage() {
@@ -53,7 +58,8 @@ export default function SecurityInfoPage() {
 
       if (role === UserRole.VENDOR) {
         const docs = formData.verificationDocuments || [];
-        const requiredDocTypes = ["ID", "BUSINESS_REGISTRATION", "UTILITY_BILL"];
+        const sellerType = normalizeSellerType(formData.sellerType);
+        const requiredDocTypes = requiredDocTypesFor(sellerType);
         const hasAllRequiredDocs = requiredDocTypes.every((requiredType) =>
           docs.some((doc: any) => doc?.documentType === requiredType)
         );
@@ -67,9 +73,11 @@ export default function SecurityInfoPage() {
         }
 
         if (!hasAllRequiredDocs) {
-          throw new Error(
-            "Please upload all required verification documents: valid ID, business registration certificate, and utility bill."
-          );
+          throw new Error(missingDocsMessage(sellerType));
+        }
+
+        if (!formData.department?.trim() || !formData.refereeName?.trim() || !formData.refereePhone?.trim()) {
+          throw new Error("Please add your department or unit and a referee on the verification step.");
         }
       }
 
@@ -98,6 +106,11 @@ export default function SecurityInfoPage() {
           serviceLocation: formData.serviceLocation,
           verificationDocuments: formData.verificationDocuments,
           idType: formData.idType,
+          sellerType: normalizeSellerType(formData.sellerType),
+          department: formData.department,
+          refereeName: formData.refereeName,
+          refereePhone: formData.refereePhone,
+          chosenPackageId: formData.chosenPackageId,
           businessAddress: formData.businessAddress,
           bankName: formData.bankName,
           accountName: formData.accountName,

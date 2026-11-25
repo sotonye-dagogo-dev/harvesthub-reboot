@@ -2,6 +2,7 @@
  * GET /api/products/search — Advanced search with sorting, filters, pagination
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import type { Prisma } from '../../../../prisma/generated/client';
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
         const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
-        const where: Prisma.ProductWhereInput = { isActive: true };
+        const where: Prisma.ProductWhereInput = { isActive: true, ...visibleVendorProductWhere() };
         if (q) {
             where.OR = [
                 { name: { contains: q, mode: 'insensitive' } },

@@ -3,6 +3,7 @@
  * POST /api/products — Create product (vendor only)
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { isVendorBlocked, vendorBlockedMessage, VENDOR_BLOCKED_CODE } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import prismaAdapter from '@/lib/data/prismaAdapter';
 import { getCurrentUser } from '@/lib/utils/auth';
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Build cache key from filters
-        const filterHash = JSON.stringify({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured, search, campus, listingType, minPrice, maxPrice, page, limit });
+        const filterHash = JSON.stringify({ v: 'vendor-status-1', category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured, search, campus, listingType, minPrice, maxPrice, page, limit });
         const cacheKey = productListKey(filterHash);
         if (!includeInactive) {
             const cached = await cacheGet<{ products: unknown[]; total: number }>(cacheKey);
@@ -96,11 +97,11 @@ export async function GET(req: NextRequest) {
         // campus is included in filterHash for cache invalidation only.
 
         // Use unified data layer (db.products) so behavior is consistent between mock and Prisma adapters
-        const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, page, limit }) as any;
+        const productsResult = await prismaAdapter.productDb.findAll({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, publicOnly: !includeInactive, page, limit }) as any;
 
         // Normalize result: mock adapter returns pagination object when page/limit provided
         const products = Array.isArray(productsResult) ? productsResult : productsResult.data;
-        const total = await prismaAdapter.productDb.count({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined });
+        const total = await prismaAdapter.productDb.count({ category, vendorId: effectiveVendorId, isActive: effectiveIsActive, isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined, search, listingType, minPrice: minPrice ? parseFloat(minPrice) : undefined, maxPrice: maxPrice ? parseFloat(maxPrice) : undefined, publicOnly: !includeInactive });
 
         if (!includeInactive) {
             await cacheSet(cacheKey, { products, total }, 300);
@@ -127,10 +128,13 @@ export async function POST(req: NextRequest) {
 
         // Subscription enforcement (Session 104): only ever active when the
         // admin has enabled subscriptions AND set enforcement to BLOCK.
-        const enforcement = await checkSubscriptionEnforcement(prisma, user.userId);
+        const enforcement = await checkSubscriptionEnforcement(prisma, user.userId, new Date(), {
+            countActiveListings: () =>
+                prisma.product.count({ where: { vendor: { userId: user.userId }, isActive: true } }),
+        });
         if (!enforcement.allowed) {
             return NextResponse.json(
-                { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary },
+                { error: enforcement.message, code: enforcement.code, subscription: enforcement.summary, freeAllowance: enforcement.freeAllowance },
                 { status: 403 }
             );
         }
@@ -194,6 +198,12 @@ export async function POST(req: NextRequest) {
         const vendor = await prismaAdapter.vendorDb.findById(vendorId);
         if (!vendor) {
             return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+        }
+        if (user.role !== UserRole.ADMIN && isVendorBlocked((vendor as { status?: string }).status)) {
+            return NextResponse.json(
+                { error: vendorBlockedMessage((vendor as { status?: string }).status), code: VENDOR_BLOCKED_CODE },
+                { status: 403 }
+            );
         }
 
         const numericPrice = isProvided(price)

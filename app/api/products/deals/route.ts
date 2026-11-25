@@ -2,6 +2,7 @@
  * GET /api/products/deals — Active discounted products for home deals section
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet } from '@/lib/cache/redis';
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
             where: {
                 isActive: true,
                 discount: { gte: DEALS_CONFIG.minDiscountPercent },
+                ...visibleVendorProductWhere(),
             },
             include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
             orderBy: [{ discount: 'desc' }, { sales: 'desc' }],

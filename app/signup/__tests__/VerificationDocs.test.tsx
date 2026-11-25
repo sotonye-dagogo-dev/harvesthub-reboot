@@ -30,7 +30,8 @@ describe("VerificationDocs", () => {
   let successSpy: ReturnType<typeof vi.spyOn>;
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
-  const renderDocs = (formData: Record<string, unknown> = { idType: "NIN" }) =>
+  const vetting = { department: "Ushering", refereeName: "Bisi Ade", refereePhone: "08011112222" };
+  const renderDocs = (formData: Record<string, unknown> = { idType: "NIN", ...vetting }) =>
     render(
       <VerificationDocs
         onNext={mocks.onNext}
@@ -109,6 +110,9 @@ describe("VerificationDocs", () => {
 
     await waitFor(() => expect(mocks.onNext).toHaveBeenCalledTimes(1));
     expect(mocks.updateFormData).toHaveBeenCalledWith({
+      sellerType: "INDIVIDUAL",
+      ...vetting,
+      chosenPackageId: undefined,
       idType: "NIN",
       verificationDocuments: [
         expect.objectContaining({ documentType: "ID", url: "https://cdn.example.com/doc.png" }),
@@ -130,7 +134,7 @@ describe("VerificationDocs", () => {
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
     await waitFor(() =>
       expect(errorSpy).toHaveBeenCalledWith(
-        "Please upload all required documents: valid ID, business registration certificate, and utility bill"
+        "Please upload the required documents: valid ID and utility bill"
       )
     );
     expect(mocks.onNext).not.toHaveBeenCalled();

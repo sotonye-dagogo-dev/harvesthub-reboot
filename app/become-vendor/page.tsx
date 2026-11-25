@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Alert, Form, Input, Select, Switch, message } from "antd";
 import { Button, PageLoader } from "@/components/ui";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { CAMPUS_LOCATIONS, VENDOR_CATEGORIES } from "@/lib/constants";
+import VerificationDocs from "@/app/signup/components/VerificationDocs";
+import type { UserFormData } from "@/app/types";
 
 type BecomeVendorFormValues = {
   storeName: string;
@@ -14,6 +16,7 @@ type BecomeVendorFormValues = {
   category: string;
   campus: string;
   whatsappNumber: string;
+  businessAddress: string;
   isChurchAffiliated: boolean;
 };
 
@@ -21,10 +24,31 @@ export default function BecomeVendorPage() {
   const router = useRouter();
   const { user, isLoading, refreshUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState<"store" | "verify">("store");
+  const [verification, setVerification] = useState<Partial<UserFormData>>({});
+  const storeValuesRef = useRef<BecomeVendorFormValues | null>(null);
+  const verificationRef = useRef<Partial<UserFormData>>({});
 
   const [form] = Form.useForm<BecomeVendorFormValues>();
 
-  const handleSubmit = async (values: BecomeVendorFormValues) => {
+  const handleStoreStep = (values: BecomeVendorFormValues) => {
+    storeValuesRef.current = values;
+    setStep("verify");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const updateVerification = (data: Partial<UserFormData>) => {
+    verificationRef.current = { ...verificationRef.current, ...data };
+    setVerification(verificationRef.current);
+  };
+
+  const handleSubmit = async () => {
+    const values = storeValuesRef.current;
+    if (!values) {
+      setStep("store");
+      return;
+    }
+    const v = verificationRef.current;
     setSubmitting(true);
 
     try {
@@ -36,6 +60,14 @@ export default function BecomeVendorPage() {
           storeName: values.storeName.trim(),
           storeDescription: values.storeDescription?.trim(),
           whatsappNumber: values.whatsappNumber.trim(),
+          businessAddress: values.businessAddress.trim(),
+          sellerType: v.sellerType,
+          idType: v.idType,
+          verificationDocuments: v.verificationDocuments,
+          department: v.department,
+          refereeName: v.refereeName,
+          refereePhone: v.refereePhone,
+          chosenPackageId: v.chosenPackageId,
         }),
       });
 
@@ -136,23 +168,37 @@ export default function BecomeVendorPage() {
         />
 
         <p className="mt-3 text-sm text-ds-text-secondary">
-          Selling access is covered by subscription packages —{" "}
-          <Link
-            href="/packages"
-            className="font-semibold text-ds-text-brand hover:text-ds-brand-primary-hover"
-          >
-            browse packages
-          </Link>{" "}
-          to subscribe before or after registering your store.
+          Step {step === "store" ? "1" : "2"} of 2 — {step === "store" ? "store details" : "verification and package"}.
+          You start free and only pay for your package when your free listings are used up.
         </p>
 
+        {step === "verify" ? (
+          <div className="mt-6">
+            <VerificationDocs
+              formData={verification}
+              updateFormData={updateVerification}
+              onNext={handleSubmit}
+            />
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setStep("store")}
+                disabled={submitting}
+                className="text-sm font-medium text-ds-text-brand hover:text-ds-brand-primary-hover"
+              >
+                ← Back to store details
+              </button>
+              {submitting ? <span className="text-sm text-ds-text-secondary">Submitting…</span> : null}
+            </div>
+          </div>
+        ) : (
         <Form
           form={form}
           layout="vertical"
           requiredMark={false}
           className="mt-6"
-          initialValues={{ isChurchAffiliated: false }}
-          onFinish={handleSubmit}
+          initialValues={storeValuesRef.current ?? { isChurchAffiliated: false }}
+          onFinish={handleStoreStep}
         >
           <Form.Item
             label="Store Name"
@@ -216,13 +262,21 @@ export default function BecomeVendorPage() {
             <Input placeholder="e.g. +2348012345678" />
           </Form.Item>
 
+          <Form.Item
+            label="Business Address"
+            name="businessAddress"
+            rules={[{ required: true, whitespace: true, message: "Please enter your business address" }]}
+          >
+            <Input placeholder="Where buyers or Support can find you" maxLength={300} />
+          </Form.Item>
+
           <Form.Item label="Church Affiliation" name="isChurchAffiliated" valuePropName="checked">
             <Switch checkedChildren="Yes" unCheckedChildren="No" />
           </Form.Item>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button type="submit" loading={submitting}>
-              Submit and Continue
+            <Button type="submit">
+              Continue
             </Button>
             <Link
               href="/profile"
@@ -232,6 +286,7 @@ export default function BecomeVendorPage() {
             </Link>
           </div>
         </Form>
+        )}
       </div>
     </div>
   );

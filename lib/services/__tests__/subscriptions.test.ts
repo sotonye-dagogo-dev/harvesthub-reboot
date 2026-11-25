@@ -216,6 +216,42 @@ describe('getSubscriptionSummary', () => {
 });
 
 describe('checkSubscriptionEnforcement', () => {
+    const blockTx = () =>
+        createTx({
+            commerceLifecycleConfig: {
+                findUnique: vi.fn().mockResolvedValue({
+                    vendorCommissionEnabled: false,
+                    subscriptionEnabled: true,
+                    subscriptionExpiringNoticeDays: 3,
+                    subscriptionEnforcementLevel: 'BLOCK',
+                }),
+            },
+        });
+
+    it('lets an unsubscribed vendor publish while under the free allowance', async () => {
+        const check = await checkSubscriptionEnforcement(blockTx(), 'user-1', NOW, {
+            countActiveListings: async () => 4,
+        });
+        expect(check.allowed).toBe(true);
+        expect(check.freeAllowance).toBe(5);
+    });
+
+    it('asks for payment once the free listings are used up', async () => {
+        const check = await checkSubscriptionEnforcement(blockTx(), 'user-1', NOW, {
+            countActiveListings: async () => 5,
+        });
+        expect(check.allowed).toBe(false);
+        expect(check.code).toBe('FREE_LIMIT_REACHED');
+        expect(check.message).toContain('5 free listings');
+    });
+
+    it('does not count listings when nothing is blocked', async () => {
+        const count = vi.fn(async () => 99);
+        const check = await checkSubscriptionEnforcement(createTx(), 'user-1', NOW, { countActiveListings: count });
+        expect(check.allowed).toBe(true);
+        expect(count).not.toHaveBeenCalled();
+    });
+
     it('blocks only when enabled + BLOCK + no effective subscription', async () => {
         const tx = createTx({
             commerceLifecycleConfig: {

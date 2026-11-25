@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Upload, message, Select } from "antd";
+import { Form, Input, Upload, message, Select } from "antd";
 import {
   PlusOutlined,
   LoadingOutlined,
@@ -18,6 +18,7 @@ import {
   MAX_UPLOAD_SIZE_MB,
   acceptAttributeFor,
 } from "@/lib/utils/uploadConfig";
+import PackagePicker, { type SignupPackage } from "./PackagePicker";
 
 const ID_TYPES = [
   { value: "NIN", label: "National Identification Number (NIN)" },
@@ -30,10 +31,29 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const ACCEPT_ATTR = acceptAttributeFor("verification-doc");
 const MAX_FILE_SIZE_BYTES = MAX_UPLOAD_SIZE_MB["verification-doc"] * 1024 * 1024;
 
+type SellerType = "INDIVIDUAL" | "BUSINESS";
+
 interface VerificationFields {
+  sellerType: SellerType;
   idType: string;
   businessRegistrationNumber?: string;
+  department: string;
+  refereeName: string;
+  refereePhone: string;
 }
+
+const SELLER_TYPE_OPTIONS: Array<{ value: SellerType; title: string; description: string }> = [
+  {
+    value: "INDIVIDUAL",
+    title: "Individual / small seller",
+    description: "You sell on your own (e.g. food, fashion, crafts, services). CAC is optional.",
+  },
+  {
+    value: "BUSINESS",
+    title: "Registered business",
+    description: "Your business is registered with CAC. The CAC certificate is required.",
+  },
+];
 
 type VerificationDocument = {
   documentType: "ID" | "BUSINESS_REGISTRATION" | "UTILITY_BILL";
@@ -52,6 +72,15 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   const [bizFileList, setBizFileList] = useState<VerificationUploadFile[]>([]);
   const [utilityFileList, setUtilityFileList] = useState<VerificationUploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [sellerType, setSellerType] = useState<SellerType>(
+    (formData?.sellerType as SellerType | undefined) ?? "INDIVIDUAL"
+  );
+  const cacRequired = sellerType === "BUSINESS";
+  const [chosenPackageId, setChosenPackageId] = useState<string | undefined>(
+    formData?.chosenPackageId as string | undefined
+  );
+  const [packagesOffered, setPackagesOffered] = useState<SignupPackage[]>([]);
+  const packageRequired = packagesOffered.length > 0;
   const guestUploadIdRef = useRef<string | null>(null);
 
   // Tracks the last Cloudinary publicId held by each slot so replacements can
@@ -97,6 +126,9 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
     if (formData?.idType) {
       form.setFieldValue("idType", formData.idType);
     }
+    if (formData?.department) form.setFieldValue("department", formData.department);
+    if (formData?.refereeName) form.setFieldValue("refereeName", formData.refereeName);
+    if (formData?.refereePhone) form.setFieldValue("refereePhone", formData.refereePhone);
     // Restore previous state if going back. Slot-aware so a doc is only ever
     // restored into its own upload slot, and a live upload already in progress
     // is never clobbered by a restore pass.
@@ -362,11 +394,12 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
   const renderUpload = (
     slot: SlotKey,
     label: React.ReactNode,
-    help: string
+    help: string,
+    required = true
   ): React.ReactElement => {
     const fileList = fileListOf(slot);
     return (
-      <Form.Item label={label} required>
+      <Form.Item label={label} required={required}>
         <Upload
           listType="picture-card"
           fileList={fileList}
@@ -395,12 +428,19 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
     const bizFile = pickDone(bizFileList);
     const utilityFile = pickDone(utilityFileList);
 
-    if (!idFile || !bizFile || !utilityFile) {
+    if (packageRequired && !packagesOffered.some((p) => p.id === chosenPackageId)) {
+      message.error("Please choose your package");
+      return;
+    }
+
+    if (!idFile || !utilityFile || (cacRequired && !bizFile)) {
       if (hasUploadingFile) {
         message.warning("Please wait for your documents to finish uploading.");
       } else {
         message.error(
-          "Please upload all required documents: valid ID, business registration certificate, and utility bill"
+          cacRequired
+            ? "Please upload all required documents: valid ID, business registration certificate, and utility bill"
+            : "Please upload the required documents: valid ID and utility bill"
         );
       }
       return;
@@ -416,8 +456,13 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
       );
 
       updateFormData({
+        sellerType,
         idType: values.idType,
         verificationDocuments: docs,
+        department: values.department?.trim(),
+        refereeName: values.refereeName?.trim(),
+        refereePhone: values.refereePhone?.trim(),
+        chosenPackageId: packageRequired ? chosenPackageId : undefined,
       } as Partial<FormComponentProps["formData"]>);
       message.success("Verification documents uploaded successfully");
       onNext();
@@ -434,9 +479,35 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
       <div className="text-center">
         <h3 className="text-2xl font-bold text-ds-text-primary mb-2">Verification Documents</h3>
         <p className="text-sm text-ds-text-secondary">
-          Upload documents to verify your identity. This helps build trust with buyers.
+          Tell us who you are and pick your package. This helps build trust with buyers.
         </p>
       </div>
+
+      <fieldset>
+        <legend className="mb-2 text-sm font-medium text-ds-text-primary">How are you selling?</legend>
+        <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Seller type">
+          {SELLER_TYPE_OPTIONS.map((option) => {
+            const selected = sellerType === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setSellerType(option.value)}
+                className={`rounded-ds-md border p-4 text-left transition-colors ${
+                  selected
+                    ? "border-ds-brand-primary bg-ds-brand-surface ring-2 ring-ds-brand-primary/20"
+                    : "border-ds-border-base bg-ds-surface-base hover:border-ds-border-strong"
+                }`}
+              >
+                <span className="block text-sm font-semibold text-ds-text-primary">{option.title}</span>
+                <span className="mt-1 block text-xs text-ds-text-secondary">{option.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <Form
         form={form}
@@ -447,6 +518,35 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         onFinish={onFinish}
         className="w-full"
       >
+        <Form.Item
+          name="department"
+          label={<span className="text-ds-text-primary font-medium">Department or unit</span>}
+          extra="The department or unit you serve in, so Support can confirm you."
+          rules={[{ required: true, whitespace: true, message: "Please enter your department or unit" }]}
+        >
+          <Input size="large" placeholder="e.g. Ushering, Choir, Children's Church" maxLength={120} />
+        </Form.Item>
+
+        <div className="grid gap-x-4 sm:grid-cols-2">
+          <Form.Item
+            name="refereeName"
+            label={<span className="text-ds-text-primary font-medium">Referee name</span>}
+            rules={[{ required: true, whitespace: true, message: "Please enter a referee" }]}
+          >
+            <Input size="large" placeholder="Someone who can vouch for you" maxLength={120} />
+          </Form.Item>
+          <Form.Item
+            name="refereePhone"
+            label={<span className="text-ds-text-primary font-medium">Referee phone</span>}
+            rules={[
+              { required: true, message: "Please enter your referee's phone number" },
+              { pattern: /^\+?[0-9 ()-]{7,20}$/, message: "Enter a valid phone number" },
+            ]}
+          >
+            <Input size="large" inputMode="tel" placeholder="080..." maxLength={20} />
+          </Form.Item>
+        </div>
+
         {/* ID Type */}
         <Form.Item
           name="idType"
@@ -467,9 +567,17 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
         {renderUpload(
           "biz",
           <span className="text-ds-text-primary font-medium">
-            Business Registration Certificate <span className="text-ds-status-error-text">*</span>
+            Business Registration Certificate{" "}
+            {cacRequired ? (
+              <span className="text-ds-status-error-text">*</span>
+            ) : (
+              <span className="font-normal text-ds-text-secondary">(optional)</span>
+            )}
           </span>,
-          "CAC certificate or similar. JPG, PNG, or PDF. Max 5MB."
+          cacRequired
+            ? "CAC certificate. JPG, PNG, or PDF. Max 5MB."
+            : "Optional for individual sellers — upload your CAC certificate if you have one. JPG, PNG, or PDF. Max 5MB.",
+          cacRequired
         )}
 
         {renderUpload(
@@ -479,6 +587,14 @@ export default function VerificationDocs({ onNext, updateFormData, formData }: F
           </span>,
           "Utility bill (electricity, water, etc.). JPG, PNG, or PDF. Max 5MB."
         )}
+
+        <div className="mb-6">
+          <PackagePicker
+            value={chosenPackageId}
+            onChange={setChosenPackageId}
+            onLoaded={setPackagesOffered}
+          />
+        </div>
 
         <Form.Item className="mb-0">
           <button

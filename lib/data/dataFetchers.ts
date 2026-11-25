@@ -6,6 +6,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import type { Banner, Product, Vendor, Order, Review } from '@/lib/types';
 
 async function withPrismaReconnect<T>(action: () => Promise<T>): Promise<T> {
@@ -98,7 +99,7 @@ export async function getHeroBanners(): Promise<Banner[]> {
 export async function getProducts(): Promise<Product[]> {
     try {
         const products = await withPrismaReconnect(() => prisma.product.findMany({
-            where: { isActive: true },
+            where: { isActive: true, ...visibleVendorProductWhere() },
             include: {
                 vendor: true,
                 reviews: true,
@@ -116,7 +117,7 @@ export async function getProducts(): Promise<Product[]> {
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
     try {
         const products = await withPrismaReconnect(() => prisma.product.findMany({
-            where: { isFeatured: true, isActive: true },
+            where: { isFeatured: true, isActive: true, ...visibleVendorProductWhere() },
             include: {
                 vendor: true,
                 reviews: true,
@@ -135,7 +136,7 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
 export async function getTrendingProducts(limit = 8): Promise<Product[]> {
     try {
         const products = await withPrismaReconnect(() => prisma.product.findMany({
-            where: { isActive: true },
+            where: { isActive: true, ...visibleVendorProductWhere() },
             include: {
                 vendor: true,
                 _count: { select: { reviews: true } },

@@ -2,6 +2,7 @@
  * GET /api/products/trending — Popular products ranked by sales, rating, and recency
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet } from '@/lib/cache/redis';
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 
         // Fetch active products with relevant fields for composite scoring
         const rawProducts = await prisma.product.findMany({
-            where: { isActive: true },
+            where: { isActive: true, ...visibleVendorProductWhere() },
             include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
             orderBy: { sales: 'desc' },
             take: limit * 4, // over-fetch to allow score re-sorting

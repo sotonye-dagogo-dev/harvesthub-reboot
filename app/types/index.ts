@@ -36,6 +36,15 @@ export interface UserFormData {
         publicId?: string;
     }[];
     idType?: string;
+    /** INDIVIDUAL = individual/small seller (CAC optional); BUSINESS = registered business (CAC required) */
+    sellerType?: 'INDIVIDUAL' | 'BUSINESS';
+    /** Church department or unit the vendor serves in (checked by Support) */
+    department?: string;
+    /** Someone who can vouch for the vendor */
+    refereeName?: string;
+    refereePhone?: string;
+    /** Paid package picked at signup; vendors start free and pay for it when their free listings run out */
+    chosenPackageId?: string;
     password?: string;
     agreement?: boolean;
     isChurchAffiliated?: boolean;

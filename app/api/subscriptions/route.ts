@@ -76,7 +76,7 @@ export async function GET() {
         const rl = await rateLimitByUser(user.userId);
         if (!rl.success) return getRateLimitResponse(rl);
 
-        const [summary, history, wallet] = await Promise.all([
+        const [summary, history, wallet, vendor] = await Promise.all([
             getSubscriptionSummary(prisma, user.userId),
             prisma.vendorSubscription
                 .findMany({
@@ -92,13 +92,21 @@ export async function GET() {
                 where: { userId: user.userId },
                 select: { balance: true, isActive: true },
             }),
+            prisma.vendor
+                .findUnique({ where: { userId: user.userId }, select: { businessVerification: true } })
+                .catch(() => null),
         ]);
+
+        // Package the vendor picked at signup (they start free and pay for it later).
+        const bv = vendor?.businessVerification as { chosenPackage?: { id?: unknown } } | null | undefined;
+        const chosenPackageId = typeof bv?.chosenPackage?.id === 'string' ? bv.chosenPackage.id : null;
 
         return apiSuccess({
             summary,
             history,
             walletBalance: wallet?.balance ?? 0,
             walletActive: wallet?.isActive ?? false,
+            chosenPackageId,
         });
     });
 }

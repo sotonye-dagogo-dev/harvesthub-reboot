@@ -10,6 +10,7 @@ import { cacheGet, cacheSet } from '@/lib/cache/redis';
 import { vendorListKey } from '@/lib/cache/keys';
 import { Prisma, VendorStatus, Campus, VendorCategory } from '../../../prisma/generated/client';
 import { UserRole } from '@/lib/constants';
+import { isVendorBlocked } from '@/lib/services/vendorStatus';
 
 export async function GET(req: NextRequest) {
     try {
@@ -23,15 +24,22 @@ export async function GET(req: NextRequest) {
         const includeAllStatuses = searchParams.get('includeAllStatuses') === 'true';
         const requester = includeAllStatuses ? await getCurrentUser() : null;
         const canViewAllStatuses = includeAllStatuses && requester?.role === UserRole.ADMIN;
-        const explicitStatus =
+        const requestedStatus =
             statusParam && statusParam !== 'ALL' && Object.values(VendorStatus).includes(statusParam as VendorStatus)
                 ? (statusParam as VendorStatus)
                 : null;
+        // Suspended/rejected vendors are only listable by admins.
+        const statusRequester =
+            requestedStatus && isVendorBlocked(requestedStatus) && !requester ? await getCurrentUser() : requester;
+        const explicitStatus =
+            requestedStatus && isVendorBlocked(requestedStatus) && statusRequester?.role !== UserRole.ADMIN
+                ? null
+                : requestedStatus;
         const campus = searchParams.get('campus');
         const category = searchParams.get('category');
         const search = searchParams.get('search');
 
-        const cacheable = !canViewAllStatuses;
+        const cacheable = !canViewAllStatuses && !(explicitStatus && isVendorBlocked(explicitStatus));
         const cacheKey = vendorListKey(JSON.stringify({
             page,
             limit,

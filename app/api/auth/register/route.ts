@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@/prisma/generated/client';
 import { hashPassword } from '@/lib/utils/password';
 import { sendVerifyEmail } from '@/lib/services/email';
+import { checkVerificationDocuments, checkVettingDetails, normalizeSellerType, type VettingDetails } from '@/lib/services/vendorVerification';
 import { rateLimitStrict, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { CATEGORY_COMMISSION_DEFAULTS, COMMISSION_RATES, VendorCategory, Campus, UserRole, Gender, Position, ServiceCategory, ServiceLocation } from '@/lib/constants';
 import { randomUUID as uuidv4 } from 'crypto';
@@ -106,6 +107,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        let vetting: VettingDetails | null = null;
+        let chosenPackage: { id: string; slug: string; name: string; price: number; durationDays: number } | null = null;
+
         if (role === UserRole.VENDOR) {
             if (!storeName || !category || !whatsappNumber || !campus || !businessAddress?.trim()) {
                 return NextResponse.json(
@@ -178,35 +182,46 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            const docs = Array.isArray(verificationDocuments) ? verificationDocuments : [];
-            const requiredDocTypes = ['ID', 'BUSINESS_REGISTRATION', 'UTILITY_BILL'];
-            const hasAllRequiredDocs = requiredDocTypes.every((requiredType) =>
-                docs.some((doc: Record<string, unknown>) => doc?.documentType === requiredType)
-            );
-
-            if (!hasAllRequiredDocs) {
+            const verification = checkVerificationDocuments({
+                sellerType: body?.sellerType,
+                documents: verificationDocuments,
+                idType: body?.idType,
+            });
+            if (!verification.ok) {
                 return NextResponse.json(
-                    {
-                        success: false,
-                        error: 'All vendor verification documents are required: valid ID, business registration certificate, and utility bill.',
-                    },
+                    { success: false, error: verification.error, code: verification.code },
                     { status: 400 }
                 );
             }
 
-            const hasUnsupportedDocUrl = docs.some((doc: Record<string, unknown>) => {
-                const url = typeof doc.url === 'string' ? doc.url : '';
-                return !url.startsWith('https://res.cloudinary.com/');
+            const vettingCheck = checkVettingDetails({
+                department: body?.department,
+                refereeName: body?.refereeName,
+                refereePhone: body?.refereePhone,
             });
-
-            if (hasUnsupportedDocUrl) {
+            if (!vettingCheck.ok) {
                 return NextResponse.json(
-                    {
-                        success: false,
-                        error: 'Verification documents must use managed Cloudinary upload URLs.',
-                    },
+                    { success: false, error: vettingCheck.error, code: vettingCheck.code },
                     { status: 400 }
                 );
+            }
+            vetting = vettingCheck.details;
+
+            // Package picked at signup. Everyone starts free; this is the paid package
+            // they will be asked to pay for once their free listings are used up.
+            const chosenPackageId = typeof body?.chosenPackageId === 'string' ? body.chosenPackageId : '';
+            if (chosenPackageId) {
+                const pkg = await prisma.subscriptionPackage.findUnique({
+                    where: { id: chosenPackageId },
+                    select: { id: true, slug: true, name: true, price: true, durationDays: true, isActive: true },
+                });
+                if (!pkg || !pkg.isActive || pkg.price <= 0) {
+                    return NextResponse.json(
+                        { success: false, error: 'The package you picked is no longer available. Please choose another.', code: 'INVALID_PACKAGE' },
+                        { status: 400 }
+                    );
+                }
+                chosenPackage = { id: pkg.id, slug: pkg.slug, name: pkg.name, price: pkg.price, durationDays: pkg.durationDays };
             }
         }
 
@@ -322,6 +337,12 @@ export async function POST(request: NextRequest) {
                         : undefined,
                     businessAddress: businessAddress || undefined,
                     idType: body?.idType || undefined,
+                    sellerType: normalizeSellerType(body?.sellerType),
+                    department: vetting?.department,
+                    referee: vetting ? { name: vetting.refereeName, phone: vetting.refereePhone } : undefined,
+                    chosenPackage: chosenPackage
+                        ? { ...chosenPackage, chosenAt: new Date().toISOString() }
+                        : undefined,
                     churchPosition: position || undefined,
                     bankDetails:
                         bankName || accountName || accountNumber

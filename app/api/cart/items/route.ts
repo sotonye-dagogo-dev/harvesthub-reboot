@@ -2,6 +2,7 @@
  * POST /api/cart/items — Add item to cart
  */
 import { NextRequest } from 'next/server';
+import { isVendorBlocked, VENDOR_UNAVAILABLE_FOR_BUYERS } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentUser } from '@/lib/utils/auth';
 import { rateLimitByUser, getRateLimitResponse } from '@/lib/middleware/rate-limit';
@@ -24,8 +25,14 @@ export async function POST(req: NextRequest) {
         if (!productId) return apiError('productId is required', 400);
         if (typeof quantity !== 'number' || quantity < 1) return apiError('Quantity must be at least 1', 400);
 
-        const product = await prisma.product.findUnique({ where: { id: productId } });
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
+            include: { vendor: { select: { status: true } } },
+        });
         if (!product || !product.isActive) return apiError('Product not found or inactive', 404);
+        if (isVendorBlocked(product.vendor?.status)) {
+            return apiError(VENDOR_UNAVAILABLE_FOR_BUYERS, 400, { code: 'VENDOR_UNAVAILABLE' });
+        }
 
         // Services are capped at qty 1
         const effectiveQty = product.listingType === ListingType.SERVICE ? 1 : quantity;

@@ -608,6 +608,11 @@ export interface UserFormData {
         publicId?: string;
     }[];
     idType?: string;
+    sellerType?: 'INDIVIDUAL' | 'BUSINESS';
+    department?: string;
+    refereeName?: string;
+    refereePhone?: string;
+    chosenPackageId?: string;
     password?: string;
     agreement?: boolean;
 }

@@ -2,6 +2,7 @@
  * GET /api/products/featured — Featured products
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimitByIP, getRateLimitResponse } from '@/lib/middleware/rate-limit';
 import { cacheGet, cacheSet } from '@/lib/cache/redis';
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
         if (cached) return NextResponse.json({ success: true, products: cached });
 
         const products = await prisma.product.findMany({
-            where: { isFeatured: true, isActive: true },
+            where: { isFeatured: true, isActive: true, ...visibleVendorProductWhere() },
             include: { vendor: { select: { id: true, storeName: true, storeLogo: true, campus: true } } },
             orderBy: { createdAt: 'desc' },
             take: limit,

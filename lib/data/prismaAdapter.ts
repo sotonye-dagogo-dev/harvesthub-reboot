@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { visibleVendorProductWhere } from '@/lib/services/vendorStatus';
 import { hashPassword, verifyPassword as comparePassword } from '@/lib/utils/password';
 import type { CrudAdapter } from '@/lib/data/adapterTypes';
 
@@ -107,6 +108,14 @@ export const productDb = {
         if (filters?.category) where.category = filters.category;
         if (filters?.isActive !== undefined) where.isActive = filters.isActive;
         if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
+        if (filters?.listingType) where.listingType = filters.listingType;
+        if (Number.isFinite(filters?.minPrice) || Number.isFinite(filters?.maxPrice)) {
+            where.price = {};
+            if (Number.isFinite(filters?.minPrice)) where.price.gte = filters.minPrice;
+            if (Number.isFinite(filters?.maxPrice)) where.price.lte = filters.maxPrice;
+        }
+        // Buyer-facing lists never show listings from suspended/rejected vendors.
+        if (filters?.publicOnly) Object.assign(where, visibleVendorProductWhere());
         if (filters?.search) {
             const normalizedSearch = String(filters.search).trim();
             where.OR = [
@@ -131,6 +140,14 @@ export const productDb = {
         if (filters?.category) where.category = filters.category;
         if (filters?.isActive !== undefined) where.isActive = filters.isActive;
         if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
+        if (filters?.listingType) where.listingType = filters.listingType;
+        if (Number.isFinite(filters?.minPrice) || Number.isFinite(filters?.maxPrice)) {
+            where.price = {};
+            if (Number.isFinite(filters?.minPrice)) where.price.gte = filters.minPrice;
+            if (Number.isFinite(filters?.maxPrice)) where.price.lte = filters.maxPrice;
+        }
+        // Buyer-facing lists never show listings from suspended/rejected vendors.
+        if (filters?.publicOnly) Object.assign(where, visibleVendorProductWhere());
         if (filters?.search) {
             const normalizedSearch = String(filters.search).trim();
             where.OR = [
