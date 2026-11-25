@@ -1,1 +1,1 @@
-export { Logo, LogoMark, HarvestersCross, BRAND_COLORS } from "./Logo";
+export { Logo, LogoMark, BrandCross, BRAND_COLORS } from "./Logo";

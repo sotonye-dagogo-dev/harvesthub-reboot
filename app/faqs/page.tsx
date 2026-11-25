@@ -18,8 +18,8 @@ export default function FAQsPage() {
           a: "MyHarvestHub.org is a faith-driven e-commerce marketplace that connects Christian entrepreneurs, service providers, and buyers. Our goal is to empower Christian businesses by offering a low-commission platform where buyers can access affordable, high-quality goods and services while building a community of trust and faith.",
         },
         {
-          q: "Is MyHarvestHub.org owned or operated by Harvesters International Christian Center?",
-          a: "No. MyHarvestHub.org is independent and not owned, operated, or managed by Harvesters International Christian Center or any other church organization. While we are inspired by Christian values, we are a separate commercial entity.",
+          q: "Is MyHarvestHub.org owned or operated by a church?",
+          a: "No. MyHarvestHub.org is independent and not owned, operated, or managed by any church organization. While we are inspired by Christian values, we are a separate commercial entity.",
         },
         {
           q: "Who can use the platform?",

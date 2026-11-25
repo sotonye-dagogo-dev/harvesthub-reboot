@@ -4,7 +4,7 @@ import { BadgeCheck, MapPin, ShieldCheck, Store, Ticket, Wallet } from "lucide-r
 const VALUE_ITEMS = [
   { href: "/help", icon: MapPin, title: "Campus pickup", subtitle: "Collect after service" },
   { href: "/help", icon: ShieldCheck, title: "Secure payments", subtitle: "Paystack & wallet" },
-  { href: "/vendors", icon: BadgeCheck, title: "Verified vendors", subtitle: "Harvesters community" },
+  { href: "/vendors", icon: BadgeCheck, title: "Verified vendors", subtitle: "Checked and accountable" },
   { href: "/wallet", icon: Wallet, title: "MyHarvestHub wallet", subtitle: "Pay in one tap" },
   { href: "/vouchers", icon: Ticket, title: "Vouchers & rewards", subtitle: "Save on every order" },
   { href: "/become-vendor", icon: Store, title: "Sell with us", subtitle: "Open your store" },

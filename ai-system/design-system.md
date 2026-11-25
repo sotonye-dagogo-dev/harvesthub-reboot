@@ -17,8 +17,8 @@
 
 | Token        | Value                        | Usage                         |
 | ------------ | ---------------------------- | ----------------------------- |
-| brand-primary (Harvesters Magenta) | `#B81D82` (`--ds-palette-magenta-600`) | Primary buttons, CTAs, cart badge, Flash Sales |
-| brand-deep (Harvesters Purple)     | `#2B0B4E` (`--ds-palette-purple-950`)  | Top strip, section header bars, footer, hero fallback |
+| brand-primary (brand magenta) | `#B81D82` (`--ds-palette-magenta-600`) | Primary buttons, CTAs, cart badge, Flash Sales |
+| brand-deep (brand purple)     | `#2B0B4E` (`--ds-palette-purple-950`)  | Top strip, section header bars, footer, hero fallback |
 | brand-accent / text-brand (Vibrant Violet) | `#8E24AA` (`--ds-palette-purple-500`) | Links, brand text, focus ring |
 | background   | `#ffffff` / `#0b0b1d` (dark) | Page background               |
 | surface      | `#f8fafc` / `#0f172a` (dark) | Cards, panels                 |
@@ -29,8 +29,8 @@
 
 ### Brand assets (2026-11 rebrand)
 
-- Logo = magenta shopping bag carrying the Harvesters hand-drawn cross on a Harvesters Purple tile. Tagline "Shop. Serve. Grow.".
-- React: `components/brand` → `<Logo />` (horizontal), `<Logo variant="church" />` (capitals lockup), `<LogoMark />`, `<HarvestersCross />`.
+- Logo = magenta shopping bag carrying a hand-drawn brush cross on a brand-purple tile. Slogan "The field the Lord has blessed".
+- React: `components/brand` → `<Logo />` (horizontal), `<Logo variant="church" />` (capitals lockup), `<LogoMark />`, `<BrandCross />`.
 - Static: `public/brand/*.svg|png`, `public/favicon.svg`, `public/favicon.ico`, `public/icons/*` (maskable), `public/myharvesthublogo.png` (kept for existing references).
 - Storefront follows a Jumia-style layout: promo strip → header (logo, search + SEARCH button, account menu, help, cart) → category menu | hero | ad rail → value strip → coloured section bars (`components/features/home/HomeSection`).
 
@@ -57,7 +57,7 @@
 
 ### Buttons
 
-- **Primary**: Solid Harvesters Magenta (`bg-ds-brand-primary`), white text, slight shadow, hover darken.
+- **Primary**: Solid brand magenta (`bg-ds-brand-primary`), white text, slight shadow, hover darken.
 - **Secondary**: Outline (purple border) with transparent fill, hover background `purple-50`.
 - **Destructive**: Red background (`bg-red-500`) with white text.
 - **Disabled**: Low opacity, non-interactive cursor.

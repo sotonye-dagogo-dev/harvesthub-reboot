@@ -5,9 +5,9 @@ import { TopAdBanner } from "@/components/features";
 import { Providers } from "@/app/providers";
 
 export const metadata = {
-  title: "MyHarvestHub — Shop. Serve. Grow.",
+  title: "MyHarvestHub — The field the Lord has blessed",
   description:
-    "MyHarvestHub is the Harvesters marketplace: shop from trusted vendors in the Harvesters community, with campus pickup and home delivery.",
+    "MyHarvestHub is the trusted marketplace of verified sellers, open to every buyer. The field the Lord has blessed.",
   manifest: "/manifest.json",
   icons: {
     icon: [

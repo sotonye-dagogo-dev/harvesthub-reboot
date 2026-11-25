@@ -3,7 +3,7 @@
 /**
  * TopAdBanner — the strip above the header (below it on phones).
  * ─────────────────────────────────────────────────────────────────
- * Shows MyHarvestHub / Harvesters house campaigns. Third-party (sponsored) adverts only
+ * Shows MyHarvestHub house campaigns. Third-party (sponsored) adverts only
  * appear here when an admin has sold them premium top placement; otherwise they are shown
  * in the in-feed "Sponsored" slot on the home page (see SponsoredAdSlot).
  *

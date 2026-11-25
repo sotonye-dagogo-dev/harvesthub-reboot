@@ -20,7 +20,7 @@ import { CategorySidebar } from "@/components/features/home/CategorySidebar";
 import { FlashSaleCountdown } from "@/components/features/home/FlashSaleCountdown";
 import { HomeSection } from "@/components/features/home/HomeSection";
 import { HomeValueStrip } from "@/components/features/home/HomeValueStrip";
-import { HarvestersCross } from "@/components/brand";
+import { BrandCross } from "@/components/brand";
 import { SponsoredAdSlot } from "@/components/features/ads/SponsoredAdSlot";
 import {
   DEFAULT_PRODUCT_SORT,
@@ -318,19 +318,19 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
               <BannerCarousel banners={activeBanners} autoPlay />
             ) : (
               <div className="relative flex h-full min-h-[14rem] flex-col justify-center overflow-hidden rounded-ds-md bg-ds-brand-deep p-6 text-ds-brand-on-deep sm:p-10">
-                <HarvestersCross
+                <BrandCross
                   size={260}
                   className="pointer-events-none absolute -right-10 -top-6 text-white opacity-10"
                   title=""
                 />
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ds-palette-magenta-200">
-                  The Harvesters marketplace
+                  Welcome to MyHarvestHub
                 </p>
                 <h1 className="mt-2 max-w-md text-2xl font-bold text-white sm:text-4xl">
-                  Shop. Serve. Grow.
+                  The field the Lord has blessed
                 </h1>
                 <p className="mt-2 max-w-md text-sm text-ds-palette-purple-200 sm:text-base">
-                  Buy from trusted vendors in the Harvesters family and pick up at your campus.
+                  Buy from verified, trusted sellers and pick up at your campus.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link
@@ -453,7 +453,7 @@ export function HomeContent({ banners, products, vendors }: HomeContentProps) {
                 <Store className="h-7 w-7 text-ds-brand-primary" aria-hidden="true" />
                 <span>
                   <span className="block text-sm font-semibold text-ds-text-primary">Sell on MyHarvestHub</span>
-                  <span className="block text-xs text-ds-text-secondary">Reach the whole Harvesters community</span>
+                  <span className="block text-xs text-ds-text-secondary">Reach buyers who trust verified sellers</span>
                 </span>
               </Link>
               <Link

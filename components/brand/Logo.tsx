@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 /**
  * MyHarvestHub brand mark + lockups.
  *
- * The mark is a magenta shopping bag carrying the Harvesters hand-drawn cross,
- * on a Harvesters Purple tile. Wordmarks are rendered as live text so they
+ * The mark is a magenta shopping bag carrying a hand-drawn brush cross,
+ * on a brand-purple tile. Wordmarks are rendered as live text so they
  * pick up the design-system tokens in light and dark mode.
  *
  * Static asset versions live in /public/brand (SVG + PNG).
@@ -28,7 +28,7 @@ interface MarkProps {
   title?: string;
 }
 
-/** Square app-icon mark (bag + Harvesters cross). */
+/** Square app-icon mark (bag + brush cross). */
 export function LogoMark({ size = 40, className, title = "MyHarvestHub" }: MarkProps) {
   return (
     <svg
@@ -66,8 +66,8 @@ export function LogoMark({ size = 40, className, title = "MyHarvestHub" }: MarkP
   );
 }
 
-/** The Harvesters brushstroke cross on its own; inherits `currentColor`. */
-export function HarvestersCross({ size = 40, className, title = "Harvesters cross" }: MarkProps) {
+/** The brushstroke cross on its own; inherits `currentColor`. */
+export function BrandCross({ size = 40, className, title = "Cross" }: MarkProps) {
   return (
     <svg
       width={size}
@@ -110,7 +110,7 @@ export function Logo({
   if (variant === "church") {
     return (
       <span className={cn("inline-flex items-end gap-1", className)} aria-label="MyHarvestHub">
-        <HarvestersCross
+        <BrandCross
           size={markSize}
           className={inverted ? "text-white" : "text-ds-brand-deep dark:text-white"}
         />
@@ -127,11 +127,11 @@ export function Logo({
           {showTagline ? (
             <span
               className={cn(
-                "mt-1 text-[10px] tracking-[0.25em]",
+                "mt-1 text-[9px] tracking-[0.14em]",
                 inverted ? "text-ds-palette-purple-200" : "text-ds-text-secondary"
               )}
             >
-              HARVESTERS BUSINESS HUB
+              THE FIELD THE LORD HAS BLESSED
             </span>
           ) : null}
         </span>
@@ -166,7 +166,7 @@ export function Logo({
               inverted ? "text-ds-palette-purple-200" : "text-ds-text-secondary"
             )}
           >
-            Shop. Serve. Grow.
+            The field the Lord has blessed
           </span>
         ) : null}
       </span>

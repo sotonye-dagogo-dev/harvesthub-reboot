@@ -145,7 +145,7 @@ export function Footer({ className }: { className?: string } = {}) {
         <div className="mt-10 border-t border-white/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-sm text-ds-palette-purple-200 md:flex-row">
             <div className="flex flex-col items-center gap-1 md:items-start">
-              <p>&copy; {currentYear} MyHarvestHub — a Harvesters International Christian Centre initiative. All rights reserved.</p>
+              <p>&copy; {currentYear} MyHarvestHub — The field the Lord has blessed. All rights reserved.</p>
               <p className="text-xs text-ds-palette-purple-300">
                 Built by{" "}
                 <a

@@ -412,7 +412,7 @@ export default function OperationsBannersPage() {
             >
               <Select
                 options={[
-                  { value: false, label: "MyHarvestHub / Harvesters campaign" },
+                  { value: false, label: "MyHarvestHub campaign" },
                   { value: true, label: "Sponsored (third-party advert)" },
                 ]}
               />
@@ -473,8 +473,8 @@ export default function OperationsBannersPage() {
               <Form.Item name="theme" label="Colour" className="md:col-span-3">
                 <Select
                   options={[
-                    { value: "BUSINESS", label: "Harvesters Purple" },
-                    { value: "PROMOTION", label: "Harvesters Magenta" },
+                    { value: "BUSINESS", label: "Brand Purple" },
+                    { value: "PROMOTION", label: "Brand Magenta" },
                     { value: "EVENT", label: "Purple to violet" },
                     { value: "CHURCH", label: "Purple to magenta (church events)" },
                   ]}
